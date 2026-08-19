@@ -17,11 +17,21 @@ Claude does **not**:
 - Produce permit-ready, stamped construction documents — a licensed architect must review, refine, and stamp anything generated here before it's used for permitting or construction
 - Substitute for a structural/MEP engineer's calculations
 
+## Site intake — deed & zoning documents (Turkish)
+
+Real projects start from municipal/deed paperwork, usually in Turkish, handed over as a mix of PDF and PNG. Read every provided document directly — both file types, and Turkish text, are readable natively — before generating anything:
+
+- **Tapu (deed) information page** — typically a scanned PNG; confirms the parcel (ada/parsel), lot area, and ownership.
+- **İmar durumu / plan notes (zoning status document)** — typically a PDF; states the building rights and hard constraints: **TAKS** (lot coverage ratio), **KAKS / emsal** (floor area ratio), **gabari** (max building height), **çekme mesafeleri** (setbacks — front/side/rear), plus any other plan notes (easements, special conditions).
+- **Kırmızı kot (red grade/elevation line)** — the municipality's official reference road/site elevation. Ground-floor level and height calculations must be measured from this datum, not an assumed grade.
+
+Extract every numeric constraint explicitly and list it back at the top of the project brief before designing anything, so it's auditable against the source document. Treat a missing or illegible constraint as a blocker — ask rather than guessing a setback, ratio, or elevation. This intake, plus the room program (spaces, approximate square footage, adjacencies), is what a floor plan is generated from.
+
 ## Floor plan generation
 
 Floor plans are generated with Python: **ezdxf** for real, to-scale `.dxf` files (openable in AutoCAD, FreeCAD, and most CAD software) and **svgwrite** for a quick-review `.svg` alongside it. Requires `pip install ezdxf svgwrite` in the environment generating the plan.
 
-Inputs needed from the client/deed to produce a plan: lot dimensions and orientation, setback requirements, and the room program (spaces, approximate square footage, adjacencies). Treat missing inputs as blockers — ask rather than guessing lot geometry.
+Every dimension in the generated plan must trace back to the intake above: lot geometry and orientation from the deed, setbacks/TAKS/KAKS/gabari from the plan notes, ground floor level from the red grade line, and room layout from the program. Treat missing inputs as blockers — ask rather than guessing lot geometry or any zoning number.
 
 Output per project: `clients/<slug>/cad/<name>.dxf` and `.svg`, plus a short note in that client's folder stating these are schematic drawings requiring licensed-architect review before permitting or construction — never claim code compliance or a stamp on generated output.
 
@@ -38,6 +48,22 @@ Two-stage pipeline, in this order:
 Never present a render as a substitute for a licensed architect's drawings; it's sales/marketing collateral derived from the schematic plan.
 
 **Output**: `clients/<slug>/renders/<name>.blend`, `.glb`, and final catalog images.
+
+## Compliance verification (mandatory, before delivering any CAD/render output)
+
+This is schematic work, but it must never contradict the founder's own source documents — there's no room for a setback, ratio, or height that quietly doesn't match the intake. Before calling a floor plan or render finished, re-derive every key figure from the generated DXF/SVG and check it explicitly against the constraint list from intake:
+
+- Lot coverage used vs. the TAKS limit
+- Total floor area vs. KAKS/emsal
+- Building height vs. gabari
+- Each setback (front/side/rear) vs. its stated minimum
+- Ground floor level vs. the kırmızı kot (red grade line) datum
+
+Fix any conflict before delivering. State the check results plainly in the client's project notes (pass/fail per item, not just "looks fine") — this is what makes the output auditable, not just asserted.
+
+## Design rationale (required deliverable, alongside CAD/render output)
+
+Every project also gets a short written rationale — `clients/<slug>/notes/rationale.md` — explaining the design in plain language: why the building is oriented and placed as it is, how the room program maps onto the lot, and specifically how each municipal constraint (setbacks, TAKS/KAKS, gabari, red grade line) shaped the design decisions, plus any tradeoffs made. This is what turns a set of drawings into something the founder can defend to a client or reviewer, not just a CAD file with no explanation behind it.
 
 ## Recommended connectors
 

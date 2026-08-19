@@ -4,7 +4,7 @@ Three board members sit between the founder and the six departments. The founder
 
 | Board member | Subagent | Owns | Delegates to |
 |---|---|---|---|
-| COO | `board-coo` | Web Development, Architecture, Sales, Advertising (production) | `web-developer`, `architecture-assistant`, `sales-strategist`, `ad-strategist` |
+| COO | `board-coo` | Web Development, Architecture, Sales, Advertising, Communication (production) | `web-developer`, `architecture-assistant`, `sales-strategist`, `ad-strategist`, `communication-strategist` |
 | CFO | `board-cfo` | Accounting | `accountant` |
 | Controller | `board-controller` | Control/Audit | `auditor` |
 
