@@ -32,18 +32,18 @@ Output per project: `clients/<slug>/cad/<name>.dxf` and `.svg`, plus a short not
 Two-stage pipeline, in this order:
 
 1. **Geometry — Blender, scripted, local.** Extrude the same floor plan (walls, openings, floor/ceiling slabs) into a basic 3D massing model via Blender's Python API (`bpy`), run headless (`blender --background --python script.py`). This gives accurate, to-scale geometry derived from the actual plan, not a guess. Export as `.blend` and `.glb` for reference/reuse. Render a clean, presentable pass with Blender's Cycles engine as the base image.
-   **Requires Blender installed locally — it is not currently installed on this machine.** Install it (free, from blender.org) before this stage is usable; flag this to the founder rather than silently skipping it.
-2. **Polish — AI image enhancement.** Use the Blender render as a reference/base and an AI image-generation connector to produce the final photorealistic catalog image (materials, lighting, staging). This connector isn't configured yet — see below.
+   **Blender 4.5 LTS is installed** (`"C:\Program Files\Blender Foundation\Blender 4.5\blender.exe" --background --python <script>.py`, on the user PATH). `bpy` must be imported explicitly in the script — it isn't auto-imported.
+2. **Polish — AI image enhancement.** Use the Blender render as a reference/base and **OpenArt** (MCP connector, see `../advertising/CLAUDE.md`) to produce the final photorealistic catalog image (materials, lighting, staging). Registered in `.mcp.json` and granted to the `architecture-assistant` subagent's tools; check `claude mcp list` in the current session before assuming it's live — approval is per-session, not global.
 
 Never present a render as a substitute for a licensed architect's drawings; it's sales/marketing collateral derived from the schematic plan.
 
 **Output**: `clients/<slug>/renders/<name>.blend`, `.glb`, and final catalog images.
 
-## Recommended connectors (not yet configured)
+## Recommended connectors
 
-- **Google Drive or Dropbox** — the practical handoff point for CAD/BIM files and drawing sets a human is producing in native software
-- **Autodesk Construction Cloud API** — worth wiring up if/when the practice standardizes on Revit + ACC for project data and issue tracking
-- **AI image-generation API** (e.g. Stable Diffusion or similar) — needed for the render-polish stage above; needs an account/API key
+- **OpenArt MCP** — render-polish stage above. Configured (`.mcp.json`), granted to this subagent; approval is per-session, check `claude mcp list` (see root `CLAUDE.md`).
+- **Google Drive or Dropbox** (not yet configured) — the practical handoff point for CAD/BIM files and drawing sets a human is producing in native software
+- **Autodesk Construction Cloud API** (not yet configured) — worth wiring up if/when the practice standardizes on Revit + ACC for project data and issue tracking
 
 ## Conventions
 
