@@ -1,0 +1,641 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .dash {
+      --bg: hsl(240 20% 98%);
+      --surface: hsl(0 0% 100%);
+      --surface-2: hsl(240 20% 96%);
+      --border: hsl(240 10% 90%);
+      --text: hsl(240 10% 14%);
+      --text-muted: hsl(240 6% 46%);
+      --text-faint: hsl(240 6% 62%);
+      --primary: hsl(243 75% 59%);
+      --primary-strong: hsl(243 70% 50%);
+      --primary-soft: hsl(243 75% 96%);
+      --primary-soft-text: hsl(243 70% 40%);
+      --green: hsl(155 55% 38%);
+      --green-soft: hsl(155 55% 94%);
+      --red: hsl(0 65% 52%);
+      --red-soft: hsl(0 65% 95%);
+      --shadow-sm: 0 1px 2px hsl(240 20% 20% / 0.05);
+      --shadow-md: 0 6px 20px -6px hsl(240 30% 20% / 0.10), 0 2px 6px -2px hsl(240 30% 20% / 0.06);
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .dash[data-mode="dark"] {
+      --bg: hsl(240 18% 8%);
+      --surface: hsl(240 15% 11%);
+      --surface-2: hsl(240 14% 15%);
+      --border: hsl(240 12% 20%);
+      --text: hsl(240 15% 95%);
+      --text-muted: hsl(240 8% 65%);
+      --text-faint: hsl(240 8% 48%);
+      --primary: hsl(243 90% 71%);
+      --primary-strong: hsl(243 95% 76%);
+      --primary-soft: hsl(243 45% 20%);
+      --primary-soft-text: hsl(243 90% 80%);
+      --green: hsl(155 50% 52%);
+      --green-soft: hsl(155 45% 16%);
+      --red: hsl(0 70% 65%);
+      --red-soft: hsl(0 45% 18%);
+      --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
+      --shadow-md: 0 10px 30px -8px hsl(0 0% 0% / 0.45), 0 2px 8px -2px hsl(0 0% 0% / 0.3);
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { color: var(--primary-strong); }
+    button { font-family: inherit; cursor: pointer; }
+
+    .header {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 28px; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .mark {
+      width: 34px; height: 34px; border-radius: 9px; background: var(--primary);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+    .brand-name { font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
+    .brand-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .header-right { display: flex; align-items: center; gap: 18px; }
+    .header-date { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+    .pulse { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--primary); color: white; border: none; border-radius: 9px;
+      padding: 9px 15px; font-size: 13.5px; font-weight: 600; box-shadow: var(--shadow-sm);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+    .container { max-width: 1320px; margin: 0 auto; padding: 26px 28px 64px; }
+
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+    .stat-tile {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px 18px; box-shadow: var(--shadow-sm);
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+    }
+    .stat-label { font-size: 12.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
+    .stat-value { font-size: 25px; font-weight: 800; letter-spacing: -0.02em; }
+    .stat-icon {
+      width: 34px; height: 34px; border-radius: 9px; background: var(--primary-soft); color: var(--primary-soft-text);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    .filter-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
+      border-radius: 999px; padding: 7px 13px 7px 11px; font-size: 12.5px; font-weight: 600;
+      transition: all .12s ease;
+    }
+    .chip:hover { border-color: var(--primary); color: var(--text); }
+    .chip.active { background: var(--text); color: var(--surface); border-color: var(--text); }
+    .chip-dot { width: 7px; height: 7px; border-radius: 50%; background: hsl(var(--h) 65% 50%); flex-shrink: 0; }
+
+    .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 30px; }
+    .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    .col-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 4px; }
+    .col-title { font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px; }
+    .col-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .col-count { font-size: 11.5px; font-weight: 700; color: var(--text-faint); background: var(--surface-2); border-radius: 6px; padding: 1px 7px; }
+    .col-body { display: flex; flex-direction: column; gap: 9px; min-height: 90px; }
+
+    .task-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px 13px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 9px;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .task-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .task-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+    .task-notes { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+    .task-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .task-meta-right { display: flex; align-items: center; gap: 8px; }
+    .dept-tag {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700;
+      padding: 3px 9px 3px 7px; border-radius: 999px;
+      background: hsl(var(--h) 70% 95%); color: hsl(var(--h) 70% 32%);
+    }
+    .dash[data-mode="dark"] .dept-tag { background: hsl(var(--h) 35% 22%); color: hsl(var(--h) 75% 78%); }
+    .dept-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: hsl(var(--h) 65% 48%); }
+    .task-due { font-size: 11px; color: var(--text-faint); font-weight: 600; }
+    .priority { display: flex; gap: 2px; align-items: center; }
+    .priority i { width: 4px; height: 10px; border-radius: 2px; background: var(--border); }
+    .priority i.on { background: var(--primary); }
+
+    .col-empty {
+      border: 1.5px dashed var(--border); border-radius: 12px; padding: 22px 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text-faint);
+      font-size: 12px; font-weight: 600; text-align: center;
+    }
+
+    .charts-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-bottom: 30px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 22px; box-shadow: var(--shadow-sm); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .panel-title { font-size: 14px; font-weight: 700; }
+    .panel-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+    .legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .legend-swatch { width: 10px; height: 10px; border-radius: 3px; }
+    .legend-line { width: 14px; height: 2px; border-radius: 2px; }
+
+    .empty-panel {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      padding: 42px 16px; color: var(--text-faint); text-align: center;
+    }
+    .empty-panel-title { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+    .empty-panel-sub { font-size: 12px; max-width: 260px; }
+
+    .donut-wrap { display: flex; align-items: center; gap: 20px; }
+    .donut { width: 128px; height: 128px; border-radius: 50%; flex-shrink: 0; position: relative; }
+    .donut-hole {
+      position: absolute; inset: 18px; border-radius: 50%; background: var(--surface);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .donut-hole b { font-size: 20px; font-weight: 800; }
+    .donut-hole span { font-size: 10.5px; color: var(--text-muted); font-weight: 600; }
+    .donut-legend { display: flex; flex-direction: column; gap: 9px; }
+
+    .dept-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .dept-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px; box-shadow: var(--shadow-sm); cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .dept-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .dept-card.active { border-color: hsl(var(--h) 65% 50%); box-shadow: 0 0 0 3px hsl(var(--h) 65% 50% / 0.15); }
+    .dept-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .dept-icon {
+      width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+      background: hsl(var(--h) 70% 95%); color: hsl(var(--h) 70% 34%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dash[data-mode="dark"] .dept-icon { background: hsl(var(--h) 35% 22%); color: hsl(var(--h) 75% 78%); }
+    .dept-name { font-size: 13.5px; font-weight: 700; }
+    .dept-stats { display: flex; gap: 14px; margin-bottom: 12px; }
+    .dept-stat b { font-size: 17px; font-weight: 800; display: block; }
+    .dept-stat span { font-size: 10.5px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+    .dept-activity { font-size: 11.5px; color: var(--text-muted); padding-top: 11px; border-top: 1px solid var(--border); line-height: 1.5; }
+    .dept-report { font-size: 11px; font-weight: 700; margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+    .dept-report.has { color: var(--primary); }
+    .dept-report.none { color: var(--text-faint); }
+
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+    .section-title { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+    .section-sub { font-size: 12px; color: var(--text-muted); }
+
+    .scrim { position: fixed; inset: 0; background: hsl(240 20% 8% / 0.45); z-index: 30; backdrop-filter: blur(2px); }
+    .slideover {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 380px; max-width: 92vw; z-index: 31;
+      background: var(--surface); border-left: 1px solid var(--border); box-shadow: -12px 0 40px -12px hsl(240 30% 10% / 0.35);
+      padding: 22px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;
+    }
+    .slideover-head { display: flex; align-items: center; justify-content: space-between; }
+    .slideover-title { font-size: 16px; font-weight: 800; }
+    .close-btn {
+      width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2);
+      display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+    .field input, .field select, .field textarea {
+      border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; font-size: 13.5px;
+      font-family: inherit; background: var(--surface-2); color: var(--text);
+    }
+    .field textarea { resize: vertical; min-height: 60px; }
+    .field-row { display: flex; gap: 10px; }
+    .field-row .field { flex: 1; }
+    .priority-picker { display: flex; gap: 8px; }
+    .p-opt {
+      flex: 1; border: 1px solid var(--border); border-radius: 9px; padding: 8px; text-align: center;
+      font-size: 12px; font-weight: 700; color: var(--text-muted); background: var(--surface-2);
+    }
+    .p-opt.sel { background: var(--primary-soft); color: var(--primary-soft-text); border-color: var(--primary); }
+    .slideover-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 8px; }
+    .btn-ghost {
+      flex: 1; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      border-radius: 9px; padding: 10px; font-size: 13.5px; font-weight: 600;
+    }
+    .btn-full { flex: 1.4; border: none; background: var(--primary); color: white; border-radius: 9px; padding: 10px; font-size: 13.5px; font-weight: 700; }
+
+    @media (max-width: 980px) {
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+      .board { grid-template-columns: repeat(2, 1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+      .dept-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</helmet>
+
+<div class="dash" data-mode="{{modeAttr}}">
+  <div class="header">
+    <div class="brand">
+      <div class="mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 16 C6 12 9 12 12 12 C15 12 18 12 18 8 M6 16 C6 19 9 20 12 20 M18 8 C18 5 15 4 12 4" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">Sirketim</div>
+        <div class="brand-sub">Operations</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="pulse"><span class="pulse-dot"></span>Live</div>
+      <div class="header-date">Wednesday, Aug 19</div>
+      <button class="btn-primary" onClick="{{toggleAdd}}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.4" stroke-linecap="round"/></svg>
+        New task
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="stat-row">
+      <div class="stat-tile">
+        <div><div class="stat-label">Open tasks</div><div class="stat-value">{{openTotal}}</div></div>
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="stat-tile">
+        <div><div class="stat-label">Fulfilled this week</div><div class="stat-value">{{fulfilledTotal}}</div></div>
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="stat-tile">
+        <div><div class="stat-label">Net balance</div><div class="stat-value">{{netBalance}}</div></div>
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 17l6-6 4 4 8-8M21 7v6M21 7h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="stat-tile">
+        <div><div class="stat-label">Departments active</div><div class="stat-value">{{activeDeptCount}}</div></div>
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/></svg></div>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="chips">
+        <sc-for list="{{deptFilters}}" as="d" hint-placeholder-count="8">
+          <button class="chip {{d.chipClass}}" style="--h: {{d.hue}}" onClick="{{d.select}}">
+            <sc-if value="{{d.showDot}}" hint-placeholder-val="{{true}}"><span class="chip-dot"></span></sc-if>
+            {{d.name}}
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div class="board">
+      <sc-for list="{{cols}}" as="col" hint-placeholder-count="4">
+        <div class="col">
+          <div class="col-head">
+            <div class="col-title"><span class="col-dot" style="background:{{col.dotColor}}"></span>{{col.label}}</div>
+            <div class="col-count">{{col.count}}</div>
+          </div>
+          <div class="col-body">
+            <sc-for list="{{col.tasks}}" as="t" hint-placeholder-count="2">
+              <div class="task-card">
+                <div class="task-title">{{t.title}}</div>
+                <sc-if value="{{t.hasNotes}}" hint-placeholder-val="{{false}}">
+                  <div class="task-notes">{{t.notes}}</div>
+                </sc-if>
+                <div class="task-meta">
+                  <span class="dept-tag" style="--h:{{t.hue}}"><span class="dept-tag-dot"></span>{{t.deptShort}}</span>
+                  <div class="task-meta-right">
+                    <sc-if value="{{t.hasPriority}}" hint-placeholder-val="{{false}}">
+                      <div class="priority">
+                        <sc-for list="{{t.priorityBars}}" as="p" hint-placeholder-count="3">
+                          <i class="{{p.cls}}"></i>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{t.hasDue}}" hint-placeholder-val="{{false}}"><span class="task-due">{{t.due}}</span></sc-if>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{col.isEmpty}}" hint-placeholder-val="{{false}}">
+              <div class="col-empty">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 12h6M12 3v18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.5"/><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.4" opacity="0.35"/></svg>
+                {{col.emptyLabel}}
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="section-head">
+      <div><div class="section-title">This month</div><div class="section-sub">Income, expenses and net — pulled from the ledger</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Financial overview</div></div>
+        <sc-if value="{{hasData}}" hint-placeholder-val="{{true}}">
+          <div class="panel-sub">Weekly, last 6 weeks</div>
+          <svg viewBox="0 0 600 200" width="100%" height="200" preserveAspectRatio="none">
+            <line x1="40" y1="{{zeroY}}" x2="580" y2="{{zeroY}}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 4"/>
+            <polygon points="{{netArea}}" fill="var(--primary)" opacity="0.10"/>
+            <polyline points="{{netPoints}}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="{{incomePoints}}" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+            <polyline points="{{expensePoints}}" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+            <text x="40" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W1</text>
+            <text x="148" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W2</text>
+            <text x="256" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W3</text>
+            <text x="364" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W4</text>
+            <text x="472" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W5</text>
+            <text x="565" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W6</text>
+          </svg>
+          <div class="legend">
+            <div class="legend-item"><span class="legend-line" style="background:var(--green)"></span>Income</div>
+            <div class="legend-item"><span class="legend-line" style="background:var(--red)"></span>Expense</div>
+            <div class="legend-item"><span class="legend-line" style="background:var(--primary)"></span>Net</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{noData}}" hint-placeholder-val="{{false}}">
+          <div class="empty-panel">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.4"/><path d="M7 15l3-4 3 3 4-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/></svg>
+            <div class="empty-panel-title">No ledger activity yet</div>
+            <div class="empty-panel-sub">Charts fill in automatically as income and expenses are logged.</div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Task status</div></div>
+        <sc-if value="{{hasData}}" hint-placeholder-val="{{true}}">
+          <div class="panel-sub">{{totalTaskCount}} tasks tracked</div>
+          <div class="donut-wrap">
+            <div class="donut" style="background: {{donutGradient}}">
+              <div class="donut-hole"><b>{{totalTaskCount}}</b><span>total</span></div>
+            </div>
+            <div class="donut-legend">
+              <sc-for list="{{statusLegend}}" as="s" hint-placeholder-count="4">
+                <div class="legend-item"><span class="legend-swatch" style="background:{{s.color}}"></span>{{s.label}} · {{s.count}}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{noData}}" hint-placeholder-val="{{false}}">
+          <div class="empty-panel">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" opacity="0.4"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.4"/></svg>
+            <div class="empty-panel-title">No tasks tracked yet</div>
+            <div class="empty-panel-sub">Add your first task and it'll show up here.</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div><div class="section-title">Departments</div><div class="section-sub">What each team is working on right now</div></div>
+    </div>
+    <div class="dept-grid">
+      <sc-for list="{{depts}}" as="d" hint-placeholder-count="7">
+        <div class="dept-card {{d.activeClass}}" style="--h:{{d.hue}}" onClick="{{d.select}}">
+          <div class="dept-card-top">
+            <div class="dept-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="{{d.iconPath}}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="dept-name">{{d.name}}</div>
+          </div>
+          <div class="dept-stats">
+            <div class="dept-stat"><b>{{d.open}}</b><span>Open</span></div>
+            <div class="dept-stat"><b>{{d.done}}</b><span>Done</span></div>
+          </div>
+          <div class="dept-activity">{{d.activity}}</div>
+          <div class="dept-report {{d.reportClass}}">
+            <sc-if value="{{d.hasReport}}" hint-placeholder-val="{{false}}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M14 3v5h5M6 3h8l5 5v13H6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            </sc-if>
+            {{d.reportLabel}}
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+  </div>
+
+  <sc-if value="{{showAdd}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{toggleAdd}}"></div>
+    <div class="slideover">
+      <div class="slideover-head">
+        <div class="slideover-title">New task</div>
+        <button class="close-btn" onClick="{{toggleAdd}}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="field">
+        <label>Title</label>
+        <input type="text" placeholder="e.g. Draft proposal for new client">
+      </div>
+      <div class="field">
+        <label>Department</label>
+        <select>
+          <option>Web Development</option>
+          <option>Architecture</option>
+          <option>Sales</option>
+          <option>Advertising</option>
+          <option>Communication</option>
+          <option>Accounting</option>
+          <option>Control / Audit</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Priority</label>
+        <div class="priority-picker">
+          <div class="p-opt">Low</div>
+          <div class="p-opt sel">Medium</div>
+          <div class="p-opt">High</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Due date</label>
+          <input type="text" placeholder="Optional">
+        </div>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea placeholder="Any extra context…"></textarea>
+      </div>
+      <div class="slideover-actions">
+        <button class="btn-ghost" onClick="{{toggleAdd}}">Cancel</button>
+        <button class="btn-full" onClick="{{toggleAdd}}">Add task</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script data-dc-script data-props='{
+  "mode": {"editor":"enum","default":"light","options":["light","dark"],"section":"Appearance"},
+  "hasData": {"editor":"boolean","default":false,"section":"Data (off = today'\''s real, empty state)"}
+}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { selectedDept: 'all', showAdd: false };
+  }
+
+  select(id) { this.setState({ selectedDept: id }); }
+  toggleAdd() { this.setState({ showAdd: !this.state.showAdd }); }
+
+  renderVals() {
+    const mode = this.props.mode ?? 'light';
+    const hasData = this.props.hasData ?? false;
+    const sel = this.state.selectedDept;
+
+    const deptDefs = [
+      { id: 'web',   name: 'Web Development', short: 'Web',    hue: 243, iconPath: 'M8 6 L3 12 L8 18 M16 6 L21 12 L16 18',
+        activity: 'Updated departments/web-development/CLAUDE.md · 2h ago', report: null },
+      { id: 'arch',  name: 'Architecture', short: 'Arch',       hue: 205, iconPath: 'M3 11 L12 4 L21 11 M5 10 V19 H19 V10 M9 19 V14 M15 19 V14',
+        activity: 'Added renders/villa-k-front.glb · 5h ago', report: null },
+      { id: 'sales', name: 'Sales', short: 'Sales',             hue: 155, iconPath: 'M20.59 13.41 L13.42 20.58 A2 2 0 0 1 10.59 20.58 L2 12 L2 2 L12 2 L20.59 10.59 A2 2 0 0 1 20.59 13.41 Z M7 8 A1 1 0 1 0 7 6 A1 1 0 1 0 7 8 Z',
+        activity: 'Edited shared/clients.md · 1d ago', report: null },
+      { id: 'ads',   name: 'Advertising', short: 'Ads',         hue: 28,  iconPath: 'M3 11 V13 A1 1 0 0 0 4 14 H7 L12 18 V6 L7 10 H4 A1 1 0 0 0 3 11 Z M15 8 A4 4 0 0 1 15 16 M18 5 A8 8 0 0 1 18 19',
+        activity: 'Generated 6 OpenArt creative assets · 3h ago', report: null },
+      { id: 'comms', name: 'Communication', short: 'Comms',     hue: 325, iconPath: 'M4 4 H20 V16 H8 L4 20 Z',
+        activity: 'Updated prospects.md · 6h ago', report: null },
+      { id: 'acct',  name: 'Accounting', short: 'Accounting',   hue: 45,  iconPath: 'M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 Z M12 7 V17 M15 9.5 C15 8.1 13.7 7 12 7 C10.3 7 9 8 9 9.2 C9 12.2 15 10.6 15 13.5 C15 14.9 13.7 16 12 16 C10.3 16 9 14.9 9 13.5',
+        activity: 'Added ledger row — OpenArt subscription · 4d ago', report: 'Aug 18' },
+      { id: 'ctrl',  name: 'Control / Audit', short: 'Control', hue: 275, iconPath: 'M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z M9 12 L11 14 L15 10',
+        activity: 'No commits yet this week', report: 'Aug 18' },
+    ];
+    const deptById = Object.fromEntries(deptDefs.map(d => [d.id, d]));
+
+    const rawTasks = !hasData ? [] : [
+      { id: 1,  title: 'Scaffold new-web-client intake flow', dept: 'web',   status: 'in_progress', priority: 2, due: 'Aug 22' },
+      { id: 2,  title: 'Fix mobile nav overlap on fragrance-store', dept: 'web', status: 'assigned', priority: 1, due: null },
+      { id: 3,  title: 'Zoning check — Yalıkavak lot', dept: 'arch', status: 'in_progress', priority: 2, due: 'Aug 25' },
+      { id: 4,  title: '3D render polish — Villa K', dept: 'arch', status: 'fulfilled', priority: null, due: null },
+      { id: 5,  title: 'Proposal draft — boutique hotel lead', dept: 'sales', status: 'assigned', priority: 3, due: 'Aug 21' },
+      { id: 6,  title: 'Follow up — Etsy template lead', dept: 'sales', status: 'blocked', priority: null, due: null, notes: 'Waiting on buyer reply' },
+      { id: 7,  title: 'OpenArt creative set — fragrance launch', dept: 'ads', status: 'in_progress', priority: 2, due: 'Aug 23' },
+      { id: 8,  title: 'TikTok posting cadence brief', dept: 'ads', status: 'assigned', priority: 1, due: null },
+      { id: 9,  title: 'Outreach batch — 20 prospects', dept: 'comms', status: 'fulfilled', priority: null, due: null },
+      { id: 10, title: 'Draft reusable email templates', dept: 'comms', status: 'assigned', priority: 1, due: null },
+      { id: 11, title: 'Reconcile OpenArt subscription cost', dept: 'acct', status: 'assigned', priority: 1, due: null },
+      { id: 12, title: 'Prep first weekly financial report', dept: 'acct', status: 'in_progress', priority: 2, due: 'Aug 24' },
+      { id: 13, title: 'Audit sales pipeline hygiene', dept: 'ctrl', status: 'fulfilled', priority: null, due: null },
+      { id: 14, title: 'Cross-department handoff review', dept: 'ctrl', status: 'assigned', priority: 2, due: null },
+    ];
+
+    const visTasks = sel === 'all' ? rawTasks : rawTasks.filter(t => t.dept === sel);
+
+    const statusMeta = {
+      assigned:    { label: 'Assigned',    color: 'var(--text-faint)', dot: 'hsl(240 6% 60%)' },
+      in_progress: { label: 'In Progress', color: 'var(--primary)',    dot: 'var(--primary)' },
+      fulfilled:   { label: 'Fulfilled',   color: 'var(--green)',      dot: 'var(--green)' },
+      blocked:     { label: 'Blocked',     color: 'var(--red)',        dot: 'var(--red)' },
+    };
+
+    const cols = ['assigned', 'in_progress', 'fulfilled', 'blocked'].map(status => {
+      const tasks = visTasks.filter(t => t.status === status).map(t => {
+        const d = deptById[t.dept];
+        return {
+          ...t,
+          hue: d.hue,
+          deptShort: d.short,
+          hasDue: !!t.due,
+          hasNotes: !!t.notes,
+          hasPriority: !!t.priority,
+          priorityBars: [1, 2, 3].map(n => ({ cls: t.priority >= n ? 'on' : '' })),
+        };
+      });
+      return {
+        id: status,
+        label: statusMeta[status].label,
+        dotColor: statusMeta[status].dot,
+        count: tasks.length,
+        tasks,
+        isEmpty: tasks.length === 0,
+        emptyLabel: sel === 'all' ? 'Nothing here' : 'None for this department',
+      };
+    });
+
+    const openTotal = rawTasks.filter(t => t.status !== 'fulfilled').length;
+    const fulfilledTotal = rawTasks.filter(t => t.status === 'fulfilled').length;
+    const totalTaskCount = rawTasks.length;
+
+    const deptFilters = [{ id: 'all', name: 'All departments', hue: null }, ...deptDefs].map(d => ({
+      id: d.id,
+      name: d.name,
+      hue: d.hue ?? 240,
+      showDot: d.id !== 'all',
+      chipClass: sel === d.id ? 'active' : '',
+      select: () => this.select(d.id),
+    }));
+
+    const depts = deptDefs.map(d => {
+      const dTasks = rawTasks.filter(t => t.dept === d.id);
+      const open = dTasks.filter(t => t.status !== 'fulfilled').length;
+      const done = dTasks.filter(t => t.status === 'fulfilled').length;
+      return {
+        ...d,
+        open, done,
+        activeClass: sel === d.id ? 'active' : '',
+        hasReport: !!d.report,
+        reportLabel: d.report ? ('Report · ' + d.report) : 'No reports yet',
+        reportClass: d.report ? 'has' : 'none',
+        select: () => this.select(sel === d.id ? 'all' : d.id),
+      };
+    });
+    const activeDeptCount = hasData ? new Set(rawTasks.map(t => t.dept)).size : 0;
+
+    // status donut (built from the full unfiltered set, always a global overview)
+    const counts = { assigned: 0, in_progress: 0, fulfilled: 0, blocked: 0 };
+    rawTasks.forEach(t => { counts[t.status]++; });
+    const order = ['assigned', 'in_progress', 'fulfilled', 'blocked'];
+    let acc = 0;
+    const stops = order.map(k => {
+      const pct = totalTaskCount ? (counts[k] / totalTaskCount) * 360 : 0;
+      const from = acc; acc += pct;
+      return `${statusMeta[k].color} ${from}deg ${acc}deg`;
+    });
+    const donutGradient = totalTaskCount ? `conic-gradient(${stops.join(', ')})` : 'var(--surface-2)';
+    const statusLegend = order.map(k => ({ label: statusMeta[k].label, count: counts[k], color: statusMeta[k].color }));
+
+    return {
+      modeAttr: mode,
+      hasData,
+      noData: !hasData,
+      cols,
+      openTotal,
+      fulfilledTotal,
+      netBalance: hasData ? '$5,517' : '$0',
+      activeDeptCount,
+      deptFilters,
+      depts,
+      showAdd: this.state.showAdd,
+      toggleAdd: () => this.toggleAdd(),
+      incomePoints: '40,149.6 148,133.0 256,103.5 364,116.4 472,58.9 580,25.2',
+      netPoints: '40,151.2 148,134.6 256,114.3 364,118.0 472,67.1 580,26.7',
+      netArea: '40,160 40,151.2 148,134.6 256,114.3 364,118.0 472,67.1 580,26.7 580,160',
+      expensePoints: '40,148.2 148,148.2 256,138.8 364,148.2 472,141.5 580,148.2',
+      zeroY: 149.6,
+      // real ledger today: no income logged yet, one unconfirmed subscription expense —
+      // sample net (below) is demo-only and only ever shown with the "Data" tweak on.
+      totalTaskCount,
+      donutGradient,
+      statusLegend,
+    };
+  }
+}
+</script>
+</body>
+</html>
