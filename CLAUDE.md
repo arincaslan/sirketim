@@ -20,4 +20,4 @@ A multi-department agency: web development, architecture, sales, and advertising
 ## Conventions
 
 - Client work lives under `departments/<department>/clients/` (or `proposals/`, `campaigns/` where that fits better), one folder per client, named by a lowercase-hyphenated slug.
-- No external tool connectors are wired up yet (no API keys configured), **except an OpenArt account exists** for the advertising department — it still needs an API key added before Claude can drive it directly. Each department's CLAUDE.md lists recommended tools/connectors for when accounts exist — don't assume the rest are live.
+- No external tool connectors are wired up yet, **except OpenArt** (advertising) — registered as an MCP server in `.mcp.json`, pending one-time OAuth approval via `/mcp` in a Claude Code session — and **Blender** (architecture), installed locally for the 3D render pipeline. Each department's CLAUDE.md lists recommended tools/connectors for when accounts exist — don't assume the rest are live.

@@ -11,7 +11,7 @@ Default channel is **organic social content**, not paid ads. Paid spend is a del
 ## Workflow
 
 1. **Brief** — goal, audience, data/assets available (product info, client brand, past performance).
-2. **Generate content** — images/video via **OpenArt** (account already exists; needs an API key from the account dashboard to automate — see connectors below). Claude drafts the prompt/creative direction; OpenArt produces the asset.
+2. **Generate content** — images/video via **OpenArt**, connected as an MCP server (`.mcp.json`, server `openart`). Claude drafts the prompt/creative direction and calls the OpenArt tools directly to produce the asset — no API key needed, it authenticates via OAuth to the founder's existing account (one-time approval via `/mcp` in Claude Code).
 3. **Copy** — captions, hooks, hashtags per platform.
 4. **Post** — Instagram and TikTok primarily (see posting below); others as the business grows.
 5. **Report** — track what was posted and, once analytics connectors exist, performance.
@@ -20,7 +20,7 @@ Default channel is **organic social content**, not paid ads. Paid spend is a del
 
 OpenArt is the department's primary asset generator (images and short video) — cheaper and faster than commissioning photography/design for routine social content. Use it for: product shots/mockups for `products/`, architecture render-to-social content, campaign creative for clients who don't supply their own assets.
 
-**Connector needed (not yet configured)**: an OpenArt API key from the existing account. Once added (as an environment variable, never hardcoded), Claude can drive generation directly instead of the founder using the OpenArt web app manually.
+**Connector status: configured, pending one-time approval.** Registered as a project MCP server (`.mcp.json`, `openart`, `https://mcp.openart.ai/mcp`). OpenArt has no traditional API key — it authenticates via OAuth to the founder's OpenArt account. First use in a Claude Code session requires running `/mcp` and approving the `openart` connector (opens a browser to sign in/authorize); after that it's live for direct generation, no further setup.
 
 ## Posting — Instagram, TikTok
 
@@ -30,10 +30,10 @@ Both platforms require their own developer/business setup before Claude can post
 
 **Until those are configured**, Claude's role is to produce the finished asset + caption + hashtags, ready for the founder to post manually in under a minute. Once the API connectors exist, move to direct scheduled/automated posting. A scheduling layer (e.g. Buffer or Later) is a reasonable middle step if the native APIs prove too much friction to set up early on.
 
-## Recommended connectors (not yet configured)
+## Recommended connectors
 
-- **OpenArt API** — content generation (account exists; needs API key)
-- **Meta Graph API** — Instagram posting + ad performance data
+- **OpenArt MCP** — content generation. Configured, pending one-time OAuth approval (see above).
+- **Meta Graph API** — Instagram posting + ad performance data (not yet configured)
 - **TikTok Content Posting API** — TikTok posting
 - **GA4** — site-side conversion/traffic reporting, pairs with web-development's client sites
 - **Buffer/Later** (optional) — cross-platform scheduling if going direct-API is too slow to set up
