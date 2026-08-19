@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Instagram, Facebook, Twitter } from "lucide-react";
 
@@ -20,8 +21,14 @@ export function Footer() {
     <footer className="border-t border-border">
       <div className="container grid gap-10 py-16 sm:grid-cols-2 md:grid-cols-4">
         <div className="sm:col-span-2 md:col-span-2">
-          <Link href="/" className="font-serif text-xl tracking-wide">
-            AMBRE<span className="text-gold">.</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo-sigdir.png"
+              alt="Sirketim"
+              width={120}
+              height={34}
+              className="h-auto w-[120px]"
+            />
           </Link>
           <p className="mt-3 max-w-xs text-sm text-muted-foreground">
             Small-batch fragrance, blended around a single idea per bottle.

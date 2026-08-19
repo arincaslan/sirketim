@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
-import { PRODUCTS, SCENT_FAMILIES } from "@/lib/products";
+import { SCENT_FAMILIES, SCENT_FAMILY_IMAGES } from "@/lib/products";
 
 export function ScentFamilyNav() {
   return (
@@ -15,8 +15,6 @@ export function ScentFamilyNav() {
         </h2>
         <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-5">
           {SCENT_FAMILIES.map((family, index) => {
-            const representative = PRODUCTS.find((p) => p.family === family);
-            if (!representative) return null;
             return (
               <motion.div
                 key={family}
@@ -30,7 +28,7 @@ export function ScentFamilyNav() {
                   className="group relative block aspect-[3/4] overflow-hidden rounded-lg"
                 >
                   <Image
-                    src={representative.image}
+                    src={SCENT_FAMILY_IMAGES[family]}
                     alt={family}
                     fill
                     sizes="(min-width: 768px) 20vw, 50vw"

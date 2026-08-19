@@ -5,6 +5,10 @@ import "./globals.css";
 import { Navbar } from "@/components/store/navbar";
 import { Footer } from "@/components/store/footer";
 import { Providers } from "@/components/store/providers";
+import { SmoothScroll } from "@/components/store/smooth-scroll";
+import { GrainOverlay } from "@/components/store/grain-overlay";
+import { CustomCursor } from "@/components/store/custom-cursor";
+import { Preloader } from "@/components/store/preloader";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,6 +20,10 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
+  // Italic is only used as a display accent at hero scale (see hero.tsx),
+  // but keep it loaded here rather than falling back to a faux/synthetic
+  // italic in the browser.
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -32,6 +40,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="flex min-h-screen flex-col font-sans antialiased">
+        <SmoothScroll />
+        <GrainOverlay />
+        <CustomCursor />
+        <Preloader />
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>

@@ -46,9 +46,8 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-  html {
-    scroll-behavior: smooth;
-  }
+  /* Smooth scroll is handled by Lenis (see components/store/smooth-scroll.tsx)
+     for real momentum scrolling; no CSS scroll-behavior needed. */
 }
 
 @layer utilities {
@@ -58,5 +57,28 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+}
+
+/* Custom cursor (components/store/custom-cursor.tsx) hides the native
+   pointer once it's mounted and tracking. It only mounts on `(pointer:
+   fine)` devices and never under `prefers-reduced-motion`, and the
+   `pointer: fine` guard here is a second belt-and-suspenders check against
+   the same condition so this never accidentally applies on touch. Text
+   inputs are excluded so the native text caret still shows — the custom
+   cursor hides itself over them instead (see the "text" variant). */
+@media (pointer: fine) {
+  .custom-cursor-active,
+  .custom-cursor-active a,
+  .custom-cursor-active button,
+  .custom-cursor-active [role="button"] {
+    cursor: none;
+  }
+
+  .custom-cursor-active input,
+  .custom-cursor-active textarea,
+  .custom-cursor-active select,
+  .custom-cursor-active [contenteditable="true"] {
+    cursor: auto;
   }
 }

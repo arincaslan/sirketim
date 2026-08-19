@@ -31,3 +31,4 @@ If the ledger has no new rows for a week, the report says so plainly rather than
 - Use the `accountant` subagent for this department's work.
 - Never invent numbers. If a figure isn't in the ledger, the report says "not logged," not an estimate.
 - Flag data-quality issues (missing rows, ambiguous currency, unconfirmed pricing) as findings for the founder/board to chase down, not silently-fixed guesses.
+- **API/MCP subscription and usage costs get logged like any other expense**, promptly — the `openart` MCP subscription today, any future paid API key (e.g. one provisioned for `internal/dashboard/`) as it's set up. `departments/control/CLAUDE.md` has this department cross-checking that these specific costs are actually logged as part of its standing audit (founder's order, 2026-08-19) — control flags gaps, this department fixes them.

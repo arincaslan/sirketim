@@ -198,9 +198,15 @@
     .dept-stat b { font-size: 17px; font-weight: 800; display: block; }
     .dept-stat span { font-size: 10.5px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
     .dept-activity { font-size: 11.5px; color: var(--text-muted); padding-top: 11px; border-top: 1px solid var(--border); line-height: 1.5; }
-    .dept-report { font-size: 11px; font-weight: 700; margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+    .dept-report { font-size: 11px; font-weight: 700; margin-top: 6px; display: flex; align-items: center; gap: 5px; text-decoration: none; }
     .dept-report.has { color: var(--primary); }
     .dept-report.none { color: var(--text-faint); }
+    a.dept-report.link {
+      margin-top: 10px; padding: 7px 9px; border-radius: 8px; background: var(--primary-soft);
+      transition: background .12s ease;
+    }
+    a.dept-report.link:hover { background: hsl(var(--h) 70% 90%); color: hsl(var(--h) 70% 30%); }
+    .dash[data-mode="dark"] a.dept-report.link:hover { background: hsl(var(--h) 35% 26%); color: hsl(var(--h) 80% 82%); }
 
     .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
     .section-title { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
@@ -380,7 +386,7 @@
 
       <div class="panel">
         <div class="panel-head"><div class="panel-title">Task status</div></div>
-        <sc-if value="{{hasData}}" hint-placeholder-val="{{true}}">
+        <sc-if value="{{hasTasks}}" hint-placeholder-val="{{true}}">
           <div class="panel-sub">{{totalTaskCount}} tasks tracked</div>
           <div class="donut-wrap">
             <div class="donut" style="background: {{donutGradient}}">
@@ -393,7 +399,7 @@
             </div>
           </div>
         </sc-if>
-        <sc-if value="{{noData}}" hint-placeholder-val="{{false}}">
+        <sc-if value="{{noTasks}}" hint-placeholder-val="{{false}}">
           <div class="empty-panel">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" opacity="0.4"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.4"/></svg>
             <div class="empty-panel-title">No tasks tracked yet</div>
@@ -418,12 +424,21 @@
             <div class="dept-stat"><b>{{d.done}}</b><span>Done</span></div>
           </div>
           <div class="dept-activity">{{d.activity}}</div>
-          <div class="dept-report {{d.reportClass}}">
-            <sc-if value="{{d.hasReport}}" hint-placeholder-val="{{false}}">
+          <sc-if value="{{d.isLink}}" hint-placeholder-val="{{false}}">
+            <a class="dept-report has link" href="{{d.reportUrl}}" target="_blank" rel="noopener">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M14 3v5h5M6 3h8l5 5v13H6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-            </sc-if>
-            {{d.reportLabel}}
-          </div>
+              {{d.reportLabel}}
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="margin-left:auto"><path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </sc-if>
+          <sc-if value="{{d.showPlainReport}}" hint-placeholder-val="{{true}}">
+            <div class="dept-report {{d.reportClass}}">
+              <sc-if value="{{d.hasReport}}" hint-placeholder-val="{{false}}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M14 3v5h5M6 3h8l5 5v13H6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+              </sc-if>
+              {{d.reportLabel}}
+            </div>
+          </sc-if>
         </div>
       </sc-for>
     </div>
@@ -484,7 +499,7 @@
 </x-dc>
 <script data-dc-script data-props='{
   "mode": {"editor":"enum","default":"light","options":["light","dark"],"section":"Appearance"},
-  "hasData": {"editor":"boolean","default":false,"section":"Data (off = today'\''s real, empty state)"}
+  "hasData": {"editor":"boolean","default":false,"section":"Preview with extra sample tasks (real tasks always show)"}
 }'>
 class Component extends DCLogic {
   constructor(props) {
@@ -502,38 +517,83 @@ class Component extends DCLogic {
 
     const deptDefs = [
       { id: 'web',   name: 'Web Development', short: 'Web',    hue: 243, iconPath: 'M8 6 L3 12 L8 18 M16 6 L21 12 L16 18',
-        activity: 'Updated departments/web-development/CLAUDE.md · 2h ago', report: null },
+        demoActivity: 'Updated departments/web-development/CLAUDE.md · 2h ago', demoReport: null,
+        realReport: { label: 'Template Quality Gap · Aug 20', url: 'https://claude.ai/code/artifact/60c0972b-b3ab-4710-b60d-2b713f95748a' } },
       { id: 'arch',  name: 'Architecture', short: 'Arch',       hue: 205, iconPath: 'M3 11 L12 4 L21 11 M5 10 V19 H19 V10 M9 19 V14 M15 19 V14',
-        activity: 'Added renders/villa-k-front.glb · 5h ago', report: null },
+        demoActivity: 'Added renders/villa-k-front.glb · 5h ago', demoReport: null },
       { id: 'sales', name: 'Sales', short: 'Sales',             hue: 155, iconPath: 'M20.59 13.41 L13.42 20.58 A2 2 0 0 1 10.59 20.58 L2 12 L2 2 L12 2 L20.59 10.59 A2 2 0 0 1 20.59 13.41 Z M7 8 A1 1 0 1 0 7 6 A1 1 0 1 0 7 8 Z',
-        activity: 'Edited shared/clients.md · 1d ago', report: null },
+        demoActivity: 'Edited shared/clients.md · 1d ago', demoReport: null },
       { id: 'ads',   name: 'Advertising', short: 'Ads',         hue: 28,  iconPath: 'M3 11 V13 A1 1 0 0 0 4 14 H7 L12 18 V6 L7 10 H4 A1 1 0 0 0 3 11 Z M15 8 A4 4 0 0 1 15 16 M18 5 A8 8 0 0 1 18 19',
-        activity: 'Generated 6 OpenArt creative assets · 3h ago', report: null },
+        demoActivity: 'Generated 6 OpenArt creative assets · 3h ago', demoReport: null },
       { id: 'comms', name: 'Communication', short: 'Comms',     hue: 325, iconPath: 'M4 4 H20 V16 H8 L4 20 Z',
-        activity: 'Updated prospects.md · 6h ago', report: null },
+        demoActivity: 'Updated prospects.md · 6h ago', demoReport: null },
       { id: 'acct',  name: 'Accounting', short: 'Accounting',   hue: 45,  iconPath: 'M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 Z M12 7 V17 M15 9.5 C15 8.1 13.7 7 12 7 C10.3 7 9 8 9 9.2 C9 12.2 15 10.6 15 13.5 C15 14.9 13.7 16 12 16 C10.3 16 9 14.9 9 13.5',
-        activity: 'Added ledger row — OpenArt subscription · 4d ago', report: 'Aug 18' },
+        demoActivity: 'Added ledger row — OpenArt subscription · 4d ago', demoReport: 'Aug 18' },
       { id: 'ctrl',  name: 'Control / Audit', short: 'Control', hue: 275, iconPath: 'M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z M9 12 L11 14 L15 10',
-        activity: 'No commits yet this week', report: 'Aug 18' },
+        demoActivity: 'No commits yet this week', demoReport: 'Aug 18' },
     ];
     const deptById = Object.fromEntries(deptDefs.map(d => [d.id, d]));
 
-    const rawTasks = !hasData ? [] : [
-      { id: 1,  title: 'Scaffold new-web-client intake flow', dept: 'web',   status: 'in_progress', priority: 2, due: 'Aug 22' },
-      { id: 2,  title: 'Fix mobile nav overlap on fragrance-store', dept: 'web', status: 'assigned', priority: 1, due: null },
+    // Real, currently-assigned work (founder's standing order to Control, 2026-08-19 —
+    // see departments/control/CLAUDE.md "Standing orders"). Always shown, not gated by
+    // the sample-data tweak, because these tasks genuinely exist.
+    const realTasks = [
+      { id: 101, title: 'Lint/build gate on agency-landing & fragrance-store', dept: 'ctrl', status: 'assigned', priority: 2, due: null,
+        notes: 'Run npm run lint / npm run build on both products; report failures as findings.' },
+      { id: 102, title: 'Confirm OpenArt MCP is the actual path for image work', dept: 'ctrl', status: 'assigned', priority: 2, due: null,
+        notes: 'Check advertising/architecture output folders for evidence vs. manual sourcing.' },
+      { id: 103, title: 'Cross-check API/MCP costs against the ledger', dept: 'ctrl', status: 'assigned', priority: 1, due: null,
+        notes: 'Joint with accounting — OpenArt subscription today, any future API key next.' },
+      { id: 104, title: 'Define efficiency/cost/quality review criteria (v1)', dept: 'ctrl', status: 'assigned', priority: 3, due: null },
+      { id: 105, title: 'Log API/MCP costs promptly as they occur', dept: 'acct', status: 'assigned', priority: 1, due: null,
+        notes: 'So Control’s cost cross-check has real data to check against.' },
+      // Founder's order, 2026-08-20: rival 4 reference sites' UI/UX quality (see COO report).
+      { id: 106, title: 'Fluid clamp() type scale + hero rebuild — fragrance-store', dept: 'web', status: 'fulfilled', priority: 2, due: null,
+        notes: 'Hero now 36px→96px fluid via new tailwind fontSize tokens; Playfair-italic accent leaned into. Lint + build pass.' },
+      { id: 114, title: 'Fluid clamp() type scale + hero rebuild — agency-landing', dept: 'web', status: 'assigned', priority: 2, due: null,
+        notes: '~36px→96-140px range, tight tracking on the largest tier. Use the design skill first.' },
+      { id: 107, title: 'Extend Framer Motion into agency-landing', dept: 'web', status: 'assigned', priority: 2, due: null,
+        notes: "Reuse fragrance-store's stagger + spring-hover pattern; wire up or remove the dead fade-up keyframe." },
+      { id: 108, title: 'Add Lenis smooth-scroll — fragrance-store', dept: 'web', status: 'fulfilled', priority: 2, due: null,
+        notes: 'lenis 1.1.14 added, replaces the old CSS scroll-behavior: smooth. Lint + build pass.' },
+      { id: 115, title: 'Add Lenis smooth-scroll — agency-landing', dept: 'web', status: 'assigned', priority: 2, due: null },
+      { id: 109, title: "Replace agency-landing's placeholder boxes with real imagery", dept: 'web', status: 'assigned', priority: 3, due: null,
+        notes: "Pairs with advertising's OpenArt asset task." },
+      { id: 110, title: 'Signature micro-interaction — fragrance-store', dept: 'web', status: 'fulfilled', priority: 3, due: null,
+        notes: 'Site-wide subtle film-grain overlay (mix-blend-overlay, 3.5% opacity). Lint + build pass.' },
+      { id: 116, title: 'Signature micro-interaction — agency-landing', dept: 'web', status: 'assigned', priority: 3, due: null,
+        notes: 'One ownable detail, not a pile of effects.' },
+      { id: 111, title: 'Pair a second display font with Inter in agency-landing', dept: 'web', status: 'assigned', priority: 3, due: null },
+      { id: 113, title: 'Integrate SİĞDİR dummy logo into fragrance-store', dept: 'web', status: 'fulfilled', priority: 2, due: null,
+        notes: 'Swapped into header (140x39) + footer (120x34) + favicon (app/icon.png). Lint + build pass. Footer copyright text still says "Ambre" — not yet updated.' },
+      { id: 112, title: 'Generate demo hero/case-study imagery for agency-landing', dept: 'ads', status: 'assigned', priority: 2, due: null,
+        notes: 'Via the already-configured OpenArt MCP — template-scale demo assets, not client work.' },
+      // Founder's feedback, 2026-08-20: first pass wasn't enough — bolder motion + real generated imagery.
+      { id: 117, title: 'Custom cursor animation — fragrance-store', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+        notes: 'Spring dot+ring, hover states on links/buttons/product cards, pointer:fine gated. Lint + build pass.' },
+      { id: 118, title: 'Animated first-render preloader — fragrance-store', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+        notes: 'Serif counter + clip-path wipe, ~1.35s, coordinated with hero reveal, respects reduced-motion. Lint + build pass.' },
+      { id: 119, title: 'Generate stylish hero + 5 category images — fragrance-store', dept: 'ads', status: 'fulfilled', priority: 1, due: null,
+        notes: 'Generated, downloaded, and wired in. Real editorial photography now live on hero + scent-family grid.' },
+      // Discovered while checking the above: the other 12 product photos are
+      // watermarked/uncredited stock (licensing liability), not just dated —
+      // founder approved regenerating the full set, 2026-08-20.
+      { id: 120, title: 'Regenerate all 12 individual product photos — fragrance-store', dept: 'ads', status: 'fulfilled', priority: 1, due: null,
+        notes: 'All 12 replaced — old CC-NC/CC-ND watermarked stock (uncredited, one mismatched entirely) fully removed from the repo. Same visual template as hero/categories, garnished per product’s real notes (e.g. saffron+oud+rose for Velvet Oud, leather+black currant+tobacco for Midnight Leather). Verified: lint pass, clean build, all 12 render correctly on /products and on individual product pages.' },
+    ];
+
+    // Demo-only tasks for departments with no real assignment yet — shown only with
+    // the "Data" tweak on, purely to preview how a fuller board looks.
+    const demoTasks = [
       { id: 3,  title: 'Zoning check — Yalıkavak lot', dept: 'arch', status: 'in_progress', priority: 2, due: 'Aug 25' },
       { id: 4,  title: '3D render polish — Villa K', dept: 'arch', status: 'fulfilled', priority: null, due: null },
       { id: 5,  title: 'Proposal draft — boutique hotel lead', dept: 'sales', status: 'assigned', priority: 3, due: 'Aug 21' },
       { id: 6,  title: 'Follow up — Etsy template lead', dept: 'sales', status: 'blocked', priority: null, due: null, notes: 'Waiting on buyer reply' },
-      { id: 7,  title: 'OpenArt creative set — fragrance launch', dept: 'ads', status: 'in_progress', priority: 2, due: 'Aug 23' },
-      { id: 8,  title: 'TikTok posting cadence brief', dept: 'ads', status: 'assigned', priority: 1, due: null },
       { id: 9,  title: 'Outreach batch — 20 prospects', dept: 'comms', status: 'fulfilled', priority: null, due: null },
       { id: 10, title: 'Draft reusable email templates', dept: 'comms', status: 'assigned', priority: 1, due: null },
-      { id: 11, title: 'Reconcile OpenArt subscription cost', dept: 'acct', status: 'assigned', priority: 1, due: null },
-      { id: 12, title: 'Prep first weekly financial report', dept: 'acct', status: 'in_progress', priority: 2, due: 'Aug 24' },
-      { id: 13, title: 'Audit sales pipeline hygiene', dept: 'ctrl', status: 'fulfilled', priority: null, due: null },
-      { id: 14, title: 'Cross-department handoff review', dept: 'ctrl', status: 'assigned', priority: 2, due: null },
     ];
+
+    const rawTasks = hasData ? [...realTasks, ...demoTasks] : realTasks;
 
     const visTasks = sel === 'all' ? rawTasks : rawTasks.filter(t => t.dept === sel);
 
@@ -585,17 +645,25 @@ class Component extends DCLogic {
       const dTasks = rawTasks.filter(t => t.dept === d.id);
       const open = dTasks.filter(t => t.status !== 'fulfilled').length;
       const done = dTasks.filter(t => t.status === 'fulfilled').length;
+      // Real reports (like the COO's Template Quality Gap writeup) always show and
+      // link out. Everyone else genuinely has no report yet — only show the demo
+      // placeholder in sample-data mode.
+      const demoLabel = hasData ? d.demoReport : null;
+      const activity = hasData ? d.demoActivity : 'No recent activity tracked yet';
       return {
         ...d,
-        open, done,
+        open, done, activity,
         activeClass: sel === d.id ? 'active' : '',
-        hasReport: !!d.report,
-        reportLabel: d.report ? ('Report · ' + d.report) : 'No reports yet',
-        reportClass: d.report ? 'has' : 'none',
+        hasReport: !!d.realReport || !!demoLabel,
+        reportLabel: d.realReport ? d.realReport.label : (demoLabel ? ('Report · ' + demoLabel) : 'No reports yet'),
+        reportClass: d.realReport || demoLabel ? 'has' : 'none',
+        reportUrl: d.realReport ? d.realReport.url : null,
+        isLink: !!d.realReport,
+        showPlainReport: !d.realReport,
         select: () => this.select(sel === d.id ? 'all' : d.id),
       };
     });
-    const activeDeptCount = hasData ? new Set(rawTasks.map(t => t.dept)).size : 0;
+    const activeDeptCount = new Set(rawTasks.map(t => t.dept)).size;
 
     // status donut (built from the full unfiltered set, always a global overview)
     const counts = { assigned: 0, in_progress: 0, fulfilled: 0, blocked: 0 };
@@ -614,6 +682,8 @@ class Component extends DCLogic {
       modeAttr: mode,
       hasData,
       noData: !hasData,
+      hasTasks: totalTaskCount > 0,
+      noTasks: totalTaskCount === 0,
       cols,
       openTotal,
       fulfilledTotal,

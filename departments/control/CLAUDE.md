@@ -9,10 +9,21 @@ Internal audit for Sirketim itself — not a client-facing department. Checks th
 3. **Cross-department coordination** — where one department's output should feed another (sales closing a deal → the right department starting delivery; a finished product in `products/` → sales listing it; a department spending money → accounting logging it), check the handoff actually happened, not just that each side did its own piece.
 4. **Productivity and yield** — is work landing as real deliverables (a scaffolded client project, a generated floor plan, a posted listing) versus stalling as docs/briefs with no follow-through. Flag departments that are process-heavy and output-light.
 5. **Connector/capability honesty** — spot-check that departments aren't claiming a connector, deploy, or post happened when `CLAUDE.md`/`.mcp.json` show it isn't actually configured (this is an explicit rule in the root `CLAUDE.md`).
+6. **Code quality gate** — for any department that ships code (web development today; others as they start producing code), run that project's own `npm run lint` / `npm run build` / test script (whichever exist — don't invent a test suite that isn't configured) before its output is considered shippable. A failure is a finding, not something to fix directly (this department doesn't edit other departments' files, including their code).
+7. **Right tool for the job** — confirm departments use the connector actually set up for a task instead of a manual workaround. Concretely: any image editing/generation work (advertising creative, architecture render polish) should go through the `openart` MCP connector (configured in `.mcp.json`, granted to `ad-strategist` and `architecture-assistant`) — not ad-hoc/manual image sourcing. Check output folders (`departments/advertising/campaigns/`, `departments/architecture/clients/<slug>/renders/`) for evidence of which path was actually used.
+8. **API/MCP cost tracking, jointly with accounting** — cross-check that API/MCP subscription and usage costs (the `openart` subscription today; any future Anthropic API key such as one provisioned for `internal/dashboard/`) are logged in `departments/accounting/ledger.md` promptly and accurately. This is a shared check: control verifies the logging happened and flags gaps; accounting owns fixing the ledger itself (see `../accounting/CLAUDE.md`).
+
+## Standing orders (from the founder, 2026-08-19)
+
+Ongoing mandate, not a one-time task: keep Sirketim efficient, cost-effective, and high-quality by running checks 6–8 above as a standing part of every audit pass, not just the five original checks. First concrete pass should cover:
+
+- Confirm `products/web-templates/agency-landing/` and `fragrance-store/` both pass `npm run lint` and `npm run build`; note if either has no meaningful test script configured (expected today — don't flag that as a gap unless a test script exists and is failing).
+- Confirm `ad-strategist` and `architecture-assistant` output shows real `openart` MCP usage where image work exists, not manual substitutes.
+- Confirm the `openart` subscription row in `departments/accounting/ledger.md` is current and its `unconfirmed` cost flag gets resolved or re-flagged, not silently carried forward.
 
 ## Method
 
-Read-only review: `Read`/`Grep`/`Glob` across `departments/`, `products/`, `shared/`, and recent git history. No edits to other departments' files — an audit finding is a report line with a specific file/folder reference and a recommendation, left for the owning department (or the founder) to act on.
+Read-only review of other departments' *files*: `Read`/`Grep`/`Glob` across `departments/`, `products/`, `shared/`, and recent git history — no edits to another department's files. For the code-quality gate (check 6), `Bash` is used narrowly to run a project's own existing `lint`/`build`/test scripts (e.g. `npm run lint`) — never to write, install new dependencies, or push/deploy; running a project's own script is execution, not an edit to its source, so it stays inside this department's read-only charter. An audit finding is a report line with a specific file/folder reference and a recommendation, left for the owning department (or the founder) to act on.
 
 ## Weekly report (`reports/<YYYY-MM-DD>.md`)
 

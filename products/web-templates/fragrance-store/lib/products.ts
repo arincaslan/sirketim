@@ -8,6 +8,17 @@ export const SCENT_FAMILIES: ScentFamily[] = [
   "Gourmand",
 ];
 
+// Editorial macro shots (one cohesive set, same lighting/backdrop/angle) that
+// represent each scent family on its own terms, rather than reusing a single
+// product's bottle photo for the whole family.
+export const SCENT_FAMILY_IMAGES: Record<ScentFamily, string> = {
+  Floral: "/products/category-floral.png",
+  Woody: "/products/category-woody.png",
+  Oriental: "/products/category-oriental.png",
+  Fresh: "/products/category-fresh.png",
+  Gourmand: "/products/category-gourmand.png",
+};
+
 export const PRODUCTS: Product[] = [
   {
     slug: "velvet-oud",
@@ -27,7 +38,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Rose", "Oud"],
       base: ["Amber", "Sandalwood"],
     },
-    image: "/products/velvet-oud.jpg",
+    image: "/products/product-velvet-oud.png",
     badge: "Bestseller",
     sizes: [
       { ml: 30, price: 98 },
@@ -53,7 +64,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Black Pepper", "Vetiver"],
       base: ["Musk", "Cedar"],
     },
-    image: "/products/citrus-noir.jpg",
+    image: "/products/product-citrus-noir.png",
     sizes: [
       { ml: 30, price: 68 },
       { ml: 50, price: 98 },
@@ -78,7 +89,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Rose", "Peony"],
       base: ["Musk", "Vanilla"],
     },
-    image: "/products/rose-absolute.jpg",
+    image: "/products/product-rose-absolute.png",
     badge: "Bestseller",
     sizes: [
       { ml: 30, price: 88 },
@@ -104,7 +115,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Amber", "Labdanum"],
       base: ["White Musk", "Vanilla"],
     },
-    image: "/products/amber-musk.jpg",
+    image: "/products/product-amber-musk.png",
     sizes: [
       { ml: 30, price: 92 },
       { ml: 50, price: 138 },
@@ -129,7 +140,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Water Lily", "Jasmine"],
       base: ["Driftwood", "Musk"],
     },
-    image: "/products/ocean-bloom.jpg",
+    image: "/products/product-ocean-bloom.png",
     badge: "New",
     sizes: [
       { ml: 30, price: 75 },
@@ -155,7 +166,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Tonka Bean", "Caramel"],
       base: ["Sandalwood", "Musk"],
     },
-    image: "/products/vanilla-bourbon.jpg",
+    image: "/products/product-vanilla-bourbon.png",
     sizes: [
       { ml: 30, price: 82 },
       { ml: 50, price: 118 },
@@ -180,7 +191,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Jasmine Sambac", "Tuberose"],
       base: ["White Musk", "Cedar"],
     },
-    image: "/products/white-jasmine.jpg",
+    image: "/products/product-white-jasmine.png",
     sizes: [
       { ml: 30, price: 90 },
       { ml: 50, price: 132 },
@@ -205,7 +216,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Cedarwood", "Vetiver"],
       base: ["Smoked Birch", "Leather"],
     },
-    image: "/products/cedar-smoke.jpg",
+    image: "/products/product-cedar-smoke.png",
     sizes: [
       { ml: 30, price: 96 },
       { ml: 50, price: 145 },
@@ -230,7 +241,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Green Tea", "Mint"],
       base: ["White Musk", "Amber"],
     },
-    image: "/products/bergamot-sky.jpg",
+    image: "/products/product-bergamot-sky.png",
     sizes: [
       { ml: 30, price: 65 },
       { ml: 50, price: 95 },
@@ -255,7 +266,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Leather", "Iris"],
       base: ["Oud", "Tobacco"],
     },
-    image: "/products/midnight-leather.jpg",
+    image: "/products/product-midnight-leather.png",
     badge: "Limited",
     sizes: [
       { ml: 30, price: 118 },
@@ -281,7 +292,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Iris", "Powder Accord"],
       base: ["Musk", "Cashmere Wood"],
     },
-    image: "/products/iris-poudre.jpg",
+    image: "/products/product-iris-poudre.png",
     sizes: [
       { ml: 30, price: 85 },
       { ml: 50, price: 122 },
@@ -306,7 +317,7 @@ export const PRODUCTS: Product[] = [
       heart: ["Rose", "Oud"],
       base: ["Amber", "Vanilla"],
     },
-    image: "/products/golden-saffron.jpg",
+    image: "/products/product-golden-saffron.png",
     badge: "New",
     sizes: [
       { ml: 30, price: 110 },

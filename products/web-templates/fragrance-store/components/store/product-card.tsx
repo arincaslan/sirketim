@@ -31,7 +31,11 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       viewport={{ once: true, margin: "-80px" }}
       transition={{ duration: 0.5, delay: Math.min(index, 6) * 0.05 }}
     >
-      <Link href={`/products/${product.slug}`} className="group block">
+      <Link
+        href={`/products/${product.slug}`}
+        className="group block"
+        data-cursor="view"
+      >
         <motion.div
           whileHover={{ y: -6 }}
           whileTap={{ scale: 0.98 }}

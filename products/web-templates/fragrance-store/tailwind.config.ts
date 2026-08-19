@@ -59,6 +59,25 @@ const config: Config = {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         serif: ["var(--font-serif)", "ui-serif", "Georgia", "serif"],
       },
+      fontSize: {
+        // Fluid type scale: clamp()-based, scales continuously between a small
+        // viewport (375px) and a wide desktop viewport (1440px) instead of
+        // jumping at fixed Tailwind breakpoints. Only `fluid-hero` is wired up
+        // (hero H1) for this pass; the rest of the scale is here for reuse.
+        "fluid-h3": ["clamp(1.5rem, 1.32rem + 0.9vw, 2rem)", { lineHeight: "1.2" }],
+        "fluid-h2": [
+          "clamp(1.875rem, 1.5rem + 1.9vw, 2.75rem)",
+          { lineHeight: "1.15", letterSpacing: "-0.01em" },
+        ],
+        "fluid-h1": [
+          "clamp(2.5rem, 1.7rem + 4vw, 4.5rem)",
+          { lineHeight: "1.08", letterSpacing: "-0.015em" },
+        ],
+        "fluid-hero": [
+          "clamp(2.25rem, 0.93rem + 5.63vw, 6rem)",
+          { lineHeight: "1.05", letterSpacing: "-0.02em" },
+        ],
+      },
       keyframes: {
         "fade-up": {
           "0%": { opacity: "0", transform: "translateY(12px)" },

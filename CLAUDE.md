@@ -8,7 +8,11 @@ Sirketim is a solo-founder, multi-department agency workspace, not a single code
 
 ## Commands
 
-There is no build/lint/test at the repo root — no client code exists yet. Once the `new-web-client` skill scaffolds a client under `departments/web-development/clients/<slug>/`, that project gets its own Next.js `package.json` with its own `npm run dev` / `build` / `lint`, scoped to that subfolder.
+There is no build/lint/test at the repo root — every Next.js project (client or product) is self-contained, each with its own `package.json` scoped to its own subfolder. `cd` into the specific project before running anything; nothing installs or builds from the repo root.
+
+Two real projects exist today: `products/web-templates/agency-landing/` and `products/web-templates/fragrance-store/`. Inside either: `npm install`, then `npm run dev` / `npm run build` / `npm run lint`. No test script is configured in any project yet — don't invent one. The same self-contained pattern applies once the `new-web-client` skill scaffolds a client under `departments/web-development/clients/<slug>/`.
+
+Setting the workspace up on a different machine (tool installs, `gh`/Claude Code auth, MCP approval): see `SETUP.md`.
 
 Commands that are already real and used in this repo:
 - **Architecture CAD generation**: Python with `ezdxf` (DXF) and `svgwrite` (SVG) — already installed system-wide. See `departments/architecture/CLAUDE.md`.
@@ -25,6 +29,7 @@ CLAUDE.md files nest and each layer adds scope, not a replacement: this root fil
 - **Board members** (`.claude/agents/board-*.md`) are a layer above departments, not an 8th/9th department — `board-coo` (owns web development, architecture, sales, advertising, communication), `board-cfo` (owns accounting), `board-controller` (owns control/audit). The founder briefs a board member with an outcome; it delegates to the department subagent(s) it owns via the Agent tool and reports back a synthesized result. See `shared/board.md`. Prefer addressing the board member over the department subagent directly when the request is an outcome rather than a specific department task.
 - **Skills** (`.claude/skills/`) are the repeatable intake-to-deliverable workflows: `new-web-client`, `project-brief` (architecture), `client-proposal` (sales), `campaign-brief` (advertising), `product-listing` (sales/products). Prefer these over freeform work when a task matches one.
 - **`products/`** vs **`departments/<dept>/clients/`**: products are Sirketim's own sellable goods (web templates, architecture plan packs, POD prints), built by whichever department creates the underlying asset but sold by sales via marketplaces — separate from client-commissioned work. See `products/README.md` for the line breakdown.
+- **`internal/dashboard/`** — the founder's single-page task board + charts (real assigned/fulfilled tasks per department, financial chart from the ledger, department report links). It's a **Claude Design canvas** (`internal/dashboard/design/Main.dc.html` + `canvas.json`), not a deployed Next.js app — there is no server, build, or `package.json` here. Edit `Main.dc.html` directly, then re-seed and republish via the `design` skill's `seed-canvas.mjs` helper to the existing Artifact URL (ask the founder for it, or check memory/recent conversation — don't create a new artifact). Every task assigned or completed in a session should be reflected here before the turn ends, per the founder's standing instruction.
 - **`shared/clients.md`** is the single cross-department client/lead registry (a client can span multiple departments). **`shared/board.md`** is the board charter (who's on it, what they own). **`shared/brand.md`** is Sirketim's own brand/voice, still a placeholder.
 - **Connector status** lives in two places: `.mcp.json` (MCP servers, e.g. `openart`) and each department's CLAUDE.md "Recommended connectors" section (everything else, mostly not yet configured — check before assuming a connector is live).
 

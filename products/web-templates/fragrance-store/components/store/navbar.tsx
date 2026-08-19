@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, ShoppingBag, X } from "lucide-react";
@@ -23,8 +24,15 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="font-serif text-xl tracking-wide">
-          AMBRE<span className="text-gold">.</span>
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo-sigdir.png"
+            alt="Sirketim"
+            width={140}
+            height={39}
+            priority
+            className="h-auto w-[140px]"
+          />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
