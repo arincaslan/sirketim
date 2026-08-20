@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Sirketim is a solo-founder, multi-department agency workspace, not a single codebase — it currently holds no client projects yet. Claude Code subagents act as each department's actual workers (drafting, research, first-pass production), not just copilots; the founder reviews and decides. Seven departments: web development, architecture (real building/interior design), sales, advertising, communication, accounting, control/audit. A three-member board (COO, CFO, Controller) sits between the founder and the departments — see `shared/board.md`.
+Sirketim is a solo-founder, multi-department agency workspace, not a single codebase. Claude Code subagents act as each department's actual workers (drafting, research, first-pass production), not just copilots; the founder reviews and decides. Seven departments: web development, architecture (real building/interior design), sales, advertising, communication, accounting, control/audit. A three-member board (COO, CFO, Controller) sits between the founder and the departments — see `shared/board.md`.
 
 ## Commands
 
@@ -15,7 +15,9 @@ Two real projects exist today: `products/web-templates/agency-landing/` and `pro
 Setting the workspace up on a different machine (tool installs, `gh`/Claude Code auth, MCP approval): see `SETUP.md`.
 
 Commands that are already real and used in this repo:
-- **Architecture CAD generation**: Python with `ezdxf` (DXF) and `svgwrite` (SVG) — already installed system-wide. See `departments/architecture/CLAUDE.md`.
+- **Architecture CAD generation**: Python with `ezdxf` (DXF) and `svgwrite` (SVG) — already installed system-wide, driven through the department's own `departments/architecture/lib/cadgen/` library (data model + generator + compliance checker), not freehanded per project. See `departments/architecture/CLAUDE.md`.
+- **Architecture DWG conversion**: ODA File Converter, run headless — `"<install path>\ODAFileConverter.exe" <inputFolder> <outputFolder> <outVer> <outType> <recurse:0/1> <audit:0/1>`. Installed per-user (machine-wide MSI install needs admin rights this environment doesn't have); `ezdxf`'s `odafc` addon needs its `win_exec_path` pointed at the real per-user install path or it silently looks in `Program Files` instead — see `departments/architecture/CLAUDE.md` and `departments/architecture/reports/cad-tooling-gap-analysis.md` for the exact path and gotcha.
+- **Scanned-PDF reading**: Poppler (`pdftoppm`/`pdftotext`/etc., via winget) — required for the Read tool to render scanned/image-only PDF pages; without it, scanned intake documents (common in architecture zoning intake) fail to read. Installed system-wide.
 - **Architecture 3D rendering**: Blender 4.5 LTS, run headless — `"C:\Program Files\Blender Foundation\Blender 4.5\blender.exe" --background --python <script>.py`. Installed via winget (`BlenderFoundation.Blender.LTS.4.5`), added to the user PATH. Note: `bpy` must be imported explicitly in the script; it isn't auto-imported.
 - **MCP connector status**: `claude mcp list` shows configured servers; `/mcp` inside an interactive session approves a pending one. `openart` is configured in `.mcp.json` (OAuth, no API key). Approval appears to be scoped per session/process, not global — a session can show `⏸ Pending approval` even after the founder approved it elsewhere. Always check `claude mcp list` in the current session before claiming it's live or unavailable; if it's pending here despite being approved elsewhere, that's likely a stale session, not a broken connector.
 - **Git remote**: this repo pushes to `https://github.com/arincaslan/sirketim` (GitHub CLI `gh` is installed and authenticated as `arincaslan`). The repo is **public**, not private — a deliberate tradeoff made to unblock claude.ai's GitHub connector (it only had public-repo scope), so treat the ledger and every department's strategy docs as publicly visible. Two claude.ai scheduled routines (`Sirketim Weekly Accounting Report`, `Sirketim Weekly Control/Audit Report`) run weekly against `main` via `board-cfo`/`board-controller`, writing into `departments/accounting/reports/` and `departments/control/reports/` and pushing directly — a `git pull` may surface new files you didn't create locally.
@@ -36,7 +38,7 @@ CLAUDE.md files nest and each layer adds scope, not a replacement: this root fil
 ## Departments
 
 - [Web Development](departments/web-development/CLAUDE.md) — Next.js + Tailwind + shadcn/ui, GitHub, Vercel.
-- [Architecture](departments/architecture/CLAUDE.md) — briefs, zoning research, to-scale CAD floor plans (DXF/SVG), 3D catalog renders (Blender + AI polish). Never claims permit-ready/stamped output.
+- [Architecture](departments/architecture/CLAUDE.md) — briefs, zoning research, to-scale CAD floor plans (DXF/SVG/DWG) via a shared `lib/cadgen/` Python library, 3D catalog renders (Blender + AI polish). Never claims permit-ready/stamped output.
 - [Sales](departments/sales/CLAUDE.md) — client pipeline/proposals, plus productizing department output for near-zero-cost marketplace sales (Etsy primary).
 - [Advertising](departments/advertising/CLAUDE.md) — OpenArt-generated content, organic-first posting (Instagram/TikTok), paid spend only when budgeted or revenue-funded.
 - [Communication](departments/communication/CLAUDE.md) — direct DM/email/phone outreach for Sirketim's own products; hands off interested prospects to Sales to close. No sending connectors configured yet (drafts ready for manual send).

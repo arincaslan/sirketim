@@ -16,6 +16,7 @@ Claude assists with:
 Claude does **not**:
 - Produce permit-ready, stamped construction documents — a licensed architect must review, refine, and stamp anything generated here before it's used for permitting or construction
 - Substitute for a structural/MEP engineer's calculations
+- Reproduce or fabricate official governmental approval-stamp text or graphics on any generated drawing (see "Approval-stamp prohibition" under Floor plan generation) — a concrete, enforced corollary of the rule above, not a separate carve-out
 
 ## Site intake — deed & zoning documents (Turkish)
 
@@ -29,13 +30,36 @@ Extract every numeric constraint explicitly and list it back at the top of the p
 
 ## Floor plan generation
 
-Floor plans are generated with Python: **ezdxf** for real, to-scale `.dxf` files (openable in AutoCAD, FreeCAD, and most CAD software) and **svgwrite** for a quick-review `.svg` alongside it. Requires `pip install ezdxf svgwrite` in the environment generating the plan.
+Floor plans are generated with Python: **ezdxf** for real, to-scale `.dxf` files (openable in AutoCAD, FreeCAD, and most CAD software) and **svgwrite** for a quick-review `.svg` alongside it. Generation goes through the department's own library, **`lib/cadgen/`** (see below) — not freehanded per project.
+
+Two depth tiers — ask the client/founder which one a project needs during intake (the `project-brief` skill's intake step asks this explicitly); don't assume full depth, and don't silently deliver schematic when full was requested:
+
+- **Schematic** (the default, and everything actually built so far): lot outline, setback envelope, footprint, walls, rooms with name/area labels, door/window openings, key dimensions, and a title block, plus the mandatory compliance-verification pass below. This is what `lib/cadgen/plan.py` produces today.
+- **Full production set** (the target quality bar, not yet built): floor plans + sections + elevations + door/window schedules + finish specs + furnishing layout, AIA/NCS-style layered — matching the depth of the founder's external sample DWG (see `reports/cad-tooling-gap-analysis.md`). Roadmapped as follow-up passes: `schedule.py`, `elevation.py`, `section.py`, `finishes.py`, `furnishing.py` **do not exist yet**. Don't claim or imply this depth exists until those modules are actually built.
+
+### The `lib/cadgen/` library
+
+Plain Python package at `departments/architecture/lib/cadgen/` (no venv/packaging needed — `ezdxf` 1.4.4 and `svgwrite` 1.4.3 are installed system-wide). Every generator reads from and writes to the same data model, so downstream generators (schedules, elevations, sections, once built) stay consistent with the floor plan that produced them instead of each project re-deriving geometry from scratch.
+
+- **`model.py`** — the core data model and single source of truth: `Building`, `Wall`, `Room`, `Opening`, `Level` (plain dataclasses). Every other module reads from this; get changes here right, since everything downstream depends on it.
+- **`plan.py`** — the baseline schematic floor-plan generator: lot geometry (`LotGeometry`) + zoning constraints (`ZoningConstraints`: TAKS/KAKS/setbacks/height) + room program (`RoomSpec` list) → `generate_plan()` → a populated `Building` → `render_dxf()` / `render_svg()`. Also implements `verify_compliance()` — the Compliance verification pass below, in code (see that section).
+- **`export_dwg.py`** — thin wrapper around `ezdxf.addons.odafc` for DXF ↔ native DWG round-tripping.
+  **Gotcha**: the `odafc` addon defaults to looking for the converter at `C:\Program Files\ODA\ODAFileConverter\ODAFileConverter.exe` (machine-wide), which doesn't exist on this machine — the real per-user install is at `C:\Users\Semih\AppData\Local\Programs\ODA\ODAFileConverter 27.1.0\ODAFileConverter.exe`. `export_dwg.py` already calls `ezdxf.options.set('odafc-addon', 'win_exec_path', ...)` with that path before every export/import, so callers don't need to remember this — but if DWG export/import ever fails with a "not found" / "not installed" error, check this path first before assuming the tool itself is broken.
+- **`titleblock.py`** — sheet title block (project/parcel/date/scale/sheet). Enforces the Approval-stamp prohibition below **in code**, not just as a convention — see that subsection.
+- **Not built yet** (roadmapped, later passes — don't imply these exist): `schedule.py` (door/window schedules), `elevation.py`, `section.py`, `finishes.py`, `furnishing.py`.
+- **Validation harness**: `lib/cadgen/examples/synthetic_lot_demo.py` runs the full pipeline (generate → DXF/SVG → compliance check, including deliberately-broken variants → DWG round-trip → title-block stamp-language audit) against an inline synthetic test lot — never real client data. Re-run it after changing anything in `lib/cadgen/` as a regression check; it exits non-zero if any step fails.
+
+### Approval-stamp prohibition
+
+Never reproduce or fabricate official governmental approval-stamp text or graphics (review/approval language, municipal seals, signature blocks) on any generated drawing. The founder's external sample DWG (quality-bar reference) contains a real municipal review/approval stamp block; our output must never draw anything resembling it — our drawings are unreviewed and unstamped, and reproducing that convention would misrepresent them as officially approved. This is a concrete, enforced corollary of "Claude does not produce permit-ready, stamped construction documents" above, not a separate carve-out.
+
+Enforced in code, not just documented here: `lib/cadgen/titleblock.py` screens every string it draws via `assert_no_stamp_language()` (raises `ApprovalStampLanguageError` on a match, Turkish and English phrasing, diacritic/case-insensitive) before adding it to a drawing, and exposes `scan_dxf_for_stamp_language()` to audit every TEXT/MTEXT entity in an already-generated DXF file after the fact. Any future module that writes text to a drawing (schedules, elevation/section annotations, etc.) should call `assert_no_stamp_language()` on that text too.
 
 Every dimension in the generated plan must trace back to the intake above: lot geometry and orientation from the deed, setbacks/TAKS/KAKS/gabari from the plan notes, ground floor level from the red grade line, and room layout from the program. Treat missing inputs as blockers — ask rather than guessing lot geometry or any zoning number.
 
-Output per project: `clients/<slug>/cad/<name>.dxf` and `.svg`, plus a short note in that client's folder stating these are schematic drawings requiring licensed-architect review before permitting or construction — never claim code compliance or a stamp on generated output.
+Output per project: `clients/<slug>/cad/<name>.dxf` and `.svg` (plus `.dwg` via `export_dwg.py` when a native-DWG deliverable is requested or needed), plus a short note in that client's folder stating these are schematic drawings requiring licensed-architect review before permitting or construction — never claim code compliance or a stamp on generated output.
 
-**Dependencies**: `ezdxf` and `svgwrite` (Python) — already installed in this environment.
+**Dependencies**: `ezdxf` and `svgwrite` (Python) — already installed in this environment. `ODA File Converter` (DWG conversion) and `Poppler` (unblocks reading scanned/image PDFs) — system installs, see `reports/cad-tooling-gap-analysis.md` for install details/paths.
 
 ## 3D rendering (for sales catalogs)
 
@@ -51,7 +75,7 @@ Never present a render as a substitute for a licensed architect's drawings; it's
 
 ## Compliance verification (mandatory, before delivering any CAD/render output)
 
-This is schematic work, but it must never contradict the founder's own source documents — there's no room for a setback, ratio, or height that quietly doesn't match the intake. Before calling a floor plan or render finished, re-derive every key figure from the generated DXF/SVG and check it explicitly against the constraint list from intake:
+This is schematic work, but it must never contradict the founder's own source documents — there's no room for a setback, ratio, or height that quietly doesn't match the intake. Before calling a floor plan or render finished, re-derive every key figure from the generated DXF/SVG and check it explicitly against the constraint list from intake. `lib/cadgen/plan.py`'s `verify_compliance()` implements this in code: it re-reads the just-generated DXF file fresh from disk (not the in-memory `Building` object that produced it) so a bug in the writing step itself gets caught too, not just a bug in the layout math:
 
 - Lot coverage used vs. the TAKS limit
 - Total floor area vs. KAKS/emsal

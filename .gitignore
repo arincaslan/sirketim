@@ -8,3 +8,10 @@ build/
 .DS_Store
 Thumbs.db
 .claude/settings.local.json
+__pycache__/
+*.pyc
+
+# Generated test/demo CAD artifacts from the cadgen library's synthetic
+# validation harness (departments/architecture/lib/cadgen/examples/) --
+# regenerable output, not source, and not a real client deliverable.
+departments/architecture/lib/cadgen/examples/output/

@@ -520,7 +520,8 @@ class Component extends DCLogic {
         demoActivity: 'Updated departments/web-development/CLAUDE.md · 2h ago', demoReport: null,
         realReport: { label: 'Template Quality Gap · Aug 20', url: 'https://claude.ai/code/artifact/60c0972b-b3ab-4710-b60d-2b713f95748a' } },
       { id: 'arch',  name: 'Architecture', short: 'Arch',       hue: 205, iconPath: 'M3 11 L12 4 L21 11 M5 10 V19 H19 V10 M9 19 V14 M15 19 V14',
-        demoActivity: 'Added renders/villa-k-front.glb · 5h ago', demoReport: null },
+        demoActivity: 'Added renders/villa-k-front.glb · 5h ago', demoReport: null,
+        realReport: { label: 'CAD Tooling Gap Analysis · Aug 20', url: 'https://claude.ai/code/artifact/3dbf2aec-3ced-4352-b096-6dd81cb4956b' } },
       { id: 'sales', name: 'Sales', short: 'Sales',             hue: 155, iconPath: 'M20.59 13.41 L13.42 20.58 A2 2 0 0 1 10.59 20.58 L2 12 L2 2 L12 2 L20.59 10.59 A2 2 0 0 1 20.59 13.41 Z M7 8 A1 1 0 1 0 7 6 A1 1 0 1 0 7 8 Z',
         demoActivity: 'Edited shared/clients.md · 1d ago', demoReport: null },
       { id: 'ads',   name: 'Advertising', short: 'Ads',         hue: 28,  iconPath: 'M3 11 V13 A1 1 0 0 0 4 14 H7 L12 18 V6 L7 10 H4 A1 1 0 0 0 3 11 Z M15 8 A4 4 0 0 1 15 16 M18 5 A8 8 0 0 1 18 19',
@@ -580,6 +581,24 @@ class Component extends DCLogic {
       // founder approved regenerating the full set, 2026-08-20.
       { id: 120, title: 'Regenerate all 12 individual product photos — fragrance-store', dept: 'ads', status: 'fulfilled', priority: 1, due: null,
         notes: 'All 12 replaced — old CC-NC/CC-ND watermarked stock (uncredited, one mismatched entirely) fully removed from the repo. Same visual template as hero/categories, garnished per product’s real notes (e.g. saffron+oud+rose for Velvet Oud, leather+black currant+tobacco for Midnight Leather). Verified: lint pass, clean build, all 12 render correctly on /products and on individual product pages.' },
+      // Founder brief, 2026-08-20: real project kickoff — sample DWG (373-6) sets the
+      // target fidelity, 377-1 is the actual project's zoning/site intake.
+      { id: 121, title: 'CAD tooling gap-analysis — DWG production readiness', dept: 'arch', status: 'fulfilled', priority: 1, due: null,
+        notes: 'ODA File Converter 27.1.0 + Poppler installed, both confirmed working (AC1032 round-trip verified; scanned 377-1 PDFs now readable). Sample DWG inspected: confirmed architectural, not structural (zero rebar terms, MİMARİ self-labeled, S-STRS layer unused). 377-1 TAKS 0.25/KAKS 1.00/4 kat/5m front/3m side pulled and recorded; rear setback flagged open (blank in source docs, district formula ambiguous for this parcel — needs municipal confirmation, not guessed). Report: departments/architecture/reports/cad-tooling-gap-analysis.md.' },
+      // Founder decided 2026-08-20: match the 373-6 sample's full production depth,
+      // not just schematic. Explore confirmed zero CAD pipeline code exists yet
+      // (all prior CLAUDE.md/skill content was documentation-only) — greenfield build.
+      { id: 122, title: 'Build CAD generation library — foundation phase', dept: 'arch', status: 'fulfilled', priority: 1, due: null,
+        notes: 'Built departments/architecture/lib/cadgen/ (model.py data model, plan.py generator + verify_compliance(), export_dwg.py, titleblock.py with hard no-fake-approval-stamp rule) plus a synthetic-lot validation harness. Independently re-run and confirmed: 12/12 verification checks passed: every DXF dimension traces to intake; full TAKS/KAKS/height/4-setback/ground-floor-vs-red-grade compliance check passes on the valid plan and correctly isolates 2 deliberately-broken variants (front-setback, TAKS-coverage); DXF-to-DWG-to-DXF round-trip preserves all entities/layers and compliance still passes; stamp-language guard/scanner both proven against real violations, zero found in generated output. Tested against a synthetic 15x20m lot only — not the real 377/1 parcel (still missing room program + parcel boundary geometry). departments/architecture/CLAUDE.md and .claude/skills/project-brief/SKILL.md updated; schedule/elevation/section/finishes/furnishing remain roadmapped, not built.' },
+      // Founder request 2026-08-20: control should track report/dashboard sync going
+      // forward, not just this once — added as standing check 9 in departments/control/CLAUDE.md.
+      { id: 123, title: 'New standing check: dashboard/report sync across departments', dept: 'ctrl', status: 'assigned', priority: 2, due: null,
+        notes: 'Verify every dept report on disk has a matching realReport link, every assigned/completed task is actually reflected in this task list, and repo edits to Main.dc.html get re-seeded + republished (not just saved locally). See departments/control/CLAUDE.md check 9 — added after exactly this gap was found and fixed manually for architecture (task 122 + its report link) this session.' },
+      // Founder brief, 2026-08-20: before defining the department's general workflow,
+      // wants a real checkpoint — the team needs genuine regulatory/practice understanding
+      // (basement floor rules, efficient room planning) and one example DWG for 377/1.
+      { id: 124, title: 'Architectural rules research + example DWG — 377/1', dept: 'arch', status: 'fulfilled', priority: 1, due: null,
+        notes: 'Basement: plan notes item 4.2.60/2.9 resolve it — 1 occupied bodrum floor allowed without cutting upper floors (4 kat + 1 bodrum = 5 total), more allowed if dedicated parking/service. Rear setback resolved: blank in source docs, local h/2 formula (4.2.10) confirmed inapplicable (mixed-use only, 377/1 is pure Konut Alanı) — fetched actual current Planlı Alanlar İmar Yönetmeliği text from mevzuat.gov.tr, Madde 23(1)(c) gives 3.00m via the plan notes\' own fallback rule. Parcel boundary read off both plotted schemas (topology high-confidence, 36.02x19.80m rectangle a visual-proportion estimate not a survey — flagged as such). Full 5-level room program derived (space-planning judgment against Madde 29/32 minimums). Ran project-brief skill + lib/cadgen end-to-end for real: ground-floor DXF/SVG/DWG generated (lib/cadgen is single-level only, a pre-existing documented gap, not new breakage), compliance verification 9/9 PASS, zero stamp-language violations. departments/architecture/clients/377-1/ created (brief.md, CLAUDE.md, notes/rationale.md); shared/clients.md registration deliberately held — client-vs-practice status is an open question for the founder.' },
     ];
 
     // Demo-only tasks for departments with no real assignment yet — shown only with
