@@ -14,10 +14,13 @@ Modules:
     export_dwg.py    DXF <-> native DWG round-trip via ODA File Converter.
     titleblock.py    Sheet title block, with a hard-enforced prohibition on
                      reproducing governmental approval-stamp language.
+    schedule.py      Door/window schedule generator: Building.openings ->
+                     one Door + Window schedule table per level -> DXF/SVG,
+                     plus verify_schedule_fidelity() (verify_compliance()'s
+                     analog for schedule numbers).
 
-Not built yet (roadmapped, later passes): schedule.py (door/window
-schedules), elevation.py, section.py, finishes.py, furnishing.py. Do not
-import names that would imply these exist.
+Not built yet (roadmapped, later passes): elevation.py, section.py,
+finishes.py, furnishing.py. Do not import names that would imply these exist.
 """
 
 from __future__ import annotations

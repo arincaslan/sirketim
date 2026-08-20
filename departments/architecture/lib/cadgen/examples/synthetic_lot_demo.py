@@ -31,8 +31,9 @@ import ezdxf  # noqa: E402
 
 from cadgen import export_dwg as export_dwg_mod  # noqa: E402
 from cadgen import plan as plan_mod  # noqa: E402
+from cadgen import schedule as schedule_mod  # noqa: E402
 from cadgen import titleblock as titleblock_mod  # noqa: E402
-from cadgen.model import Building, Level, polygon_area  # noqa: E402
+from cadgen.model import Building, Level, OpeningType, polygon_area  # noqa: E402
 
 OUTPUT_DIR = Path(__file__).resolve().parent / "output"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -346,6 +347,133 @@ bad_stamp_path = OUTPUT_DIR / "negative_test_stamp_language.dxf"
 bad_doc.saveas(str(bad_stamp_path))
 scanner_violations = titleblock_mod.scan_dxf_for_stamp_language(bad_stamp_path)
 record("scan_dxf_for_stamp_language() catches a deliberately-injected stamp phrase", len(scanner_violations) >= 1, f"found {len(scanner_violations)} violation(s)")
+
+# ---------------------------------------------------------------------------
+# 7. Door/window schedule (schedule.py) -- valid case + fidelity checks
+# ---------------------------------------------------------------------------
+
+section("7a. Door/window schedule -- generate for the valid synthetic plan")
+
+schedule_titleblock_info = titleblock_mod.TitleBlockInfo(
+    project_name="Synthetic Test Lot",
+    parcel_id="SYNTHETIC -- not a real parcel (foundation-phase validation only)",
+    date="2026-08-20",
+    scale="N/A (schedule table)",
+    sheet_number="A-201",
+    sheet_title="Door & Window Schedule",
+)
+
+schedule_dxf_path = OUTPUT_DIR / "valid_plan_schedule.dxf"
+schedule_svg_path = OUTPUT_DIR / "valid_plan_schedule.svg"
+schedule_mod.render_schedule_dxf(building, 0, schedule_dxf_path, titleblock_info=schedule_titleblock_info)
+schedule_mod.render_schedule_svg(building, 0, schedule_svg_path, titleblock_info=schedule_titleblock_info)
+print(f"Wrote {schedule_dxf_path}")
+print(f"Wrote {schedule_svg_path}")
+
+rows = schedule_mod.compute_schedule_rows(building, 0)
+print(f"Schedule rows: {len(rows)} ({sum(1 for r in rows if r.opening_type is OpeningType.DOOR)} door, "
+      f"{sum(1 for r in rows if r.opening_type is OpeningType.WINDOW)} window)")
+for r in rows:
+    print(f"  {r.mark} ({r.opening_type.value}): width={r.width:.3f}m sill={r.sill_height:.2f}m head={r.head_height:.2f}m host={r.host_wall_id}")
+
+expected_marks = {o.mark for o in building.openings}
+drawn_marks = {r.mark for r in rows}
+record(
+    "Schedule rows cover every opening.mark on the source Building (level 0), no more no fewer",
+    expected_marks == drawn_marks,
+    f"expected={sorted(expected_marks)} drawn={sorted(drawn_marks)}",
+)
+
+section("7b. Door/window schedule -- fidelity check (expect ALL PASS)")
+
+fidelity_report = schedule_mod.verify_schedule_fidelity(schedule_dxf_path, building, 0)
+print(fidelity_report.summary())
+record("Schedule fidelity check: valid schedule matches the source Building exactly, every row", fidelity_report.all_passed)
+
+section("7c. Door/window schedule -- BROKEN variant: fidelity check catches a real mismatch")
+
+# Simulate a bug/drift between what a schedule sheet was drawn from and the
+# Building it's supposed to still represent (e.g. the model changed after
+# the sheet was rendered, or a bug corrupted a value in a later step) by
+# checking the ALREADY-DRAWN schedule DXF against a deliberately tampered
+# copy of the Building, rather than the one that actually produced it.
+import copy  # noqa: E402
+
+tampered_building = copy.deepcopy(building)
+tampered_opening = next(o for o in tampered_building.openings if o.mark == "D1")
+tampered_opening.width = tampered_opening.width + 0.35  # a real, detectable drift
+
+tampered_report = schedule_mod.verify_schedule_fidelity(schedule_dxf_path, tampered_building, 0)
+print(tampered_report.summary())
+
+# Both the rendered-cell check (row 0 of DOOR SCHEDULE, mark D1) and the
+# XDATA/Building consistency check (also keyed to mark D1) should catch this
+# drift -- the drawn sheet still shows the pre-drift width, and the tampered
+# Building now expects a different one, so both comparisons disagree. Match
+# on "'D1'" (with quotes) rather than a name prefix so this stays correct
+# regardless of which check-naming convention is used for either check.
+d1_checks = [c for c in tampered_report.checks if "'D1'" in c.name]
+other_checks = [c for c in tampered_report.checks if "'D1'" not in c.name]
+isolated_failure_d1 = (
+    len(d1_checks) >= 1
+    and all(not c.passed for c in d1_checks)
+    and all(c.passed for c in other_checks)
+)
+record(
+    "Schedule fidelity check: catches a real mark-D1 width drift (+0.35m) via every D1-related check, and ONLY D1 checks fail",
+    isolated_failure_d1,
+    f"D1 checks passed={[c.passed for c in d1_checks]} (expected all False); other checks all passed={all(c.passed for c in other_checks)}",
+)
+
+section("7c2. Door/window schedule -- BROKEN variant: tamper with the ACTUAL DRAWN TABLE, not the Building")
+
+# This is the gap control/audit flagged: the check above only proves XDATA
+# tracks the Building. Here nothing about the Building or the XDATA changes
+# -- only the VISIBLE cell text `_draw_table()` wrote to the sheet is
+# scrambled, exactly the "wrong column / transposed row / mismatched mark"
+# failure mode described in the audit. Before this fix, verify_schedule_fidelity()
+# only read XDATA and would have reported ALL PASS here -- a real overclaim.
+broken_render_doc = ezdxf.readfile(str(schedule_dxf_path))
+broken_render_msp = broken_render_doc.modelspace()
+d1_width_str = f"{next(o for o in building.openings if o.mark == 'D1').width:.2f}"
+d1_width_cells = [
+    e for e in broken_render_msp
+    if e.dxftype() == "TEXT" and e.dxf.layer == schedule_mod.LAYERS["schedule"] and e.dxf.text == d1_width_str
+]
+if len(d1_width_cells) != 1:
+    record(
+        "Broken-render setup: found exactly one drawn WIDTH cell for mark D1 to tamper with",
+        False,
+        f"found {len(d1_width_cells)} candidate(s) with text {d1_width_str!r}",
+    )
+else:
+    d1_width_cells[0].dxf.text = "9.99"  # scramble the VISIBLE cell only -- Building and XDATA are untouched
+    broken_render_path = OUTPUT_DIR / "broken_render_schedule.dxf"
+    broken_render_doc.saveas(str(broken_render_path))
+
+    broken_render_report = schedule_mod.verify_schedule_fidelity(broken_render_path, building, 0)
+    print(broken_render_report.summary())
+
+    rendered_d1_check = next(
+        c for c in broken_render_report.checks
+        if c.name.startswith("Rendered DOOR SCHEDULE row 0 (mark 'D1')")
+    )
+    xdata_d1_check = next(c for c in broken_render_report.checks if c.name.startswith("Mark 'D1' (door) XDATA"))
+    record(
+        "Schedule fidelity check: a scrambled VISIBLE table cell (Building/XDATA untouched) is caught by the rendered-cell check",
+        (not rendered_d1_check.passed) and xdata_d1_check.passed,
+        f"rendered-cell check passed={rendered_d1_check.passed} (expected False); "
+        f"XDATA check passed={xdata_d1_check.passed} (expected True -- XDATA wasn't touched, proving this is exactly "
+        "the gap an XDATA-only check would have missed)",
+    )
+
+section("7d. Door/window schedule -- approval-stamp language audit")
+
+schedule_violations = titleblock_mod.scan_dxf_for_stamp_language(schedule_dxf_path)
+print(f"Violations found in generated schedule's text entities: {len(schedule_violations)}")
+for v in schedule_violations:
+    print(f"  {v}")
+record("Generated schedule DXF's text entities contain zero approval-stamp language", len(schedule_violations) == 0)
 
 # ---------------------------------------------------------------------------
 # Final summary

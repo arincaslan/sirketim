@@ -1,10 +1,16 @@
 # Client: Parcel 377/1 — Ereğli Mah., Karamürsel, Kocaeli
 
-**Status: confirmed real client engagement** (founder confirmed 2026-08-20; registered in `../../../shared/clients.md`). This folder started as a checkpoint exercise — the founder asked the department to run the `project-brief` skill and `lib/cadgen` end-to-end against this parcel's real intake documents, before writing up the department's general workflow — but the underlying project is real, not practice-only. The ground floor delivered so far is still schematic/example-fidelity output (see `notes/rationale.md`), not a finished deliverable; treat this as an active project's first milestone, not a completed engagement.
+**Status: internal Sirketim-owned capital project — not a third-party client engagement.** This is the founder's own building (records corrected 2026-08-20; see `../../../shared/clients.md`). The folder originally started as a checkpoint exercise and was briefly mislabeled a "client engagement" — it was never third-party client work; it's the founder's own real-estate building-firm project, run through the architecture department the same way any real project would be, but internal (no external client relationship, no billing).
+
+**Program pivot (2026-08-20, same day, later pass): single-family residence -> 6-unit apartment building.** The building is now a shared vertical core (stair + elevator) serving 6 independent 2+1 apartments (2 per floor across the 3 normal kat floors), a shared entry lobby at grade, and parking/service in the basement — not one household across 5 levels. See `notes/rationale.md` §9 for the full design-judgment write-up (core placement, why 2 units/floor, the reverse-duplex verdict) and §10–§14 for what was built, run, and verified this pass. **`cad/` now reflects one single successful run of the saved generation script, `scripts/generate_377_1.py`** — a prior in-repo copy of `cad/` briefly went stale relative to that script (see rationale.md §10.4); this is resolved, the two are reconciled as of this pass.
+
+**Full production set, matching the founder's 373-6 reference building's depth, is now built AND verified by actually running it against this project's real numbers**: floor plans, door/window schedules, real parking-stall geometry, elevations (all 4 directions), one longitudinal section through the core, and an on-sheet calc table — plus, this pass, **one consolidated native DWG with 19 layout tabs in a single file** (`cad/377-1-consolidated.dwg`), matching 373-6's multi-tab format rather than a folder of per-sheet files. **Not built**: `finishes.py`, `furnishing.py` (material/finish specs, furnishing layout) — still genuinely not started. **Real gap worth flagging**: `elevation.py`/`section.py`/`parking.py`/`calc_table.py` are verified against this one real project's output, but have not yet been added to the library's own synthetic regression harness (`lib/cadgen/examples/synthetic_lot_demo.py`) — see `departments/architecture/CLAUDE.md` for the same caveat stated at the library level.
+
+**No 3D/Blender rendering was produced this pass — deliberately, per the founder's explicit instruction** for this build ("we don't need 3D projection, we need drawings from each perspective"), not silently skipped.
 
 ## Depth tier
 
-**Schematic** (the department's default and current baseline — see `departments/architecture/CLAUDE.md`, "Floor plan generation"). Full production set (sections/elevations/schedules/finishes/furnishing) is roadmapped, not built.
+**Schematic.** Full production set (plans/schedules/parking/elevations/section/calc-table) is now built and verified for this project — see above. `finishes.py`/`furnishing.py` (material/finish specs, furnishing layout) remain roadmapped, not built. Every drawing remains schematic sales/planning collateral, not permit-ready or stamped, per department convention (`departments/architecture/CLAUDE.md`, "Floor plan generation").
 
 ## Site
 
@@ -33,7 +39,7 @@
 | Yan Bahçe (side) | 3 m each | both parcel documents |
 | Arka Bahçe (rear) | 3 m | **resolved this pass** — blank on both parcel documents; plan notes item 4.2.10's h/2 formula does not apply (scoped to mixed residential+commercial blocks, 377/1 is pure Konut Alanı); plan notes item 1.1 directs fallback to the national **Planlı Alanlar İmar Yönetmeliği**, Madde 23(1)(c): "Arka bahçe mesafesi en az 3.00 metredir." (The +0.50m/floor increment in Madde 23(1)(ç) for buildings over 4 stories does not trigger — Kat Adedi=4, not >4.) |
 | Basement floors (bodrum kat) | 1 occupied/habitable floor without reducing upper floors (more allowed if dedicated to parking/service, not counted toward KAKS/occupied-floor cap) | plan notes item 2.9 (Ereğli/Tepeköy, D-130-north, 4-kat blocks: "birden fazla bodrum kat yapılmasına müsaade edilmez ve toplam kat sayısı 5'i geçemez" — geographic applicability to 377/1 not independently confirmed, see rationale.md) and item 4.2.60/4.2.61 (general, plan-wide, no geographic qualifier — converges on the same practical answer independent of item 2.9's applicability) |
-| Bina Yüksekliği (gabari, meters) | Not stated on either document (blank/dash) — height governed by Kat Adedi=4 instead. Eave-level estimate: 14.50 m (derived, see rationale.md) | — |
+| Bina Yüksekliği (gabari, meters) | Not stated on either document (blank/dash) — height governed by Kat Adedi=4 instead. Eave-level estimate: **14.65 m** (re-derived from 14.50m in a prior pass once the full level stack was actually drawn — ground_floor_elevation +0.15m + zemin 4.00m + 3×normal kat 3.50m each; see rationale.md §1) | — |
 | Kırmızı kot (red grade line) | **Not available — no plankote document provided.** Placeholder datum used (0.00 m absolute), clearly flagged, not a real site elevation. | plan notes item 4.1.8 names the document type (Yol ve Arsa Kotu Tutanağı) that would carry this; not among the three PDFs. |
 
 ## Parcel geometry
@@ -42,12 +48,28 @@ Read directly off the plotted schema in both `minuspalityimardurumu.pdf` (hand-d
 
 ## Room program
 
-See `brief.md` for the full 5-level concept program (basement + ground + 3 upper floors + roof piyes), derived through real space-planning judgment (adjacency, circulation, natural light, Turkish residential minimums per Planlı Alanlar İmar Yönetmeliği Madde 29/32). Only the **ground floor** was carried through to concrete DXF/SVG/DWG geometry this pass — `lib/cadgen/plan.py` is single-level only (a documented foundation-phase limitation, not specific to this project).
+**Superseded by the apartment-building pivot — see `notes/rationale.md` §9 for the current program and design reasoning; `brief.md` still describes the earlier single-family-residence framing and has not been rewritten this pass (a known gap, flagged rather than silently left to mislead).** Current program, as actually generated by `scripts/generate_377_1.py` and confirmed by running it: bodrum kat = parking (6 real stalls, see below) + mekanik/depo/sığınak service space; zemin kat = shared entry lobby + management/storage room, no dwelling units; 1./2./3. normal kat = 2 independent 2+1 apartments each (Salon/Mutfak/2×Yatak Odası/Banyo WC), served by a shared stair/elevator core via a common corridor = **6 total dwelling units**; çatı piyesi = small roof terrace + mechanical/solar enclosure, unchanged in concept from the single-family pass. All 6 levels have concrete DXF/SVG/DWG geometry, generated by `lib/cadgen/plan.py`'s multi-level + multi-unit machinery (`generate_multilevel_plan()`, `LevelSpec`, `CoreSpec`, `build_level_geometry_multiunit()`).
 
-## Deliverables (this pass)
+**Door/window schedules**: every one of the 6 levels has a door/window schedule (DXF/SVG/DWG, `lib/cadgen/schedule.py`), generated directly from this pass's own `Building` object (no reconstruction needed — the generation script itself is now saved, see below) and verified per-level via `verify_schedule_fidelity()` (all pass, see `notes/rationale.md` §10.3).
 
-- `cad/377-1-ground-floor.dxf` / `.svg` / `.dwg` — schematic ground floor plan, example/practice output
-- `brief.md` — site summary, full room program, concept narrative
-- `notes/rationale.md` — design rationale, compliance verification results, open items
+**Parking, elevations, section, calc table (this pass — new)**: real drawn parking-stall geometry in the basement (6/6 required stalls, Otopark Yönetmeliği-sized), all 4 elevations (front/rear/left/right), one longitudinal section through the shared core, and an on-sheet TAKS/KAKS calc table — see `notes/rationale.md` §11–§13 for what was built and how each was verified.
 
-**Every drawing here is schematic and requires licensed-architect review before permitting or construction. None of it is stamped, approved, or code-compliant in a legal sense.**
+## Deliverables (apartment-building pass)
+
+- `scripts/generate_377_1.py` — the saved, runnable generation script; this is the actual source of truth for every dimension below (re-run it to regenerate everything from scratch).
+- `cad/377-1-bodrum-kat.dxf` / `.svg` / `.dwg` — basement plan (sheet A-101) + `cad/377-1-bodrum-kat-otopark.dxf` / `.svg` — real parking-stall layout (sheet A-107), plus `cad/377-1-bodrum-kat-schedule.dxf` / `.svg` / `.dwg` (sheet A-201)
+- `cad/377-1-zemin-kat.dxf` / `.svg` / `.dwg` — ground floor / shared lobby (sheet A-102), plus `cad/377-1-zemin-kat-schedule.dxf` / `.svg` / `.dwg` (sheet A-202)
+- `cad/377-1-1-normal-kat.dxf` / `.svg` / `.dwg` — 1st floor, 2 apartments (sheet A-103), plus schedule (sheet A-203)
+- `cad/377-1-2-normal-kat.dxf` / `.svg` / `.dwg` — 2nd floor, 2 apartments (sheet A-104), plus schedule (sheet A-204)
+- `cad/377-1-3-normal-kat.dxf` / `.svg` / `.dwg` — 3rd floor, 2 apartments (sheet A-105), plus schedule (sheet A-205)
+- `cad/377-1-cati-piyesi.dxf` / `.svg` / `.dwg` — roof piyes (sheet A-106), plus schedule (sheet A-206)
+- `cad/377-1-elevation-front.dxf` / `.svg` (A-301), `-rear` (A-302), `-left` (A-303), `-right` (A-304) — real orthographic elevations, no 3D
+- `cad/377-1-section-longitudinal.dxf` / `.svg` (A-401) — section cut through the shared core
+- `cad/377-1-calc-table.dxf` / `.svg` (A-501) — on-sheet area/TAKS/KAKS table, sourced from the same compliance report checked below
+- **`cad/377-1-consolidated.dxf` / `.dwg` — ONE file, 19 sheets as separate layout tabs, matching the founder's 373-6 reference format. This is the single final CAD deliverable the founder asked for.**
+- `brief.md` — site summary, room program, concept narrative (**stale**, still describes the single-family framing — see note above)
+- `notes/rationale.md` — design rationale (§9: core placement / unit-count / reverse-duplex reasoning in plain language; §10–§14: what was built, run, and verified this pass, including 2 real code bugs and 1 real geometry conflict found and fixed), compliance verification (35/35), core alignment (12/12), parking (9/9), stamp-language audit (0 violations across every sheet type), open items (§15)
+
+**Not built**: `finishes.py`, `furnishing.py` (material/finish specs, furnishing layout) — genuinely not started. **Real gap, stated plainly**: `elevation.py`/`section.py`/`parking.py`/`calc_table.py` are verified against this one real project, not yet added to the library's own synthetic regression harness (`lib/cadgen/examples/synthetic_lot_demo.py`) — see `departments/architecture/CLAUDE.md`.
+
+**Every drawing here is schematic and requires licensed-architect review before permitting or construction. None of it is stamped, approved, or code-compliant in a legal sense. No 3D/Blender rendering was produced this pass, per the founder's explicit instruction.**
