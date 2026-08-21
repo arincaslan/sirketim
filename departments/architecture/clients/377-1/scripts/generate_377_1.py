@@ -1,22 +1,41 @@
 """
 departments/architecture/clients/377-1/scripts/generate_377_1.py
 
-Full generation script for parcel 377/1 -- the multi-unit apartment-building
-pass (see ../notes/rationale.md, design-judgment section, for the sourced
-reasoning behind every number below). Every input here traces to a specific
-citation in rationale.md; this file is the SAVED source of truth for how the
-CAD set was produced -- closing a gap flagged by the previous (single-family)
-pass's own rationale.md (Section 8's schedule.py account): "save the
-LevelSpec/generation script itself alongside the CAD output, not just the
-rendered files, so future modules don't need to reconstruct-and-cross-validate."
+Full generation script for parcel 377/1 -- the MAXIMIZED-FOOTPRINT /
+REVERSE-DUPLEX / ROOF-DUPLEX pass (see ../notes/rationale.md, dated section
+for this pass, for the sourced reasoning behind every number below). Every
+input here traces to a specific citation in rationale.md; this file is the
+SAVED source of truth for how the CAD set was produced.
+
+This SUPERSEDES the prior 6-unit apartment-building script (same filename,
+prior pass) as the project's current design -- that prior pass's own CAD
+output remains a legitimate, separately-verified checkpoint in the project's
+history (see rationale.md's dated section for this pass, first paragraph),
+not deleted or discredited, just superseded by what this script produces.
+
+What changed this pass, in one paragraph: the buildable footprint is pushed
+to the TAKS cap (0.25) rather than the prior pass's schematic-sized
+footprint, replicated across all 4 KAKS-counted levels; the ground floor
+gained ONE reverse-duplex unit (zemin + bodrum, connected by a private
+internal stair) alongside the existing shared lobby/core; the top normal kat
+(3rd) had its 2 standalone apartments converted into 2 roof-duplex units
+(each combined with its own loft space in the cati piyesi, connected by a
+private internal stair) -- and `lib/cadgen/plan.py` gained real, reusable
+"true duplex" library capability (DuplexUnitSpec/DuplexZoneSpec/
+DuplexPairSpec + build_level_geometry_duplex_level() +
+generate_multilevel_plan(duplex_pairs=...) + verify_duplex_stair_alignment()
++ verify_duplex_area_caps()) to make this representable at all -- the
+pre-existing LevelSpec/units model could only size/lay out one level's own
+program independently, with no way to express a single bagimsiz bolum
+spanning two physically stacked levels via its own internal stair.
 
 Run with:
     python "departments/architecture/clients/377-1/scripts/generate_377_1.py"
 
 Regenerates every plan/schedule/parking/elevation/section/calc-table sheet
 for 377/1 into ../cad/, runs the full compliance + core-alignment +
-stamp-language verification suite, and prints a pass/fail summary. Exits
-non-zero if anything fails.
+duplex-alignment + duplex-area-cap + stamp-language verification suite, and
+prints a pass/fail summary. Exits non-zero if anything fails.
 """
 
 from __future__ import annotations
@@ -25,10 +44,9 @@ import sys
 from pathlib import Path
 
 # Windows console default (cp1252) can't encode this script's Turkish
-# diacritics (asansor bosluğu, cekirdek, etc.) in plain print() calls --
-# force UTF-8 stdout/stderr so the script can actually run to completion on
-# this machine instead of crashing partway through with UnicodeEncodeError
-# (a real failure hit while first running this script, see rationale.md).
+# diacritics in plain print() calls -- force UTF-8 stdout/stderr (same fix
+# the prior pass's script needed and recorded, see rationale.md Section 10.1
+# of the prior pass).
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
@@ -67,11 +85,11 @@ def section(title: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# 1. Intake -- unchanged from the single-family pass; see brief.md / CLAUDE.md
-# for source citations (imardurumu.pdf, minuspalityimardurumu.pdf, plannotes.pdf)
+# 1. Intake -- unchanged from every prior pass; see brief.md / CLAUDE.md for
+# source citations (imardurumu.pdf, minuspalityimardurumu.pdf, plannotes.pdf)
 # ---------------------------------------------------------------------------
 
-section("1. Intake (unchanged from the single-family pass -- see brief.md/CLAUDE.md for citations)")
+section("1. Intake (unchanged from prior passes -- see brief.md/CLAUDE.md for citations)")
 
 lot = plan_mod.LotGeometry(
     width=36.02, depth=19.80,
@@ -81,7 +99,7 @@ setbacks = plan_mod.Setbacks(front=5.0, rear=3.0, side_left=3.0, side_right=3.0)
 zoning = plan_mod.ZoningConstraints(
     taks=0.25, kaks=1.00, max_height=14.65,
     setbacks=setbacks,
-    source_note="imardurumu.pdf / minuspalityimardurumu.pdf (TAKS/KAKS/setbacks/Kat Adedi); rear setback via Planli Alanlar Imar Yonetmeligi Madde 23(1)(c); max_height re-derived from plan notes item 4.2.4 + ground_floor_elevation, see rationale.md Section 1.",
+    source_note="imardurumu.pdf / minuspalityimardurumu.pdf (TAKS/KAKS/setbacks/Kat Adedi); rear setback via Planli Alanlar Imar Yonetmeligi Madde 23(1)(c); max_height re-derived from plan notes item 4.2.4 + ground_floor_elevation, see rationale.md.",
     min_ground_floor_offset=0.0, max_ground_floor_offset=1.0,
     roof_ridge_max_above_top_slab=5.50,
 )
@@ -93,110 +111,197 @@ print(f"TAKS {zoning.taks} -> max footprint {lot.area() * zoning.taks:.2f} m2")
 print(f"KAKS {zoning.kaks} -> max total construction {lot.area() * zoning.kaks:.2f} m2")
 
 # ---------------------------------------------------------------------------
-# 2. Design-judgment decisions (see rationale.md for the full reasoning)
+# 2. Maximized footprint + shared core + reverse-duplex / roof-duplex program
 #
-# - Shared vertical core (CoreSpec): stair + elevator shaft, identical
-#   (x, y) footprint on every level -- fixes the core-alignment bug found
-#   this pass (see rationale.md).
-# - Zemin kat: shared entry lobby + management/mechanical room only (no
-#   longer a single-family living/kitchen program -- that assumption is
-#   resolved away this pass). Main building entrance opens directly into
-#   the lobby/core (entry_at_core_front=True).
-# - 1st/2nd/3rd normal kat: 2 independent 2+1 apartment units per floor,
-#   served by the shared core via a common corridor
-#   (build_level_geometry_multiunit()) -- the unit-count recommendation
-#   from rationale.md Section on unit count.
-# - Bodrum kat: stays parking/service (reverse-duplex judged
-#   conditionally-feasible but NOT implemented as geometry this pass -- see
-#   rationale.md). Footprint deepened to fit real drawn parking stalls
-#   (parking.py), sized to the 6-daire otopark requirement.
-# - Cati piyesi: stays small roof terrace/mechanical enclosure, now also
-#   served by the same core (roof access), unchanged program otherwise.
+# See rationale.md's dated section for this pass for the full sourced
+# design-judgment write-up (envelope derivation, unit-count tradeoffs, the
+# real parking-width conflict that capped the reverse duplex at 1 unit
+# rather than 2, the piyes-exemption citation research). Headline numbers,
+# reproduced here as inline comments so this script stays self-explanatory:
+#
+# - ZEMIN_DEPTH = NORMAL_KAT_DEPTH = 5.93 m: pushes the TAKS-counted
+#   footprint (zemin + 1/2/3 normal kat, all the SAME full-envelope-width x
+#   5.93m depth footprint) to 178.02 m2 -- TAKS 0.2496 against the 0.25 cap,
+#   99.84% of the legal maximum, with a small deliberate safety margin
+#   (same engineering-prudence convention the prior pass already used for
+#   BODRUM_DEPTH's own margin over its own minimum).
+# - BODRUM_DEPTH = 11.70 m: UNCHANGED from the prior pass -- not
+#   TAKS/KAKS-constrained, already validated, no reason to churn it.
+# - Reverse duplex: bodrum (secondary) + zemin (entry) = ONE unit
+#   ("Ters Dubleks 1") -- see rationale.md for why exactly one, not two:
+#   a real, quantified parking-width conflict (7 required stalls need
+#   ~17.5m of the basement's own ~29.77m interior width; one
+#   Madde-29-compliant reverse-duplex unit needs ~9.0m; a second would need
+#   another ~9m that the remaining ~0.2m of width cannot supply without
+#   either shrinking the unit below Madde 29 minimums or a
+#   double-loaded/stacked parking layout this library's parking.py does not
+#   yet support -- both real, named, not-attempted-this-pass follow-ups).
+# - Roof duplex: 3rd normal kat (entry) + cati piyesi (secondary) = TWO
+#   units ("Cati Dubleks 1"/"2") -- both of the 3rd floor's existing
+#   standalone apartments become roof duplexes (a net-neutral unit-count
+#   change on that floor, adding loft space, not additional dwelling
+#   units). 3rd normal kat + cati piyesi share a narrower, MATCHED
+#   footprint width (explicit_max_width=27.0m on both) -- required for the
+#   pair's own cross-level x-alignment guarantee (see
+#   build_level_geometry_duplex_level()'s docstring) -- which gives up
+#   17.91 m2 of KAKS-countable footprint on L3 versus the full envelope
+#   width (178.02 -> 160.11 m2), a real, quantified, and accepted
+#   consequence of building the roof duplex honestly rather than a free
+#   lunch.
+# - Total dwelling units: 1 (reverse duplex) + 2 (1st normal kat,
+#   unchanged standalone) + 2 (2nd normal kat, unchanged standalone) + 2
+#   (roof duplex) = 7 -- up from the prior pass's 6.
 # ---------------------------------------------------------------------------
 
-section("2. Shared core + level programs")
+section("2. Maximized footprint + shared core + reverse-duplex / roof-duplex program")
 
 CORE = plan_mod.CoreSpec(width=3.00, depth=2.60)
 print(f"CoreSpec: {CORE.width}m x {CORE.depth}m, area {CORE.width * CORE.depth:.2f} m2 "
       f"(>= plan notes item 4.2.55's 3.00 m2 asansor bosluğu minimum, plus stair run)")
 
-# -- Bodrum Kat (index -1) ---------------------------------------------------
-bodrum_program = [
-    plan_mod.RoomSpec("Kapali Otopark", 150.0, "parking"),  # sized generously; real stall geometry drawn by parking.py against the actual room, see Section 5
-    plan_mod.RoomSpec("Mekanik Tesisat Odasi", 12.0, "mechanical"),
-    plan_mod.RoomSpec("Depo Kiler", 10.0, "storage"),
-    plan_mod.RoomSpec("Siginak", 14.0, "life-safety"),
+ZEMIN_DEPTH = 5.93  # meters -- maximized toward the TAKS cap, see comment block above
+NORMAL_KAT_DEPTH = 5.93  # meters -- SAME footprint as zemin, replicated across all 4 KAKS-counted levels (this pass's own "maximize toward TAKS, replicate across KAKS floors" instruction)
+BODRUM_DEPTH = 11.70  # meters -- UNCHANGED from the prior pass (already validated against real parking-stall geometry, not TAKS/KAKS-constrained)
+CATI_DEPTH = 5.00  # meters -- roof-duplex loft depth, chosen to give the piyes rooms a real (>2.5m) usable depth once the shared core+corridor band is subtracted, not a sliver
+NORMAL_KAT_ROOF_MAX_WIDTH = 27.00  # meters -- SHARED, identical max_width for BOTH 3rd normal kat and cati piyesi (required for the roof-duplex pair's cross-level x-alignment; narrower than the 30.02m full envelope, see comment block above)
+
+# -- Bodrum Kat (index -1) -- reverse-duplex secondary level + parking + service --
+BODRUM_ZONE_MEKANIK = [
+    plan_mod.RoomSpec("Mekanik Tesisat Odasi", 10.0, "mechanical"),
+    plan_mod.RoomSpec("Depo Kiler", 8.0, "storage"),
+    plan_mod.RoomSpec("Siginak", 12.0, "life-safety"),
 ]
 
-# -- Zemin Kat (index 0) ------------------------------------------------------
-zemin_program = [
-    plan_mod.RoomSpec("Giris Lobisi", 28.0, "circulation"),
-    plan_mod.RoomSpec("Yonetim Depo Odasi", 10.0, "service"),
+# -- Zemin Kat (index 0) -- shared entry/core + reverse-duplex entry half --
+ZEMIN_ZONE_LOBBY = [
+    plan_mod.RoomSpec("Giris Lobisi", 70.0, "circulation"),
+    plan_mod.RoomSpec("Yonetim Depo Odasi", 25.0, "service"),
 ]
 
-# -- 1./2./3. Normal Kat (index 1/2/3) -- 2 units per floor, identical -------
-
-
-def make_unit() -> list[plan_mod.RoomSpec]:
-    return [
-        plan_mod.RoomSpec("Salon", 26.0, "living"),
-        plan_mod.RoomSpec("Mutfak", 11.0, "kitchen"),
-        plan_mod.RoomSpec("Yatak Odasi 1", 14.0, "bedroom"),
+REVERSE_DUPLEX_UNIT = plan_mod.DuplexUnitSpec(
+    name_prefix="Ters Dubleks 1",
+    entry_rooms=[  # zemin kat -- satisfies plan notes item 4.2.59's requirement (living room + 1 bedroom AT the ground floor)
+        plan_mod.RoomSpec("Salon", 22.0, "living"),
+        plan_mod.RoomSpec("Mutfak", 10.0, "kitchen"),
+        plan_mod.RoomSpec("Yatak Odasi 1", 13.0, "bedroom"),
+    ],
+    secondary_rooms=[  # bodrum kat -- reached only via this unit's own internal stair
         plan_mod.RoomSpec("Yatak Odasi 2", 11.0, "bedroom"),
-        plan_mod.RoomSpec("Banyo WC", 6.0, "bath"),
-    ]
+        plan_mod.RoomSpec("Banyo WC", 5.0, "bath"),
+        plan_mod.RoomSpec("Calisma Odasi", 8.0, "flex"),
+    ],
+)
+
+REVERSE_DUPLEX_PAIR = plan_mod.DuplexPairSpec(
+    lower_level=-1, upper_level=0, entry_level=0,
+    units=[REVERSE_DUPLEX_UNIT],
+    units_zone_width=9.0,  # meters -- sized so the smallest entry-level room (Yatak Odasi 1) clears the Madde 29 >=9.00 m2 master-bedroom minimum at this level's own available room depth (~4.13m); see rationale.md for the arithmetic
+    zones_before_units=[],
+    zones_after_units=[
+        plan_mod.DuplexZoneSpec(
+            name="Lobi-Otopark", width=17.50,  # SAME width both levels: zemin's lobby zone sits directly above bodrum's parking zone
+            entry_program=ZEMIN_ZONE_LOBBY,
+            secondary_program=[plan_mod.RoomSpec("Kapali Otopark", 150.0, "parking")],
+        ),
+    ],
+    corridor_depth=1.50, stair_width=1.00, stair_run=1.50, stair_gap=0.20,
+    demising_wall_thickness=0.20, door_width=1.00, door_height=2.10,
+    street_entry_door_width=1.50,  # Madde 39(1)(b) >=1.50m bina giris kapisi
+)
 
 
-# -- Cati Piyesi (index 4) ----------------------------------------------------
-piyes_program = [
-    plan_mod.RoomSpec("Kapali Teras Odasi", 18.0, "flex"),
-    plan_mod.RoomSpec("Mekanik Solar Ekipman Odasi", 6.0, "mechanical"),
-]
+def make_roof_duplex_unit(n: int) -> plan_mod.DuplexUnitSpec:
+    return plan_mod.DuplexUnitSpec(
+        name_prefix=f"Cati Dubleks {n}",
+        entry_rooms=[  # 3rd normal kat -- the unit's own full apartment program
+            plan_mod.RoomSpec("Salon", 26.0, "living"),
+            plan_mod.RoomSpec("Mutfak", 9.0, "kitchen"),
+            plan_mod.RoomSpec("Yatak Odasi 1", 16.0, "bedroom"),
+            plan_mod.RoomSpec("Yatak Odasi 2", 11.0, "bedroom"),
+            plan_mod.RoomSpec("Banyo WC", 6.0, "bath"),
+        ],
+        secondary_rooms=[  # cati piyesi -- reached only via this unit's own internal stair; area capped <= entry-level area, plan notes item 4.2.32
+            plan_mod.RoomSpec("Cati Odasi", 22.0, "flex"),
+        ],
+    )
 
-NORMAL_KAT_DEPTH = 5.70  # meters, explicit -- see rationale.md for why (fits KAKS budget + gives a real corridor+2-unit plan, not a sliver)
-ZEMIN_DEPTH = 5.70  # matches normal kat's footprint width AND depth -- closes (for these two levels) the previously-flagged "independent footprint per level, not real structural stacking" simplification
-BODRUM_DEPTH = 11.70  # meters -- CORRECTED this pass (was 10.90m): the room's own INTERIOR depth is footprint depth minus the exterior wall thickness (0.25m), so a 10.90m footprint only left a 10.65m-deep Kapali Otopark room -- 0.55m short of the 11.20m parking.py actually needs (stall 4.90m + two-way aisle 6.00m + 2x0.15m wall margin, Otopark Yonetmeligi Madde 5(1)(h)(7)/(8)). Confirmed empirically by first running compute_parking_layout() against the as-generated bodrum kat and getting a real ValueError, not assumed. 11.70m gives an 11.45m-deep room (0.25m of real margin over the 11.20m need) while staying inside the 11.80m setback-envelope depth (rear setback actual comes out 3.10m, still >= the 3.00m minimum) -- see rationale.md for the full account of this as a real, caught-and-fixed design conflict, not a zoning-number workaround.
+
+ROOF_DUPLEX_PAIR = plan_mod.DuplexPairSpec(
+    lower_level=3, upper_level=4, entry_level=3,
+    units=[make_roof_duplex_unit(1), make_roof_duplex_unit(2)],
+    units_zone_width=21.0,  # meters -- 10.5m/unit, sized so the smallest bedroom clears Madde 29's minimum at this level's own available room depth (~4.13m); see rationale.md
+    zones_before_units=[],
+    zones_after_units=[
+        plan_mod.DuplexZoneSpec(
+            name="Mekanik", width=2.60,
+            entry_program=[],  # nothing drawn on 3rd normal kat's own share of this narrow tail strip this pass -- a genuine, stated simplification (see rationale.md)
+            secondary_program=[plan_mod.RoomSpec("Mekanik Solar Ekipman Odasi", 6.0, "mechanical")],
+        ),
+    ],
+    corridor_depth=1.50, stair_width=1.00, stair_run=1.50, stair_gap=0.20,
+    demising_wall_thickness=0.20, door_width=1.00, door_height=2.10,
+    secondary_area_capped_by_entry=True,  # plan notes item 4.2.32
+)
+
+DUPLEX_PAIRS = [REVERSE_DUPLEX_PAIR, ROOF_DUPLEX_PAIR]
 
 level_specs = [
     plan_mod.LevelSpec(
-        index=-1, name="Bodrum Kat", program=bodrum_program, floor_to_floor_height=4.80,
+        index=-1, name="Bodrum Kat", floor_to_floor_height=4.80,
         footprint_style="explicit_depth", explicit_depth=BODRUM_DEPTH,
-        door_width=1.00, count_toward_taks=False, count_toward_kaks=False,
+        count_toward_taks=False, count_toward_kaks=False, is_duplex_level=True,
     ),
     plan_mod.LevelSpec(
-        index=0, name="Zemin Kat", program=zemin_program, floor_to_floor_height=4.00,
+        index=0, name="Zemin Kat", floor_to_floor_height=4.00,
         footprint_style="explicit_depth", explicit_depth=ZEMIN_DEPTH,
-        door_width=1.50, entry_at_core_front=True, count_toward_taks=True, count_toward_kaks=True,
+        count_toward_taks=True, count_toward_kaks=True, is_duplex_level=True,
     ),
     plan_mod.LevelSpec(
-        index=1, name="1. Normal Kat", units=[make_unit(), make_unit()], floor_to_floor_height=3.50,
-        footprint_style="explicit_depth", explicit_depth=NORMAL_KAT_DEPTH,
+        index=1, name="1. Normal Kat",
+        units=[
+            [plan_mod.RoomSpec("Salon", 26.0, "living"), plan_mod.RoomSpec("Mutfak", 11.0, "kitchen"),
+             plan_mod.RoomSpec("Yatak Odasi 1", 14.0, "bedroom"), plan_mod.RoomSpec("Yatak Odasi 2", 11.0, "bedroom"),
+             plan_mod.RoomSpec("Banyo WC", 6.0, "bath")],
+            [plan_mod.RoomSpec("Salon", 26.0, "living"), plan_mod.RoomSpec("Mutfak", 11.0, "kitchen"),
+             plan_mod.RoomSpec("Yatak Odasi 1", 14.0, "bedroom"), plan_mod.RoomSpec("Yatak Odasi 2", 11.0, "bedroom"),
+             plan_mod.RoomSpec("Banyo WC", 6.0, "bath")],
+        ],
+        floor_to_floor_height=3.50, footprint_style="explicit_depth", explicit_depth=NORMAL_KAT_DEPTH,
         corridor_depth=1.20, count_toward_taks=False, count_toward_kaks=True,
     ),
     plan_mod.LevelSpec(
-        index=2, name="2. Normal Kat", units=[make_unit(), make_unit()], floor_to_floor_height=3.50,
-        footprint_style="explicit_depth", explicit_depth=NORMAL_KAT_DEPTH,
+        index=2, name="2. Normal Kat",
+        units=[
+            [plan_mod.RoomSpec("Salon", 26.0, "living"), plan_mod.RoomSpec("Mutfak", 11.0, "kitchen"),
+             plan_mod.RoomSpec("Yatak Odasi 1", 14.0, "bedroom"), plan_mod.RoomSpec("Yatak Odasi 2", 11.0, "bedroom"),
+             plan_mod.RoomSpec("Banyo WC", 6.0, "bath")],
+            [plan_mod.RoomSpec("Salon", 26.0, "living"), plan_mod.RoomSpec("Mutfak", 11.0, "kitchen"),
+             plan_mod.RoomSpec("Yatak Odasi 1", 14.0, "bedroom"), plan_mod.RoomSpec("Yatak Odasi 2", 11.0, "bedroom"),
+             plan_mod.RoomSpec("Banyo WC", 6.0, "bath")],
+        ],
+        floor_to_floor_height=3.50, footprint_style="explicit_depth", explicit_depth=NORMAL_KAT_DEPTH,
         corridor_depth=1.20, count_toward_taks=False, count_toward_kaks=True,
     ),
     plan_mod.LevelSpec(
-        index=3, name="3. Normal Kat", units=[make_unit(), make_unit()], floor_to_floor_height=3.50,
-        footprint_style="explicit_depth", explicit_depth=NORMAL_KAT_DEPTH,
-        corridor_depth=1.20, count_toward_taks=False, count_toward_kaks=True,
+        index=3, name="3. Normal Kat", floor_to_floor_height=3.50,
+        footprint_style="explicit_depth", explicit_depth=NORMAL_KAT_DEPTH, explicit_max_width=NORMAL_KAT_ROOF_MAX_WIDTH,
+        count_toward_taks=False, count_toward_kaks=True, is_duplex_level=True,
     ),
     plan_mod.LevelSpec(
-        index=4, name="Cati Piyesi", program=piyes_program, floor_to_floor_height=2.60,
-        footprint_style="fitted", door_width=1.00, count_toward_taks=False, count_toward_kaks=False,
+        index=4, name="Cati Piyesi", floor_to_floor_height=2.60,
+        footprint_style="explicit_depth", explicit_depth=CATI_DEPTH, explicit_max_width=NORMAL_KAT_ROOF_MAX_WIDTH,
+        count_toward_taks=False, count_toward_kaks=False, is_duplex_level=True,
     ),
 ]
 
 building = plan_mod.generate_multilevel_plan(
-    name="Parcel 377-1 -- Multi-Unit Apartment Building (schematic)",
+    name="Parcel 377-1 -- Maximized Footprint, Reverse + Roof Duplex (schematic)",
     lot=lot, zoning=zoning, level_specs=level_specs,
     red_grade_elevation=RED_GRADE_ELEVATION, ground_floor_elevation=GROUND_FLOOR_ELEVATION,
-    core=CORE,
+    core=CORE, duplex_pairs=DUPLEX_PAIRS,
 )
 
-TOTAL_DWELLING_UNITS = 2 * 3  # 2 units/floor x 3 normal kat floors -- zemin/bodrum/piyes are not dwelling units
+TOTAL_DWELLING_UNITS = 1 + 2 + 2 + 2  # reverse duplex (1) + 1st normal kat (2) + 2nd normal kat (2) + roof duplex (2)
 print(f"Total dwelling units (bagimsiz bolum): {TOTAL_DWELLING_UNITS}")
 for lvl in building.levels:
     print(f"  L{lvl.index} {lvl.name}: footprint {building.footprint_area(lvl.index):.2f} m2, "
@@ -209,24 +314,34 @@ for lvl in building.levels:
 # ---------------------------------------------------------------------------
 
 SHEETS = {
-    -1: ("A-101", "Bodrum Kat Plani"),
-    0: ("A-102", "Zemin Kat Plani"),
+    -1: ("A-101", "Bodrum Kat Plani (Ters Dubleks Alt Kat)"),
+    0: ("A-102", "Zemin Kat Plani (Ters Dubleks Giris Kati)"),
     1: ("A-103", "1. Normal Kat Plani"),
     2: ("A-104", "2. Normal Kat Plani"),
-    3: ("A-105", "3. Normal Kat Plani"),
-    4: ("A-106", "Cati Piyesi Plani"),
+    3: ("A-105", "3. Normal Kat Plani (Cati Dubleks Giris Kati)"),
+    4: ("A-106", "Cati Piyesi Plani (Cati Dubleks Ust Kat)"),
 }
 SLUGS = {
     -1: "bodrum-kat", 0: "zemin-kat", 1: "1-normal-kat", 2: "2-normal-kat", 3: "3-normal-kat", 4: "cati-piyesi",
 }
 
+PROJECT_NAME = "Parcel 377/1 -- Ereğli Mah., Karamursel, Kocaeli (maximized footprint, reverse + roof duplex)"
+PARCEL_ID = "Ada 377 / Parsel 1, Tapu Kutugu Eregli, Pafta G23D04D3D"
+GEN_DATE = "2026-08-21"
+
 
 def titleblock_for(level: int, scale: str = "1:100 (schematic)") -> titleblock_mod.TitleBlockInfo:
     sheet_no, sheet_title = SHEETS[level]
     return titleblock_mod.TitleBlockInfo(
-        project_name="Parcel 377/1 -- Ereğli Mah., Karamursel, Kocaeli (multi-unit apartment building)",
-        parcel_id="Ada 377 / Parsel 1, Tapu Kutugu Eregli, Pafta G23D04D3D",
-        date="2026-08-20", scale=scale, sheet_number=sheet_no, sheet_title=sheet_title,
+        project_name=PROJECT_NAME, parcel_id=PARCEL_ID, date=GEN_DATE, scale=scale,
+        sheet_number=sheet_no, sheet_title=sheet_title,
+    )
+
+
+def _tb(sheet_number: str, sheet_title: str, scale: str = "1:100 (schematic)") -> titleblock_mod.TitleBlockInfo:
+    return titleblock_mod.TitleBlockInfo(
+        project_name=PROJECT_NAME, parcel_id=PARCEL_ID, date=GEN_DATE, scale=scale,
+        sheet_number=sheet_number, sheet_title=sheet_title,
     )
 
 
@@ -251,9 +366,7 @@ for lvl in building.levels:
     sched_svg = CAD_DIR / f"377-1-{slug}-schedule.svg"
     sched_sheet_no, sched_sheet_title = SHEETS[idx]
     sched_tb = titleblock_mod.TitleBlockInfo(
-        project_name="Parcel 377/1 -- Ereğli Mah., Karamursel, Kocaeli (multi-unit apartment building)",
-        parcel_id="Ada 377 / Parsel 1, Tapu Kutugu Eregli, Pafta G23D04D3D",
-        date="2026-08-20", scale="N/A (schedule table)",
+        project_name=PROJECT_NAME, parcel_id=PARCEL_ID, date=GEN_DATE, scale="N/A (schedule table)",
         sheet_number=sched_sheet_no.replace("A-1", "A-2"), sheet_title=f"{sched_sheet_title} -- Door/Window Schedule",
     )
     schedule_mod.render_schedule_dxf(building, idx, sched_dxf, titleblock_info=sched_tb)
@@ -277,14 +390,22 @@ print(report.summary())
 record("Multi-level compliance: all checks pass", report.all_passed, f"{sum(c.passed for c in report.checks)}/{len(report.checks)}")
 
 # ---------------------------------------------------------------------------
-# 6. Core alignment verification (the specific bug this pass fixes)
+# 6. Core alignment + duplex stair alignment + duplex area-cap verification
 # ---------------------------------------------------------------------------
 
-section("6. Core (stair/elevator shaft) alignment verification")
+section("6. Core (stair/elevator shaft) + duplex internal-stair alignment + duplex area caps")
 
 core_report = plan_mod.verify_core_alignment(plan_dxf_paths, CORE)
 print(core_report.summary())
 record("Core alignment: identical shaft footprint on every level", core_report.all_passed, f"{sum(c.passed for c in core_report.checks)}/{len(core_report.checks)}")
+
+duplex_align_report = plan_mod.verify_duplex_stair_alignment(plan_dxf_paths, DUPLEX_PAIRS)
+print(duplex_align_report.summary())
+record("Duplex internal-stair alignment: identical shaft footprint on both levels of each pair", duplex_align_report.all_passed, f"{sum(c.passed for c in duplex_align_report.checks)}/{len(duplex_align_report.checks)}")
+
+duplex_area_report = plan_mod.verify_duplex_area_caps(plan_dxf_paths, DUPLEX_PAIRS, CORE, footprint_x0=setbacks.side_left)
+print(duplex_area_report.summary())
+record("Duplex area caps (plan notes 4.2.32, roof-duplex pair): secondary-level area <= entry-level area per unit", duplex_area_report.all_passed, f"{sum(c.passed for c in duplex_area_report.checks)}/{len(duplex_area_report.checks)}")
 
 # ---------------------------------------------------------------------------
 # 7. Stamp-language audit -- every plan + schedule DXF
@@ -319,17 +440,6 @@ for idx, dxf_path in plan_dxf_paths.items():
         record(f"L{idx} schedule DWG export", sched_dwg.exists(), f"{sched_dwg.name}")
     except export_dwg_mod.ODAConverterMissingError as exc:
         record(f"L{idx} schedule DWG export", False, str(exc))
-
-PROJECT_NAME = "Parcel 377/1 -- Ereğli Mah., Karamursel, Kocaeli (multi-unit apartment building)"
-PARCEL_ID = "Ada 377 / Parsel 1, Tapu Kutugu Eregli, Pafta G23D04D3D"
-
-
-def _tb(sheet_number: str, sheet_title: str, scale: str = "1:100 (schematic)") -> titleblock_mod.TitleBlockInfo:
-    return titleblock_mod.TitleBlockInfo(
-        project_name=PROJECT_NAME, parcel_id=PARCEL_ID, date="2026-08-20", scale=scale,
-        sheet_number=sheet_number, sheet_title=sheet_title,
-    )
-
 
 # ---------------------------------------------------------------------------
 # 9. Parking layout -- bodrum kat, real drawn stall/aisle geometry
@@ -382,9 +492,6 @@ ELEVATION_SHEETS = {
     "left": ("A-303", "Govde Gorunusu -- Sol"),
     "right": ("A-304", "Govde Gorunusu -- Sag"),
 }
-# Re-derived, in-memory, from the same building.levels this whole session was
-# already compliance-verified against (Section 5/6) -- what every elevation's
-# own re-read-from-disk XDATA height bounds are checked against just below.
 expected_z0 = min(lvl.finished_floor_elevation for lvl in building.levels)
 expected_z1 = max(lvl.finished_floor_elevation + lvl.floor_to_floor_height for lvl in building.levels)
 
@@ -398,10 +505,6 @@ for direction, (sheet_no, sheet_title) in ELEVATION_SHEETS.items():
     elevation_dxf_paths[direction] = elev_dxf
     print(f"Wrote {elev_dxf}")
 
-    # Re-derive the just-written DXF's own XDATA height bounds fresh from
-    # disk (not the in-memory Facade) and check against the SAME source
-    # figures the mandatory compliance pass already verified in Section 5/6
-    # -- not a second, independently-typed number.
     doc_e = ezdxf.readfile(str(elev_dxf))
     msp_e = doc_e.modelspace()
     xpt = next(e for e in msp_e if e.dxftype() == "POINT" and e.dxf.layer == plan_mod.LAYERS["project_data"])
@@ -502,12 +605,7 @@ record(
 # ---------------------------------------------------------------------------
 # 14. Consolidated DWG -- ALL sheets (plan + schedule + parking + elevation +
 # section + calc table) as layout tabs inside ONE native DWG file, matching
-# the founder's 373-6 reference format. Built by importing each already-
-# generated, already-verified sheet DXF's modelspace entities into its own
-# paperspace layout of one shared ezdxf Document via ezdxf.addons.importer
-# (each per-sheet DXF stays the authoritative, independently-verifiable
-# source; this step is pure presentation-layer consolidation, not a second
-# geometry-generation path).
+# the founder's 373-6 reference format.
 # ---------------------------------------------------------------------------
 
 section("14. Consolidated DWG (all sheets, multiple layout tabs, one file)")
@@ -540,9 +638,6 @@ for sheet_no, src_path in CONSOLIDATED_SHEETS:
     imp.finalize()
     layout_names_written.append(sheet_no)
 
-# ezdxf.new() creates one default empty paperspace layout ("Layout1") that
-# none of our sheets used -- drop it so the tab set exactly matches the 19
-# real sheets, not 19 + 1 stray blank tab.
 if "Layout1" in consolidated_doc.layouts.names():
     consolidated_doc.layouts.delete("Layout1")
 
@@ -561,15 +656,11 @@ try:
     export_dwg_mod.export_dwg(consolidated_doc, consolidated_dwg_path)
     record("Consolidated DWG export", consolidated_dwg_path.exists(), f"{consolidated_dwg_path.name} ({consolidated_dwg_path.stat().st_size:,} bytes)")
 
-    # Verify by READING IT BACK -- not just trusting the write call succeeded
-    # (per the founder's explicit instruction: confirm the file actually
-    # opens with multiple distinct layout tabs by reading it back with
-    # ezdxf, not just trusting the write).
     reread_doc = export_dwg_mod.read_dwg(consolidated_dwg_path)
     reread_layouts = reread_doc.layouts.names()
     missing = [n for n in layout_names_written if n not in reread_layouts]
     record(
-        "Consolidated DWG re-read from disk: all 19 sheet layout tabs present",
+        f"Consolidated DWG re-read from disk: all {len(layout_names_written)} sheet layout tabs present",
         len(missing) == 0,
         f"{len(reread_layouts)} layouts found (incl. Model); missing: {missing or 'none'}",
     )

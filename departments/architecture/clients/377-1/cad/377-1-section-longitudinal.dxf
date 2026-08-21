@@ -493,7 +493,7 @@ $SKPOLY
   9
 $TDCREATE
  40
-2461273.9741550926
+2461274.3052314813
   9
 $TDUCREATE
  40
@@ -501,7 +501,7 @@ $TDUCREATE
   9
 $TDUPDATE
  40
-2461273.9741550926
+2461274.3052314813
   9
 $TDUUPDATE
  40
@@ -933,11 +933,11 @@ $PSTYLEMODE
   9
 $FINGERPRINTGUID
   2
-{284926E3-E469-4286-8A4E-E647E2173CE6}
+{2DB0E5F9-AE23-482E-AE7B-E6A3E5202012}
   9
 $VERSIONGUID
   2
-{57D00573-2354-4C4D-9A11-1847C08D0372}
+{6778088D-83CB-49C3-BDBA-4BF6BAD8CC1F}
   9
 $EXTNAMES
 290
@@ -3265,13 +3265,13 @@ A-SECT-WALL
 100
 AcDbLine
  10
-10.7
+10.93
  20
 0.15
  30
 0.0
  11
-10.7
+10.93
  21
 4.15
  31
@@ -3503,13 +3503,13 @@ A-SECT-WALL
 100
 AcDbLine
  10
-10.7
+10.93
  20
 4.15
  30
 0.0
  11
-10.7
+10.93
  21
 7.65
  31
@@ -3741,13 +3741,13 @@ A-SECT-WALL
 100
 AcDbLine
  10
-10.7
+10.93
  20
 7.65
  30
 0.0
  11
-10.7
+10.93
  21
 11.15
  31
@@ -3979,13 +3979,13 @@ A-SECT-WALL
 100
 AcDbLine
  10
-10.7
+10.93
  20
 11.15
  30
 0.0
  11
-10.7
+10.93
  21
 14.65
  31
@@ -4217,13 +4217,13 @@ A-SECT-WALL
 100
 AcDbLine
  10
-8.757
+10.0
  20
 14.65
  30
 0.0
  11
-8.757
+10.0
  21
 17.25
  31
@@ -4429,9 +4429,9 @@ AcDbMText
  71
 1
   3
-Parcel 377-1 -- Multi-Unit Apartment Building (schematic) -- LONGITUDINAL SECTION at X=4.62 m (through the vertical core, schematic)\POverall height above red grade: 21.90 m (placeholder red-grade datum, see rationale.md)\PNo pitched-roof profile dra
+Parcel 377-1 -- Maximized Footprint, Reverse + Roof Duplex (schematic) -- LONGITUDINAL SECTION at X=4.62 m (through the vertical core, schematic)\POverall height above red grade: 21.90 m (placeholder red-grade datum, see rationale.md)\PNo pitched-roo
   1
-wn -- top level capped flat at its own top elevation, see module docstring.
+f profile drawn -- top level capped flat at its own top elevation, see module docstring.
   0
 LWPOLYLINE
   5
@@ -4485,7 +4485,7 @@ AcDbText
  40
 0.21600000000000003
   1
-PROJECT: Parcel 377/1 -- Ereğli Mah., Karamursel, Kocaeli (multi-unit apartment building)
+PROJECT: Parcel 377/1 -- Ereğli Mah., Karamursel, Kocaeli (maximized footprint, reverse + roof duplex)
  11
 19.32
  21
@@ -4593,7 +4593,7 @@ AcDbText
  40
 0.21600000000000003
   1
-DATE: 2026-08-20
+DATE: 2026-08-21
  11
 19.32
  21
@@ -5819,7 +5819,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-08-20T20:22:47.852719+00:00
+1.4.4 @ 2026-08-21T04:19:32.632500+00:00
   0
 DICTIONARYVAR
   5
@@ -5831,7 +5831,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-08-20T20:22:47.859051+00:00
+1.4.4 @ 2026-08-21T04:19:32.643191+00:00
   0
 ENDSEC
   0

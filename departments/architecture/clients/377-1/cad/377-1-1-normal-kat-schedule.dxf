@@ -493,7 +493,7 @@ $SKPOLY
   9
 $TDCREATE
  40
-2461273.974097222
+2461274.305150463
   9
 $TDUCREATE
  40
@@ -501,7 +501,7 @@ $TDUCREATE
   9
 $TDUPDATE
  40
-2461273.974097222
+2461274.305150463
   9
 $TDUUPDATE
  40
@@ -933,11 +933,11 @@ $PSTYLEMODE
   9
 $FINGERPRINTGUID
   2
-{BC66A69E-2857-4693-91C0-9900A73B01CD}
+{4D976568-10D4-419C-B246-9F8A47046858}
   9
 $VERSIONGUID
   2
-{94D2E1F5-86B9-41EC-ABB4-21A50F2D9962}
+{939805E7-994E-4C13-BBF9-AC9C65BEE1A5}
   9
 $EXTNAMES
 290
@@ -2373,7 +2373,7 @@ AcDbText
  40
 0.3
   1
-Parcel 377-1 -- Multi-Unit Apartment Building (schematic) -- 1. Normal Kat -- DOOR & WINDOW SCHEDULE (schematic)
+Parcel 377-1 -- Maximized Footprint, Reverse + Roof Duplex (schematic) -- 1. Normal Kat -- DOOR & WINDOW SCHEDULE (schematic)
  11
 0.0
  21
@@ -6227,7 +6227,7 @@ AcDbText
  40
 0.21600000000000003
   1
-PROJECT: Parcel 377/1 -- Ereğli Mah., Karamursel, Kocaeli (multi-unit apartment building)
+PROJECT: Parcel 377/1 -- Ereğli Mah., Karamursel, Kocaeli (maximized footprint, reverse + roof duplex)
  11
 0.12
  21
@@ -6335,7 +6335,7 @@ AcDbText
  40
 0.21600000000000003
   1
-DATE: 2026-08-20
+DATE: 2026-08-21
  11
 0.12
  21
@@ -7561,7 +7561,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-08-20T20:22:42.179890+00:00
+1.4.4 @ 2026-08-21T04:19:25.887995+00:00
   0
 DICTIONARYVAR
   5
@@ -7573,7 +7573,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-08-20T20:22:42.190124+00:00
+1.4.4 @ 2026-08-21T04:19:25.897718+00:00
   0
 ENDSEC
   0
