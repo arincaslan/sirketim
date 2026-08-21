@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Obsidian — near-black with a cool tint, not a pure #000 (keeps depth
+       and lets shadows/borders read against it). */
+    --background: 240 6% 6%;
+    --foreground: 40 20% 96%;
+
+    --card: 240 6% 9%;
+    --card-foreground: 40 20% 96%;
+
+    /* Primary = ember. This is the one saturated accent in the whole
+       palette, so the default filled button uses it directly — no separate
+       "gold-variant" button needed like Ambre's, ember *is* the CTA color. */
+    --primary: 355 70% 48%;
+    --primary-foreground: 40 20% 98%;
+
+    --secondary: 240 5% 16%;
+    --secondary-foreground: 40 20% 96%;
+
+    --muted: 240 5% 14%;
+    --muted-foreground: 40 8% 65%;
+
+    --accent: 240 5% 18%;
+    --accent-foreground: 40 20% 96%;
+
+    /* Ember — the one saturated accent: CTAs, price, focus rings, badges. */
+    --ember: 355 70% 48%;
+    --ember-foreground: 40 20% 98%;
+
+    /* Foil — desaturated warm silver: dividers, icon strokes, eyebrow text.
+       Never a CTA color, unlike Ambre's gold. */
+    --foil: 38 25% 70%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 18%;
+    --input: 240 6% 18%;
+    --ring: 355 70% 48%;
+
+    --radius: 0.25rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  ::selection {
+    @apply bg-ember text-ember-foreground;
+  }
+  /* Visible focus ring everywhere — dark theme makes a missing focus state
+     especially easy to lose track of, so this is deliberately strong. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ember));
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Warm "spotlight" card behind product photography — the existing bottle
+     photos have a cream/travertine backdrop; this radial glow lets them read
+     as intentionally lit out of the dark rather than clashing with it. */
+  .spotlight-card {
+    background: radial-gradient(
+      120% 120% at 50% 30%,
+      hsl(30 35% 22% / 0.55) 0%,
+      hsl(var(--card)) 70%
+    );
+  }
+
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+  }
+  .scroll-snap-start {
+    scroll-snap-align: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}

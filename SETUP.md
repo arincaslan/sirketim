@@ -27,6 +27,7 @@ The repo is **public** (deliberate — see the "Git remote" bullet in [CLAUDE.md
 
 - Read [CLAUDE.md](CLAUDE.md) at the repo root — it chains into each `departments/<dept>/CLAUDE.md` and, per client, `departments/<dept>/clients/<slug>/CLAUDE.md`. Don't rely on the root file alone for department work.
 - Run `git fetch` and check `git branch -r` before trusting local state or briefing the board — other sessions (this PC, phone, claude.ai web) may have pushed work to an unmerged `claude/*` branch. This is a standing rule now, documented in CLAUDE.md's "Cross-session sync" bullet.
+- **Check for stale per-user paths from the *other* machine.** The founder's two PCs log in as different Windows usernames (`win10` on one, `Semih` on the other) — any absolute path this repo hardcodes toward a per-user tool install (`C:\Users\<name>\...`, e.g. `departments/architecture/lib/cadgen/export_dwg.py`'s `ODA_EXEC_PATH`) was written for whichever machine last touched it and can be wrong on this one. Compare against `$env:USERNAME` and fix before trusting it — don't rediscover this the hard way. See CLAUDE.md's "Two physical machines, two different Windows usernames" bullet.
 
 ## 4. MCP connectors
 

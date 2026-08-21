@@ -20,8 +20,19 @@ Don't go straight from brief to code. For every new client build (and any signif
 1. Use the **`design` skill** to draft the actual UI/UX as artboards (the pages/screens/flows involved) before writing production code — this is where layout, hierarchy, and visual design decisions get made and reviewed, not improvised while coding.
 2. Get sign-off on the design direction (founder, and client where applicable) before implementation starts.
 3. Build against the signed-off design — Tailwind/shadcn implementation should match what was approved, not drift from it ad hoc. If something needs to change during build, update the design artboards, don't just quietly diverge.
+4. Before calling any new screen/component done, run the **`ui-ux-pro` skill** over it — layout, responsiveness, accessibility, and color/interaction issues a first implementation pass tends to miss. For a live page, pair it with `playwright` (screenshot) and `viewmax-studio` (visual review) first, same combo the root `CLAUDE.md` documents: `playwright` → `viewmax-studio` → `ui-ux-pro`.
 
 Use the **`dataviz` skill** for any charts, dashboards, or stat displays a client site needs — don't improvise chart colors/layout from scratch.
+
+## Product quality: 21st MCP
+
+Configured in `.mcp.json` (project-wide, travels with the repo) — `21st` (21st.dev's Magic MCP: search 10,000+ React/Tailwind components, or generate new ones from a description, without leaving the chat). Grant is scoped to the `web-developer` subagent as `mcp__21st`.
+
+**Needs a per-machine API key, not committed to the repo** (the repo is public — see root `CLAUDE.md`'s "Git remote" bullet). `.mcp.json` references it as `${TWENTY_FIRST_API_KEY}`, resolved from the local environment at startup, not stored in the file. To set it up on a machine:
+
+1. Get a key at [21st.dev/mcp](https://21st.dev/mcp) (sign in, generate a key — old Magic MCP keys were reset, a fresh one is required).
+2. Set it as a real environment variable named `TWENTY_FIRST_API_KEY` on that machine (persists across sessions — e.g. Windows: `setx TWENTY_FIRST_API_KEY "..."`, then open a new terminal).
+3. Run `claude mcp list` in a new Claude Code session — `21st` should show `✔ Connected`. If it still shows unauthorized/pending, the env var likely isn't set in that process's environment yet (new terminal needed) rather than the server being broken.
 
 ## Recommended connectors (not yet configured)
 
