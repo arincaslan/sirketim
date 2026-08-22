@@ -11,7 +11,11 @@ This repo is the whole workspace — cloning it gets you all department docs, th
 | Node.js + npm | every web-development client/product | [nodejs.org](https://nodejs.org) LTS |
 | Python + `ezdxf` + `svgwrite` | architecture CAD (DXF/SVG) generation | `pip install ezdxf svgwrite` |
 | Blender 4.5 LTS | architecture 3D renders, run headless | `winget install BlenderFoundation.Blender.LTS.4.5`, confirm it lands on PATH |
+| Emil Kowalski's design/animation skills | web-development motion/UI polish (`emil-design-eng`, `animate`, etc.) | `npx skills@latest add emilkowalski/skills` from the repo root — **not committed**, see gitignore note below |
+| Taste skill (`design-taste-frontend`) | web-development anti-generic-output check | `npx skills@latest add Leonxlnx/taste-skill --skill design-taste-frontend` from the repo root — **not committed**, same reason as above. The `--skill` flag matters: the source repo (`Leonxlnx/taste-skill`) bundles 12 other style/output variants (`brutalist-skill`, `minimalist-skill`, `imagegen-*`, `brandkit`, etc.) that are deliberately not installed — omitting `--skill` installs all 13. |
 | Claude Code | the actual working environment | log in with the same account |
+
+**Why Emil Kowalski's skill set (and the taste skill) aren't just `git pull`-able**: their installer creates Windows directory-junction symlinks (`.claude/skills/<name>/` → `.agents/skills/<name>/`) that hardcode this machine's absolute profile path inside the junction — junctions can't be relative. That breaks on the other machine's different Windows username exactly like the `ODA_EXEC_PATH` gotcha below, so `.gitignore` excludes both `.agents/` and those symlink entries; run the `npx skills@latest add` commands locally on each machine instead (a few seconds each, no account/API key needed). `ui-ux-pro-max` (the other new web-dev skill) doesn't have this problem — it installs as plain files, so it's committed normally and needs no per-machine step.
 
 `gh auth` and Claude Code's own login are **per-machine** — cloning the repo does not carry credentials with it. Do both explicitly on the new PC.
 

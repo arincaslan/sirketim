@@ -15,3 +15,33 @@ __pycache__/
 # validation harness (departments/architecture/lib/cadgen/examples/) --
 # regenerable output, not source, and not a real client deliverable.
 departments/architecture/lib/cadgen/examples/output/
+
+# Emil Kowalski's skill set (npx skills@latest add emilkowalski/skills) --
+# a per-machine install, not committed. Its installer creates .agents/skills/
+# and Windows directory-junction symlinks into .claude/skills/<name>/ that
+# hardcode this machine's absolute profile path (C:\Users\<name>\...) inside
+# the junction itself -- junctions can't be relative, so they break exactly
+# like the ODA_EXEC_PATH gotcha (CLAUDE.md's "Two physical machines" bullet)
+# on the other machine's different Windows username. Re-run the install
+# command locally on each machine instead -- see SETUP.md.
+.agents/
+skills-lock.json
+.claude/skills/animate/
+.claude/skills/animate-expo/
+.claude/skills/animation-vocabulary/
+.claude/skills/apple-design/
+.claude/skills/ask-sonner/
+.claude/skills/emil-design-eng/
+.claude/skills/find-animation-opportunities/
+.claude/skills/improve-animations/
+.claude/skills/pick-ui-library/
+.claude/skills/prototype/
+.claude/skills/review-animations/
+.claude/skills/write-swift/
+
+# Same junction-symlink issue, same fix: the "taste" skill
+# (npx skills@latest add Leonxlnx/taste-skill --skill design-taste-frontend).
+# Only the core skill was installed -- the repo bundles 12 other style/output
+# variants (brutalist-skill, minimalist-skill, imagegen-*, brandkit, etc.)
+# deliberately not installed, scope not requested.
+.claude/skills/design-taste-frontend/

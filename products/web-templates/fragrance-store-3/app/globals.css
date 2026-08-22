@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Cool porcelain grey — not lavender-tinted stone (v1), not warm cream
+       (Ambre). See DESIGN.md "Design tokens." */
+    --background: 213 14% 96%;
+    --foreground: 215 22% 12%;
+
+    /* Warm ivory — deliberately warmer than the background (inverted vs.
+       Ambre's neutral-white-card-on-warm-background). Unchanged from v1. */
+    --card: 40 28% 97%;
+    --card-foreground: 215 22% 12%;
+
+    /* Meridian Cobalt — the one saturated accent in the whole palette:
+       CTAs, price, focus rings, active states, the Meridian Sweep's
+       resolved-color state. Replaces v1's electric lavender (hue ~268,
+       "the Lila Rule") with a saturated azure (hue ~213). */
+    --primary: 213 82% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 12% 91%;
+    --secondary-foreground: 215 22% 12%;
+
+    --muted: 210 10% 93%;
+    --muted-foreground: 210 8% 40%;
+
+    --accent: 210 12% 91%;
+    --accent-foreground: 215 22% 12%;
+
+    --success: 152 45% 32%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 12% 80%;
+    --input: 210 12% 80%;
+    --ring: 213 82% 45%;
+
+    /* Split radius system, see DESIGN.md: containers/images/cards stay
+       sharp (gallery-frame precision); buttons/chips/badges use the
+       separate `--radius-pill` utility instead of this token. */
+    --radius: 0rem;
+    --radius-pill: 999px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  /* Every link's color is a deliberate design-token choice (text-primary,
+     text-foreground, etc.) — without this, browsers override visited links
+     with a default purple that doesn't exist anywhere in this palette. */
+  a:visited {
+    color: inherit;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .rounded-pill {
+    border-radius: var(--radius-pill);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+  }
+  .scroll-snap-start {
+    scroll-snap-align: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+}

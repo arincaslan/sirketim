@@ -10,6 +10,10 @@
       "headers": {
         "x-api-key": "${TWENTY_FIRST_API_KEY}"
       }
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest", "--isolated"]
     }
   }
 }

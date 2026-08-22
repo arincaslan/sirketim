@@ -27,7 +27,7 @@ import ezdxf
 from ezdxf.addons import odafc
 from ezdxf.document import Drawing
 
-ODA_EXEC_PATH = r"C:\Users\win10\AppData\Local\Programs\ODA\ODAFileConverter 27.1.0\ODAFileConverter.exe"
+ODA_EXEC_PATH = r"C:\Users\Semih\AppData\Local\Programs\ODA\ODAFileConverter 27.1.0\ODAFileConverter.exe"
 
 
 class ODAConverterMissingError(RuntimeError):
