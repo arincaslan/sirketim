@@ -1,0 +1,76 @@
+{
+  "note": "OpenArt generations for this build, 2026-08-25. Deliberately minimal per the founder's brief - site-shell atmosphere imagery only, no per-product photography (this site has no product inventory to shoot). The original pass skipped video entirely (see DESIGN.md §10); the homepage redesign pass the same day (Implementation addendum v2) added exactly two video generations, hero loop plus one chapter-break moment, per the founder's explicit follow-up authorization - no more than that, and no new stills (the redesign reuses the original four images rather than generating additional ones). All prompts are abstract/atmospheric per this department's trademark-caution rule - no real bottle shape, no real label, no identifiable branded packaging.",
+  "images": {
+    "model": "nano-banana-pro",
+    "mode": "text2image",
+    "resolution": "1K",
+    "costPerImageCredits": 40,
+    "totalImages": 4,
+    "totalCreditsListPrice": 160
+  },
+  "videos": {
+    "model": "pixverseV6",
+    "mode": "text2video",
+    "resolution": "720p",
+    "duration": "6s",
+    "generateAudio": false,
+    "costPerVideoCreditsListPrice": 84,
+    "mcpDiscountedCreditsEach": 76,
+    "totalVideos": 2,
+    "totalCreditsListPrice": 168,
+    "totalCreditsDiscounted": 152,
+    "note": "Plus-tier MCP generations get 10% off list price, rounded per-unit (round(84*0.9)=76). Neither loop is a perfectly seamless cut (no start/end-frame control was used) - both are slow, continuous, abstract motion specifically so the loop point reads as a soft continuation rather than a visible jump; flagged honestly rather than claimed as seamless."
+  },
+  "generations": [
+    {
+      "id": "home-hero-atmosphere",
+      "file": "public/generated/home-hero-atmosphere.png",
+      "aspectRatio": "4:5",
+      "historyId": "vHvbiF2eEDp3rwTSsoxu",
+      "placement": "Home hero, right-hand asymmetric panel",
+      "prompt": "Macro photography of warm amber-gold liquid inside a plain, unbranded rectangular glass vessel, caught in low late-afternoon light streaming through a window, casting a warm caustic light pattern onto a matte cool-grey stone surface below. Shallow depth of field, soft bokeh, editorial fragrance photography style, moody and refined. No visible label, no recognizable bottle design or shape, no text or logos anywhere in frame, neutral cool-toned backdrop. Photorealistic, high-end editorial magazine quality, shot on a full-frame camera with a macro lens."
+    },
+    {
+      "id": "about-standards-atmosphere",
+      "file": "public/generated/about-standards-atmosphere.png",
+      "aspectRatio": "4:3",
+      "historyId": "J9Oel4wmoE7p93RzW8k2",
+      "placement": "/about hero",
+      "prompt": "Editorial still life photograph of a fan of blank white fragrance blotter test strips spread across a linen-bound notebook, beside a simple unmarked ceramic dish and a single stem of dried botanical, resting on a matte cool stone-grey surface. Soft natural window light from the left, muted botanical-green and warm paper tones, no text, no logos, no branding visible anywhere. Shallow depth of field, quiet and considered composition, photorealistic editorial magazine photography."
+    },
+    {
+      "id": "dupe-comparison-1-support",
+      "file": "public/generated/dupe-comparison-1-support.png",
+      "aspectRatio": "16:9",
+      "historyId": "7wcvzqxnRSjxkH7U0hah",
+      "placement": "heroImage on the Dossier Ambrosia vs Baccarat Rouge 540 comparison article; reused (Implementation addendum v2) as the low-opacity texture behind the Dupe Finder's verdict callout, and as the reduced-motion/video-poster fallback for the homepage's chapter-try-it video",
+      "prompt": "Extreme macro photograph of raw amber resin fragments and dried botanical material scattered across a cool stone-grey surface, warm golden directional side-lighting, rich texture detail, shallow depth of field. No bottles, no packaging, no text, no logos anywhere in frame. Abstract and painterly, photorealistic editorial photography, warm amber tones against a cool neutral background, wide cinematic composition."
+    },
+    {
+      "id": "dupe-comparison-2-support",
+      "file": "public/generated/dupe-comparison-2-support.png",
+      "aspectRatio": "16:9",
+      "historyId": "OpGePaaNYElB08TU7RcZ",
+      "placement": "heroImage on the ALT. Fragrances Bright vs Black Opium comparison article; reused (Implementation addendum v2) as the supporting image in the homepage's chapter-trend section",
+      "prompt": "Extreme macro photograph of dew-covered white flower petals beside a freshly cut citrus peel, soft diffused morning light, cool green and bright citrus tones. No bottles, no packaging, no text, no logos anywhere in frame. Abstract and textural, photorealistic editorial photography, wide cinematic composition, shallow depth of field."
+    },
+    {
+      "id": "home-hero-loop",
+      "file": "public/generated/home-hero-loop.mp4",
+      "aspectRatio": "16:9",
+      "mediaType": "video",
+      "historyId": "RvFDWpQTNuCz5ufcjMKD",
+      "placement": "Home hero (chapter 0), full-bleed background loop, added in Implementation addendum v2. Poster/reduced-motion fallback is the existing home-hero-atmosphere.png",
+      "prompt": "Continuous slow-motion macro shot of warm amber-gold liquid gently swirling and settling inside a plain unbranded glass vessel, tiny bubbles rising and dissolving, soft caustic light patterns drifting across a matte cool stone-grey surface below, low warm directional light from one side, shallow depth of field with gentle bokeh shift, quiet and cinematic, single continuous take with no cuts, no bottle shape or silhouette visible, no label, no text, no logos anywhere in frame, photorealistic high-end editorial fragrance-film aesthetic, muted and slow, refined color grading."
+    },
+    {
+      "id": "chapter-try-it-loop",
+      "file": "public/generated/chapter-try-it-loop.mp4",
+      "aspectRatio": "16:9",
+      "mediaType": "video",
+      "historyId": "tMwTfzqkbGy2H1aQyxrk",
+      "placement": "Home chapter 4 (the moment leading into /dupe-finder), full-bleed background loop, added in Implementation addendum v2. Amber/green colors are deliberately the same hexes as the radar chart's Reference/Dupe series (DESIGN.md §3) - the video visualizes the actual comparison, not a generic mood shot. Poster/reduced-motion fallback reuses dupe-comparison-1-support.png",
+      "prompt": "Slow-motion macro of two thin streams of liquid meeting and swirling together inside plain unbranded clear glass, one warm amber-gold and one cool botanical-green, blending into soft overlapping color without fully mixing, gentle drifting directional light, shallow depth of field, quiet deliberate cinematic motion, single continuous take with no cuts, no bottle shape or silhouette visible, no label, no text, no logos anywhere in frame, photorealistic high-end editorial fragrance-film aesthetic, refined color grading."
+    }
+  ]
+}

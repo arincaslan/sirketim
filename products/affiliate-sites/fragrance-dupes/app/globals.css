@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  DRYDOWN design tokens. See DESIGN.md §3 for the reasoning and the computed
+  WCAG contrast pairs. Fonts are loaded via next/font in app/layout.tsx and
+  exposed here as --font-display / --font-sans custom properties - never a
+  <link> tag or @import, per the taste skill's font-loading rule.
+*/
+
+:root {
+  --background: 60 18% 93%;
+  --foreground: 84 14% 7%;
+  --card: 0 0% 100%;
+  --card-foreground: 84 14% 7%;
+  --secondary: 54 17% 89%;
+  --secondary-foreground: 84 14% 7%;
+  --muted: 54 17% 89%;
+  --muted-foreground: 71 6% 34%;
+  --accent: 54 17% 89%;
+  --accent-foreground: 84 14% 7%;
+  --border: 55 14% 82%;
+  --input: 55 14% 82%;
+  --primary: 157 55% 24%;
+  --primary-foreground: 0 0% 100%;
+  --destructive: 3 71% 41%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 157 55% 24%;
+
+  /* Chart series - validated via dataviz's validate_palette.js against this
+     exact surface (see DESIGN.md §3). Never used for anything but the
+     Reference/Dupe series identity in charts. */
+  --series-reference: 36 52% 47%;
+  --series-dupe: 154 61% 30%;
+  /* Text/badge-safe variant of --series-reference: the chart-mark gold only
+     clears 3.23:1 against white text (fine for a graphical mark, per the
+     dataviz skill's 3:1 mark-contrast check, but not for actual text, which
+     needs 4.5:1). This darker, mode-invariant step is for anywhere the hue
+     carries a text label (badges, table headers) instead of a chart fill -
+     computed, see the site's contrast script; --series-dupe already clears
+     4.5:1 as-is so it doesn't need a text-safe variant. */
+  --series-reference-text: 36 53% 34%;
+
+  --radius-frame: 2px;
+  --radius-button: 8px;
+  --radius-pill: 999px;
+}
+
+.dark {
+  --background: 77 19% 7%;
+  --foreground: 49 28% 92%;
+  --card: 82 19% 12%;
+  --card-foreground: 49 28% 92%;
+  --secondary: 82 14% 16%;
+  --secondary-foreground: 49 28% 92%;
+  --muted: 82 14% 16%;
+  --muted-foreground: 60 9% 69%;
+  --accent: 82 14% 16%;
+  --accent-foreground: 49 28% 92%;
+  --border: 82 12% 20%;
+  --input: 82 12% 20%;
+  --primary: 155 47% 46%;
+  --primary-foreground: 96 22% 5%;
+  --destructive: 3 65% 55%;
+  --destructive-foreground: 96 22% 5%;
+  --ring: 155 47% 46%;
+
+  --series-reference: 38 71% 43%;
+  --series-dupe: 155 54% 37%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background-color: hsl(var(--primary) / 0.18);
+}
+
+/* Hides the native pointer while components/site/custom-cursor.tsx is
+   active, so its dot+ring replaces it instead of both being visible at
+   once. Scoped to (pointer: fine) so touch devices are never affected -
+   custom-cursor.tsx also never mounts on touch, this is the CSS half of
+   that same guarantee. Text inputs keep the native caret. */
+@media (pointer: fine) {
+  .custom-cursor-active,
+  .custom-cursor-active a,
+  .custom-cursor-active button,
+  .custom-cursor-active [role="button"] {
+    cursor: none;
+  }
+
+  .custom-cursor-active input,
+  .custom-cursor-active textarea,
+  .custom-cursor-active select,
+  .custom-cursor-active [contenteditable="true"] {
+    cursor: auto;
+  }
+}
+
+/* Grain/paper texture: fixed, pointer-events-none, applied once at the root
+   only - never on a scrolling container (perf: continuous repaints kill
+   mobile FPS). Extremely subtle - reinforces "printed report," not a visual
+   effect anyone should consciously notice. */
+.paper-grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}

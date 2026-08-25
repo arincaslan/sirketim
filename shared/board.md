@@ -1,10 +1,10 @@
 # Board
 
-Three board members sit between the founder and the six departments. The founder briefs a board member with an outcome, not a task list; the board member delegates to the department subagent(s) it owns via the Agent tool, then reports back a synthesized result — not a raw handoff. Each board member is its own subagent (`.claude/agents/board-*.md`), separate from the department subagents it directs.
+Three board members sit between the founder and the eight departments. The founder briefs a board member with an outcome, not a task list; the board member delegates to the department subagent(s) it owns via the Agent tool, then reports back a synthesized result — not a raw handoff. Each board member is its own subagent (`.claude/agents/board-*.md`), separate from the department subagents it directs.
 
 | Board member | Subagent | Owns | Delegates to |
 |---|---|---|---|
-| COO | `board-coo` | Web Development, Architecture, Sales, Advertising, Communication (production) | `web-developer`, `architecture-assistant`, `sales-strategist`, `ad-strategist`, `communication-strategist` |
+| COO | `board-coo` | Web Development, Architecture, Sales, Advertising, Communication, Content (production) | `web-developer`, `architecture-assistant`, `sales-strategist`, `ad-strategist`, `communication-strategist`, `content-strategist` |
 | CFO | `board-cfo` | Accounting | `accountant` |
 | Controller | `board-controller` | Control/Audit | `auditor` |
 
@@ -22,3 +22,5 @@ A lean board keeps the founder's briefing surface small — three relationships 
 ## Status
 
 Set up 2026-08-19, alongside the Accounting and Control/Audit departments. Not yet load-tested at any real volume — if the three-person split or the delegation pattern doesn't hold up in practice, revisit this file rather than letting the board charter drift from how work actually happens.
+
+**2026-08-24**: added Content (`content-strategist`) to the COO's owned departments — set up to own ongoing long-form/affiliate content production for the affiliate-sites initiative, deliberately as a new department rather than folded into Advertising's existing scope (see `../departments/content/CLAUDE.md`'s "Why this is its own department" section for the reasoning).
