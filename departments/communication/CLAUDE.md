@@ -17,6 +17,15 @@ None of these have a live sending connector configured yet — Communication's j
 - **Email** — drafts outreach copy/sequences. No email-sending connector configured (e.g. Resend, Mailchimp); founder sends manually until one's wired up.
 - **Phone** — Turkish-language call scripts and talking points. No telephony/voice API (e.g. Twilio) is configured, and this isn't something to fake — calls are placed manually by the founder. Log every call's outcome back into `prospects.md` afterward.
 
+## Affiliate-network applications
+
+Since 2026-08-26 this department also owns **applying to affiliate networks** for Sirketim's own affiliate sites (currently `products/affiliate-sites/fragrance-dupes/`). Full research: `reports/amazon-associates-application.md`, and the ordered plan in that project's `FINALIZATION-GUIDE.md`. Facts worth not re-deriving, all verified live:
+
+- **ShareASale no longer exists.** It migrated into Awin (2025-08-15) and the platform closed (2025-10-06). Awin + ShareASale is **one application, not two** — older notes in this repo that treat them as separate are stale.
+- **Amazon Associates is dropped, not deferred** (founder decision, 2026-08-26). Two independent blockers: Turkey is **invite-only** for the programme, *and* Amazon cannot pay a Turkish bank — direct-deposit eligibility is by account currency (USD/GBP/EUR) and a TR account is TRY, with Turkey in neither the Eurozone nor the EEA. Payoneer fixes the payout half and does nothing about the invite gate. Separately CJ/FragranceX beats it on merits (10% vs 3%, 45-day vs 24-hour cookie), and Amazon is the only programme whose terms conflict with a `/go/[slug]` redirect.
+- **Awin does not self-bill Turkish tax residents.** Turkey is an explicit exception in Awin's own policy: *we* must issue an invoice to Awin Ltd for every payout. A Turkish individual cannot casually issue a *fatura*, so this is a strong argument for payee = A.Ş., and it makes each payout a manual invoice event Accounting owns.
+- **Network approval is not merchant approval.** The merchant gate is what rejects a thin site, and it usually fails as *silence* rather than a rejection. A live apex domain (not a subdomain), a published privacy policy, a monitored contact inbox, and real content are prerequisites — see the handoff list in `FINALIZATION-GUIDE.md`.
+
 ## Language
 
 Default to **Turkish** for outreach aimed at Turkish-speaking prospects (the natural audience for direct local outreach — DMs, email, phone). Match the channel/audience otherwise: e.g. Etsy buyer messages in English, since that marketplace is international (see `../sales/CLAUDE.md`).
