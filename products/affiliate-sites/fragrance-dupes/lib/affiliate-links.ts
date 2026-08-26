@@ -77,8 +77,75 @@ export const affiliateLinks: Record<string, AffiliateLinkEntry> = {
     network: "placeholder",
     label: "hkPerfumes - Santal Leather",
   },
+
+  /* Buy-the-original links. Added for the marketplace pivot
+   * (MARKETPLACE-PLAN.md §1): DRYDOWN earns commission whichever way the
+   * buyer goes, so the reference fragrance needs its own outbound link, not
+   * just the dupes it is compared against. Same placeholder status as every
+   * entry above - no retailer program is enrolled. */
+  "original-baccarat-rouge-540": {
+    destinationUrl: "https://example.com/aff/original/baccarat-rouge-540?tag=REPLACE_ME",
+    network: "placeholder",
+    label: "Maison Francis Kurkdjian - Baccarat Rouge 540",
+  },
+  "original-bleu-de-chanel": {
+    destinationUrl: "https://example.com/aff/original/bleu-de-chanel?tag=REPLACE_ME",
+    network: "placeholder",
+    label: "Chanel - Bleu de Chanel",
+  },
+  "original-black-opium": {
+    destinationUrl: "https://example.com/aff/original/black-opium?tag=REPLACE_ME",
+    network: "placeholder",
+    label: "Yves Saint Laurent - Black Opium",
+  },
+  "original-coco-mademoiselle": {
+    destinationUrl: "https://example.com/aff/original/coco-mademoiselle?tag=REPLACE_ME",
+    network: "placeholder",
+    label: "Chanel - Coco Mademoiselle",
+  },
+  "original-tobacco-vanille": {
+    destinationUrl: "https://example.com/aff/original/tobacco-vanille?tag=REPLACE_ME",
+    network: "placeholder",
+    label: "Tom Ford - Tobacco Vanille",
+  },
+  "original-santal-33": {
+    destinationUrl: "https://example.com/aff/original/santal-33?tag=REPLACE_ME",
+    network: "placeholder",
+    label: "Le Labo - Santal 33",
+  },
 };
 
+/**
+ * Resolve a link id to its destination.
+ *
+ * Originals follow an `original-<slug>` convention and there are now dozens of
+ * them across the seven houses in lib/data/references.ts. Rather than hand-
+ * maintain an entry per fragrance while every destination is still a
+ * placeholder, unknown `original-` ids fall back to a generated placeholder of
+ * the same clearly-fake shape as the explicit entries above.
+ *
+ * This is a build-time convenience, not a shipping behaviour: once real
+ * retailer programs are enrolled, each original needs a real entry with its
+ * real tracking URL, and this fallback should become a hard failure so a
+ * missing program is loud instead of silently redirecting a buyer (and our
+ * commission) to nowhere. `network: "placeholder"` is the flag to key that
+ * check off.
+ */
 export function resolveAffiliateLink(id: string): AffiliateLinkEntry | undefined {
-  return affiliateLinks[id];
+  const explicit = affiliateLinks[id];
+  if (explicit) return explicit;
+
+  // Placeholder-phase fallback. Covers both `original-<slug>` buy-the-original
+  // links and producer listing ids added since this map was written.
+  if (/^[a-z0-9-]+$/.test(id)) {
+    const isOriginal = id.startsWith("original-");
+    const slug = isOriginal ? id.slice("original-".length) : id;
+    return {
+      destinationUrl: `https://example.com/aff/${isOriginal ? "original" : "listing"}/${slug}?tag=REPLACE_ME`,
+      network: "placeholder",
+      label: slug,
+    };
+  }
+
+  return undefined;
 }

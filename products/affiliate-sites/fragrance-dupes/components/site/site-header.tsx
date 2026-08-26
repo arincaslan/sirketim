@@ -15,6 +15,12 @@ const NAV_LINKS = [
   { href: "/about", label: "Our Standards" },
 ];
 
+/** Producer-facing entry point, kept visually separate from the reader nav
+ *  above: it addresses a different audience (fragrance houses, not buyers),
+ *  and burying it inside the reader nav would both confuse readers and hide
+ *  it from the people it is actually for. */
+const PRODUCER_LINK = { href: "/producers", label: "For producers" };
+
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -48,6 +54,17 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1">
+          <Link
+            href={PRODUCER_LINK.href}
+            className={cn(
+              "mr-1 hidden rounded-lg border px-3.5 py-1.5 text-sm font-semibold transition-colors duration-150 lg:inline-flex",
+              pathname.startsWith(PRODUCER_LINK.href)
+                ? "border-primary text-primary"
+                : "border-border text-foreground/75 hover:border-primary/50 hover:text-foreground"
+            )}
+          >
+            {PRODUCER_LINK.label}
+          </Link>
           <ThemeToggle />
           <button
             type="button"
@@ -81,6 +98,13 @@ export function SiteHeader() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href={PRODUCER_LINK.href}
+                onClick={() => setOpen(false)}
+                className="mt-1 rounded-lg border border-border px-3 py-2.5 text-sm font-semibold text-foreground/85 hover:bg-secondary"
+              >
+                {PRODUCER_LINK.label}
+              </Link>
             </div>
           </motion.nav>
         )}

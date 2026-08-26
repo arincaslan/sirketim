@@ -1,4 +1,3 @@
-import { AffiliateLink } from "@/components/kit/AffiliateLink";
 import { Badge } from "@/components/ui/badge";
 import { ValueBar } from "@/components/dupe-finder/value-bar";
 import { formatPricePerMl, pricePerMl, valueMultiple } from "@/lib/similarity";
@@ -9,6 +8,12 @@ import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
  * with one heading and one soft divider, never a hairline under every row.
  * See DESIGN.md §8 - this is the direct answer to Fragrantica's plain note-
  * pyramid text list.
+ *
+ * The buy button that used to close the Value section moved to
+ * components/dupe-finder/buy-actions.tsx during the marketplace pivot: buying
+ * is now a three-way branch (dupe, original, or our own bottle) that this
+ * panel has no business owning, and a house product has no affiliate link for
+ * it to point at.
  */
 export function SpecPanel({
   reference,
@@ -72,12 +77,6 @@ export function SpecPanel({
           {formatPricePerMl(reference.priceUsd, reference.bottleMl)} vs{" "}
           {formatPricePerMl(dupe.priceUsd, dupe.bottleMl)}, {dupe.bottleMl}ml bottle).
         </p>
-        <AffiliateLink
-          id={dupe.affiliateLinkId}
-          className="inline-flex h-11 w-fit items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition-[background-color,transform] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97]"
-        >
-          Check current price
-        </AffiliateLink>
       </section>
     </div>
   );

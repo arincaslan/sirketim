@@ -16,9 +16,28 @@ const SPAWN_INTERVAL_BY_VARIANT: Record<CursorVariant, number> = {
   view: SPAWN_INTERVAL_MS * 0.5,
   text: Number.POSITIVE_INFINITY, // never reached - spawning is skipped outright over text
 };
-/** --primary (Drydown Green) as an rgb triplet, for canvas fillStyle -
- *  the mist stays the site's one accent color, never a second hue. */
-const DRYDOWN_GREEN = "21, 94, 68";
+/**
+ * The mist stays the site's one accent colour, never a second hue - but it has
+ * to be READ from --primary rather than hardcoded, because that token is not
+ * one colour. Light mode sets it to `157 55% 24%`, a deep green that reads
+ * correctly on paper; dark mode lifts it to `155 47% 46%`. This component
+ * previously hardcoded the light-mode value, so in dark mode the whole cursor
+ * was a near-black green on a near-black background - effectively invisible.
+ *
+ * Falls back to the dark-mode value: if the computed style is unreadable for
+ * any reason, a too-light cursor is still visible on both themes, whereas the
+ * too-dark one is not.
+ */
+const PRIMARY_FALLBACK = { h: 155, s: 47, l: 46 };
+
+function readPrimary(): { h: number; s: number; l: number } {
+  if (typeof window === "undefined") return PRIMARY_FALLBACK;
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
+  // Expected shape: "155 47% 46%" (Tailwind HSL-channel convention).
+  const match = raw.match(/^([\d.]+)\s+([\d.]+)%\s+([\d.]+)%$/);
+  if (!match) return PRIMARY_FALLBACK;
+  return { h: Number(match[1]), s: Number(match[2]), l: Number(match[3]) };
+}
 
 interface Particle {
   x: number;
@@ -117,6 +136,19 @@ export function CustomCursor() {
     let lastSpawn = 0;
     let running = document.visibilityState === "visible";
     let raf = 0;
+    let primary = readPrimary();
+
+    // Re-read the accent when the theme flips. The toggle swaps a `dark` class
+    // on <html>, which changes --primary underneath a canvas that has no way
+    // to know - without this the cursor keeps painting the previous theme's
+    // green until a full remount.
+    const themeObserver = new MutationObserver(() => {
+      primary = readPrimary();
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     const handleMove = (event: MouseEvent) => {
       pointer.x = event.clientX;
@@ -172,7 +204,7 @@ export function CustomCursor() {
           y: pointer.y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed - 0.1, // faint upward bias, like a light spray
-          size: 1.5 + Math.random() * 1.5,
+          size: 2.2 + Math.random() * 2,
           bornAt: now,
         });
       }
@@ -189,12 +221,12 @@ export function CustomCursor() {
         p.x += p.vx;
         p.y += p.vy;
 
-        const alpha = (1 - lifeRatio) * 0.5;
+        const alpha = (1 - lifeRatio) * 0.6;
         const size = p.size * (1 + lifeRatio * 1.8); // mist expands as it disperses
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${DRYDOWN_GREEN}, ${alpha})`;
+        ctx.fillStyle = `hsla(${primary.h}, ${primary.s}%, ${primary.l}%, ${alpha})`;
         ctx.fill();
         return true;
       });
@@ -205,11 +237,36 @@ export function CustomCursor() {
       if (pointer.visible && variant !== "text") {
         const isView = variant === "view";
         const isLink = variant === "link";
-        const radius = isView ? 7 : isLink ? 5 : 3;
+        // Sizes raised from 3/5/7: at 3px the default anchor was small enough
+        // to lose against busy sections, which is the one thing a cursor
+        // cannot do. Still well under a native pointer's footprint.
+        const radius = isView ? 11 : isLink ? 8 : 6;
+
+        // A soft halo under the anchor. The accent green sits mid-lightness in
+        // both themes, so against a mid-tone photo or a card border the solid
+        // dot alone can lose contrast either way; a translucent ring keeps an
+        // edge visible without turning the cursor into a heavy blob.
+        ctx.beginPath();
+        ctx.arc(pointer.x, pointer.y, radius + 4, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${primary.h}, ${primary.s}%, ${primary.l}%, 0.22)`;
+        ctx.fill();
+
         ctx.beginPath();
         ctx.arc(pointer.x, pointer.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${DRYDOWN_GREEN}, ${isView ? 1 : isLink ? 0.85 : 0.7})`;
+        ctx.fillStyle = `hsla(${primary.h}, ${primary.s}%, ${primary.l}%, ${
+          isView ? 1 : isLink ? 0.92 : 0.85
+        })`;
         ctx.fill();
+
+        // Thin contrasting outline so the anchor separates from a background
+        // that happens to sit at the same lightness as the accent.
+        ctx.beginPath();
+        ctx.arc(pointer.x, pointer.y, radius, 0, Math.PI * 2);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = `hsla(${primary.h}, ${Math.max(10, primary.s - 20)}%, ${
+          primary.l > 50 ? 12 : 96
+        }%, 0.5)`;
+        ctx.stroke();
       }
     };
 
@@ -217,6 +274,7 @@ export function CustomCursor() {
 
     return () => {
       document.documentElement.classList.remove("custom-cursor-active");
+      themeObserver.disconnect();
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", handleMove);

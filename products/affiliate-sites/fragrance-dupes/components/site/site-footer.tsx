@@ -15,12 +15,20 @@ const COLUMNS = [
       { href: "/disclosure", label: "Affiliate Disclosure" },
     ],
   },
+  {
+    heading: "For producers",
+    links: [
+      { href: "/producers", label: "List your fragrance" },
+      { href: "/producers/pricing", label: "Plans and pricing" },
+      { href: "/producers/login", label: "Producer sign in" },
+    ],
+  },
 ];
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-border">
-      <div className="container grid gap-10 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
+      <div className="container grid gap-10 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="flex flex-col gap-3">
           <span className="font-display text-xl font-semibold tracking-[0.02em]">DRYDOWN</span>
           <p className="max-w-[38ch] text-sm text-muted-foreground">

@@ -62,10 +62,41 @@ export default function AboutPage() {
           </div>
 
           <p className="mt-8 text-sm text-muted-foreground">
-            Facet ratings are an editorial judgment made while wearing each
-            fragrance side by side, not a lab measurement. We say so
-            explicitly rather than dressing up an estimate as instrument
-            data.
+            Facet ratings are an editorial judgment, not a lab measurement. We
+            say so explicitly rather than dressing up an estimate as
+            instrument data.
+          </p>
+
+          <h3 className="mt-12 font-display text-2xl">Where the data comes from</h3>
+          <p className="mt-4 text-muted-foreground">
+            A match score is only as good as what goes into it, so it matters
+            who supplied the notes and ratings being compared. Producers who
+            list an alternative here declare their own. That is normal, and it
+            is also the obvious place for a listing to flatter itself, so we
+            treat it as a claim rather than a fact.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-6">
+            <ScoreComponent
+              weight="Declared"
+              title="Producer declared"
+              body="The notes and facet ratings came from the producer and we have not checked them independently yet. These listings show a 'producer declared' badge, and their match score is capped, however high the raw calculation runs."
+            />
+            <ScoreComponent
+              weight="Verified"
+              title="Editorially verified"
+              body="We have checked the declared data against independent sources. Only a verified listing can publish a score above the cap. Verification is never granted by paying us."
+            />
+            <ScoreComponent
+              weight="Held"
+              title="Flagged, not published"
+              body="If a submission's notes and facet ratings are simply the original's own, restated, we hold it for manual review and it does not appear in comparisons at all. Copying the reference is not evidence of a close match, and our formula on its own cannot tell the two apart."
+            />
+          </div>
+
+          <p className="mt-8 text-sm text-muted-foreground">
+            This applies to our own fragrance line exactly as it applies to
+            everyone else&apos;s.
           </p>
         </div>
       </section>

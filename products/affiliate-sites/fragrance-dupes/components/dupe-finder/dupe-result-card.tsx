@@ -1,9 +1,15 @@
 "use client";
 
 import { motion } from "motion/react";
-import { CaretRight } from "@phosphor-icons/react/dist/ssr";
+import { CaretRight, Star } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
-import { computeSimilarity, formatPricePerMl, valueMultiple } from "@/lib/similarity";
+import { formatPricePerMl, valueMultiple } from "@/lib/similarity";
+import { getPublishedSimilarity, isHouseProduct } from "@/lib/catalog";
+import { getReviewSummary } from "@/lib/reviews";
+import { getVerificationBadge } from "@/lib/verification";
+import { HouseBadge } from "@/components/dupe-finder/house-badge";
+import { VerificationBadge } from "@/components/dupe-finder/verification-badge";
+import { FragranceImage } from "@/components/fragrance/fragrance-image";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
 
 export function DupeResultCard({
@@ -21,8 +27,11 @@ export function DupeResultCard({
   active: boolean;
   onSelect: () => void;
 }) {
-  const score = computeSimilarity(reference, dupe);
+  const score = getPublishedSimilarity(reference, dupe);
   const multiple = valueMultiple(reference, dupe);
+  const house = isHouseProduct(dupe);
+  const reviews = getReviewSummary(dupe.slug);
+  const verification = getVerificationBadge(reference, dupe);
   // "Why it matches" - the first clause of the editorial verdict, so the
   // rationale on the card and the fuller verdict shown in the comparison
   // detail never contradict each other.
@@ -48,6 +57,16 @@ export function DupeResultCard({
         <span className="flex items-center gap-4">
           <span className="font-display text-lg text-muted-foreground">#{rank}</span>
 
+          <FragranceImage
+            fragrance={{
+              name: dupe.name,
+              brand: dupe.brand,
+              family: reference.family,
+              facets: dupe.facets,
+            }}
+            className="h-10 w-10 text-base"
+          />
+
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="truncate font-display text-lg leading-tight">{dupe.name}</span>
             <span className="truncate text-sm text-muted-foreground">{dupe.brand}</span>
@@ -57,6 +76,8 @@ export function DupeResultCard({
             <span className="font-display text-xl leading-none text-dupe">{score}%</span>
             <span className="mt-1 text-xs text-muted-foreground">match</span>
           </span>
+
+          <VerificationBadge info={verification} compact className="hidden shrink-0 lg:inline-flex" />
 
           <span className="hidden shrink-0 flex-col items-end md:flex">
             <span className="text-sm font-semibold tabular-nums">
@@ -71,7 +92,23 @@ export function DupeResultCard({
           />
         </span>
 
-        <span className="block border-t border-border/70 pt-3 text-sm text-foreground/75">{rationale}</span>
+        <span className="flex flex-col gap-2 border-t border-border/70 pt-3">
+          {(house || reviews) && (
+            <span className="flex flex-wrap items-center gap-2">
+              {house && <HouseBadge />}
+              {reviews && (
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <Star weight="fill" className="h-3 w-3 text-primary" aria-hidden />
+                  <span className="font-semibold tabular-nums text-foreground/80">
+                    {reviews.average.toFixed(1)}
+                  </span>
+                  ({reviews.count})
+                </span>
+              )}
+            </span>
+          )}
+          <span className="text-sm text-foreground/75">{rationale}</span>
+        </span>
       </button>
     </motion.li>
   );

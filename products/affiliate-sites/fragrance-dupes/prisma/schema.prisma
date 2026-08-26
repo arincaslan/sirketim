@@ -1,0 +1,289 @@
+// DRYDOWN marketplace schema.
+//
+// STATUS: not migrated, not connected. No database is provisioned - see
+// MARKETPLACE-PLAN.md §4 and PRODUCER-PROGRAM.md §8. `npx prisma validate`
+// passes against this file without a live connection; `prisma migrate` will
+// not until DATABASE_URL points at a real Postgres instance.
+//
+// This models the producer side that lib/producers.ts and lib/dupes-data.ts
+// currently fake with static arrays. The fixtures stay as the site's data
+// source until a database exists; these tables are the shape they migrate
+// into, deliberately mirroring the existing TypeScript types so the swap is
+// mechanical rather than a redesign.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Producers and billing
+// ---------------------------------------------------------------------------
+
+/// A seller listing dupes on DRYDOWN. Mirrors the `Producer` interface in
+/// lib/types.ts. `createdAt` is the "date of subscriber" the founder asked
+/// for - when they joined, as distinct from when their current billing period
+/// started (that lives on Subscription, and resets every renewal).
+model Producer {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  blurb     String   @default("")
+  /// DRYDOWN's own line. Skips subscription and approval entirely.
+  isHouse   Boolean  @default(false)
+  contactEmail String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users        User[]
+  subscription Subscription?
+  submissions  Submission[]
+
+  @@index([slug])
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+/// Mirrors Stripe's own Subscription object rather than inventing a parallel
+/// billing state machine. Stripe is the source of truth; these rows are a
+/// local projection kept current by the webhook at
+/// app/api/webhooks/stripe/route.ts. Never mutate status here directly from
+/// application code - let the webhook do it, or the two drift and a cancelled
+/// customer keeps their listings live.
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+/// Which payment processor a subscription is billed through.
+///
+/// Exists because Stripe is NOT usable here: Sirketim is Turkey-based and
+/// Stripe does not support Turkish accounts (documented in
+/// departments/accounting/CLAUDE.md since 2026-08-24, re-confirmed by
+/// departments/accounting/reports/payment-rails-investigation.md). The
+/// integration code in lib/stripe.ts was written against Stripe before that
+/// was checked and is expected to be replaced - most likely by a
+/// merchant-of-record (Paddle) or a Turkish processor (iyzico).
+///
+/// The columns below are therefore deliberately provider-agnostic. Renaming
+/// them now, while no database exists and no migration has run, costs
+/// nothing; renaming them after real subscriber rows exist would be a data
+/// migration.
+enum PaymentProvider {
+  STRIPE
+  PADDLE
+  IYZICO
+}
+
+model Subscription {
+  id         String @id @default(cuid())
+  producerId String @unique
+  producer   Producer @relation(fields: [producerId], references: [id], onDelete: Cascade)
+
+  provider               PaymentProvider
+  providerCustomerId     String  @unique
+  providerSubscriptionId String? @unique
+  providerPriceId        String?
+
+  /// Monthly or yearly, the choice the founder asked to support. Stored
+  /// explicitly rather than derived from the price id so a price change does
+  /// not silently reinterpret existing rows.
+  interval BillingInterval
+  status   SubscriptionStatus @default(INCOMPLETE)
+  /// Plan tier. See PRODUCER-PROGRAM.md §3 - free/standard/featured. Kept as a
+  /// string rather than an enum because tier names are a business decision
+  /// still open, and a migration to rename an enum value is more painful than
+  /// it is worth for something expected to change.
+  tier String @default("free")
+
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  canceledAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Submissions
+// ---------------------------------------------------------------------------
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
+}
+
+/// Mirrors lib/types.ts's `VerificationStatus`. FLAGGED is set by the
+/// anti-copy-cheat rule in lib/verification.ts (isVerbatimCopy) and is a hard
+/// publish gate, not a ranking penalty: a producer who submits the reference's
+/// own note pyramid and facet scores back to us has not made a claim we can
+/// publish as an independent assessment.
+enum VerificationStatus {
+  DECLARED
+  VERIFIED
+  FLAGGED
+}
+
+/// One producer's listing against one reference fragrance. Mirrors
+/// `DupeCandidate` in lib/types.ts, plus the workflow state a static fixture
+/// has no need for.
+model Submission {
+  id         String   @id @default(cuid())
+  producerId String
+  producer   Producer @relation(fields: [producerId], references: [id], onDelete: Cascade)
+
+  /// Slug of the reference this alternates. Not a foreign key: the reference
+  /// catalog still lives in lib/data/houses/*.ts as curated editorial data,
+  /// and producers must not be able to create originals (see
+  /// PRODUCER-PROGRAM.md §4 - this is what stops forty spellings of
+  /// "Baccarat Rouge" appearing).
+  referenceSlug String
+
+  slug          String @unique
+  name          String
+  concentration String
+  priceUsd      Float
+  bottleMl      Int
+
+  /// Note pyramid, structured. Stored as string arrays to match FragranceNotes.
+  notesTop   String[]
+  notesHeart String[]
+  notesBase  String[]
+
+  /// Producer's own 0-10 facet self-assessment. The integrity problem in
+  /// PRODUCER-PROGRAM.md §7 lives here: these feed the similarity score and
+  /// nobody but the producer has measured them.
+  facetFreshness Float
+  facetSweetness Float
+  facetWarmth    Float
+  facetWoodyDepth Float
+  facetLongevity Float
+  facetSillage   Float
+
+  longevityHoursMin Int
+  longevityHoursMax Int
+  sillageLabel      String
+
+  /// Required prose: what is genuinely different from the original. Making
+  /// this mandatory is itself an anti-copy measure - a producer who claims
+  /// nothing differs has to write that lie in sentences rather than just
+  /// paste a note list.
+  declaredDifferences String
+
+  affiliateUrl String
+  imageUrl     String?
+
+  approvalStatus     ApprovalStatus     @default(PENDING)
+  verificationStatus VerificationStatus @default(DECLARED)
+  rejectionReason    String?
+  reviewedAt         DateTime?
+  reviewedBy         String?
+
+  /// Prices go stale and a stale price is a misleading "Nx cheaper" claim on
+  /// a live comparison - see PRODUCER-PROGRAM.md §4 step 6.
+  lastVerifiedAt DateTime?
+
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clicks ClickEvent[]
+
+  @@index([producerId, approvalStatus])
+  @@index([referenceSlug, approvalStatus])
+}
+
+/// Every outbound click through /go/[slug]. Powers both producer-facing
+/// analytics and our own revenue reconciliation.
+///
+/// `subId` is the per-listing sub-ID passed to the affiliate network.
+/// PRODUCER-PROGRAM.md §6 is explicit that this must exist from the first real
+/// click: the network reports conversions against sub-IDs, and without one per
+/// listing there is no way to attribute a payout back to a listing later.
+/// Retrofitting attribution onto untagged traffic is not possible.
+model ClickEvent {
+  id           String   @id @default(cuid())
+  submissionId String?
+  submission   Submission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+
+  /// Set for buy-the-original clicks, which have no Submission behind them.
+  referenceSlug String?
+  linkId        String
+  subId         String
+
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  @@index([submissionId, createdAt])
+  @@index([subId])
+}
+
+// ---------------------------------------------------------------------------
+// Auth.js
+// ---------------------------------------------------------------------------
+// Standard Auth.js Prisma adapter models. A User belongs to a Producer, so a
+// producer account can eventually have more than one login without reworking
+// the schema.
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  producerId String?
+  producer   Producer? @relation(fields: [producerId], references: [id], onDelete: SetNull)
+
+  accounts Account[]
+  sessions Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
