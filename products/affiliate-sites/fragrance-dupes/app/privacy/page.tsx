@@ -43,7 +43,7 @@ export default function PrivacyPage() {
 
         <h2>What we collect</h2>
         <p>
-          <strong>Analytics.</strong> If analytics is enabled, we use Google
+          <strong>Analytics.</strong> We use Google
           Analytics 4 to count visits and see which pages people read. It
           records things like the page you viewed, your approximate region,
           your browser and device type, and the site you arrived from. IP
@@ -99,8 +99,8 @@ export default function PrivacyPage() {
             keeps request logs.
           </li>
           <li>
-            <strong>Google Analytics</strong> &mdash; usage measurement, where
-            enabled.
+            <strong>Google Analytics 4</strong> &mdash; usage measurement,
+            active since 27 August 2026.
           </li>
           <li>
             <strong>Google Fonts</strong> &mdash; typefaces are served from

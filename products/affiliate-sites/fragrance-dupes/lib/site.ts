@@ -33,6 +33,42 @@ export function siteUrl(): string {
  *  is a constant, not an env var somebody has to remember to set. */
 export const CONTACT_EMAIL = "contact@parfumoza.com";
 
+/**
+ * GA4 measurement ID (property created 2026-08-27).
+ *
+ * A constant rather than a build variable, for the same reason as the two
+ * above and one more:
+ *
+ *  - It is NOT a secret. It ships in the HTML of every page and is visible to
+ *    every visitor; treating it as a credential would be cargo-culting.
+ *  - A static export inlines this at build time, so a forgotten dashboard
+ *    variable does not degrade gracefully - it silently collects nothing, and
+ *    "no data" looks identical to "no traffic" for weeks.
+ *  - The Cloudflare project's dashboard settings failed to apply four times
+ *    during the deploy. Adding a fifth dependency on one would be optimistic.
+ *
+ * NEXT_PUBLIC_GA_MEASUREMENT_ID still overrides it - set it to a different
+ * property for a staging build, or to an empty string to disable analytics
+ * entirely.
+ */
+const DEFAULT_GA_MEASUREMENT_ID = "G-4Q54ZJKVW1";
+
+/**
+ * Returns the GA4 ID, or null when analytics must not run.
+ *
+ * Gated on NODE_ENV so `npm run dev` never pollutes the property with local
+ * pageviews - which matters here specifically, because the whole point of
+ * enabling analytics now is to answer "monthly unique visitors" honestly on
+ * an affiliate application. Development traffic in that number would make the
+ * answer wrong in the direction that looks self-serving.
+ */
+export function gaMeasurementId(): string | null {
+  if (process.env.NODE_ENV !== "production") return null;
+  const configured = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const id = configured === undefined ? DEFAULT_GA_MEASUREMENT_ID : configured.trim();
+  return id === "" ? null : id;
+}
+
 /** Absolute URL for a site-relative path, for canonicals and structured data. */
 export function absoluteUrl(path: string): string {
   return `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;
