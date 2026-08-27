@@ -3,7 +3,8 @@ import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/site/reveal";
 import { AtomizerSpritz } from "@/components/home/atomizer-spritz";
-import { getDupe, getReference } from "@/lib/dupes-data";
+import { getReference } from "@/lib/dupes-data";
+import { getRankedDupesFor } from "@/lib/catalog";
 
 const STEPS = [
   {
@@ -36,9 +37,25 @@ const STEPS = [
  * to the published methodology, since this chapter's whole job is to make
  * that transparency legible.
  */
+/**
+ * The formula's real weights, from lib/similarity.ts. Shown when there is no
+ * listing to demonstrate against, which is more honest than a worked example
+ * with invented inputs - and arguably a better fit for a chapter whose whole
+ * job is disclosing how the score is computed.
+ */
+const WEIGHTS = [
+  { label: "Note overlap", value: "50%", detail: "Base 45% · heart 35% · top 20%" },
+  { label: "Facet closeness", value: "35%", detail: "Six facets, scored 0–10" },
+  { label: "Same family", value: "15%", detail: "A shared olfactive family" },
+];
+
 export function ChapterFormula() {
-  const reference = getReference("baccarat-rouge-540")!;
-  const dupe = getDupe("dossier-ambrosia")!;
+  // No non-null assertions here. An earlier version used `getDupe("...")!` for
+  // a hardcoded sample pairing; when that listing was removed the assertion
+  // hid the breakage from the typechecker and the homepage failed at
+  // prerender instead. Resolve real data, then branch on what actually exists.
+  const reference = getReference("baccarat-rouge-540");
+  const dupe = reference ? getRankedDupesFor(reference)[0] : undefined;
 
   return (
     <section className="border-b border-border">
@@ -75,15 +92,43 @@ export function ChapterFormula() {
         </Reveal>
 
         <Reveal delay={0.1} className="rounded-frame border border-border bg-card p-6 sm:p-8">
-          <p className="mb-6 text-center text-sm text-muted-foreground">
-            Live example: {reference.name} vs {dupe.name}
-          </p>
-          <AtomizerSpritz
-            referenceName={reference.name}
-            dupeName={dupe.name}
-            referenceFacets={reference.facets}
-            dupeFacets={dupe.facets}
-          />
+          {reference && dupe ? (
+            <>
+              <p className="mb-6 text-center text-sm text-muted-foreground">
+                Live example: {reference.name} vs {dupe.name}
+              </p>
+              <AtomizerSpritz
+                referenceName={reference.name}
+                dupeName={dupe.name}
+                referenceFacets={reference.facets}
+                dupeFacets={dupe.facets}
+              />
+            </>
+          ) : (
+            <>
+              <p className="mb-6 text-sm text-muted-foreground">
+                The whole formula, in three numbers:
+              </p>
+              <dl className="flex flex-col gap-5">
+                {WEIGHTS.map((weight) => (
+                  <div key={weight.label} className="flex items-baseline gap-4">
+                    <dd className="w-16 shrink-0 font-display text-3xl tabular-nums text-primary">
+                      {weight.value}
+                    </dd>
+                    <div className="flex flex-col">
+                      <dt className="font-semibold">{weight.label}</dt>
+                      <span className="text-sm text-muted-foreground">{weight.detail}</span>
+                    </div>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-6 border-t border-border pt-5 text-sm text-muted-foreground">
+                No alternatives are listed yet, so there is nothing real to demonstrate on.
+                Rather than score an invented example, here is the formula itself &mdash; the
+                same one every listing will be measured by.
+              </p>
+            </>
+          )}
         </Reveal>
       </div>
     </section>

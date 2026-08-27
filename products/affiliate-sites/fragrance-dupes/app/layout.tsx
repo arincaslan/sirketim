@@ -7,6 +7,8 @@ import { MotionProvider } from "@/components/site/motion-provider";
 import { Preloader } from "@/components/site/preloader";
 import { CustomCursor } from "@/components/site/custom-cursor";
 import { GoogleAnalytics } from "@/components/kit/Analytics";
+import { JsonLd } from "@/components/kit/JsonLd";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -24,26 +26,62 @@ const sans = Public_Sans({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example-placeholder.com";
+const SITE_DESCRIPTION =
+  "Honest, data-driven comparisons between designer fragrances and their closest dupes - visual note comparisons, real spec tables, and a matcher tool, not a text wall.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "Drydown - Independent Fragrance Dupe Comparisons",
     template: "%s | Drydown",
   },
-  description:
-    "Honest, data-driven comparisons between designer fragrances and their closest dupes - visual note comparisons, real spec tables, and a matcher tool, not a text wall.",
+  description: SITE_DESCRIPTION,
+  // Every page inherits a canonical unless it sets its own. Without this the
+  // site had none at all, which leaves a crawler to guess which of several
+  // reachable URLs is the real one.
+  alternates: { canonical: "/" },
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
   },
   openGraph: {
     type: "website",
     siteName: "Drydown",
+    url: siteUrl(),
     title: "Drydown - Independent Fragrance Dupe Comparisons",
-    description:
-      "Honest, data-driven comparisons between designer fragrances and their closest dupes.",
+    description: SITE_DESCRIPTION,
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Drydown - Independent Fragrance Dupe Comparisons",
+    description: SITE_DESCRIPTION,
+  },
+};
+
+/**
+ * Site-wide structured data. Only Article/Review/ItemList existed before, and
+ * only on content routes, so nothing told a search engine what this site or
+ * its publisher actually is.
+ *
+ * `publisher` names Sirketim rather than Drydown: the FTC disclosure and the
+ * independence claim both rest on who operates the site, and burying that is
+ * the opposite of what an affiliate site should do.
+ */
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Drydown",
+  url: siteUrl(),
+  description: SITE_DESCRIPTION,
+  parentOrganization: { "@type": "Organization", name: "Sirketim" },
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Drydown",
+  url: siteUrl(),
+  description: SITE_DESCRIPTION,
+  publisher: { "@type": "Organization", name: "Sirketim" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -66,6 +104,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
+        <JsonLd data={organizationSchema} />
+        <JsonLd data={websiteSchema} />
         <CustomCursor />
         <Preloader />
         <MotionProvider>

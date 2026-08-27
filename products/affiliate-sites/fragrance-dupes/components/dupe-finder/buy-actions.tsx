@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { AffiliateLink } from "@/components/kit/AffiliateLink";
 import { buttonVariants } from "@/components/ui/button";
+import { hasRealAffiliateLink } from "@/lib/affiliate-links";
 import { isHouseProduct } from "@/lib/catalog";
 import { formatPricePerMl } from "@/lib/similarity";
 import { cn } from "@/lib/utils";
@@ -38,9 +39,9 @@ export function BuyActions({
           >
             ${dupe.priceUsd} / {dupe.bottleMl}ml
           </span>
-        ) : dupe.affiliateLinkId ? (
+        ) : hasRealAffiliateLink(dupe.affiliateLinkId) ? (
           <AffiliateLink
-            id={dupe.affiliateLinkId}
+            id={dupe.affiliateLinkId!}
             className={cn(buttonVariants({ variant: "default" }), "gap-2")}
           >
             Buy {dupe.name} - ${dupe.priceUsd}
@@ -48,9 +49,9 @@ export function BuyActions({
           </AffiliateLink>
         ) : null}
 
-        {reference.affiliateLinkId && (
+        {hasRealAffiliateLink(reference.affiliateLinkId) && (
           <AffiliateLink
-            id={reference.affiliateLinkId}
+            id={reference.affiliateLinkId!}
             className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
           >
             Buy the original - ${reference.priceUsd}

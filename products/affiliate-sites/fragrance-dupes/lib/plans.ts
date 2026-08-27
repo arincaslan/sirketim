@@ -1,4 +1,21 @@
-import type { BillingInterval, PaidTier } from "@/lib/stripe";
+/**
+ * Billing vocabulary. These lived in lib/stripe.ts until that file was deleted
+ * on 2026-08-27 - Stripe cannot serve a Turkey-based business, so a payment
+ * processor had no business owning the pricing page's type layer. They are
+ * provider-neutral and survive whichever rail is chosen (Paddle is the current
+ * expectation; see FINALIZATION-GUIDE.md phase 5 and prisma/schema.prisma's
+ * PaymentProvider enum).
+ */
+export type PaidTier = "standard" | "featured";
+export type BillingInterval = "monthly" | "yearly";
+
+export function isPaidTier(value: string): value is PaidTier {
+  return value === "standard" || value === "featured";
+}
+
+export function isBillingInterval(value: string): value is BillingInterval {
+  return value === "monthly" || value === "yearly";
+}
 
 /**
  * Producer plan definitions, from PRODUCER-PROGRAM.md §3.
@@ -13,9 +30,9 @@ import type { BillingInterval, PaidTier } from "@/lib/stripe";
  *
  * The values below are plausible-but-invented so the pricing page has
  * something to render. They must not be published to real producers before
- * the founder sets them. Real prices ultimately live as Stripe Price objects
- * (lib/stripe.ts reads their ids from env) - these numbers are only for
- * display and must be kept in step with whatever is configured there.
+ * the founder sets them. Real prices will ultimately live as price objects in
+ * whichever payment provider is chosen, referenced by id from env - these
+ * numbers are only for display and must be kept in step with those.
  * =========================================================================
  *
  * The hard rule from §7, encoded in what these tiers may contain: no tier

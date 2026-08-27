@@ -13,6 +13,8 @@ const COLUMNS = [
     links: [
       { href: "/about", label: "Our Standards" },
       { href: "/disclosure", label: "Affiliate Disclosure" },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/contact", label: "Contact" },
     ],
   },
   {
@@ -61,7 +63,6 @@ export function SiteFooter() {
       <div className="border-t border-border">
         <div className="container flex flex-col gap-2 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>Drydown is a Sirketim product. Independent editorial, funded by affiliate commissions.</p>
-          <p>This is a template build - no affiliate program is active yet.</p>
         </div>
       </div>
     </footer>

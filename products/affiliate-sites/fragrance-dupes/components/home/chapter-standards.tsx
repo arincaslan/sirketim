@@ -6,8 +6,8 @@ import { Reveal } from "@/components/site/reveal";
 const PRINCIPLES = [
   {
     icon: Flask,
-    title: "We buy every bottle",
-    body: "Ratings come from bottles we purchased ourselves, not samples sent by a brand.",
+    title: "No paid placement",
+    body: "We never accept free product, payment, or placement in exchange for a rating or a rank.",
   },
   {
     icon: Scales,
@@ -63,8 +63,8 @@ export function ChapterStandards() {
           className="mx-auto mt-12 flex max-w-[68ch] flex-wrap items-center justify-between gap-4 border-t border-border pt-10"
         >
           <p className="max-w-[40ch] text-lg text-muted-foreground">
-            Every rating is a bottle we bought and a formula we&apos;ll show
-            you.
+            One formula, applied the same way to every bottle — and
+            we&apos;ll show you the formula.
           </p>
           <Button asChild variant="link" size="lg" className="px-0">
             <Link href="/dupe-finder">

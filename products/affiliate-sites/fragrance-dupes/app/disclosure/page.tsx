@@ -33,8 +33,16 @@ export default function DisclosurePage() {
         </p>
         <h2>Product access</h2>
         <p>
-          Ratings are based on bottles purchased at retail. We do not accept
-          free product from brands in exchange for a rating or placement.
+          We do not accept free product, payment, or placement from brands in
+          exchange for a rating or a rank, and we never will.
+        </p>
+        <p>
+          We are also explicit about the limits of that. Where a fragrance
+          house or a dupe producer supplies its own specification, that is
+          what it is &mdash; a supplier&apos;s claim, restated by us and
+          scored by our formula, not an independent measurement. Listings say
+          which they are, and a producer that simply copies an
+          original&apos;s specification back to us is not published at all.
         </p>
         <h2>No active program yet</h2>
         <p>

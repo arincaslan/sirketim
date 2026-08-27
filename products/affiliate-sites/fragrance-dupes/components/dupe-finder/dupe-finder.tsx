@@ -7,6 +7,7 @@ import { DupeResultCard } from "@/components/dupe-finder/dupe-result-card";
 import { ComparisonDetail } from "@/components/dupe-finder/comparison-detail";
 import { ProducerFilter } from "@/components/dupe-finder/producer-filter";
 import { REFERENCES } from "@/lib/dupes-data";
+import { hasRealAffiliateLink } from "@/lib/affiliate-links";
 import {
   filterDupesByProducer,
   getProducerSlugsFor,
@@ -79,10 +80,9 @@ export function DupeFinder({ initialReferenceSlug }: { initialReferenceSlug?: st
           {rankedDupes.length === 0 ? (
             <>
               <p className="max-w-[52ch] text-sm text-muted-foreground">
-                Nobody has listed an alternative to {reference.name} yet. We list the original
-                either way, so you can still buy it here.
+                Nobody has listed an alternative to {reference.name} yet.
               </p>
-              {reference.affiliateLinkId && (
+              {hasRealAffiliateLink(reference.affiliateLinkId) ? (
                 <a
                   href={`/go/${reference.affiliateLinkId}`}
                   rel="sponsored nofollow noopener"
@@ -91,6 +91,11 @@ export function DupeFinder({ initialReferenceSlug }: { initialReferenceSlug?: st
                 >
                   Buy {reference.name} - ${reference.priceUsd}
                 </a>
+              ) : (
+                <p className="max-w-[52ch] text-xs text-muted-foreground">
+                  We are not enrolled in a retailer programme yet, so there is nothing to link
+                  to. The comparison data below is real either way.
+                </p>
               )}
             </>
           ) : (

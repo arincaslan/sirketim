@@ -7,7 +7,7 @@ import { Check, X } from "@phosphor-icons/react/dist/ssr";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { NEVER_INCLUDED, PLANS, priceFor, yearlySavingMonths } from "@/lib/plans";
 import { cn } from "@/lib/utils";
-import type { BillingInterval } from "@/lib/stripe";
+import type { BillingInterval } from "@/lib/plans";
 
 /**
  * Plan chooser. The monthly/yearly switch is the founder's "monthly or

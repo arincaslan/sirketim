@@ -5,80 +5,25 @@ import type { CustomerReview } from "@/lib/types";
  * editorial reviews the content department writes as MDX
  * (content/review/*.mdx). See MARKETPLACE-PLAN.md §2/§3.
  *
- * FIXTURE DATA, and unusually important to be clear about: these are written
- * specimens, not real customer feedback. There is no review submission
- * backend, no accounts, and no moderation queue yet (MARKETPLACE-PLAN.md §4),
- * so nothing a visitor types into the review form is stored anywhere. Every
- * `verifiedPurchase` is false because the site currently only redirects to
- * someone else's checkout and therefore cannot confirm any purchase happened.
+ * DELIBERATELY EMPTY. This array previously held six written specimens with
+ * invented reviewer names, ratings and dates, attributed to real, named,
+ * operating companies - and `review-list.tsx` rendered them with an aggregate
+ * star average under a "Reviews from people who bought..." heading, with no
+ * on-screen label saying they were fixtures. That is an FTC Fake Reviews Rule
+ * problem (16 CFR Part 465) and, because one of them was a negative review of
+ * a named third party's product, a trade-libel one. Removed 2026-08-27 at the
+ * founder's instruction, before the site was ever publicly reachable.
  *
- * Do not present these as genuine customer reviews on a live site. Fabricated
- * reviews shown as real are both an FTC problem and the exact credibility
- * failure this site's "independent" positioning cannot survive - they exist
- * purely so the components have realistic shape to render during the build.
+ * The empty state in `review-list.tsx` renders correctly and honestly ("No
+ * customer reviews for this bottle yet"), so nothing needs a placeholder.
+ *
+ * DO NOT REPOPULATE THIS WITH WRITTEN EXAMPLES, not even labelled ones. Real
+ * rows arrive only from a real submission backend with accounts and a
+ * moderation queue (MARKETPLACE-PLAN.md §4). `verifiedPurchase` can only ever
+ * be true once the site can actually confirm a purchase, which it cannot
+ * today - it redirects to someone else's checkout.
  */
-export const REVIEWS: CustomerReview[] = [
-  {
-    id: "rev-001",
-    targetSlug: "dossier-ambrosia",
-    author: "Selin K.",
-    rating: 4,
-    body: "Opening is genuinely close to the original, close enough that nobody at work could tell. It does fade on me around hour five, so I keep the bottle in my bag for a re-spray. For the price I am not complaining.",
-    createdAt: "2026-07-14",
-    verifiedPurchase: false,
-    status: "approved",
-  },
-  {
-    id: "rev-002",
-    targetSlug: "dossier-ambrosia",
-    author: "Marcus T.",
-    rating: 3,
-    body: "Good but oversold in the listing. The saffron is right, the base is thinner than the original and goes a bit soapy on my skin after a couple of hours. Fine for the money, not a replacement.",
-    createdAt: "2026-07-28",
-    verifiedPurchase: false,
-    status: "approved",
-  },
-  {
-    id: "rev-003",
-    targetSlug: "alt-blue-cedar",
-    author: "Deniz A.",
-    rating: 5,
-    body: "Wore this three days straight to be sure. The citrus-cedar arc really does track and the extrait concentration means it actually lasts through a workday. My most-repurchased bottle this year.",
-    createdAt: "2026-08-02",
-    verifiedPurchase: false,
-    status: "approved",
-  },
-  {
-    id: "rev-004",
-    targetSlug: "drydown-no-01-ember",
-    author: "Priya R.",
-    rating: 4,
-    body: "The resin note in the base is the part that sold me, most alternatives skip it entirely and end up smelling like generic sweet amber. Projection is honest-to-moderate as described rather than overstated.",
-    createdAt: "2026-08-11",
-    verifiedPurchase: false,
-    status: "approved",
-  },
-  {
-    id: "rev-005",
-    targetSlug: "alt-bright",
-    author: "Jonas W.",
-    rating: 4,
-    body: "Coffee and vanilla are spot on. Sweeter than the original for sure, which suits me but would annoy someone wanting the sharper version. Bottle feels cheap, the juice does not.",
-    createdAt: "2026-08-19",
-    verifiedPurchase: false,
-    status: "approved",
-  },
-  {
-    id: "rev-006",
-    targetSlug: "microperfumes-amber-nights",
-    author: "Elif Y.",
-    rating: 2,
-    body: "Wanted to like it. The amber direction is there but the whole thing collapses after ninety minutes and there is none of the resin the original is known for. The decant size makes it a cheap way to find that out, at least.",
-    createdAt: "2026-08-21",
-    verifiedPurchase: false,
-    status: "approved",
-  },
-];
+export const REVIEWS: CustomerReview[] = [];
 
 /** Only approved reviews are ever shown. */
 export function getReviewsFor(targetSlug: string): CustomerReview[] {

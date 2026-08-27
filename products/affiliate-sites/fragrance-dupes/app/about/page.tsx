@@ -18,9 +18,9 @@ export default function AboutPage() {
           <div className="flex flex-col gap-5">
             <h1 className="max-w-[18ch] font-display text-fluid-h1">Our standards</h1>
             <p className="max-w-[56ch] text-lg text-muted-foreground">
-              Every score on this site comes from a bottle we bought and a
-              formula we&apos;re about to show you. Nothing here is ranked by
-              who pays the highest commission.
+              Every score on this site comes from a formula we&apos;re about to
+              show you, applied the same way to every bottle. Nothing here is
+              ranked by who pays the highest commission.
             </p>
           </div>
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-frame border border-border">

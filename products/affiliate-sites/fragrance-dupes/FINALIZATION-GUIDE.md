@@ -9,52 +9,62 @@ Canonical copy. Published visual version is linked from the dashboard.
 
 ## The honest snapshot
 
-DRYDOWN is a well-built site with no audience, no income, and four things that would fail a merchant review today. The build quality is not the problem — three design passes have already landed. **What stands between this and revenue is data honesty, four missing legal pages, and the fact that nothing is deployed.**
+**Updated 27 Aug, after phases 0 and 2 were built.** The site now contains no invented data and no claim it cannot defend, and its catalog is indexable for the first time. What remains between it and revenue is a domain, a deploy, and content.
 
 | | Reality | |
 |---|---|---|
-| Routes building | 15 app routes, all 200 | ✅ |
-| Reference fragrances | 68, across 8 houses | ✅ |
-| Dupe listings | 37, across 8 producers | ⚠️ figures illustrative |
-| Indexable catalog URLs | **0** | ❌ |
-| Published content | 4 pieces, ~1,500 words | ❌ fixture-scale |
-| Working affiliate links | **0 of 18** — all placeholders | ❌ |
-| Privacy policy | **Does not exist** | ❌ |
+| Routes building | 86 pages, clean build, lint clean | ✅ |
+| Reference fragrances | 68, across 8 houses — real, researched | ✅ |
+| **Indexable catalog URLs** | **68** (was 0) | ✅ |
+| Sitemap entries | **78** (was ~11) | ✅ |
+| Privacy policy / contact | `/privacy` and `/contact` live | ✅ |
+| Canonicals, OG, site schema | On every page | ✅ |
+| Invented data | **None** — all removed | ✅ |
+| Payoneer | Open | ✅ |
+| Published content | **1 piece** (3 fabricated ones deleted) | ❌ needs 10–12 |
+| Dupe listings | **0** (37 removed as invented) | ❌ needs real data |
+| Working affiliate links | **0** — none enrolled | ❌ |
 | Deployment / domain | **None** | ❌ |
-| Affiliate programs enrolled | **0** | ❌ |
 | Revenue to date | **$0** | — |
 
-**Uncommitted:** ~44 paths. A deploy today would ship the *pre-marketplace* site. Commit before anything else.
+**The catalog is now the site's asset.** 68 real fragrance pages with note pyramids, profiles, longevity and price-per-ml — each one a page a search engine can land on, and each one honestly saying no alternative is listed yet rather than inventing one.
 
 ---
 
-## Three decisions already taken (2026-08-26)
+## Decisions taken — updated 2026-08-27
 
-| Decision | Choice | Why |
+**Four of these reversed on 27 Aug. The reasons are recorded because the reversals were driven by new facts, not by preference.**
+
+| Decision | Current choice | Why |
 |---|---|---|
-| **Amazon Associates** | **Dropped** | Turkey is invite-only *and* Amazon cannot pay a Turkish (TRY) bank account. Separately, CJ/FragranceX beats it at its only job — 10% vs 3%, 45-day vs 24-hour cookie. It is also the only program whose terms conflict with our `/go/[slug]` redirect. Dropping it deletes real backlog. |
-| **The 37 listings** | **Keep, add a sitewide "illustrative data" banner** | Founder's call. Nothing is deleted; the site states plainly that figures are not yet verified. |
-| **Payment rail** | **Payoneer first, Paddle later** | Stripe cannot serve a Turkish business — verified against `stripe.com/global`. Payoneer unblocks all affiliate income. Paddle is confirmed available but is only needed once a producer agrees to pay. |
+| **The fixture listings** | **REMOVED — all 37, plus 6 reviews and 3 content pieces** | Reversed from "keep + banner". Checking the producers' own storefronts showed the *product names themselves* were invented and attributed to real companies: "Dossier Ambrosia" does not exist (theirs is *Ambery Saffron*), and neither do ALT.'s "Bright" or "Blue Cedar" (theirs are *Crystal, Executive, Farouche…*). That is not fixable by correcting prices, and not something a banner covers. |
+| **Illustrative-data banner** | **Not needed — never built** | Follows from the above. With no invented data there is nothing to disclaim. |
+| **Amazon Associates** | **BACK ON — the payout blocker is gone** | Reversed from "dropped". That call rested mainly on Amazon being unable to pay a TRY account. **Payoneer is now open (27 Aug)**, and a Payoneer USD receiving account is the documented route for exactly this. Still true and still worth weighing: 3% on most Beauty (10% on Luxury Beauty), a 24-hour cookie, the `/go/[slug]` redirect-terms question, and a 180-day / 3-qualifying-sales clock that **starts when you apply** — so apply only once the site is live and has content. A paid Amazon account (Prime) does not shortcut any of this; Associates is a separate application. |
+| **Awin** | **Free to join — the €100 was the wrong page** | The ~€100 is Awin's **advertiser** pricing (£99+VAT/mo + 3.5% per transaction), what a *brand* pays to run a programme. The publisher side states "Free to join, no hidden fees". Not a cost reason to exclude it — worth keeping as the backup rail so Amazon is not a single point of failure. |
+| **Payee** | **Personal account** (founder + *mali müşavir*, 27 Aug) | Works for Amazon, which accepts an individual with a W-8BEN. Note: Awin does **not** self-bill Turkish tax residents, so we would have to issue our own invoice per payout — awkward for an individual. That constraint only bites if Awin is added. |
+| **Payment rail** | **Payoneer ✅ open. Paddle later** | Stripe cannot serve a Turkish business — verified against `stripe.com/global`; its integration has now been deleted from the codebase. A producer subscription rail is not needed until a producer agrees to pay. |
 
 ---
 
-## Phase 0 — Make it safe to show anyone
+## Phase 0 — Make it safe to show anyone  ✅ DONE (27 Aug)
 
-**Nothing may become publicly reachable before this phase lands.** Cost: $0. Owner: Web Development. Blocked on: nothing — start now.
+All nine items landed. The site now contains no invented data and no claim it cannot defend. Build clean, lint clean, every route 200, and the removals verified in served HTML rather than only in source.
 
-| # | Task | Why it is here |
+| # | What was done | Why |
 |---|---|---|
-| 0.1 | **Empty the fabricated customer reviews** (`lib/reviews.ts`) | 6 invented reviews with human names, star ratings and dates, about **real, named, operating companies** — including a 2-star review of MicroPerfumes. `review-list.tsx` renders them with an aggregate star average and no fixture label. The file's own header says not to do this. FTC Fake Reviews Rule + trade libel against a named third party. The empty state already exists, so this is a one-line data change. **Highest-priority item in this guide.** |
-| 0.2 | **Add the sitewide "illustrative data" banner** | The founder's decision on the 37 listings. Must appear on every comparison surface, not just one page. |
-| 0.3 | **Fix 3 false first-hand claims** | `app/about/page.tsx:21` and `components/home/chapter-standards.tsx:66` both say "a bottle we bought". We did not buy them. This directly contradicts 0.2 — a banner saying "illustrative" beside a claim of first-hand testing is worse than either alone. |
-| 0.4 | **Remove `site-footer.tsx:64`** "This is a template build" | Honest today, wrong the moment it is public. |
-| 0.5 | **Delete the dead Stripe code** | `lib/stripe.ts`, both API routes, the npm dep, 6 `.env.example` lines. Its user-facing 503 says "No Stripe account is connected" — implying one *could* be. It never can. Move `PaidTier`/`BillingInterval` into `lib/plans.ts`. The valuable part (webhook-as-sole-writer) is architecture, already recorded in `prisma/schema.prisma`. |
-| 0.6 | **Write `/privacy`** | Hard blocker: no affiliate network approves a site without one. Also required before GA4 fires a single event (KVKK / GDPR). |
-| 0.7 | **Add `/contact` with a monitored inbox** | Affiliate managers reply there. A dead contact page reads as a silent rejection. |
-| 0.8 | **Add a `LICENSE`** | Repo is public and has none. |
-| 0.9 | **Commit the ~44 uncommitted paths** | Otherwise a deploy ships the old site. |
+| 0.1 ✅ | **Fabricated customer reviews removed** (`lib/reviews.ts` now empty) | 6 invented reviews with human names and star ratings, about **real, named, operating companies** — including a 2-star review of MicroPerfumes — rendered with an aggregate average and no fixture label. FTC Fake Reviews Rule plus trade libel. The file now carries a do-not-repopulate note. |
+| 0.2 ✅ | **All 37 listings removed** (banner not needed) | Superseded the banner plan entirely — see the decisions table. The names were invented and attributed to real companies. |
+| 0.3 ✅ | **False first-hand claims removed** | "a bottle we bought" on `/about` and the homepage, and "bottles we purchased ourselves". We had bought nothing. Replaced with what is actually true: one formula, applied the same way to every bottle, and no paid placement. |
+| 0.4 ✅ | **"This is a template build" removed** from the footer | Honest during the build, wrong the moment it is public. |
+| 0.5 ✅ | **Dead Stripe code deleted** | `lib/stripe.ts`, both API routes, the npm dependency and 6 env lines. Its 503 said "No Stripe account is connected", implying one could be; Stripe cannot serve a Turkish business. `PaidTier`/`BillingInterval` moved into `lib/plans.ts`, where a payment processor no longer owns the pricing page's type layer. |
+| 0.6 ✅ | **`/privacy` written** | Hard blocker for every affiliate application, and required before GA4 fires a single event (KVKK / GDPR). Describes what the site actually does — no accounts, no newsletter, no ad pixels. |
+| 0.7 ✅ | **`/contact` added** | Affiliate managers reply there. The address comes from `NEXT_PUBLIC_CONTACT_EMAIL`; while unset the page says contact is not open yet rather than printing an unwatched address. **Set this before applying anywhere.** |
+| 0.8 ✅ | **`LICENSE` added** | MIT for the code, with editorial content, the Drydown name, and third-party trade marks explicitly excluded. |
+| 0.9 ✅ | **Everything committed and pushed** | |
 
-**Done when:** the site contains no claim we cannot defend, and `/privacy` + `/contact` resolve.
+**Also done, not originally on the list:** buy buttons no longer render at all unless a link resolves to a real enrolled programme (`hasRealAffiliateLink`). A button leading to `example.com` reads as broken to a visitor and as low quality to a merchant reviewing our application.
+
+**Done.** The site contains no claim it cannot defend, and `/privacy` and `/contact` both resolve.
 
 ---
 
@@ -66,31 +76,31 @@ Cost: **~$15–20**, or **~$255** if Vercel Pro is required. Owner: Founder, the
 
 | # | Task | Owner | Blocks |
 |---|---|---|---|
-| 1.1 | **Decide payee: A.Ş. vs individual**, with the `mali müşavir` | **Founder only** | Every enrollment. Cannot be casually changed later — use the same answer everywhere. |
-| 1.2 | **Open Payoneer** | **Founder only** | All affiliate income. Highest-value single action in this guide. |
+| 1.1 ✅ | **Payee decided: personal account** (with the `mali müşavir`, 27 Aug) | Founder | Every enrollment. Cannot be casually changed later — use the same answer everywhere. |
+| 1.2 ✅ | **Payoneer open** (27 Aug) | Founder | All affiliate income. Highest-value single action in this guide. |
 | 1.3 | **Register an apex domain** (not a subdomain) | **Founder only** | Every application. Awin reviews the site itself. |
 | 1.4 | Deploy to Vercel, set `NEXT_PUBLIC_SITE_URL` | Web Dev | Metadata, sitemap and robots currently all emit `example-placeholder.com`. |
 | 1.5 | GA4 + Google Search Console | Web Dev | Must run **2–4 weeks before applying**, so "monthly unique visitors" can be answered honestly. **Only after 0.6 exists.** |
 
-> **1.1 is not paperwork.** Awin does **not** self-bill Turkish tax residents — verified against Awin's own policy. Turkey is an explicit exception: *we* must issue an invoice to Awin Ltd for every payout. A Turkish individual cannot casually issue a *fatura*. This is a hard argument for **payee = A.Ş.**, and it makes every payout a manual invoice event Accounting owns.
+> **Note on the payee choice.** Personal works for Amazon Associates, which accepts an individual with a W-8BEN. It is awkward for Awin specifically: Awin does **not** self-bill Turkish tax residents (verified against Awin's own policy — Turkey is an explicit exception), so we would have to issue our own invoice to Awin Ltd per payout, which a Turkish individual cannot casually do. Revisit only if Awin is added.
 
 **Done when:** the real domain serves the site over HTTPS and analytics is collecting.
 
 ---
 
-## Phase 2 — Make it findable
+## Phase 2 — Make it findable  ✅ MOSTLY DONE (27 Aug)
 
-Cost: $0. Owner: Web Development + Content. Blocked on: Phase 1 for the domain, but **content starts today**.
+Everything except content shipped. 2.1–2.6 are built and verified; **2.7 (content) is now the single largest open item on the whole plan** and is blocked on nothing.
 
 | # | Task | Impact |
 |---|---|---|
-| 2.1 | **Build per-fragrance and per-comparison routes** | **The highest-leverage fix on this list.** 68 references × 37 listings currently generate **zero** indexable URLs — the Dupe Finder is one client-state page. Static routes with `generateStaticParams` take the sitemap from ~11 URLs to several hundred, and `/fragrance/[slug]` + `/compare/[a]-vs-[b]` are exactly the shapes this niche's search demand maps to. |
-| 2.2 | Canonical URLs | Zero exist today. |
-| 2.3 | Per-page OpenGraph + one social share image | Every page currently shares a static site-wide OG block with no image. |
-| 2.4 | `Organization` / `WebSite` / `BreadcrumbList` JSON-LD | Only `Article`/`Review`/`ItemList` exist, on 3 content routes. |
-| 2.5 | Homepage `metadata` | The only page with none — it inherits the root title. |
+| 2.1 ✅ | **Per-fragrance routes built** — `/fragrance/[slug]`, 68 static pages | **The highest-leverage fix on this list.** 68 references × 37 listings currently generate **zero** indexable URLs — the Dupe Finder is one client-state page. Static routes with `generateStaticParams` take the sitemap from ~11 URLs to several hundred, and `/fragrance/[slug]` + `/compare/[a]-vs-[b]` are exactly the shapes this niche's search demand maps to. |
+| 2.2 ✅ | Canonical URLs on every page | Zero exist today. |
+| 2.3 ◐ | Per-page OpenGraph + Twitter cards done; a social share IMAGE is still missing | Every page currently shares a static site-wide OG block with no image. |
+| 2.4 ✅ | `Organization` + `WebSite` sitewide, `BreadcrumbList` on fragrance pages | Only `Article`/`Review`/`ItemList` exist, on 3 content routes. |
+| 2.5 ✅ | Homepage metadata added | The only page with none — it inherits the root title. |
 | 2.6 | `lastModified` in the sitemap | Static entries have none. |
-| 2.7 | **Content: 10–12 real pieces** | **Longest lead item in the entire plan and blocked on nothing — start immediately.** 4 pieces / ~1,500 words is a demo, not a library. Target: every merchant we apply to appears in ≥2 published pieces with real prices and a working link. |
+| 2.7 ❌ | **Content: 10–12 real pieces — THE bottleneck now** | **Longest lead item in the entire plan and blocked on nothing — start immediately.** 4 pieces / ~1,500 words is a demo, not a library. Target: every merchant we apply to appears in ≥2 published pieces with real prices and a working link. |
 
 **Done when:** the sitemap lists several hundred real URLs and GSC shows them indexed.
 
