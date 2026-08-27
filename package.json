@@ -2,8 +2,13 @@
   "name": "sirketim-workspace",
   "private": true,
   "version": "0.0.0",
-  "description": "Repo-root deploy shim. NOT a workspace root and NOT a build system for this repo - see the note below.",
+  "description": "Repo-root deploy shim for parfumoza.com. NOT a workspace root and NOT a build system for this repo.",
+  "packageManager": "npm@11.17.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "build": "cd products/affiliate-sites/fragrance-dupes && npm install && npm run build"
+    "build": "cd products/affiliate-sites/fragrance-dupes && npm install && npm run build",
+    "postinstall": "node scripts/ci-postinstall.mjs"
   }
 }

@@ -17,9 +17,18 @@ The rule that made the rename safe: **capitalised forms (`Drydown`, `DRYDOWN`) w
 ```bash
 npm install
 npm run dev      # port 3000, or the next free one
-npm run build
+npm run build    # runs prebuild (generate-redirects) then `next build` -> out/
 npm run lint
 npx prisma validate   # needs DATABASE_URL set to anything well-formed, even offline
+```
+
+**`npm run build` produces a fully static site in `out/`, not a server bundle.** `next.config.mjs` sets `output: "export"` (see "Deployment" below). A `prebuild` step runs `scripts/generate-redirects.mjs` first, which writes `public/_redirects`; the export then copies it into `out/`. `public/_redirects` is generated and gitignored — never edit it by hand.
+
+To verify a change the way the host will build it, run from the **repo root**, not here:
+
+```bash
+npm run build                      # repo root; delegates to this project
+npx wrangler@4 deploy --dry-run    # should print "Read N files from the assets directory"
 ```
 
 No test script exists. Don't invent one — verification here is done by running the app and asserting against real rendered output (see "Verifying a change" below).
@@ -87,17 +96,44 @@ Why they were emptied: the listings named products (`Dossier Ambrosia`, ALT.'s `
 
 Consequences worth knowing before you plan around them: the site currently has **68 references and zero listings**, so every "alternatives" section renders its empty state; the house-product plumbing (`components/dupe-finder/house-badge.tsx`, the `No. 01 Ember` comment in `lib/verification.ts`) is intact but has nothing to render; and the previously-documented problem of *our own product ranking #1 on Baccarat Rouge 540* is dormant rather than solved — it returns the moment `DUPES` is repopulated with Ember still in it.
 
+## Content: only `guide` pieces can be written right now
+
+`content/schema.ts` defines three types, and the difference between them is a hard gate, not a formality:
+
+| Type | Requires | Writable today? |
+|---|---|---|
+| `guide` | `featuredProducts` **optional** | ✅ |
+| `comparison` | `products` — min 2 `productRef`, each with a **mandatory** `affiliateLinkId` | ❌ |
+| `review` | `product` — one `productRef`, **mandatory** `affiliateLinkId` | ❌ |
+
+With `affiliateLinks` empty and no programme enrolled, a comparison or review would have to **invent a product to point at** — the exact failure Phase 0 spent a day undoing. So those two types are blocked until Phase 3, and their routes are deleted (see Deployment below).
+
+This is not a limitation to work around; guides about the **68 real, researched originals** need no affiliate link, internally link to `/fragrance/[slug]`, and are what makes those pages rank. Four are published (`content/guide/`, ~4,000 words).
+
+Two rules when adding a piece:
+
+- **`disclosure` defaults to `true` and that is wrong for every current piece.** The block renders "This piece contains affiliate links" — false where there are none. Set `disclosure: false` until real links land, then flip it per-piece.
+- **Verify every internal link resolves before committing.** One piece shipped a link to `/fragrance` — there is no index route at that path, only `/fragrance/[slug]`; the catalog index is `/library`. A 404 inside published content is exactly what an affiliate reviewer looks for.
+
+The filename must match the frontmatter `slug`, and bad frontmatter fails the build loudly by design (`content/loader.ts`).
+
 ## Product imagery is legally blocked, not missing
 
 `ReferenceFragrance.imageUrl` is empty on every entry **by design**. Perfume bottles are protected trade dress. There are exactly two lawful sources: imagery supplied by an affiliate program we've enrolled in, or photography of bottles we own. Generating bottle renders is ruled out by `departments/web-development/CLAUDE.md`'s trademark caution; reusing a retailer's photo is infringement.
 
 Until then `components/fragrance/fragrance-image.tsx` renders a generated per-fragrance colour mark (`lib/fragrance-visual.ts`). Every surface routes through that component, so populating `imageUrl` later lights up the whole site with no component changes. Don't bypass it.
 
-## `/go/[slug]` — the affiliate chokepoint
+## `/go/[slug]` — the affiliate chokepoint, now a build-time artifact
 
-Every outbound click goes through `app/go/[slug]/route.ts`, which must resolve via `resolveAffiliateLink()` rather than reading the `affiliateLinks` map directly (reading the raw map made every buy-the-original link 404 while its button rendered fine).
+**`app/go/[slug]/route.ts` no longer exists.** A route handler cannot return a 302 in a static export, so as of 2026-08-27 the chokepoint is `scripts/generate-redirects.mjs`, which reads `lib/affiliate-links.ts` at build time and writes `public/_redirects`. Cloudflare serves those as real edge redirects, so `/go/<slug>` behaves identically to a visitor.
 
-**Unresolved compliance question:** Amazon's Associates agreement bars obscuring the source site "including by use of Redirecting Links" — which is exactly this pattern. Probably fine where attribution is preserved, but unverified, and the penalty is account termination. This redirect is load-bearing for the whole producer-attribution design. See `departments/communication/reports/amazon-associates-application.md` §2 before shipping an Amazon link.
+The generator **fails the build loudly** if it cannot parse the map, rather than emitting an empty redirect table — that would 404 every affiliate link in production while the site looked fine. It already caught one real regression: the first version's regex only matched a multi-line literal and broke on the empty `= {};` form.
+
+Three things to know before changing anything here:
+
+- **`affiliateLinks` is currently `{}`, so every `/go/<anything>` 404s.** That is correct, not broken. Buy buttons already refuse to render unless `hasRealAffiliateLink()` resolves, so no visitor can reach one.
+- **Sub-ID attribution still works** (`FINALIZATION-GUIDE.md` §3.5). The scheme is deterministic, so it bakes into the destination URL at build time instead of being composed per request. What is genuinely lost is *our own* server-side click logging — there is no server. The fix, when it matters, is a `main` Worker script in the root `wrangler.jsonc` handling `/go/*`. **Gotcha for that day: `_redirects` rules are NOT applied to requests served by Worker code**, so move the mapping into the script rather than leaving both and guessing which wins.
+- **Unresolved compliance question, unchanged:** Amazon's Associates agreement bars obscuring the source site "including by use of Redirecting Links" — exactly this pattern. Probably fine where attribution is preserved, but unverified, and the penalty is account termination. See `departments/communication/reports/amazon-associates-application.md` §2 before shipping an Amazon link.
 
 ## The independence posture is load-bearing
 
@@ -116,7 +152,19 @@ curl -s "http://localhost:<port>/dupe-finder?ref=<slug>" -o out.html
 grep -oE ".{30}note and facet match" out.html    # the displayed (capped) score
 ```
 
-Also confirm `/go/<id>` still 404s for an unknown id (with `affiliateLinks` empty, **every** id currently 404s — that is correct), and that the submission and review forms still say plainly that nothing was saved.
+Also confirm the submission and review forms still say plainly that nothing was saved.
+
+**For anything touching routing, config, or the build, `npm run dev` is no longer sufficient** — the dev server does not enforce the static-export rules, so a change can work perfectly in dev and fail the deploy. Build the export and serve it as the host will:
+
+```bash
+npm run build                        # from the repo root
+npx serve -l 4321 products/affiliate-sites/fragrance-dupes/out
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4321/fragrance/baccarat-rouge-540/
+```
+
+Note the **trailing slash** — `trailingSlash: true` means `/about` and `/about/` are different paths to a static host. Testing without it is how you get a false 404.
+
+Two known-good expectations for that smoke test: `/go/anything` returns **404** (correct while `affiliateLinks` is empty), and a fragrance page's canonical reads `https://parfumoza.com/...`, never a placeholder or `localhost`.
 
 ## The producer surface, and the gate that isn't open
 
@@ -135,17 +183,28 @@ Four routes: `/producers` and `/producers/pricing` (public), `/producers/login`,
 
 `MARKETPLACE-PLAN.md` (the two-sided marketplace model, data model, open business questions) and `PRODUCER-PROGRAM.md` (subscription tiers, submission flow, approval criteria, the integrity standard) remain the reference for *why* things are shaped as they are. Both are `Status: planning only` where they describe unbuilt things — check which parts have since been implemented rather than assuming either extreme.
 
-## Deployment shape — the site needs almost no server
+## Deployment — the site is a static export, and staying that way is a constraint
 
-Worth knowing before anyone picks a host or reaches for a server-side feature: **there is no dynamic server surface in this project.** Verified 2026-08-27 by grepping `app/` and `lib/` — no `cookies()`, no `headers()`, no `force-dynamic`, no `revalidate`, no `runtime` exports, and one route handler (`/go/[slug]`) that does a static map lookup and returns a 302. `lib/producer-session.ts` returns `null` at build time and stays null.
+**This is a fully static site as of 2026-08-27.** `output: "export"`, deployed to **Cloudflare Workers** (not Pages — Cloudflare creates Workers projects now) via a root-level `wrangler.jsonc` that serves `out/` through `assets`. The whole deploy config lives at the **repo root**, not here; see `departments/web-development/CLAUDE.md` for the settings and the failure signature to recognise.
 
-Two consequences:
+It was already statically renderable before the switch — no `cookies()`, `headers()`, `force-dynamic`, `revalidate`, or `runtime` exports anywhere, and `lib/producer-session.ts` returns `null` at build time and stays null. Three things had to move anyway:
 
-- Every page is statically renderable, so a static export plus generated redirects is a real deployment option, not a downgrade. That is what makes free static hosting viable here.
-- **The project is pinned to Next.js 14.2.35, and that constrains hosts.** `@opennextjs/cloudflare` ended Next.js 14 support in Q1 2026, and Cloudflare's current recommended path (`vinext`) targets Next.js 16 — so deploying to Cloudflare Workers as a Node app means upgrading Next first. Hosts that run a plain Node process (Hostinger's Node.js web apps, a VPS) run this code unmodified. See `departments/web-development/CLAUDE.md` for the cost/tradeoff comparison.
+| Was | Now | Why |
+|---|---|---|
+| `app/go/[slug]/route.ts` | `scripts/generate-redirects.mjs` → `_redirects` | A route handler cannot return a 302 in an export |
+| `/dupe-finder` read `searchParams.ref` server-side | `useSearchParams` in `components/dupe-finder/dupe-finder-query.tsx` | Reading `searchParams` forces dynamic rendering |
+| `app/review/[slug]`, `app/comparison/[slug]` | **deleted** | Both generated **zero** pages, and export rejects a dynamic route with no paths |
 
-## Canonical URLs go through `lib/site.ts` — and three files still bypass it
+**Treat "no dynamic server surface" as an invariant now, not an observation.** Adding `cookies()`, `headers()`, a route handler, or a server-read `searchParams` anywhere will break the build — not at review time, at deploy time. If a feature genuinely needs a server, the right move is a `main` Worker script in the root `wrangler.jsonc` that handles that one path and falls through to assets, **not** turning the export off.
+
+**The review and comparison routes are recoverable from git history** (`git log --oneline -- "app/review/[slug]/page.tsx"`). Restore them the moment `content/review/` or `content/comparison/` has a real piece in it — but see the content constraint: neither type can be written honestly until an affiliate programme is enrolled, because `content/schema.ts` requires a `productRef` with a mandatory `affiliateLinkId` on both.
+
+**Next.js 14.2.35 is pinned and still constrains options.** `@opennextjs/cloudflare` ended Next 14 support in Q1 2026 and `vinext` targets Next 16, so running this as a *Node app* on Cloudflare would mean upgrading Next first. The static export sidesteps that entirely — which is the point.
+
+## Canonical URLs and the contact address go through `lib/site.ts`
 
 `lib/site.ts` is the single source for the site origin (`siteUrl()`, `absoluteUrl()`) and the public contact address (`CONTACT_EMAIL = contact@parfumoza.com`, a real monitored inbox since 2026-08-27). Both are **constants with real defaults, not env vars**, deliberately: a forgotten deployment setting would otherwise ship canonicals pointing at a placeholder host, which is invisible in review and expensive in search results. `NEXT_PUBLIC_SITE_URL` still overrides for previews.
 
-**Known defect, not yet fixed:** `app/comparison/[slug]/page.tsx`, `app/guide/[slug]/page.tsx` and `app/review/[slug]/page.tsx` each still hold their own `process.env.NEXT_PUBLIC_SITE_URL ?? "https://example-placeholder.com"` fallback instead of calling `siteUrl()` — the exact drift `lib/site.ts` was created to eliminate. Three one-line edits. Check for this pattern before adding a fourth.
+**A previously documented defect here is fixed** — three content routes used to carry their own `process.env.NEXT_PUBLIC_SITE_URL ?? "https://example-placeholder.com"` fallback instead of calling `siteUrl()`, and two of them also emitted **no canonical at all**. `grep -r example-placeholder` now returns nothing. The lesson survives the fix: **never hand-roll the origin in a page** — that literal reached production-shaped output precisely because it looked harmless in review.
+
+Site-wide OpenGraph, including `public/og-cover.png`, is set once in `app/layout.tsx` and inherited. The card is a **committed PNG, not a generated `opengraph-image.tsx`**: `ImageResponse` only runs under the edge runtime in this project (the Node path crashes the request), and adopting edge would cost the static export above. Re-render it from a throwaway edge route rather than editing the PNG.

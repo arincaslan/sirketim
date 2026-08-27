@@ -84,20 +84,26 @@ Cloudflare Workers Paid is $5/mo (10M requests, 30M CPU-ms) if the free tier's 1
 
 **What that means**: Cloudflare created a **Workers** project (the current default — it does *not* create Pages projects any more), cloned the repo root, and found no `package.json` there because the app is four levels down. Nothing about the code was wrong.
 
-**The fix used here** — make the repo root self-sufficient so the deploy depends on **one** dashboard setting rather than on monorepo support behaving:
+**The fix used here** — make the repo root self-sufficient so the deploy depends on **no** dashboard settings at all:
 
-- Root `package.json` with a single `build` script that `cd`s into the project and builds it.
+- Root `package.json` with a `build` script that `cd`s into the project and builds it.
 - Root `wrangler.jsonc` with `assets.directory` pointing at that project's `out/`.
-- In the dashboard, set only the **build command** to `npm run build`. Leave the deploy command as `npx wrangler deploy`.
+- Root `package-lock.json`, so Cloudflare uses **npm**. Without one it detected **bun**, which printed `No packages! Deleted empty lockfile` and moved on.
+- **A `postinstall` hook** (`scripts/ci-postinstall.mjs`) that runs the build during Cloudflare's automatic "Installing project dependencies" step. This is the part that makes it work with nothing configured: setting the build command in the dashboard failed to take three times running, and the log's tell is the **absence** of any `Executing user build command:` line. The script is gated on `WORKERS_CI`/`CF_PAGES`/`CI` so a human running `npm install` at the repo root does not trigger a site build, and it exits non-zero on build failure rather than letting wrangler deploy a missing or half-written `out/`.
+
+Setting the dashboard **build command** to `npm run build` is still the *intended* mechanism and does no harm — the build just runs twice. If it is ever confirmed reliable, the postinstall hook can be deleted; it is redundancy, not architecture.
 
 Setting a **root directory** in the dashboard is the other fix, and is the better one *if it takes* — but it needs **Build System V2** for monorepo support, and it silently did not apply here. Also note **"Retry deployment" replays the previous build's settings**; after changing settings you need a *new* deployment (push a commit, or use Create/Deploy) or you will debug a config that is no longer current.
 
-**Verify locally before pushing** — this catches both failure modes in about a minute:
+**Verify locally before pushing** — simulate the builder exactly, rather than running the build by hand:
 
 ```bash
-npm run build                      # from the repo root, exactly as Cloudflare runs it
+rm -rf products/affiliate-sites/fragrance-dupes/out
+WORKERS_CI=1 npm install           # from the repo root; postinstall does the build
 npx wrangler@4 deploy --dry-run    # should print "Read N files from the assets directory"
 ```
+
+Running `npm run build` directly also works, but it proves less: it bypasses the `postinstall` path that Cloudflare actually takes. `WORKERS_CI=1 npm install` is the real rehearsal.
 
 **Config choices worth keeping**: `not_found_handling` is `"404-page"`, deliberately **not** `"single-page-application"` — SPA handling returns `index.html` with a **200** for every unknown URL, which tells a crawler that every typo'd path is a real page and makes a broken redirect render the homepage instead of failing visibly.
 
