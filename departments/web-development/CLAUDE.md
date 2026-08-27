@@ -40,6 +40,18 @@ Configured in `.mcp.json` (project-wide, travels with the repo):
 
 `chrome-devtools` needs no key or approval step beyond the normal per-session MCP approval (`/mcp`) — `claude mcp list` should show it connected as soon as `npx` can fetch the package (first run downloads it).
 
+## Hostinger MCP — domain, DNS, hosting, VPS
+
+Added 2026-08-27 for the `parfumoza.com` launch. Four of Hostinger's official MCP servers are configured in `.mcp.json`: `hostinger-domains`, `hostinger-dns`, `hostinger-hosting`, `hostinger-vps` (npm package `hostinger-api-mcp`).
+
+**Deliberately NOT configured**: `hostinger-billing`, `hostinger-ecommerce`, `hostinger-reach`. Billing exposes payment and purchase operations, which an agent has no business holding; the other two are unrelated to this work. The founder's original config included all seven — the three were dropped on purpose and are one line each to restore if a real need appears.
+
+**The token is a per-machine environment variable, never committed.** `.mcp.json` references `${HOSTINGER_API_TOKEN}` and is a *tracked* file in a **public** repo, so a literal token there would be published on the next push. Same pattern and same reason as `TWENTY_FIRST_API_KEY` above. To set it up on a machine: `setx HOSTINGER_API_TOKEN "..."`, then start a **new** session (MCP servers load at session start, and `setx` only affects processes started afterwards).
+
+**Gotcha that cost real time:** a PowerShell/Bash tool call inherits its environment from the Claude Code process, which was started *before* `setx` ran — so `$env:HOSTINGER_API_TOKEN` reads as empty in the same session that set it, and every API call comes back `401 Unauthenticated`. That looks exactly like a bad token. Read it with `[Environment]::GetEnvironmentVariable("HOSTINGER_API_TOKEN","User")` instead, or check the length before concluding the key is wrong.
+
+**API notes**: base URL is `https://developers.hostinger.com` (the docs host *is* the API host), auth is `Authorization: Bearer <token>`. Useful paths: `/api/domains/v1/portfolio`, `/api/dns/v1/zones/{domain}` (GET/PUT), `/api/vps/v1/virtual-machines`. **Rate limits are aggressive** — expect `429 Too Many Attempts` on back-to-back calls; space requests ~20–40s apart.
+
 ## Skills for UI/motion quality
 
 - **`ui-ux-pro-max`** (`.claude/skills/ui-ux-pro-max/`) — local design-intelligence data (styles, palettes, typography, UX rules) for reviewing or generating a screen/component. This is the skill referenced above and in `web-developer.md`; installed via `uipro init --ai claude` (npm package `ui-ux-pro-max-cli`). Its installer also bundles several *other* skills (`design`, `brand`, `banner-design`, `design-system`, `slides`, `ui-styling`) — deliberately not kept: the bundled `design` skill has the exact same name as Anthropic's own built-in `design` skill (Claude Design canvas), which the internal dashboard workflow depends on, and shadows/overrides it if present. Re-running `uipro init` will recreate those folders — delete them again (keep only `ui-ux-pro-max/`) rather than letting the shadow reappear.
