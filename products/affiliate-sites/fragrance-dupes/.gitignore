@@ -23,3 +23,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Generated at build time by scripts/generate-redirects.mjs from
+# lib/affiliate-links.ts. Regenerated on every build (including on the host),
+# and carries a timestamp, so committing it would only produce noisy diffs
+# and risk a stale redirect table shipping.
+/public/_redirects

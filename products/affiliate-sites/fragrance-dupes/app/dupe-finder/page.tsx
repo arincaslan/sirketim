@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DupeFinder } from "@/components/dupe-finder/dupe-finder";
+import { DupeFinderWithQuery } from "@/components/dupe-finder/dupe-finder-query";
 import { REFERENCES } from "@/lib/dupes-data";
 import { getReferencesByBrand } from "@/lib/catalog";
 
@@ -11,13 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/dupe-finder" },
 };
 
-export default function DupeFinderPage({
-  searchParams,
-}: {
-  searchParams: { ref?: string };
-}) {
-  const initialReferenceSlug = REFERENCES.find((r) => r.slug === searchParams.ref)?.slug;
-
+export default function DupeFinderPage() {
   return (
     <div className="container py-14 sm:py-16">
       <div className="mb-10 flex flex-col gap-4">
@@ -29,7 +23,7 @@ export default function DupeFinderPage({
         </p>
       </div>
 
-      <DupeFinder initialReferenceSlug={initialReferenceSlug} />
+      <DupeFinderWithQuery />
 
       <BrowseAllFragrances />
     </div>

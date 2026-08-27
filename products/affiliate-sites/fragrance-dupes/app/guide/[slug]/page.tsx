@@ -7,6 +7,7 @@ import { JsonLd } from "@/components/kit/JsonLd";
 import { ArticleHeader } from "@/components/content/article-header";
 import { DisclosureBlock } from "@/components/content/disclosure-block";
 import { mdxComponents } from "@/components/content/mdx-components";
+import { absoluteUrl } from "@/lib/site";
 
 export function generateStaticParams() {
   return getContentByType("guide").map((p) => ({ slug: p.frontmatter.slug }));
@@ -15,15 +16,30 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const piece = getContentBySlug("guide", params.slug);
   if (!piece) return {};
-  return { title: piece.frontmatter.title, description: piece.frontmatter.description };
+  const path = `/guide/${piece.frontmatter.slug}`;
+  const { title, description, publishedAt, updatedAt, author } = piece.frontmatter;
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url: path,
+      publishedTime: publishedAt,
+      modifiedTime: updatedAt,
+      authors: [author],
+    },
+    twitter: { card: "summary_large_image", title, description },
+  };
 }
 
 export default function GuidePage({ params }: { params: { slug: string } }) {
   const piece = getContentBySlug("guide", params.slug);
   if (!piece || piece.frontmatter.contentType !== "guide") notFound();
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example-placeholder.com";
-  const url = `${siteUrl}/guide/${piece.frontmatter.slug}`;
+  const url = absoluteUrl(`/guide/${piece.frontmatter.slug}`);
 
   return (
     <article className="container max-w-3xl py-14 sm:py-16">

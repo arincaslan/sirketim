@@ -9,22 +9,24 @@ Canonical copy. Published visual version is linked from the dashboard.
 
 ## The honest snapshot
 
-**Updated 27 Aug, after phases 0 and 2 were built.** The site now contains no invented data and no claim it cannot defend, and its catalog is indexable for the first time. What remains between it and revenue is a domain, a deploy, and content.
+**Updated 27 Aug (second pass), after phase 2 was closed out except content.** The site now contains no invented data and no claim it cannot defend, its catalog is indexable, and it has a real share card. What remains between it and revenue is a deploy and more content.
 
 | | Reality | |
 |---|---|---|
-| Routes building | 86 pages, clean build, lint clean | ✅ |
+| Routes building | 89 pages, typecheck clean, lint clean | ✅ |
 | Reference fragrances | 68, across 8 houses — real, researched | ✅ |
 | **Indexable catalog URLs** | **68** (was 0) | ✅ |
-| Sitemap entries | **78** (was ~11) | ✅ |
+| Sitemap entries | **81** (was ~11) | ✅ |
 | Privacy policy / contact | `/privacy` and `/contact` live | ✅ |
-| Canonicals, OG, site schema | On every page | ✅ |
+| Canonicals, OG, site schema | On every page — **incl. the 3 content routes that were missing canonicals entirely** | ✅ |
+| Social share image | `og-cover.png`, 1200×630, on every page | ✅ |
 | Invented data | **None** — all removed | ✅ |
 | Payoneer | Open | ✅ |
-| Published content | **1 piece** (3 fabricated ones deleted) | ❌ needs 10–12 |
+| Domain + email | `parfumoza.com`, `contact@parfumoza.com` live | ✅ |
+| Published content | **4 pieces, ~4,000 words** (was 1 piece / 434 words) | ◐ needs 10–12 |
 | Dupe listings | **0** (37 removed as invented) | ❌ needs real data |
 | Working affiliate links | **0** — none enrolled | ❌ |
-| Deployment / domain | **None** | ❌ |
+| Deployment / host | **Not chosen** — comparison done, decision is the founder's | ❌ |
 | Revenue to date | **$0** | — |
 
 **The catalog is now the site's asset.** 68 real fragrance pages with note pyramids, profiles, longevity and price-per-ml — each one a page a search engine can land on, and each one honestly saying no alternative is listed yet rather than inventing one.
@@ -79,8 +81,26 @@ Cost: **~$15–20**, or **~$255** if Vercel Pro is required. Owner: Founder, the
 | 1.1 ✅ | **Payee decided: personal account** (with the `mali müşavir`, 27 Aug) | Founder | Every enrollment. Cannot be casually changed later — use the same answer everywhere. |
 | 1.2 ✅ | **Payoneer open** (27 Aug) | Founder | All affiliate income. Highest-value single action in this guide. |
 | 1.3 ✅ | **Domain registered: `parfumoza.com`** (27 Aug) — apex, not a subdomain | Founder | Done. `drydown.com` was taken, so the brand was renamed to **Parfumoza** in the same change. |
-| 1.4 | **Deploy** — host not yet chosen | Founder + Web Dev | `parfumoza.com` is already the built-in default, so metadata, canonicals, sitemap and robots all emit it with no env var needed. **Do not use Vercel Hobby** — it prohibits commercial use. Hostinger's managed Node.js plan (~$4/mo, bundles the email) or Cloudflare Pages (free, commercial allowed) both work; Hostinger *shared* hosting does not — it cannot run `/go/[slug]`. |
+| 1.4 | **Deploy** — comparison done ✅, host decision outstanding | Founder + Web Dev | See the host comparison below. `parfumoza.com` is already the built-in default, so metadata, canonicals, sitemap and robots all emit it with no env var needed. |
 | 1.5 | GA4 + Google Search Console | Web Dev | Must run **2–4 weeks before applying**, so "monthly unique visitors" can be answered honestly. **Only after 0.6 exists.** |
+
+### The host comparison (done 27 Aug, against each vendor's own pricing page)
+
+**Two things this repo previously assumed turned out to be wrong**, and both change the answer:
+
+- **Hostinger's ordinary shared plans now run Node.js web apps** (Business/"Unlimited" 5 apps, Cloud 10, GitHub auto-deploy, Node 18–24). The old "shared hosting can't run `/go/[slug]`" reasoning is retired.
+- **Cloudflare is no longer a drop-in.** `@opennextjs/cloudflare` ended Next.js 14 support in Q1 2026 and the current path (`vinext`) targets Next.js 16. This project is pinned to **14.2.35**.
+
+| | Hostinger Cloud Startup | Hostinger Unlimited | Cloudflare Pages |
+|---|---|---|---|
+| Advertised | $7.99/mo | $3.99/mo | $0 |
+| **Real commitment** | **48 mo, $383.52 upfront** | **48 mo, $191.52 upfront** | none |
+| **Renewal** | **$25.99/mo** ($311.88/yr) | **$16.99/mo** ($203.88/yr) | $0 |
+| Runs this code unmodified | ✅ | ✅ | ⚠️ needs static export or a Next upgrade |
+
+**Recommendation: Cloudflare Pages via static export.** A grep of `app/` and `lib/` found **no dynamic server surface at all** — no `cookies()`, `headers()`, `force-dynamic` or `revalidate`, and one route handler (`/go/[slug]`) that does a static map lookup and returns a 302, reproducible as a generated `_redirects` file. Cloud Startup's 4 CPU / 4 GB would be serving a folder of HTML.
+
+**If speed matters more than cost, take Unlimited — not Cloud.** Cloud buys CPU, RAM, app slots and a dedicated IP, none of which is a bottleneck here. Two non-reasons to pick Hostinger: **email is attached to the domain, not the plan** (`contact@parfumoza.com` already resolves with no hosting plan on the account), and the 30-day money-back window closes long before the renewal bites.
 
 > **Note on the payee choice.** Personal works for Amazon Associates, which accepts an individual with a W-8BEN. It is awkward for Awin specifically: Awin does **not** self-bill Turkish tax residents (verified against Awin's own policy — Turkey is an explicit exception), so we would have to issue our own invoice to Awin Ltd per payout, which a Turkish individual cannot casually do. Revisit only if Awin is added.
 
@@ -88,21 +108,42 @@ Cost: **~$15–20**, or **~$255** if Vercel Pro is required. Owner: Founder, the
 
 ---
 
-## Phase 2 — Make it findable  ✅ MOSTLY DONE (27 Aug)
+## Phase 2 — Make it findable  ✅ TECHNICALLY DONE (27 Aug) · content ongoing
 
-Everything except content shipped. 2.1–2.6 are built and verified; **2.7 (content) is now the single largest open item on the whole plan** and is blocked on nothing.
+**2.1–2.6 are all built and verified against the running site.** 2.7 (content) is the only open item and remains the longest-lead item in the whole plan.
 
-| # | Task | Impact |
+| # | Task | Status |
 |---|---|---|
-| 2.1 ✅ | **Per-fragrance routes built** — `/fragrance/[slug]`, 68 static pages | **The highest-leverage fix on this list.** 68 references × 37 listings currently generate **zero** indexable URLs — the Dupe Finder is one client-state page. Static routes with `generateStaticParams` take the sitemap from ~11 URLs to several hundred, and `/fragrance/[slug]` + `/compare/[a]-vs-[b]` are exactly the shapes this niche's search demand maps to. |
-| 2.2 ✅ | Canonical URLs on every page | Zero exist today. |
-| 2.3 ◐ | Per-page OpenGraph + Twitter cards done; a social share IMAGE is still missing | Every page currently shares a static site-wide OG block with no image. |
-| 2.4 ✅ | `Organization` + `WebSite` sitewide, `BreadcrumbList` on fragrance pages | Only `Article`/`Review`/`ItemList` exist, on 3 content routes. |
-| 2.5 ✅ | Homepage metadata added | The only page with none — it inherits the root title. |
-| 2.6 | `lastModified` in the sitemap | Static entries have none. |
-| 2.7 ❌ | **Content: 10–12 real pieces — THE bottleneck now** | **Longest lead item in the entire plan and blocked on nothing — start immediately.** 4 pieces / ~1,500 words is a demo, not a library. Target: every merchant we apply to appears in ≥2 published pieces with real prices and a working link. |
+| 2.1 ✅ | **Per-fragrance routes** — `/fragrance/[slug]`, 68 static pages via `generateStaticParams` | Took the sitemap from ~11 URLs to 78. The catalog had generated **zero** indexable URLs before this. |
+| 2.2 ✅ | Canonical URLs on every page | **Finished 27 Aug.** The first pass missed three routes: `/comparison/[slug]`, `/guide/[slug]` and `/review/[slug]` emitted **no canonical at all** and built their JSON-LD `url` from a hardcoded `example-placeholder.com` fallback instead of `lib/site.ts`. All three now use `absoluteUrl()` and carry canonical + article OG. Verified: zero occurrences of the placeholder host in served HTML. |
+| 2.3 ✅ | Per-page OpenGraph + Twitter cards, **and the share image** | **Finished 27 Aug.** `public/og-cover.png` (1200×630) now ships on every page with width/height/alt. Rendered once via Satori using the site's own Cormorant Garamond and `globals.css` palette, then committed as a static asset — see the note below on why it is not a generated route. |
+| 2.4 ✅ | `Organization` + `WebSite` sitewide, `BreadcrumbList` on fragrance pages | |
+| 2.5 ✅ | Homepage metadata | |
+| 2.6 ✅ | `lastModified` in the sitemap | Verified present on all three entry groups (static, references, content). |
+| 2.7 ◐ | **Content: 10–12 real pieces** | **4 published, ~4,000 words** (was 1 piece / 434 words). See the constraint below — this is not simply "write 8 more". |
 
-**Done when:** the sitemap lists several hundred real URLs and GSC shows them indexed.
+> **Why the share image is a committed PNG, not `opengraph-image.tsx`.** Next's `ImageResponse` only runs under the **edge** runtime in this project — the Node runtime path crashes the request outright. Adopting edge would have given the site its first dynamic route and cost it the property that makes free static hosting viable (see Phase 1's host comparison). The card is one fixed brand image that never varies per page, so generating it per request bought nothing. To change it, re-render from a throwaway edge route rather than editing the PNG.
+
+### The content constraint nobody had written down
+
+**`comparison` and `review` pieces cannot honestly be written yet**, and this is structural rather than a matter of effort. `content/schema.ts` requires a `productRef` — with a mandatory `affiliateLinkId` — on every `comparison` (min 2 products) and every `review` (exactly 1). There are currently **zero listings and zero enrolled programmes**, so any such piece would have to invent a product to point at. That is precisely the failure Phase 0 just spent a day undoing.
+
+Only `guide` pieces (where `featuredProducts` is optional) are writable now. That is not a loss: guides about the **originals** — 68 real, researched references — are honest, need no affiliate link, and internally link to the `/fragrance/[slug]` pages 2.1 just created, which is what makes those pages rank.
+
+**Consequently this phase's old target — "every merchant we apply to appears in ≥2 published pieces with real prices and a working link" — belongs to Phase 3, not here.** It cannot be met before enrollment.
+
+Published so far (all `guide`, all `disclosure: false`):
+
+| Piece | Words |
+|---|---|
+| How to Actually Find a Fragrance Dupe That Works | 434 — thin, worth expanding |
+| EDT, EDP, Extrait: What Fragrance Concentration Actually Changes | 1,166 |
+| Why a Fragrance Smells Different on You Than in Every Review | 1,227 |
+| Top, Heart, Base: How to Actually Read a Fragrance Note Pyramid | 1,169 |
+
+> **`disclosure` was being set dishonestly.** The block reads "This piece contains affiliate links" — untrue on every piece currently published, since none contain any. The schema defaults it to `true`, and the pre-existing guide had it on. All four are now `disclosure: false`; it flips back per-piece as real links land in Phase 3.
+
+**Done when:** 10–12 pieces are published and GSC shows the catalog indexed.
 
 ---
 
@@ -115,7 +156,7 @@ Cost: ~$5, refundable. Owner: Communication. Blocked on: Phases 0–2.
 | 3.1 | **Apply to Awin** | **One application, not two.** ShareASale migrated into Awin (2025-08-15) and its platform closed 2025-10-06 — verified. ALT. Fragrances and Dossier are both merchants *inside* Awin. |
 | 3.2 | Apply to merchants inside Awin | Network approval ≠ merchant approval. The **merchant** gate is what rejects a thin site, and it usually fails as silence, not a "no". |
 | 3.3 | **Apply to CJ, then FragranceX** | Not optional diversification — **the backup rail.** Post-merger, ALT. *and* Dossier both sit behind one Awin account. That is a single point of failure. |
-| 3.4 | Replace 18 placeholder links; flip the placeholder fallback to **hard failure** | Today `resolveAffiliateLink()` silently produces `example.com` URLs. After launch, a missing link must break loudly, not send a customer nowhere. |
+| 3.4 | Populate `affiliateLinks` (now **empty**, was 18 placeholders); flip the placeholder fallback to **hard failure** | The placeholders are gone rather than fixed — `affiliateLinks` is `{}`, so `/go/<id>` currently 404s for every id, which is correct. After launch a missing link must keep breaking loudly rather than sending a customer nowhere. |
 | 3.5 | **Sub-ID scheme + click logging, before the first real click** | `<listingId>__<referenceSlug>__<surface>`, composed once in `/go/[slug]`, emitted as Awin `clickref` / CJ `sid`. **Cannot be retrofitted** — untagged traffic is unattributable forever. |
 
 > **Link shape needs changing.** `AffiliateLinkEntry` holds one bare `destinationUrl`, but Awin and CJ both require a network click URL with the destination URL-encoded inside it. The shape needs `network` + `merchantId` + `deepLink`, not a single string.
@@ -187,17 +228,19 @@ Postgres migration · Auth.js sign-in · billing on any rail · approval-queue U
 
 Nothing below can be done by an agent. Everything downstream waits on them.
 
-1. **Decide payee — A.Ş. vs individual**, with the `mali müşavir`. Awin's Turkish invoicing rule makes A.Ş. the strong candidate.
-2. **Open Payoneer.** One action, unblocks Awin + CJ simultaneously.
-3. **Register the apex domain.**
-4. **Check Vercel's commercial-use terms**; pay for Pro if required.
-5. **Apply to Awin**, once the site is live and has content.
+1. ~~**Decide payee — A.Ş. vs individual.**~~ ✅ Personal, with the `mali müşavir` (27 Aug).
+2. ~~**Open Payoneer.**~~ ✅ Open (27 Aug).
+3. ~~**Register the apex domain.**~~ ✅ `parfumoza.com`, plus `contact@parfumoza.com` (27 Aug).
+4. **Choose a host and deploy.** ⬅ **the only thing now blocking Phase 3.** Comparison and recommendation are in Phase 1 above; this is a spending decision, so it is the founder's.
+5. **Apply to Awin**, once the site is live and has content — and only after GA4 has run 2–4 weeks (1.5), so "monthly unique visitors" can be answered honestly.
 
 ---
 
 ## One unresolved integrity problem
 
-`No. 01 Ember` — our own product — currently renders **#1 at 79%** on Baccarat Rouge 540, ahead of every real listing. Verified against the live server, not inferred.
+`No. 01 Ember` — our own product — rendered **#1 at 79%** on Baccarat Rouge 540, ahead of every real listing. Verified against the live server, not inferred.
+
+**It is dormant, not solved.** `DUPES` is empty as of 27 Aug, so nothing renders at all — but the house-product plumbing (`HouseBadge`, the note in `lib/verification.ts`) is intact and the problem returns the moment listings are repopulated with Ember still among them. Resolve it before Phase 4, not after.
 
 This is not the producer-copying exploit (that is fixed and enforced). It is the same failure by our own hand: we wrote Ember's note list close to the reference. The site brands itself *"Independent Fragrance Comparisons"* while selling its own line inside those comparisons. A merchant reviewing our Awin application will see that.
 

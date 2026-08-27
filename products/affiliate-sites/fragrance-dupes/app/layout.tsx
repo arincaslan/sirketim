@@ -29,6 +29,32 @@ const sans = Public_Sans({
 const SITE_DESCRIPTION =
   "Honest, data-driven comparisons between designer fragrances and their closest dupes - visual note comparisons, real spec tables, and a matcher tool, not a text wall.";
 
+/**
+ * The social share card, inherited by every page that does not set its own.
+ *
+ * A committed PNG rather than a generated `opengraph-image.tsx`, deliberately.
+ * Next's ImageResponse only runs under the edge runtime in this project (the
+ * Node runtime path crashes the request), and adopting edge here would give
+ * the site its first dynamic route - losing the property that it is fully
+ * statically exportable, which is exactly what makes free hosting viable.
+ * The card is one fixed brand image that never varies per page, so generating
+ * it per request bought nothing anyway.
+ *
+ * It WAS generated, once, from a throwaway edge route using Satori and the
+ * site's own Cormorant Garamond and globals.css palette; that route was then
+ * deleted. To change the card, re-render it the same way rather than editing
+ * the PNG by hand.
+ *
+ * No bottle imagery, and there cannot be: perfume bottles are protected trade
+ * dress (see this project's CLAUDE.md).
+ */
+const OG_IMAGE = {
+  url: "/og-cover.png",
+  width: 1200,
+  height: 630,
+  alt: "Parfumoza - independent fragrance comparisons",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
@@ -49,11 +75,13 @@ export const metadata: Metadata = {
     url: siteUrl(),
     title: "Parfumoza - Independent Fragrance Dupe Comparisons",
     description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: "Parfumoza - Independent Fragrance Dupe Comparisons",
     description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
   },
 };
 

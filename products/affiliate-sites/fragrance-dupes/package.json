@@ -5,6 +5,7 @@
   "description": "Sirketim product - PARFUMOZA, an independent fragrance-dupe comparison and affiliate content site built on Next.js + Tailwind CSS + shadcn/ui + Motion. Editorial/comparison site, not an e-commerce storefront; distinct from the fragrance-store templates.",
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/generate-redirects.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
