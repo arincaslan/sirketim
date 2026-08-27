@@ -43,14 +43,22 @@ export default function PrivacyPage() {
 
         <h2>What we collect</h2>
         <p>
-          <strong>Analytics.</strong> We use Google
-          Analytics 4 to count visits and see which pages people read. It
-          records things like the page you viewed, your approximate region,
-          your browser and device type, and the site you arrived from. IP
-          addresses are anonymised by Google before they reach us. We use this
-          only to understand what is worth writing more of. Our lawful basis
-          is legitimate interest in understanding site usage, and you can opt
-          out at any time using Google&apos;s own{" "}
+          <strong>Analytics, and it does not use cookies.</strong> We use
+          Google Analytics 4 to count visits and see which pages people read,
+          configured so that it stores <em>nothing on your device</em> &mdash;
+          no analytics cookie is written, and no identifier is kept between
+          visits. That is why this site has no cookie banner: there is nothing
+          to ask you to consent to.
+        </p>
+        <p>
+          It records the page you viewed, your approximate region, your browser
+          and device type, and the site you arrived from. IP addresses are
+          anonymised before storage. We use this only to understand what is
+          worth writing more of. Because nothing is stored on your device, we
+          cannot tell whether you have been here before, and we do not build a
+          profile of you. Our lawful basis is legitimate interest in
+          understanding site usage; you can also opt out at any time using
+          Google&apos;s own{" "}
           <a
             href="https://tools.google.com/dlpage/gaoptout"
             rel="noopener noreferrer"
