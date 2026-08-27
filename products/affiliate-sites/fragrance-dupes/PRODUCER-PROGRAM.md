@@ -10,7 +10,7 @@ The data model this assumes (`Producer`, `DupeCandidate.producerSlug`, the `Revi
 
 Worth settling before pricing, because if this answer is thin nobody subscribes at any price.
 
-A dupe producer's problem is discovery. They make a competent alternative to Baccarat Rouge 540, and the customer searching for it has never heard of them. What PARFUMOZA offers is **placement at the exact moment of comparison** - in front of someone who has already named the expensive fragrance they want and is actively looking for an alternative. That is far later in the funnel than an Instagram ad reaches.
+A dupe producer's problem is discovery. They make a competent alternative to Baccarat Rouge 540, and the customer searching for it has never heard of them. What COUNTERSCENT offers is **placement at the exact moment of comparison** - in front of someone who has already named the expensive fragrance they want and is actively looking for an alternative. That is far later in the funnel than an Instagram ad reaches.
 
 Concretely, a subscription should buy:
 
@@ -27,12 +27,12 @@ What a subscription must **never** buy: a better match score, a higher rank, or 
 
 The founder's model is subscription **plus** commission on every sale. Mechanically:
 
-1. Producer subscribes (recurring fee to PARFUMOZA).
-2. Producer enrols PARFUMOZA in their affiliate program and supplies a tracking link that credits us.
+1. Producer subscribes (recurring fee to COUNTERSCENT).
+2. Producer enrols COUNTERSCENT in their affiliate program and supplies a tracking link that credits us.
 3. Approved listing goes live; clicks route through `/go/[slug]`.
-4. PARFUMOZA earns commission on conversions **and** the monthly fee.
+4. COUNTERSCENT earns commission on conversions **and** the monthly fee.
 
-**The risk, stated plainly:** charging a subscription *and* taking commission is a double-dip that most marketplaces deliberately avoid - they pick one. Amazon takes commission only. Etsy takes a listing fee plus a small commission, but the listing fee is cents, not a subscription. A small dupe house with thin margins may do the arithmetic and conclude that a monthly fee on top of commission makes PARFUMOZA their most expensive channel, and simply not sign up. The whole marketplace depends on producers actually joining, so this is not a detail to discover after building the billing system.
+**The risk, stated plainly:** charging a subscription *and* taking commission is a double-dip that most marketplaces deliberately avoid - they pick one. Amazon takes commission only. Etsy takes a listing fee plus a small commission, but the listing fee is cents, not a subscription. A small dupe house with thin margins may do the arithmetic and conclude that a monthly fee on top of commission makes COUNTERSCENT their most expensive channel, and simply not sign up. The whole marketplace depends on producers actually joining, so this is not a detail to discover after building the billing system.
 
 Three ways to de-risk it, in rough order of how much they protect the launch:
 
@@ -77,7 +77,7 @@ Six steps, three of them ours:
 | Product name, concentration, size (ml), price | Price feeds the "Nx cheaper per ml" claim, so it must be maintained, not set once. |
 | Note pyramid (top / heart / base) | Structured input, not free text - this feeds the similarity score. |
 | Facet self-assessment (6 sliders, 0-10) | **The integrity problem, see §7.** |
-| Affiliate tracking link | Their program's link crediting PARFUMOZA. Stored, never rendered raw - resolved through `/go/[slug]`. |
+| Affiliate tracking link | Their program's link crediting COUNTERSCENT. Stored, never rendered raw - resolved through `/go/[slug]`. |
 | Product image | Only where they hold the rights. This is also how the site's empty `imageUrl` fields eventually get filled for dupes. |
 
 **3. Automated validation before a human sees it** - link resolves and is not a redirect chain to somewhere unexpected, required fields present, price is plausible, no duplicate listing of the same product against the same reference.
@@ -112,17 +112,34 @@ The founder is the gate, so the criteria should be written down before volume ma
 - **Reconciliation is the unglamorous hard part.** The affiliate network reports conversions; our click log reports clicks. Nothing automatically ties a payout to a listing unless sub-IDs are passed through per listing. Whatever network is used, per-listing sub-ID tracking must be set up from day one - retrofitting attribution after months of untagged traffic is not possible.
 - **The redirect itself may not be allowed on every network.** Amazon's operating agreement bars obscuring the source site "including by use of Redirecting Links," which is precisely what `/go/[slug]` is. Probably fine where attribution is preserved, but unverified, and the penalty is account termination rather than a warning. Since this whole attribution design rests on that one chokepoint, confirm it per network before relying on it - see `departments/communication/reports/amazon-associates-application.md` §2.
 
+### 6a. Direct-to-store links for subscribers (founder proposal, 2026-08-27)
+
+Most dupe houses run their own Shopify store. The proposal: **a paid subscriber may link listings straight at their own store, with no affiliate network in between, and no cap on how many.**
+
+This is the strongest idea on the table for one reason that has nothing to do with pricing: **it is the only path to a populated catalog that does not depend on Awin approving us.** Today `DUPES` is empty and stays empty until an affiliate feed exists (`FINALIZATION-GUIDE.md` phases 3→4). A subscribing producer supplies the same three things that feed would - real product names, real prices, and **imagery they own the rights to**, which is the other thing currently blocking the site (`ReferenceFragrance.imageUrl` is empty on all 68 entries because perfume bottles are protected trade dress). A producer licensing us their own product shots is lawful in a way that scraping a retailer's photo is not.
+
+It also removes the double-dip in §2 for these listings specifically: we take the subscription *instead of* commission, not alongside it. That is the cleanest version of the model, and it decouples our revenue from ranking outcomes entirely - the strongest structural answer to §7 we have.
+
+**Four things must be true before it ships:**
+
+1. **Every paid outbound link needs `rel="sponsored"`.** This is not optional and it is not a style preference. A producer paying us monthly for links to their store is, in Google's own words, buying links - and Google's spam policy requires such links carry `rel="nofollow"` or `rel="sponsored"` so they pass no ranking signal. Unlimited *unmarked* dofollow links to paying commercial stores is a textbook paid link scheme, and the penalty lands on **our** domain, not theirs. The existing `/go/` redirect helps but does not settle it: mark the anchor.
+2. **"Unlimited" must mean unlimited *originals covered*, not unlimited *rows*.** The abuse is a producer blanketing the catalog with 40 near-identical variants of one juice to crowd out competitors. The natural limit is **one listing per (producer, reference) pair** - which caps at 68 today and grows only as the reference catalog does. That reads as generous, is honest, and is not gameable.
+3. **It changes nothing about rank.** Worth stating explicitly because "unlimited links" sounds like it buys something. It buys *coverage* - how many originals you may appear against. It does not buy position within any one of those comparisons, and §7's cap applies to these listings exactly as to any other unverified submission. Listing volume is a legitimate tier lever; placement is not. Keep them separate in the copy as well as the code.
+4. **Attribution becomes ours to do.** With no network in the middle there is no conversion report - we would see clicks and nothing else. Either accept that (the subscription is the revenue, so conversion data is a producer courtesy rather than our invoice), or agree a shared parameter with each producer. Do not promise "conversion data" on the Featured tier for store-direct listings until this is settled; §3 currently does.
+
+**Not yet decided:** whether store-direct listings sit alongside affiliate listings in the same comparison (they should, ranked identically) and whether the free tier gets one as a taster.
+
 ---
 
 ## 7. The integrity problem
 
 This is the part most likely to quietly wreck the site, and it deserves to be decided deliberately rather than drifted into.
 
-PARFUMOZA's positioning is "Independent Fragrance Comparisons." The pivot introduces two direct conflicts with that:
+COUNTERSCENT's positioning is "Independent Fragrance Comparisons." The pivot introduces two direct conflicts with that:
 
 **Producers pay us and we rank them.** Every incentive points toward favouring payers. The defence has to be structural, not a promise: the ranking formula lives in `lib/similarity.ts`, is published on `/about`, takes no input related to subscription tier, and `getRankedDupesFor()` in `lib/catalog.ts` breaks ties toward the cheaper bottle rather than toward anyone paying. Keep it that way, and keep the tier table in §3 free of anything that touches rank.
 
-**Producers self-report the facet scores that feed the ranking.** This is the sharper problem and it is not hypothetical - it already happened here, to us. `lib/dupes-data.ts` documents it: our own No. 01 Ember ranked first against Baccarat Rouge 540 at 79%, twenty-two points clear, purely because its note list was written to sit almost on top of the reference's. Nothing in the code favoured it. When the same three products were written as honest formulation compromises, our bottles ranked last on Aventus and last on Sauvage.
+**Producers self-report the facet scores that feed the ranking.** This is the sharper problem and it is not hypothetical - it already happened here, to us. Our own No. 01 Ember ranked first against Baccarat Rouge 540 at 79%, twenty-two points clear, purely because its note list was written to sit almost on top of the reference's. Nothing in the code favoured it. When the same three products were written as honest formulation compromises, our bottles ranked last on Aventus and last on Sauvage. (That listing was deleted with the rest of `DUPES` on 2026-08-27, so the evidence now lives here and in `FINALIZATION-GUIDE.md`'s board-review section rather than in a code comment. The hazard is **dormant, not solved** - it returns the day `DUPES` is repopulated with a house product in it.)
 
 If we can do that to ourselves by accident, a producer whose revenue depends on rank will do it on purpose. Worse, the exploit is not subtle: `computeSimilarity` is `notesScore*0.5 + facetsScore*0.35 + familyBonus*0.15`, `familyBonus` is hardcoded to `1`, and both other terms return `1` on identical inputs. **Copy the reference's notes and facets verbatim and the formula returns exactly 100%.** Verified, not theorised.
 
@@ -132,11 +149,12 @@ No formula over self-reported inputs can distinguish "genuinely this close" from
 
 1. **Verbatim copies are a publish gate, not a rank penalty.** If a submission's note pyramid *and* facet scores both match the reference's (`isVerbatimCopy`), the listing is flagged and excluded from comparisons entirely until a human clears it. Either signal alone can be honest coincidence; both together on self-reported data is the abuse pattern. Enforced in `getRankedDupesFor`, so a flagged listing cannot render at all.
 2. **Unverified submissions are capped.** A "producer declared" listing publishes at most **90%**, however high its raw score computes. Only editorial verification lifts the cap. This is deliberately independent of subscription tier - a cap a higher tier could pay past would be selling rank, which §3 forbids.
-3. **Ranking uses the raw score, display uses the capped one.** Order stays meaningful even where several listings tie at the cap.
+   - **And we cannot lift it for ourselves** (added 2026-08-27, board review). The cap keyed on the `verified` status; *we* are the only party who grants `verified`; and we sell a fragrance line on this site. Nothing structural stopped COUNTERSCENT marking its own bottle verified and publishing an uncapped score at #1 on a page branded "Independent Fragrance Comparisons" - self-certification wearing the badge of editorial review. `getPublishedScore` now refuses to lift the cap for a house listing whatever its status field says, and the badge reads "Our own product — self-declared" rather than "Editorially verified". A house bottle can still rank first on merit; it cannot show a number only an independent check may earn.
+3. **Ranking sorts on the published score first, the raw score second.** The published key means the list can never show a higher-ranked listing at a *lower* percentage than the one beneath it - an inversion that is genuinely reachable when two listings share a raw score but only one may pass the cap, and which looked worst in exactly the case that matters: our own bottle at #1 showing 90% above a third party's 92%. The raw key still breaks ties among listings displaying the same capped number, so order stays meaningful there.
 4. **Differences are declared, not optional.** The submission form requires prose on what genuinely differs. A producer copying the note list has to also write, in sentences, that nothing differs - a much harder lie to tell casually, and something the approval queue can actually judge.
 5. **The badge is public.** Every listing carries "Producer declared" or "Editorially verified," and `/about#methodology` explains what each means. The site already publishes how the score is computed; it now also publishes *where the inputs come from*, without which that disclosure was only half-true.
 
-**Measured against the real catalog:** 0 of 37 existing listings trip the verbatim flag (no false positives), 5 sit above the cap and are limited by it, and a synthetic copy-paste submission scores 100% raw, is flagged, and never renders.
+**Measured when the fixture catalog still existed:** 0 of 37 listings tripped the verbatim flag (no false positives), 5 sat above the cap and were limited by it, and a synthetic copy-paste submission scored 100% raw, was flagged, and never rendered. **Those 37 listings were deleted on 2026-08-27** (invented product names attributed to real companies - see `lib/dupes-data.ts`), so `DUPES` is now empty and none of these numbers can be re-measured until it is repopulated. The standard itself is still enforced and was re-verified on 2026-08-27 with temporary probe listings: two candidates with byte-identical notes, facets and `verificationStatus: "verified"`, differing only in producer, published at **90% (house, capped)** and **92% (third party, uncapped)**.
 
 **Still open:** the cap ceiling (90) is a judgement call, and editorial verification does not scale - at volume this needs either customer reviews as the correction mechanism (a listing that overstates gets rated down) or narrowing the score to inputs checkable against a producer's public listing.
 

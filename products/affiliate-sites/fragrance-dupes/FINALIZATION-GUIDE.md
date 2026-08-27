@@ -1,4 +1,4 @@
-# PARFUMOZA — Finalization Guide
+# COUNTERSCENT — Finalization Guide
 
 **One ordered path from where the site actually is to where it earns money.**
 
@@ -9,11 +9,11 @@ Canonical copy. Published visual version is linked from the dashboard.
 
 ## The honest snapshot
 
-**Updated 27 Aug (third pass) — the site is LIVE.** `parfumoza.com` serves over HTTPS on Cloudflare Workers at **$0/month**, email survived the DNS migration, GA4 is collecting and Search Console is verified. Phases 0, 1 and 2 are done. **What stands between here and revenue is no longer build work — it is 1–3 more content pieces and the 2–4 week analytics window before applying to Awin.**
+**Updated 27 Aug (fourth pass) — the site is LIVE and the board's findings are actioned.** `counterscent.com` serves over HTTPS on Cloudflare Workers at **$0/month**, email survived the DNS migration, GA4 is collecting and Search Console is verified. Phases 0, 1 and 2 are done, and every code defect the 27 Aug board review found is now fixed and verified. **What stands between here and revenue is no longer build work — it is content, the 2–4 week analytics window, and two founder decisions (the payee bank account, and whether to run producer store-direct links).**
 
 | | Reality | |
 |---|---|---|
-| Routes building | 89 pages, typecheck clean, lint clean | ✅ |
+| Routes building | 90 pages, typecheck clean, lint clean | ✅ |
 | Reference fragrances | 68, across 8 houses — real, researched | ✅ |
 | **Indexable catalog URLs** | **68** (was 0) | ✅ |
 | Sitemap entries | **86** (was ~11), all trailing-slash canonical | ✅ |
@@ -22,11 +22,14 @@ Canonical copy. Published visual version is linked from the dashboard.
 | Social share image | `og-cover.png`, 1200×630, on every page | ✅ |
 | Invented data | **None** — all removed | ✅ |
 | Payoneer | Open | ✅ |
-| Domain + email | `parfumoza.com`, `contact@parfumoza.com` live | ✅ |
+| Domain + email | `counterscent.com`, `contact@counterscent.com` live | ✅ |
 | Published content | **9 pieces, ~9,300 words** (was 1 piece / 434 words) | ◐ needs 10–12 |
 | Dupe listings | **0** (37 removed as invented) | ❌ needs real data |
 | Working affiliate links | **0** — none enrolled | ❌ |
-| Deployment / host | **LIVE** at parfumoza.com — Cloudflare **Workers**, $0/mo | ✅ |
+| Deployment / host | **LIVE** at counterscent.com — Cloudflare **Workers**, $0/mo | ✅ |
+| Scoring integrity | House products can no longer publish an uncapped score; rank can no longer invert | ✅ fixed 27 Aug |
+| Broken-link guard | Build now fails if a content type has no route | ✅ fixed 27 Aug |
+| Payee entity | **A.Ş.** — decided 27 Aug | ◐ receiving account unresolved |
 | Revenue to date | **$0** | — |
 
 **The catalog is now the site's asset.** 68 real fragrance pages with note pyramids, profiles, longevity and price-per-ml — each one a page a search engine can land on, and each one honestly saying no alternative is listed yet rather than inventing one.
@@ -41,9 +44,10 @@ Canonical copy. Published visual version is linked from the dashboard.
 |---|---|---|
 | **The fixture listings** | **REMOVED — all 37, plus 6 reviews and 3 content pieces** | Reversed from "keep + banner". Checking the producers' own storefronts showed the *product names themselves* were invented and attributed to real companies: "Dossier Ambrosia" does not exist (theirs is *Ambery Saffron*), and neither do ALT.'s "Bright" or "Blue Cedar" (theirs are *Crystal, Executive, Farouche…*). That is not fixable by correcting prices, and not something a banner covers. |
 | **Illustrative-data banner** | **Not needed — never built** | Follows from the above. With no invented data there is nothing to disclaim. |
-| **Amazon Associates** | **BACK ON — the payout blocker is gone** | Reversed from "dropped". That call rested mainly on Amazon being unable to pay a TRY account. **Payoneer is now open (27 Aug)**, and a Payoneer USD receiving account is the documented route for exactly this. Still true and still worth weighing: 3% on most Beauty (10% on Luxury Beauty), a 24-hour cookie, the `/go/[slug]` redirect-terms question, and a 180-day / 3-qualifying-sales clock that **starts when you apply** — so apply only once the site is live and has content. A paid Amazon account (Prime) does not shortcut any of this; Associates is a separate application. |
+| **Amazon Associates** | **Possible only through Payoneer — and still gated behind an invite** | Nuanced, and the nuance was previously recorded wrongly. **Verified live 27 Aug** against Amazon's own Associates help page: direct-deposit eligibility is by **country, not by account currency** — United States (USD), United Kingdom (GBP/EUR), 51 Eurozone/EEA countries (EUR), **52 in total, Turkey absent**. This matters because the founder holds a **USD bank account** and reasonably read the old "by account currency (USD/GBP/EUR)" wording as clearing the blocker. It does not: a USD account *held in Turkey* is ineligible. **Payoneer is the fix precisely because it supplies a US-*domiciled* account** — a different thing from a USD-denominated one. Remaining gates: `amazon.com.tr` is **invite-only** (no self-service signup), whether a TR resident may instead join **amazon.com (US)** is **unverified**, and the `/go/<slug>` redirect may breach Amazon's "Redirecting Links" clause. Economics unchanged: 3% most Beauty, 24-hour cookie, 180-day/3-sale clock starting **at application**. |
 | **Awin** | **Free to join — the €100 was the wrong page** | The ~€100 is Awin's **advertiser** pricing (£99+VAT/mo + 3.5% per transaction), what a *brand* pays to run a programme. The publisher side states "Free to join, no hidden fees". Not a cost reason to exclude it — worth keeping as the backup rail so Amazon is not a single point of failure. |
-| **Payee** | **Personal account** (founder + *mali müşavir*, 27 Aug) | Works for Amazon, which accepts an individual with a W-8BEN. Note: Awin does **not** self-bill Turkish tax residents, so we would have to issue our own invoice per payout — awkward for an individual. That constraint only bites if Awin is added. |
+| **Payee** | **REVERSED 27 Aug → the A.Ş.** | The invoicing requirement settled it, exactly as the escape clause below predicted. Awin does **not** self-bill Turkish tax residents (Turkey is an explicit exception in Awin's own policy), so the publisher issues their own invoice per payout — and a Turkish individual cannot casually issue a *fatura*. Founder: *"for invoice we need company account."* **This creates a new open problem, see below.** |
+| **Payee receiving account** | ⚠️ **UNRESOLVED — the blocking item** | The founder confirmed a **USD account exists but is not connected to Payoneer**, and the only USD account previously on record (24 Aug) is a **personal** one. An A.Ş. issuing the invoice while a personal account receives the money makes the invoice issuer and the payee **different legal persons** — a *mali müşavir* will object, and it is the CFO's "costs in the A.Ş., revenue personal" warning in its concrete form. **Confirm whose name the USD account is in before enrolling anywhere.** If personal, the A.Ş. needs its own USD (*döviz*) account — routine to open with a tax ID on file. |
 | **Payment rail** | **Payoneer ✅ open. Paddle later** | Stripe cannot serve a Turkish business — verified against `stripe.com/global`; its integration has now been deleted from the codebase. A producer subscription rail is not needed until a producer agrees to pay. |
 
 ---
@@ -60,8 +64,8 @@ All nine items landed. The site now contains no invented data and no claim it ca
 | 0.4 ✅ | **"This is a template build" removed** from the footer | Honest during the build, wrong the moment it is public. |
 | 0.5 ✅ | **Dead Stripe code deleted** | `lib/stripe.ts`, both API routes, the npm dependency and 6 env lines. Its 503 said "No Stripe account is connected", implying one could be; Stripe cannot serve a Turkish business. `PaidTier`/`BillingInterval` moved into `lib/plans.ts`, where a payment processor no longer owns the pricing page's type layer. |
 | 0.6 ✅ | **`/privacy` written** | Hard blocker for every affiliate application, and required before GA4 fires a single event (KVKK / GDPR). Describes what the site actually does — no accounts, no newsletter, no ad pixels. |
-| 0.7 ✅ | **`/contact` live at contact@parfumoza.com** (27 Aug) | Affiliate managers reply there. Hardcoded in `lib/site.ts` rather than an env var, so a forgotten deployment setting cannot make the page claim contact is closed. |
-| 0.8 ✅ | **`LICENSE` added** | MIT for the code, with editorial content, the Parfumoza name, and third-party trade marks explicitly excluded. |
+| 0.7 ✅ | **`/contact` live at contact@counterscent.com** (27 Aug) | Affiliate managers reply there. Hardcoded in `lib/site.ts` rather than an env var, so a forgotten deployment setting cannot make the page claim contact is closed. |
+| 0.8 ✅ | **`LICENSE` added** | MIT for the code, with editorial content, the Counterscent name, and third-party trade marks explicitly excluded. |
 | 0.9 ✅ | **Everything committed and pushed** | |
 
 **Also done, not originally on the list:** buy buttons no longer render at all unless a link resolves to a real enrolled programme (`hasRealAffiliateLink`). A button leading to `example.com` reads as broken to a visitor and as low quality to a merchant reviewing our application.
@@ -78,11 +82,11 @@ Actual recurring cost: **$0/month.** Owner: Founder, then Web Development.
 
 | # | Task | Owner | Blocks |
 |---|---|---|---|
-| 1.1 ✅ | **Payee decided: personal account** (with the `mali müşavir`, 27 Aug) | Founder | Every enrollment. Cannot be casually changed later — use the same answer everywhere. |
-| 1.2 ✅ | **Payoneer open** (27 Aug) | Founder | All affiliate income. Highest-value single action in this guide. |
-| 1.3 ✅ | **Domain registered: `parfumoza.com`** (27 Aug) — apex, not a subdomain | Founder | Done. `drydown.com` was taken, so the brand was renamed to **Parfumoza** in the same change. |
-| 1.4 | **Deploy** — comparison done ✅, host decision outstanding | Founder + Web Dev | See the host comparison below. `parfumoza.com` is already the built-in default, so metadata, canonicals, sitemap and robots all emit it with no env var needed. |
-| 1.5 | GA4 + Google Search Console | Web Dev | Must run **2–4 weeks before applying**, so "monthly unique visitors" can be answered honestly. **Only after 0.6 exists.** |
+| 1.1 ◐ | **Payee entity decided: the A.Ş.** (27 Aug) — *revised from "personal"* | Founder | Every enrollment. **Still blocked on the receiving account** — see the payee rows in the decisions table. Cannot be casually changed later; use the same answer everywhere. |
+| 1.2 ✅ | **Payoneer open** (27 Aug) | Founder | All affiliate income. Note the Payoneer→bank link is a *separate* step from the account existing, and is what the founder flagged as not done. |
+| 1.3 ✅ | **Domain registered: `counterscent.com`** (27 Aug) — apex, not a subdomain | Founder | Done. `drydown.com` was taken, so the brand was renamed to **Counterscent** in the same change. |
+| 1.4 ✅ | **Deployed and live** (27 Aug) — Cloudflare **Workers**, $0/mo | Founder + Web Dev | Four builds failed first; the fix was a root `postinstall` hook, not a dashboard setting. `counterscent.com` is the built-in default in `lib/site.ts`, so metadata, canonicals, sitemap and robots all emit it with no env var. |
+| 1.5 ✅ | **GA4 + Google Search Console live** (27 Aug) | Web Dev | GA4 `G-4Q54ZJKVW1` collecting; GSC verified by DNS TXT with the sitemap submitted. **This started the 2–4 week clock — it is now the pacing item for the entire revenue path**, not any remaining build work. |
 
 ### The host comparison (done 27 Aug, against each vendor's own pricing page)
 
@@ -91,18 +95,20 @@ Actual recurring cost: **$0/month.** Owner: Founder, then Web Development.
 - **Hostinger's ordinary shared plans now run Node.js web apps** (Business/"Unlimited" 5 apps, Cloud 10, GitHub auto-deploy, Node 18–24). The old "shared hosting can't run `/go/[slug]`" reasoning is retired.
 - **Cloudflare is no longer a drop-in.** `@opennextjs/cloudflare` ended Next.js 14 support in Q1 2026 and the current path (`vinext`) targets Next.js 16. This project is pinned to **14.2.35**.
 
-| | Hostinger Cloud Startup | Hostinger Unlimited | Cloudflare Pages |
+| | Hostinger Cloud Startup | Hostinger Unlimited | **Cloudflare Workers** ✅ chosen |
 |---|---|---|---|
 | Advertised | $7.99/mo | $3.99/mo | $0 |
 | **Real commitment** | **48 mo, $383.52 upfront** | **48 mo, $191.52 upfront** | none |
 | **Renewal** | **$25.99/mo** ($311.88/yr) | **$16.99/mo** ($203.88/yr) | $0 |
-| Runs this code unmodified | ✅ | ✅ | ⚠️ needs static export or a Next upgrade |
+| Runs this code unmodified | ✅ | ✅ | ⚠️ needed a static export |
 
-**Recommendation: Cloudflare Pages via static export.** A grep of `app/` and `lib/` found **no dynamic server surface at all** — no `cookies()`, `headers()`, `force-dynamic` or `revalidate`, and one route handler (`/go/[slug]`) that does a static map lookup and returns a 302, reproducible as a generated `_redirects` file. Cloud Startup's 4 CPU / 4 GB would be serving a folder of HTML.
+**Chosen: Cloudflare Workers via static export** — not Pages. Cloudflare no longer creates Pages projects for new sites, and the distinction is load-bearing: a `functions/` directory does nothing on Workers, and `_redirects` rules are not applied to requests served by Worker code. A grep of `app/` and `lib/` found **no dynamic server surface at all** — no `cookies()`, `headers()`, `force-dynamic` or `revalidate`. The single route handler (`/go/[slug]`) was replaced by `scripts/generate-redirects.mjs`, which writes `public/_redirects` at build time; **the project now has zero route handlers.** Cloud Startup's 4 CPU / 4 GB would have been serving a folder of HTML.
 
-**If speed matters more than cost, take Unlimited — not Cloud.** Cloud buys CPU, RAM, app slots and a dedicated IP, none of which is a bottleneck here. Two non-reasons to pick Hostinger: **email is attached to the domain, not the plan** (`contact@parfumoza.com` already resolves with no hosting plan on the account), and the 30-day money-back window closes long before the renewal bites.
+**Verified 27 Aug: Cloudflare's free plan permits commercial use.** Worth recording because it was nearly missed — Vercel Hobby was rejected on exactly this clause, and the same question was never asked of the host we then chose.
 
-> **Note on the payee choice.** Personal works for Amazon Associates, which accepts an individual with a W-8BEN. It is awkward for Awin specifically: Awin does **not** self-bill Turkish tax residents (verified against Awin's own policy — Turkey is an explicit exception), so we would have to issue our own invoice to Awin Ltd per payout, which a Turkish individual cannot casually do. Revisit only if Awin is added.
+**If speed matters more than cost, take Unlimited — not Cloud.** Cloud buys CPU, RAM, app slots and a dedicated IP, none of which is a bottleneck here. Two non-reasons to pick Hostinger: **email is attached to the domain, not the plan** (`contact@counterscent.com` already resolves with no hosting plan on the account), and the 30-day money-back window closes long before the renewal bites.
+
+> **Note on the payee choice — this escape clause has now triggered, exactly as written.** The original text said the Awin invoicing constraint should be revisited "only if Awin is added." Awin *is* the plan, and always was once Amazon was dropped and ShareASale merged into it, so the clause was deferring a decision that was already made. **Resolved 27 Aug: the payee is the A.Ş.**, because Awin does not self-bill Turkish tax residents (verified against Awin's own policy — Turkey is an explicit exception) and a Turkish individual cannot casually issue a *fatura* to Awin Ltd. The lesson worth keeping: a conditional deferral whose condition is already true is not a deferral, it is an unnoticed decision.
 
 **Done when:** the real domain serves the site over HTTPS and analytics is collecting.
 
@@ -120,7 +126,9 @@ Actual recurring cost: **$0/month.** Owner: Founder, then Web Development.
 | 2.4 ✅ | `Organization` + `WebSite` sitewide, `BreadcrumbList` on fragrance pages | |
 | 2.5 ✅ | Homepage metadata | |
 | 2.6 ✅ | `lastModified` in the sitemap | Verified present on all three entry groups (static, references, content). |
-| 2.7 ◐ | **Content: 10–12 real pieces** | **9 published, ~9,300 words** (was 1 piece / 434 words). See the constraint below — this is not simply "write more". |
+| 2.7 ◐ | **Content: 10–12 real pieces** | **9 published, 9,309 words** (was 1 piece / 434 words). See the constraint below — this is not simply "write more", and the *shape* of the next pieces should change: see the COO's finding in the board review. |
+| 2.8 ✅ | **Sitemap emitted 86 redirecting URLs** — found by the board, fixed | `trailingSlash: true` makes `/about` a 307 to `/about/`, but every sitemap entry was emitted **without** the slash while every canonical carried one. The sitemap advertised 86 explicitly non-canonical URLs on the day Google began crawling. Fixed via `canonicalUrl()` in `lib/site.ts`; verified 86 of 86 now match. |
+| 2.9 ✅ | **Build now refuses to ship a link to a 404** | `content/loader.ts` fails the build if a piece's content type has no route. `app/comparison/[slug]` and `app/review/[slug]` were deleted in the export migration, so writing one comparison would have shipped a card pointing at a dead URL — the first thing an affiliate reviewer clicks. Checks the filesystem rather than a hand-maintained list, because keeping a list in step is the step that gets missed. Verified by hiding the guide route and watching the build fail. |
 
 > **Why the share image is a committed PNG, not `opengraph-image.tsx`.** Next's `ImageResponse` only runs under the **edge** runtime in this project — the Node runtime path crashes the request outright. Adopting edge would have given the site its first dynamic route and cost it the property that makes free static hosting viable (see Phase 1's host comparison). The card is one fixed brand image that never varies per page, so generating it per request bought nothing. To change it, re-render from a throwaway edge route rather than editing the PNG.
 
@@ -170,7 +178,22 @@ Cost: ~$5, refundable. Owner: Communication. Blocked on: Phases 0–2.
 
 > **Link shape needs changing.** `AffiliateLinkEntry` holds one bare `destinationUrl`, but Awin and CJ both require a network click URL with the destination URL-encoded inside it. The shape needs `network` + `merchantId` + `deepLink`, not a single string.
 
-**Done when:** one real commission appears in a network dashboard.
+### 3.6 — The parallel path that does *not* wait on Awin (founder proposal, 27 Aug)
+
+Everything above is blocked on a third party approving us. **One route is not:** most dupe houses run their own Shopify store, so a paying subscriber can link straight at it with no network in between. Written up in full as `PRODUCER-PROGRAM.md` §6a.
+
+This is worth stating in the guide's own terms because it **breaks the Phase 3 → Phase 4 dependency that the rest of this plan is built around.** A subscribing producer supplies the same three things the affiliate feed was going to: real product names, real prices, and **imagery they own the rights to** — which is the other thing blocking the site, since `imageUrl` is empty on all 68 references because bottles are protected trade dress. It also removes the subscription-*and*-commission double-dip for those listings: we take the subscription **instead of** commission, which decouples our revenue from ranking outcomes entirely — the strongest structural answer to the integrity problem at the foot of this doc.
+
+**Four conditions before it ships:**
+
+| # | Condition | Why it is not optional |
+|---|---|---|
+| 3.6a | **`rel="sponsored"` on every paid outbound link** | Verified against Google's own spam policy: links bought through a subscription are paid links, and unmarked dofollow paid links are a link scheme. **The penalty lands on our domain, not the producer's.** |
+| 3.6b | **"Unlimited" = unlimited *originals covered*, not unlimited rows** | One listing per (producer, reference) pair — caps naturally at 68 today. Otherwise a producer blankets the catalog with 40 near-identical variants to crowd out competitors. |
+| 3.6c | **It buys coverage, never placement** | The unverified score cap applies to these exactly as to any other listing. Listing volume is a legitimate tier lever; rank is not. Keep them separate in the pricing copy as well as the code. |
+| 3.6d | **Stop promising conversion data for store-direct listings** | With no network there is no conversion report — we would see clicks and nothing else. The Featured tier currently promises conversion data; that must be qualified or the promise breaks on day one. |
+
+**Done when:** one real commission appears in a network dashboard — **or** one producer pays for store-direct listings, whichever comes first.
 
 ---
 
@@ -194,7 +217,7 @@ The catalog cannot be hand-expanded. All 68 references are hand-typed TypeScript
 | 4.2 | Import real prices; retire the hand-maintained constants |
 | 4.3 | Populate `imageUrl` from affiliate-supplied imagery |
 | 4.4 | Expand the reference catalog from the feed |
-| 4.5 | **Re-check the house-product ranking before listings go back in** — see the integrity problem at the foot of this doc. (Replaces the old "remove the illustrative-data banner": that banner was never built.) |
+| 4.5 ◐ | **Re-check the house-product ranking before listings go back in.** The *scoring* half is now fixed in code (27 Aug): a house product can never publish above the cap, and rank can no longer invert against displayed scores. The **data** half is not fixable in code and remains open — see the integrity problem at the foot of this doc. |
 
 **Done when:** the banner from 0.2 can be deleted honestly.
 
@@ -237,11 +260,15 @@ Postgres migration · Auth.js sign-in · billing on any rail · approval-queue U
 
 Nothing below can be done by an agent. Everything downstream waits on them.
 
-1. ~~**Decide payee — A.Ş. vs individual.**~~ ✅ Personal, with the `mali müşavir` (27 Aug).
+1. ~~**Decide payee — A.Ş. vs individual.**~~ ✅ **The A.Ş.** (27 Aug, revised from "personal" once the Awin invoicing constraint was faced).
 2. ~~**Open Payoneer.**~~ ✅ Open (27 Aug).
-3. ~~**Register the apex domain.**~~ ✅ `parfumoza.com`, plus `contact@parfumoza.com` (27 Aug).
-4. ~~**Choose a host and deploy.**~~ ✅ Done 27 Aug — Cloudflare Workers, $0/mo, live at parfumoza.com with email intact.
-5. **Apply to Awin**, once the site is live and has content — and only after GA4 has run 2–4 weeks (1.5), so "monthly unique visitors" can be answered honestly.
+3. ~~**Register the apex domain.**~~ ✅ `counterscent.com`, plus `contact@counterscent.com` (27 Aug).
+4. ~~**Choose a host and deploy.**~~ ✅ Done 27 Aug — Cloudflare Workers, $0/mo, live at counterscent.com with email intact.
+5. ⚠️ **Confirm whose name the USD account is in — and open a company USD (*döviz*) account if it is personal.** *This is now the top blocker.* An A.Ş. invoice paid into a personal account will not survive review by the *mali müşavir*, and it cannot be fixed retroactively once payouts have started.
+6. **Supply the Hostinger receipt** — amount, currency, and whether auto-renew is on. No agent can retrieve this: `hostinger-billing` is deliberately not configured because it exposes purchase operations. The ledger records **nothing** about this project until you provide it.
+7. **Decide on producer store-direct links** (§3.6) — this is the one path to a populated catalog that does not wait on Awin approving us.
+8. **Decide GA4 cookies vs KVKK.** The privacy policy claims legitimate interest; analytics cookies generally need consent. Recommendation: cookieless GA4 (`client_storage: 'none'`), which keeps the visitor counts an affiliate application needs without the consent question.
+9. **Apply to Awin**, once 5 is resolved and GA4 has run 2–4 weeks (1.5), so "monthly unique visitors" can be answered honestly.
 
 ---
 
@@ -254,19 +281,23 @@ Both ran read-only and verified against files rather than asserting. Their findi
 - **Every sitemap URL was a redirect.** `trailingSlash: true` means `/about` 307s to `/about/`, but all 86 sitemap entries were emitted *without* the slash while every canonical carried one. The sitemap was advertising 86 explicitly non-canonical URLs at the exact moment Google started crawling. Fixed via `canonicalUrl()` in `lib/site.ts`; all 86 now match.
 - **`scripts/generate-redirects.mjs` named the wrong platform.** It told the next session to restore click logging with "a Cloudflare Pages Function at `functions/go/[slug].js`" — but this deploys as a **Worker**, where a `functions/` directory does nothing. Two files gave contradictory instructions on the one path that will carry every affiliate click. Corrected.
 
-**Open, and worth acting on before listings return:**
+**Also fixed since, all verified against the running build:**
 
-- **The score cap does not protect against us.** `getPublishedSimilarity()` caps only *unverified* listings, and `isVerbatimCopy()` would not have flagged `No. 01 Ember` at 79%. Nothing structurally prevents a house product being marked verified and publishing uncapped at #1. Before repopulating `DUPES`: bar house products from `verified` status, source Ember's facets externally, and **launch with no house products at all until Awin approves** — a merchant reviewer seeing us rank first on our own comparison is the rejection.
-- **`components/library/library-tabs.tsx` still filters `comparison`/`review` types** whose routes were deleted. Harmless at zero pieces; produces links to 404s the moment either type is written.
-- **`lib/verification.ts` cites a comment that no longer exists** ("lib/dupes-data.ts's No. 01 Ember comment"). Dangling evidence pointer.
-- **Content has no commercial intent.** Nine informational guides compete in the most saturated vertical online and will not convert even after links land. Original-anchored formats — "*&lt;original&gt;* alternatives" — are writable as `guide` **today** and seed the pages that will hold links later. Stop generic guides at 9–10; spend the rest there.
+- ✅ **The score cap did not protect against us.** The cap keyed on the `verified` status — and **we are the only party who grants `verified`**, while also selling a fragrance line on a site branded *"Independent Fragrance Comparisons"*. Nothing structural stopped COUNTERSCENT marking its own bottle verified and publishing uncapped at #1: self-certification wearing the badge of editorial review. `getPublishedScore()` now takes the whole listing rather than a bare status, so no call site can bypass it, and derives house-ness from a single definition shared with the buyer-facing disclosure so the two cannot disagree. The badge reads **"Our own product — self-declared"**. Proven with two probe listings identical in notes, facets and `verified` status, differing **only** by producer: **90% house (capped) vs 92% third party (raw)**.
+- ✅ **A second defect the probe exposed, which nobody had reported.** Ranking sorted on the *raw* score while display showed the *capped* one — so the house listing sat at **#1 showing 90%, above a listing showing 92%**. A ranking that reads as if it is hiding something. Now sorts published → raw → price-per-ml: the published key stops the inversion, the raw key keeps ordering meaningful among listings tied at the cap.
+- ✅ **`library-tabs.tsx` filtered deleted route types.** It rendered permanent "Comparisons (0)" and "Reviews (0)" tabs, advertising an empty catalog to every visitor. Tabs are now derived from what is actually published and return on their own when a second type lands.
+- ✅ **`lib/verification.ts` cited a comment that no longer existed.** Dangling evidence pointer, repointed at where the evidence now lives.
+
+**Still open — and this one is a founder call, not a code change:**
+
+- **Content has no commercial intent.** Nine informational guides compete in the most saturated vertical online and will not convert even after links land. Original-anchored formats — "*&lt;original&gt;* alternatives" — are writable as `guide` **today**, need no `affiliateLinkId`, and seed the `/fragrance/[slug]` pages that will later hold the links. Stop generic guides at 9–10; spend the rest there.
 
 **Accounting — the ledger does not know this project exists:**
 
 - `departments/accounting/ledger.md` holds **one row** (OpenArt, $29/mo, itself unconfirmed since 19 Aug). Running balance −$29.00, and **100% of it unconfirmed**.
 - The domain and mailbox were paid today and are **not logged**. No agent can retrieve the amounts: `hostinger-billing` is deliberately not configured, so the founder must supply the receipt — amount, currency (TRY or USD), and whether auto-renew is on. This recurs at every renewal.
-- **Unnamed structural risk: costs sit in the A.Ş., revenue will land personally.** Domain, hosting and OpenArt are company expenses, but a personal payee puts affiliate income outside the entity. The A.Ş. shows permanent loss with no revenue line, and the income becomes a personal declaration this ledger does not track.
-- **The payee escape clause has already triggered.** This doc says the Awin invoicing problem should be revisited "only if Awin is added" — but Awin *is* the plan, since Amazon was dropped and ShareASale merged into it. Narrow question for the *mali müşavir*: **can an individual issue a valid invoice to a UK company per payout, or does that require the A.Ş.?**
+- ◐ **"Costs sit in the A.Ş., revenue will land personally."** The founder resolved the *entity* half on 27 Aug — the payee is the A.Ş. — but the **account** half is now the sharper version of the same problem: the only USD account on record is personal, so the invoice issuer and the payee would be different legal persons. Until that is settled the A.Ş. still shows permanent loss with no revenue line. **This is the single blocking item for Phase 3.**
+- ✅ **The payee escape clause triggered, and has been closed.** The doc deferred the Awin invoicing problem "only if Awin is added" — but Awin *was* already the plan. Answered 27 Aug: an individual cannot casually issue a *fatura* to a UK company, so **the payee is the A.Ş.** The general lesson is recorded in Phase 1: a conditional deferral whose condition is already true is not a deferral.
 - **Two docs disagree on the Awin signup fee** (~$5 refundable vs "free to join"). Unverified either way.
 - Also unlogged and unchecked: whether `TWENTY_FIRST_API_KEY` is a paid tier, whether Payoneer charged an opening or inactivity fee, and whether the *mali müşavir* billed for the payee consultation.
 
@@ -274,12 +305,14 @@ Both ran read-only and verified against files rather than asserting. Their findi
 
 ---
 
-## One unresolved integrity problem
+## The integrity problem — now half solved, and it matters which half
 
 `No. 01 Ember` — our own product — rendered **#1 at 79%** on Baccarat Rouge 540, ahead of every real listing. Verified against the live server, not inferred.
 
-**It is dormant, not solved.** `DUPES` is empty as of 27 Aug, so nothing renders at all — but the house-product plumbing (`HouseBadge`, the note in `lib/verification.ts`) is intact and the problem returns the moment listings are repopulated with Ember still among them. Resolve it before Phase 4, not after.
+**✅ The scoring half is fixed (27 Aug).** A house product can no longer publish above the unverified cap however its status field reads, so it cannot display a number that only an independent check is allowed to earn; and the ranking can no longer invert against the displayed scores. Both are enforced in code and proven with probe listings.
 
-This is not the producer-copying exploit (that is fixed and enforced). It is the same failure by our own hand: we wrote Ember's note list close to the reference. The site brands itself *"Independent Fragrance Comparisons"* while selling its own line inside those comparisons. A merchant reviewing our Awin application will see that.
+**❌ The data half is not fixable in code, and is the part that actually matters.** A house listing whose declared notes are written to sit close to the reference will still *legitimately* out-rank honest third-party listings — the formula only ever sees the data it is given. Nothing in the code favoured Ember; we simply wrote its note list favourably. When the same three products were later written as honest formulation compromises, our bottles ranked **last** on Aventus and **last** on Sauvage. That is the proof it is authorship, not arithmetic.
 
-The `HouseBadge` disclosure is real and the tie-break favours the cheaper bottle, so the mechanism is honest. The **data** is not. Resolving this is a founder call and is deliberately left open here.
+**It is dormant, not gone.** `DUPES` is empty, so nothing renders — the problem returns the moment listings are repopulated with Ember among them.
+
+The `HouseBadge` disclosure is real, the tie-break favours the cheaper bottle, and the cap now binds us as tightly as anyone. The mechanism is honest. **Whoever repopulates `DUPES` owns the remaining risk**, and the COO's recommendation stands: **launch with no house products at all until Awin approves.** A merchant reviewer seeing us rank first on our own comparison is the rejection — and no amount of correct code prevents that impression.

@@ -52,7 +52,7 @@ export function Hero() {
       {/* Paper-toned scrim: solid where the manifesto text sits, clearing
           to fully transparent on the right so the video still breathes.
           Uses the theme's own --background token (not a hardcoded black),
-          so this reads as "Parfumoza's paper" rather than a generic dark
+          so this reads as "Counterscent's paper" rather than a generic dark
           gradient, and inverts correctly for dark mode automatically. */}
       <div
         aria-hidden="true"

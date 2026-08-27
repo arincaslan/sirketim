@@ -7,7 +7,7 @@ import { CONTACT_EMAIL } from "@/lib/site";
  * for a merchant application to be declined, so this must resolve to an inbox
  * somebody actually watches before any application is filed.
  *
- * The address is contact@parfumoza.com, live since 2026-08-27 and defined in
+ * The address is contact@counterscent.com, live since 2026-08-27 and defined in
  * lib/site.ts. It is a constant rather than an env var precisely because a
  * forgotten deployment setting would make this page say "contact is not open
  * yet" in production, which is worse than any of the alternatives.
@@ -18,7 +18,7 @@ import { CONTACT_EMAIL } from "@/lib/site";
  */
 export const metadata: Metadata = {
   title: "Contact",
-  description: "How to reach the team behind Parfumoza.",
+  description: "How to reach the team behind Counterscent.",
   alternates: { canonical: "/contact" },
 };
 
@@ -29,7 +29,7 @@ export default function ContactPage() {
 
       <div className="prose prose-lg mt-8 max-w-none">
         <p>
-          Parfumoza is published by Sirketim, a company registered in Türkiye.
+          Counterscent is published by Sirketim, a company registered in Türkiye.
         </p>
 
         <p>

@@ -1,8 +1,8 @@
-# Payment rails investigation — PARFUMOZA marketplace
+# Payment rails investigation — COUNTERSCENT marketplace
 
 **Status: investigation only.** No account was created, nothing was applied to, nothing was configured. No ledger row was added (no transaction has occurred).
 
-Written 2026-08-26 · Accounting (CFO) · Site: `products/affiliate-sites/fragrance-dupes/` (PARFUMOZA)
+Written 2026-08-26 · Accounting (CFO) · Site: `products/affiliate-sites/fragrance-dupes/` (COUNTERSCENT)
 Builds on: `departments/communication/reports/amazon-associates-application.md`, `PRODUCER-PROGRAM.md` §2/§8, `MARKETPLACE-PLAN.md` §5.
 
 ---
@@ -68,7 +68,7 @@ The second is independent, recent, in-repo, and was reached while investigating 
 
 > **Lemon Squeezy risk, stated plainly:** Lemon Squeezy was **acquired by Stripe** (2024). Its historical advantage was onboarding sellers in countries Stripe itself doesn't serve. Post-acquisition, country-list alignment with the parent is a real and specific risk, and exactly the kind of change that happens quietly. **Do not choose Lemon Squeezy without confirming Turkish seller onboarding is still open.** Confidence: low–medium.
 
-**iyzico / PayTR — wrong shape for this business.** They are excellent at collecting from *Turkish card holders in TRY*. PARFUMOZA's producers are Dossier (US), ALT. Fragrances (US), Divain (ES). Billing a US company in TRY through a Turkish PSP is a poor fit: FX friction on the producer's side, no VAT/sales-tax handling on ours, and weak international-card economics. **iyzico stays the right answer for Turkish direct-invoice clients — it is the wrong answer for this marketplace.**
+**iyzico / PayTR — wrong shape for this business.** They are excellent at collecting from *Turkish card holders in TRY*. COUNTERSCENT's producers are Dossier (US), ALT. Fragrances (US), Divain (ES). Billing a US company in TRY through a Turkish PSP is a poor fit: FX friction on the producer's side, no VAT/sales-tax handling on ours, and weak international-card economics. **iyzico stays the right answer for Turkish direct-invoice clients — it is the wrong answer for this marketplace.**
 
 **Stripe Atlas — the expensive escape hatch. Do not do this yet.**
 
@@ -199,7 +199,7 @@ Physical-goods options for a TR A.Ş.:
 1. **Fragrance is a regulated hazardous material to ship.** Alcohol-based fragrance is a **limited-quantity dangerous good** under IATA rules. Air shipping is restricted, surcharged, and refused outright by some carriers and marketplaces. International fragrance shipping is a well-known blocker, not a detail.
 2. **Cosmetics compliance is per-market.** EU sales require **CPNP notification** and a Responsible Person in the EU; US sales fall under **MoCRA** facility/product registration. Both cost real money before the first bottle sells.
 
-**Recommendation: do not build checkout. Route the house line to Etsy and keep PARFUMOZA a pure comparison/affiliate surface.** Revisit only once affiliate revenue proves the traffic exists.
+**Recommendation: do not build checkout. Route the house line to Etsy and keep COUNTERSCENT a pure comparison/affiliate surface.** Revisit only once affiliate revenue proves the traffic exists.
 
 ---
 
@@ -235,13 +235,13 @@ Physical-goods options for a TR A.Ş.:
 
 ### Honest estimate: what a solo founder can achieve without a foreign company
 
-**Achievable, no foreign entity needed:** Awin, ShareASale, CJ enrollment; Payoneer payouts; a free producer tier; Etsy for the house line; iyzico for Turkish direct invoicing. **This covers every near-term revenue stream PARFUMOZA actually has.**
+**Achievable, no foreign entity needed:** Awin, ShareASale, CJ enrollment; Payoneer payouts; a free producer tier; Etsy for the house line; iyzico for Turkish direct invoicing. **This covers every near-term revenue stream COUNTERSCENT actually has.**
 
 **Achievable but unconfirmed:** Paddle for producer subscriptions. Genuinely likely to work; must be verified before it is built on.
 
 **Not achievable without a foreign entity:** Stripe direct, Gumroad, PayPal. Accept these are closed and stop designing around them.
 
-**The realistic constraint is not the payment rail — it is that PARFUMOZA has no deployment, no domain, no traffic, four content pieces, and zero producers.** No payment rail fixes any of that, and every rail above can be opened in days once there is something to point it at.
+**The realistic constraint is not the payment rail — it is that COUNTERSCENT has no deployment, no domain, no traffic, four content pieces, and zero producers.** No payment rail fixes any of that, and every rail above can be opened in days once there is something to point it at.
 
 ---
 
@@ -302,7 +302,7 @@ First-hand Turkish figures at $300/month revenue: ~$15.50 commission **plus a fl
 
 **4. Two Paddle constraints §2 did not surface, both of which need a decision before building:**
 - **Digital goods only.** Paddle will not process the house fragrance line. §6 already reached this conclusion — now confirmed from Paddle's own docs. Two rails remain two rails.
-- **⚠ Acceptable-use is reportedly restrictive toward *marketplaces*.** PARFUMOZA is literally a marketplace. The subscription being sold is arguably plain SaaS (access to a listing tool), which Paddle does support — but this is close enough to the line that it must be raised with Paddle *before* an adapter is written. KYC also tightened after Paddle's 2025 FTC settlement. **This is now the single largest unverified risk on the subscription rail**, replacing the country question.
+- **⚠ Acceptable-use is reportedly restrictive toward *marketplaces*.** COUNTERSCENT is literally a marketplace. The subscription being sold is arguably plain SaaS (access to a listing tool), which Paddle does support — but this is close enough to the line that it must be raised with Paddle *before* an adapter is written. KYC also tightened after Paddle's 2025 FTC settlement. **This is now the single largest unverified risk on the subscription rail**, replacing the country question.
 
 **5. PayTR looks better than iyzico on fees for the TRY/local rail** — ~2.19% next-day settlement versus iyzico's ~4.29% + 0.25 TL with weekly cycles and 2-day holds. §2 treated them as interchangeable. They are not. Neither changes §2's conclusion that a Turkish PSP is the wrong shape for billing US/ES producers.
 

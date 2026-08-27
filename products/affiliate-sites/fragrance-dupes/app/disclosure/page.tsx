@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Affiliate Disclosure",
-  description: "How Parfumoza discloses affiliate relationships, in full, per FTC guidance.",
+  description: "How Counterscent discloses affiliate relationships, in full, per FTC guidance.",
 };
 
 export default function DisclosurePage() {
@@ -12,7 +12,7 @@ export default function DisclosurePage() {
 
       <div className="prose prose-lg mt-8 max-w-none">
         <p>
-          Parfumoza participates in affiliate marketing programs. This means
+          Counterscent participates in affiliate marketing programs. This means
           that when you click certain links on this site and make a
           purchase, we may earn a commission from the retailer. This comes
           at no additional cost to you.
@@ -46,7 +46,7 @@ export default function DisclosurePage() {
         </p>
         <h2>No active program yet</h2>
         <p>
-          As of this build, Parfumoza has not enrolled in any affiliate
+          As of this build, Counterscent has not enrolled in any affiliate
           program. Every outbound link on this site currently points to a
           clearly marked placeholder destination, not a live merchant. This
           page describes the policy that will govern real links once a

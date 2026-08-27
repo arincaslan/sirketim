@@ -1,5 +1,5 @@
 {
-  // Cloudflare Workers deploy config for Parfumoza (parfumoza.com).
+  // Cloudflare Workers deploy config for Counterscent (counterscent.com).
   //
   // WHY THIS SITS AT THE REPO ROOT AND NOT IN THE PROJECT
   // ----------------------------------------------------
@@ -23,7 +23,21 @@
   // If a second site is ever deployed from this repo, do NOT add a competing
   // root config - give that project its own Cloudflare project with a root
   // directory set, and revisit this one.
-  "name": "parfumoza",
+  // Renamed 2026-08-27 alongside the brand rename, and this name must keep
+  // matching the Worker's name in the Cloudflare dashboard.
+  //
+  // The founder renamed the existing Worker in the dashboard, so this deploys
+  // to that same Worker and its settings and custom domains carry over. No
+  // orphaned Worker, nothing to clean up.
+  //
+  // Worth knowing for next time: had the dashboard rename NOT been done first,
+  // changing this value would have created a SECOND Worker rather than
+  // renaming the first, leaving the old one still holding the old custom
+  // domain. The name is the Worker's identity. If this file and the dashboard
+  // ever disagree, a deploy silently creates a new Worker and the live site
+  // keeps serving from the old one - which looks exactly like "the deploy did
+  // nothing".
+  "name": "counterscent",
   "compatibility_date": "2026-08-27",
 
   "assets": {

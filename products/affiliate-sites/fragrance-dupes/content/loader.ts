@@ -58,12 +58,46 @@ function readDir(contentType: ContentType): ContentPiece[] {
     });
 }
 
+/**
+ * Every content piece renders a card linking to `/<contentType>/<slug>`
+ * (components/content/content-card.tsx), so a piece whose content type has no
+ * route is a published 404 - the single thing an affiliate-network reviewer is
+ * most reliably going to click.
+ *
+ * That is not hypothetical here. `app/comparison/[slug]` and `app/review/[slug]`
+ * were DELETED on 2026-08-27 because a static export rejects a dynamic route
+ * that generates zero pages, and both directories were empty. The routes are
+ * recoverable from git history and should come back the moment either type has
+ * a real piece - but nothing forced the two facts to stay in step, so writing
+ * one comparison would have quietly shipped a broken link.
+ *
+ * Checking the filesystem rather than a hand-maintained list is deliberate: a
+ * list is one more thing to update in the same change, which is exactly the
+ * step that was missed the first time.
+ */
+function assertRouteExists(piece: ContentPiece): void {
+  const routeDir = path.join(process.cwd(), "app", piece.frontmatter.contentType, "[slug]");
+  if (fs.existsSync(routeDir)) return;
+
+  throw new Error(
+    `[affiliate-site-kit] ${piece.filePath} is a "${piece.frontmatter.contentType}" piece, ` +
+      `but app/${piece.frontmatter.contentType}/[slug] does not exist, so it would render a card ` +
+      `linking to a 404.\n` +
+      `  Restore the route before publishing this piece - it is in git history:\n` +
+      `    git log --oneline --diff-filter=D -- "app/${piece.frontmatter.contentType}/[slug]/page.tsx"\n` +
+      `  Note that comparison and review pieces also require a real affiliateLinkId ` +
+      `(content/schema.ts), which needs an enrolled programme.`
+  );
+}
+
 let cache: ContentPiece[] | null = null;
 
 /** All content pieces across all three content types, unsorted-guaranteed only by read order. */
 export function getAllContent(): ContentPiece[] {
   if (cache) return cache;
-  cache = CONTENT_TYPES.flatMap(readDir).sort(
+  const pieces = CONTENT_TYPES.flatMap(readDir);
+  pieces.forEach(assertRouteExists);
+  cache = pieces.sort(
     (a, b) =>
       new Date(b.frontmatter.publishedAt).getTime() -
       new Date(a.frontmatter.publishedAt).getTime()

@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { CounterscentLogo } from "@/components/site/logo";
+
 const COLUMNS = [
   {
     heading: "Tool",
@@ -32,10 +34,14 @@ export function SiteFooter() {
     <footer className="border-t border-border">
       <div className="container grid gap-10 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="flex flex-col gap-3">
-          <span className="font-display text-xl font-semibold tracking-[0.02em]">PARFUMOZA</span>
+          <CounterscentLogo />
+          {/* "We buy what we review" stood here and was false - see the note in
+              components/home/chapter-gap.tsx. It sat in the footer of every
+              page, which is the worst place for a claim we cannot support. */}
           <p className="max-w-[38ch] text-sm text-muted-foreground">
-            Independent fragrance-dupe comparisons. We buy what we review and
-            we say plainly where a match is strong and where it isn&apos;t.
+            Independent fragrance-dupe comparisons. One published formula,
+            applied the same way to every bottle, and we say plainly where a
+            match is strong and where it isn&apos;t.
           </p>
         </div>
 
@@ -62,7 +68,7 @@ export function SiteFooter() {
 
       <div className="border-t border-border">
         <div className="container flex flex-col gap-2 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>Parfumoza is a Sirketim product. Independent editorial, funded by affiliate commissions.</p>
+          <p>Counterscent is a Sirketim product. Independent editorial, funded by affiliate commissions.</p>
         </div>
       </div>
     </footer>

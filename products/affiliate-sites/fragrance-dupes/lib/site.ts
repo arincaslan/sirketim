@@ -15,7 +15,7 @@
  * NEXT_PUBLIC_SITE_URL still overrides it, for preview deployments or if the
  * domain ever changes.
  */
-const DEFAULT_SITE_URL = "https://parfumoza.com";
+const DEFAULT_SITE_URL = "https://counterscent.com";
 
 export function siteUrl(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -31,7 +31,7 @@ export function siteUrl(): string {
  *  Affiliate managers reply here, and a contact page that goes nowhere is a
  *  common silent reason for a merchant application to be declined - so this
  *  is a constant, not an env var somebody has to remember to set. */
-export const CONTACT_EMAIL = "contact@parfumoza.com";
+export const CONTACT_EMAIL = "contact@counterscent.com";
 
 /**
  * GA4 measurement ID (property created 2026-08-27).
@@ -50,6 +50,21 @@ export const CONTACT_EMAIL = "contact@parfumoza.com";
  * NEXT_PUBLIC_GA_MEASUREMENT_ID still overrides it - set it to a different
  * property for a staging build, or to an empty string to disable analytics
  * entirely.
+ */
+/**
+ * CARRIED OVER FROM THE OLD DOMAIN — needs one manual step in GA4.
+ *
+ * This property and data stream were created on 2026-08-27 against the
+ * previous domain, before the rename. The ID keeps collecting after a domain
+ * change (GA4 keys on the measurement ID, not the hostname), so nothing breaks
+ * loudly — which is precisely the risk: the stream's configured URL still
+ * names the dead domain, and Enhanced Measurement's cross-domain and
+ * referral-exclusion settings are derived from it.
+ *
+ * Update the data stream's URL in GA4 to the new domain, or create a fresh
+ * property. Search Console is different and does NOT carry over: a Domain
+ * property is per-domain, so the new domain needs its own verification and its
+ * own sitemap submission.
  */
 const DEFAULT_GA_MEASUREMENT_ID = "G-4Q54ZJKVW1";
 

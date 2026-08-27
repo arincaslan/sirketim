@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "What Parfumoza collects, what it does not, and who processes data on our behalf.",
+    "What Counterscent collects, what it does not, and who processes data on our behalf.",
 };
 
 const UPDATED = "27 August 2026";
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
 
       <div className="prose prose-lg mt-8 max-w-none">
         <p>
-          Parfumoza is operated by Sirketim, a company registered in Türkiye.
+          Counterscent is operated by Sirketim, a company registered in Türkiye.
           This page explains what happens to information when you visit this
           site. It describes what the site does today, not what it might do
           later; if that changes, this page changes in the same update.

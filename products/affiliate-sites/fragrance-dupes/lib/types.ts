@@ -31,7 +31,7 @@ export interface ReferenceFragrance {
   bottleMl: number;
   concentration: string;
   /** Buy-the-original link. Added for the marketplace pivot (MARKETPLACE-PLAN.md
-   *  §1): PARFUMOZA earns on originals too, not just dupes, so every reference
+   *  §1): COUNTERSCENT earns on originals too, not just dupes, so every reference
    *  needs its own outbound link. Optional - a reference with no enrolled
    *  program simply renders no buy action. */
   affiliateLinkId?: string;
@@ -54,12 +54,12 @@ export interface ReferenceFragrance {
 }
 
 /**
- * A seller listing dupes on PARFUMOZA. Producers are first-class as of the
+ * A seller listing dupes on COUNTERSCENT. Producers are first-class as of the
  * marketplace pivot (MARKETPLACE-PLAN.md §3) - previously a dupe's `brand`
  * string was the only trace of who made it, which cannot carry subscription
  * state, an approval queue, or a producer-branded browse page.
  *
- * `isHouse` marks PARFUMOZA's own fragrance line: no subscription, no approval
+ * `isHouse` marks COUNTERSCENT's own fragrance line: no subscription, no approval
  * workflow, and it sells on margin rather than affiliate commission.
  */
 export interface Producer {

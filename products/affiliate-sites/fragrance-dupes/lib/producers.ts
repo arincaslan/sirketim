@@ -13,13 +13,13 @@ import type { Producer } from "@/lib/types";
  * MARKETPLACE-PLAN.md §4). Treat every entry as illustrative until a real
  * producer actually enrolls.
  *
- * PARFUMOZA's own line (`isHouse`) is the exception: it is ours, so it carries
+ * COUNTERSCENT's own line (`isHouse`) is the exception: it is ours, so it carries
  * no subscription and skips the approval queue entirely.
  */
 export const PRODUCERS: Producer[] = [
   {
-    slug: "parfumoza-atelier",
-    name: "Parfumoza Atelier",
+    slug: "counterscent-atelier",
+    name: "Counterscent Atelier",
     blurb:
       "Our own line. Made in small batches and priced from what it actually costs us to make, with the margin stated plainly rather than buried.",
     isHouse: true,
@@ -69,7 +69,21 @@ export function getProducerName(slug: string): string {
   return getProducer(slug)?.name ?? slug;
 }
 
-/** The house producer (PARFUMOZA's own line), if one is configured. */
+/** The house producer (COUNTERSCENT's own line), if one is configured. */
 export function getHouseProducer(): Producer | undefined {
   return PRODUCERS.find((p) => p.isHouse);
+}
+
+/**
+ * Whether a producer slug is COUNTERSCENT's own line.
+ *
+ * Lives here, next to the data, because two very different modules need it and
+ * they must never disagree: lib/catalog.ts uses it for the house DISCLOSURE
+ * shown to buyers, and lib/verification.ts uses it as a SCORING CONSTRAINT
+ * (a house listing can never publish above the unverified cap). If those two
+ * ever answered differently, the site would disclose one thing and score
+ * another.
+ */
+export function isHouseProducer(producerSlug: string): boolean {
+  return getProducer(producerSlug)?.isHouse === true;
 }

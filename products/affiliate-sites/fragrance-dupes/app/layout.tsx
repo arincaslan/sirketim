@@ -52,14 +52,14 @@ const OG_IMAGE = {
   url: "/og-cover.png",
   width: 1200,
   height: 630,
-  alt: "Parfumoza - independent fragrance comparisons",
+  alt: "Counterscent - independent fragrance comparisons",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
-    default: "Parfumoza - Independent Fragrance Dupe Comparisons",
-    template: "%s | Parfumoza",
+    default: "Counterscent - Independent Fragrance Dupe Comparisons",
+    template: "%s | Counterscent",
   },
   description: SITE_DESCRIPTION,
   // Every page inherits a canonical unless it sets its own. Without this the
@@ -71,15 +71,15 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    siteName: "Parfumoza",
+    siteName: "Counterscent",
     url: siteUrl(),
-    title: "Parfumoza - Independent Fragrance Dupe Comparisons",
+    title: "Counterscent - Independent Fragrance Dupe Comparisons",
     description: SITE_DESCRIPTION,
     images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Parfumoza - Independent Fragrance Dupe Comparisons",
+    title: "Counterscent - Independent Fragrance Dupe Comparisons",
     description: SITE_DESCRIPTION,
     images: [OG_IMAGE],
   },
@@ -90,14 +90,14 @@ export const metadata: Metadata = {
  * only on content routes, so nothing told a search engine what this site or
  * its publisher actually is.
  *
- * `publisher` names Sirketim rather than Parfumoza: the FTC disclosure and the
+ * `publisher` names Sirketim rather than Counterscent: the FTC disclosure and the
  * independence claim both rest on who operates the site, and burying that is
  * the opposite of what an affiliate site should do.
  */
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Parfumoza",
+  name: "Counterscent",
   url: siteUrl(),
   description: SITE_DESCRIPTION,
   parentOrganization: { "@type": "Organization", name: "Sirketim" },
@@ -106,7 +106,7 @@ const organizationSchema = {
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "Parfumoza",
+  name: "Counterscent",
   url: siteUrl(),
   description: SITE_DESCRIPTION,
   publisher: { "@type": "Organization", name: "Sirketim" },
@@ -121,7 +121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('parfumoza-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('counterscent-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
           }}
         />
       </head>

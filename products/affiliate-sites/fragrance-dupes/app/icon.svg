@@ -1,5 +1,19 @@
 <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    The Counterscent mark: one facet, split down the middle.
+
+    The left half is solid, the right is outline only - identical in shape and
+    size, different in substance. That is the site's whole thesis in one form:
+    an original and its counterpart, held to the same measure, honestly
+    distinguished rather than passed off as the same thing.
+
+    The 2px gap between them is the comparison itself.
+
+    Kept as the previous mark's rounded-square field and facet silhouette so it
+    still reads at 16px in a browser tab, where the split resolves into a single
+    coherent diamond rather than noise.
+  -->
   <rect width="32" height="32" rx="4" fill="#1B5E44" />
-  <path d="M16 7 L23 16 L16 25 L9 16 Z" fill="none" stroke="#F1F1EB" stroke-width="1.6" />
-  <circle cx="16" cy="16" r="2.4" fill="#F1F1EB" />
+  <path d="M15 6.5 L5.5 16 L15 25.5 Z" fill="#F1F1EB" />
+  <path d="M17 6.5 L26.5 16 L17 25.5 Z" fill="none" stroke="#F1F1EB" stroke-width="1.5" stroke-linejoin="round" />
 </svg>

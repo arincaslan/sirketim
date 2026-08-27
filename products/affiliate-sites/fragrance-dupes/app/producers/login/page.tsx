@@ -4,7 +4,7 @@ import { LoginForm } from "@/components/producers/login-form";
 
 export const metadata: Metadata = {
   title: "Producer sign in",
-  description: "Sign in to manage your Parfumoza listings.",
+  description: "Sign in to manage your Counterscent listings.",
 };
 
 export default function ProducerLoginPage() {
@@ -14,7 +14,7 @@ export default function ProducerLoginPage() {
         <div className="flex flex-col gap-3">
           <h1 className="font-display text-fluid-h2">Producer sign in</h1>
           <p className="text-muted-foreground">
-            For fragrance houses listing on Parfumoza. If you are here to compare fragrances, you
+            For fragrance houses listing on Counterscent. If you are here to compare fragrances, you
             want the{" "}
             <Link href="/dupe-finder" className="underline underline-offset-2 hover:text-primary">
               Dupe Finder

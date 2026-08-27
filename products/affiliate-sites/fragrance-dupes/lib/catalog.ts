@@ -1,5 +1,5 @@
 import { DUPES, REFERENCES } from "@/lib/dupes-data";
-import { getProducer } from "@/lib/producers";
+import { isHouseProducer } from "@/lib/producers";
 import { computeSimilarity } from "@/lib/similarity";
 import { getPublishedScore, isVerbatimCopy } from "@/lib/verification";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
@@ -80,19 +80,38 @@ export function searchReferences(
  * inside a comparison it calls independent cannot also quietly weight itself
  * first. Ties break toward the cheaper price per ml, not toward us.
  *
+ * House listings are additionally barred from publishing above the unverified
+ * score cap, however their status field reads - we grant "verified", so we
+ * cannot grant it to ourselves. See getPublishedScore.
+ *
  * A listing whose declared notes and facets are a verbatim copy of the
  * reference's (lib/verification.ts's isVerbatimCopy) never appears here at
  * all - that is the specific abuse pattern the anti-copy-cheat standard
- * exists to catch, and it is a publish gate, not a rank penalty. Ranking
- * itself still sorts by the raw computed score rather than the capped
- * published one (getPublishedSimilarity), so relative order stays meaningful
- * even where two listings' displayed percentages tie at the unverified cap.
+ * exists to catch, and it is a publish gate, not a rank penalty.
+ *
+ * Ranking sorts on the PUBLISHED score first and the raw score second. The
+ * published key stops the list ever showing a higher-ranked listing at a lower
+ * percentage than the one beneath it; the raw key keeps order meaningful among
+ * the listings that display the same capped number.
  */
 export function getRankedDupesFor(reference: ReferenceFragrance): DupeCandidate[] {
   return DUPES.filter((d) => d.referenceSlug === reference.slug && !isVerbatimCopy(reference, d))
-    .map((dupe) => ({ dupe, score: computeSimilarity(reference, dupe) }))
+    .map((dupe) => ({
+      dupe,
+      published: getPublishedScore(computeSimilarity(reference, dupe), dupe),
+      raw: computeSimilarity(reference, dupe),
+    }))
     .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
+      // Published score first, so the list can never show #1 at a LOWER
+      // percentage than #2. That inversion is reachable: two listings can have
+      // the same raw score while only one of them is allowed past the cap, and
+      // it read worst in exactly the case that matters - our own bottle at #1
+      // showing 90% above a third party's 92%, which looks like the ranking is
+      // hiding something. Found by probe listings during the board-review fix.
+      if (b.published !== a.published) return b.published - a.published;
+      // Raw score still breaks ties among listings that display the same
+      // number, so ordering stays meaningful where several sit at the cap.
+      if (b.raw !== a.raw) return b.raw - a.raw;
       const aPerMl = a.dupe.priceUsd / a.dupe.bottleMl;
       const bPerMl = b.dupe.priceUsd / b.dupe.bottleMl;
       return aPerMl - bPerMl;
@@ -108,7 +127,7 @@ export function getRankedDupesFor(reference: ReferenceFragrance): DupeCandidate[
  * safe to publish.
  */
 export function getPublishedSimilarity(reference: ReferenceFragrance, dupe: DupeCandidate): number {
-  return getPublishedScore(computeSimilarity(reference, dupe), dupe.verificationStatus);
+  return getPublishedScore(computeSimilarity(reference, dupe), dupe);
 }
 
 /** Filter a ranked dupe list down to one producer. Empty slug means "all". */
@@ -123,10 +142,14 @@ export function getProducerSlugsFor(reference: ReferenceFragrance): string[] {
   return [...new Set(DUPES.filter((d) => d.referenceSlug === reference.slug).map((d) => d.producerSlug))];
 }
 
-/** True when this listing is PARFUMOZA's own product rather than a third
- *  party's. Drives the house-product disclosure shown wherever it appears. */
+/** True when this listing is COUNTERSCENT's own product rather than a third
+ *  party's. Drives the house-product disclosure shown wherever it appears.
+ *
+ *  Delegates to lib/producers.ts so this and the scoring constraint in
+ *  lib/verification.ts can never disagree about which listings are ours - see
+ *  isHouseProducer's doc comment. */
 export function isHouseProduct(dupe: DupeCandidate): boolean {
-  return getProducer(dupe.producerSlug)?.isHouse === true;
+  return isHouseProducer(dupe.producerSlug);
 }
 
 /** Every listing by one producer, for a producer-branded browse page. */

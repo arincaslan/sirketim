@@ -1,7 +1,7 @@
 import { Reveal } from "@/components/site/reveal";
 
 /**
- * Chapter 2: why Parfumoza exists. Replaces the old mission.tsx (same core
+ * Chapter 2: why Counterscent exists. Replaces the old mission.tsx (same core
  * copy, since it already earned its place - see DESIGN.md's redesign audit
  * in the Implementation addendum v2), restaged from a centered text block
  * into an asymmetric single-column flow with an indented contrast aside, so
@@ -24,10 +24,18 @@ export function ChapterGap() {
             Most dupe roundups are either a decade-old table or a brand blog
             picking its own winner.
           </p>
+          {/* Do not reintroduce "we buy the bottles" here. It was removed once
+              in the Phase 0 honesty pass and had survived in this file and the
+              footer, which is how a false claim outlives its own correction:
+              we own no bottles, and lib/types.ts states plainly that the facet
+              ratings are an editorial estimate rather than measurement. What is
+              actually true is the sentence below - one formula, published, applied
+              identically to every listing including our own. */}
           <p className="text-lg text-muted-foreground">
-            We buy the bottles, rate them on the same six facets every time,
-            and publish the formula behind every match score. If a dupe
-            falls short, we say so, next to the ones that don&apos;t.
+            One formula, published in full, applied the same way to every
+            bottle &mdash; including our own, which is capped exactly like
+            anyone else&apos;s. If a dupe falls short, we say so, next to the
+            ones that don&apos;t.
           </p>
 
           <div className="mt-4 border-l-2 border-border pl-6">

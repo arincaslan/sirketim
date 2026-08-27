@@ -1,24 +1,24 @@
-# Amazon Associates — application preparation for PARFUMOZA
+# Amazon Associates — application preparation for COUNTERSCENT
 
 **Status: preparation report only.** Nothing was applied to, no account was created, no
 personal or business information was submitted anywhere. Communication has no sending or
 account-creation connector, and program enrollment is a founder-level decision regardless
 (same posture as `departments/sales/affiliate-program-signup-checklist.md`).
 
-Written 2026-08-26 · Site: `products/affiliate-sites/fragrance-dupes/` (PARFUMOZA)
+Written 2026-08-26 · Site: `products/affiliate-sites/fragrance-dupes/` (COUNTERSCENT)
 Companion docs: `MARKETPLACE-PLAN.md`, `PRODUCER-PROGRAM.md` §6/§8, Sales' signup checklist.
 
 ---
 
 ## 1. Headline recommendation (read this if you read nothing else)
 
-**Do not make Amazon Associates the first affiliate program PARFUMOZA applies to. Apply to the
+**Do not make Amazon Associates the first affiliate program COUNTERSCENT applies to. Apply to the
 direct dupe-house programs first, and treat Amazon as a later, narrow add-on for the
 *original* fragrances only.**
 
 Three reasons, in order of weight:
 
-1. **The products PARFUMOZA actually recommends are not sold on Amazon.** Dossier, ALT.
+1. **The products COUNTERSCENT actually recommends are not sold on Amazon.** Dossier, ALT.
    Fragrances, Divain, Regency, Parfum Inspirations are direct-to-consumer houses. The dupe
    half of every comparison on the site — the half a visitor is there to buy — cannot be
    monetised through Amazon at all. Amazon only reaches the *original* (Baccarat Rouge,
@@ -60,14 +60,14 @@ international transfer. Verify current status of both before applying.
 **Two compliance rules that hit this site's architecture directly:**
 
 - **Displayed prices must be refreshed at least every 24 hours and carry a "last updated"
-  timestamp**, sourced via the Product Advertising API. PARFUMOZA currently renders static
+  timestamp**, sourced via the Product Advertising API. COUNTERSCENT currently renders static
   fixture prices and computes price-per-ml from them. For any Amazon-sourced product that
   is non-compliant as built. Worse, **PA-API access is itself gated behind the same 3
   qualifying sales** — a genuine chicken-and-egg. Practical answer: for Amazon links,
   **show no price at all**, just "Check current price".
 - **Redirecting/cloaking links.** The agreement bars obscuring the source site "including
   by use of Redirecting Links" such that Amazon cannot determine which site the click came
-  from. PARFUMOZA routes every outbound click through `/go/[slug]`. This is *probably* fine
+  from. COUNTERSCENT routes every outbound click through `/go/[slug]`. This is *probably* fine
   if the redirect preserves attribution and the destination is obviously Amazon — but it
   is exactly the pattern the clause names, and it is load-bearing for `PRODUCER-PROGRAM.md`
   §6. **Get this checked against the live agreement text before the first Amazon link
@@ -107,12 +107,12 @@ international transfer. Verify current status of both before applying.
 standard rate on the card — so "the fragrance category rate is low" is not quite right. The
 problem is that (a) most fragrance listings are not in the Luxury Beauty catalog and pay
 3%, (b) the 24-hour cookie is the shortest of any programme on this list by an order of
-magnitude, and (c) Amazon simply does not carry the products PARFUMOZA's whole comparison
+magnitude, and (c) Amazon simply does not carry the products COUNTERSCENT's whole comparison
 mechanic points people toward.
 
 **Where Amazon genuinely earns its place:** as the buy link for the **original** side of a
 comparison, plus atomisers, discovery sets and adjacent accessories. `MARKETPLACE-PLAN.md`
-already establishes that originals need their own link and that PARFUMOZA should earn
+already establishes that originals need their own link and that COUNTERSCENT should earn
 whichever side the buyer picks. Amazon is the most practical way to fill that specific
 slot — it is just not the revenue engine.
 
@@ -169,11 +169,11 @@ slot — it is just not the revenue engine.
 
 Applied at `affiliate-program.amazon.com`, signed in with an Amazon customer account.
 
-| The form asks | How to answer for PARFUMOZA |
+| The form asks | How to answer for COUNTERSCENT |
 |---|---|
 | Account holder name, address, phone | **Founder only.** Must match the tax details. |
 | Payee — "who is paid?" | **Founder decision:** personally, or as a registered business entity. This picks W-8BEN vs. W-8BEN-E and cannot be casually changed later. Same open item Sales already flagged. |
-| Website / app list | The live PARFUMOZA domain. Do not list localhost, a preview URL, or anything not deployed. |
+| Website / app list | The live COUNTERSCENT domain. Do not list localhost, a preview URL, or anything not deployed. |
 | Preferred Associates Store ID | Something like `drydown-20`. This becomes the default tracking ID — see §7 on why you will want more than one. |
 | What are your sites about? | Independent fragrance comparison — designer/niche originals vs. lower-cost alternatives, with a disclosed similarity methodology. |
 | Which topics best describe them? | Beauty → Fragrance/Perfume. |

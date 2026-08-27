@@ -1,4 +1,4 @@
-# PARFUMOZA — Design Artboards (v1, greenfield)
+# COUNTERSCENT — Design Artboards (v1, greenfield)
 
 Product: Sirketim-owned affiliate/comparison content site for niche and
 designer fragrance "dupes." Lives at `products/affiliate-sites/fragrance-dupes/`.
@@ -38,9 +38,9 @@ Section 13, so the comparison surfaces borrow chart-type guidance from
 This is **greenfield**, not a redesign (`design-taste-frontend` Section 11.A) —
 no audit section needed.
 
-## 1. Brand identity: PARFUMOZA
+## 1. Brand identity: COUNTERSCENT
 
-"Parfumoza" is the real perfumery term for a fragrance's final, true stage —
+"Counterscent" is the real perfumery term for a fragrance's final, true stage —
 what's left once the top and heart notes burn off and only the honest, lasting
 character remains. That's a direct, motivated match for the product: this site
 exists to get past marketing copy and brand-blog spin to what a fragrance
@@ -52,7 +52,7 @@ audience skews toward people who already use terms like "sillage" and "note
 pyramid" daily (confirmed by the actual competitor content surveyed in
 `departments/sales/affiliate-niche-research.md`).
 
-Wordmark: **PARFUMOZA**, set in the display serif, all-caps tracked out.
+Wordmark: **COUNTERSCENT**, set in the display serif, all-caps tracked out.
 Lockup subline (nav/footer only, small, not a page-repeating eyebrow):
 "Independent Fragrance Comparisons" — functional, states what the site is and
 that it isn't a brand blog, no cute wordplay.
@@ -66,7 +66,7 @@ This is not a fourth entry in that product line (it's a different product:
 content/affiliate, not e-commerce) but the same design department built all
 four, so the audit still matters — nothing here should read as a reskin.
 
-| Axis | Ambre (store) | Nocturne (store-2) | Meridian (store-3) | **Parfumoza (this site)** |
+| Axis | Ambre (store) | Nocturne (store-2) | Meridian (store-3) | **Counterscent (this site)** |
 |---|---|---|---|---|
 | Mode | Light, warm | Dark, cool | Light, cool base / warm surfaces | Light, cool paper (dark mode supported, not primary) |
 | Accent hue | ~38-45 (gold) | ~355 (ember/crimson) | ~213 (cobalt blue) | ~155-165 (deep botanical green) - the one hue family untouched by any sibling |
@@ -95,7 +95,7 @@ LIGHT MODE
 --muted:                                     #E7E6DD
 --muted-foreground:                          #5B5D52
 --border:                                    #D8D7CB
---primary (Parfumoza Green):                   #1B5E44
+--primary (Counterscent Green):                   #1B5E44
 --primary-foreground:                        #FFFFFF
 --ring:                                      #1B5E44
 --destructive:                               #B3261E
@@ -108,7 +108,7 @@ DARK MODE
 --foreground:                                #F1EFE6
 --card:                                      #1F2318
 --muted-foreground:                          #B7B7A8
---primary (Parfumoza Green, dark):             #3EAE80
+--primary (Counterscent Green, dark):             #3EAE80
 --primary-foreground (dark):                 #0B0E09
 
 Computed pairs (light): ink/paper 16.35:1, muted-fg/paper 5.91:1,
@@ -121,7 +121,7 @@ Shape rule stated once, per `design-taste-frontend`'s Shape Consistency Lock:
 frames/cards/tables/inputs are near-sharp (2px), buttons are modestly rounded
 (8px), tags/chips/badges are full pill. No other radius values used anywhere.
 
-Color Consistency Lock: Parfumoza Green is the only accent on the page, in both
+Color Consistency Lock: Counterscent Green is the only accent on the page, in both
 modes, everywhere (CTAs, links, focus rings, active nav state, the "Dupe"
 chart series, the match-score ring). No second accent hue introduced anywhere
 in UI chrome.
@@ -419,7 +419,7 @@ was actually achieved in practice:
   Tailwind marketing pages, which is exactly what reads as "too normal"
   regardless of how sound the underlying tokens/typography were.
 - **What was working and got preserved:** the token set, the Cormorant
-  Garamond/Public Sans pairing, the shape rule, Parfumoza Green as the single
+  Garamond/Public Sans pairing, the shape rule, Counterscent Green as the single
   accent, the "Find your dupe" CTA-intent discipline (the v1 build's own
   README documents fixing a duplicate-CTA-intent issue - this pass reuses
   that exact label at every touchpoint rather than reintroducing variants),
@@ -464,7 +464,7 @@ founder specified:
    (no fake-precise numbers per taste skill §4.9 - "the conversation has
    moved to the biggest short-video platforms" instead of a made-up
    percentage). Asymmetric text-left/image-right split.
-2. **Chapter 2: the gap** (`chapter-gap.tsx`) - why Parfumoza exists. Reuses
+2. **Chapter 2: the gap** (`chapter-gap.tsx`) - why Counterscent exists. Reuses
    the v1 Mission copy verbatim (it was already good) but restages it from
    a centered block into an asymmetric single-column flow with an indented
    contrast aside ("A cluttered database... " vs "One matcher, one public
@@ -506,9 +506,9 @@ across 8 sections" floor, and no layout family repeats back-to-back.
   requestAnimationFrame-driven 0-100 counter with a quadratic ease-out
   curve so it starts fast and settles into 100, a clip-path curtain wipe
   exit on `cubic-bezier(0.76, 0, 0.24, 1)`, a brief 100ms hold at 100
-  before the wipe starts), entirely Parfumoza's own visual identity: the
-  PARFUMOZA wordmark in Cormorant Garamond rather than a small tracked
-  label, Parfumoza Green rather than gold for the progress rule, no italic
+  before the wipe starts), entirely Counterscent's own visual identity: the
+  COUNTERSCENT wordmark in Cormorant Garamond rather than a small tracked
+  label, Counterscent Green rather than gold for the progress rule, no italic
   (italic stays reserved for the hero's own emphasis word). Timing:
   800ms count + 100ms hold + 450ms exit = 1.35s total, identical to the
   proven fragrance-store numbers. The hero's entrance animation reads
@@ -524,7 +524,7 @@ across 8 sections" floor, and no layout family repeats back-to-back.
   looser-spring ring at `stiffness: 220, damping: 26`, both driven off the
   same raw `useMotionValue` x/y via Motion's imperative values, never
   `useState`, so it never re-renders the React tree on pointer move),
-  restyled around Parfumoza Green as the only accent (the sibling template's
+  restyled around Counterscent Green as the only accent (the sibling template's
   cursor uses a second "gold" tint; this site's Color Consistency Lock
   means there is no second UI accent, so the hover-ring tint is
   `primary/10` rather than a second hue). Three hover states: link/button

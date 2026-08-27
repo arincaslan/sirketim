@@ -7,7 +7,7 @@ export function ThemeToggle() {
   const [isDark, setIsDark] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("parfumoza-theme");
+    const stored = window.localStorage.getItem("counterscent-theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const dark = stored ? stored === "dark" : prefersDark;
     setIsDark(dark);
@@ -18,7 +18,7 @@ export function ThemeToggle() {
     const next = !isDark;
     setIsDark(next);
     document.documentElement.classList.toggle("dark", next);
-    window.localStorage.setItem("parfumoza-theme", next ? "dark" : "light");
+    window.localStorage.setItem("counterscent-theme", next ? "dark" : "light");
   }
 
   return (

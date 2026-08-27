@@ -5,7 +5,7 @@ import { PricingTable } from "@/components/producers/pricing-table";
 export const metadata: Metadata = {
   title: "Producer plans",
   description:
-    "List your fragrance alternatives on Parfumoza. Monthly or yearly, with a free tier to test the channel first. No plan buys rank.",
+    "List your fragrance alternatives on Counterscent. Monthly or yearly, with a free tier to test the channel first. No plan buys rank.",
 };
 
 export default function PricingPage() {

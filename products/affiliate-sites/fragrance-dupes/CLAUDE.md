@@ -2,15 +2,49 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Scope: the PARFUMOZA affiliate/marketplace site. Read the chain — root `CLAUDE.md` → `departments/web-development/CLAUDE.md` → this file. `README.md` here covers the stack, how to run it, and the honesty caveats; `DESIGN.md` covers visual direction. **This file covers the invariants that span several files and are easy to break without noticing.**
+Scope: the COUNTERSCENT affiliate/marketplace site. Read the chain — root `CLAUDE.md` → `departments/web-development/CLAUDE.md` → this file. `README.md` here covers the stack, how to run it, and the honesty caveats; `DESIGN.md` covers visual direction. **This file covers the invariants that span several files and are easy to break without noticing.**
 
-## The brand is Parfumoza — and "drydown" is still a real word here
+## The brand is Counterscent — renamed twice, and the second time cost money
 
-Renamed from **Drydown** to **Parfumoza** on 2026-08-27, when `parfumoza.com` was chosen as the domain (`drydown.com` was taken).
+**Drydown → P&#97;rfumoza → Counterscent**, all on 2026-08-27.
 
-**Do not run a blanket find-and-replace on "drydown".** It is also the perfumery term for the base-note phase — the part of a fragrance still on skin hours later — and it appears legitimately in editorial copy and in code comments explaining why base notes are weighted highest (`lib/similarity.ts`, `app/about/page.tsx`, the guide, `submission-form.tsx`'s placeholder, `DESIGN.md`). Those uses are correct and must survive.
+> The dead brand name is written as an HTML entity in this section (`P&#97;rfumoza`) so that a future bulk find-and-replace **cannot** silently rewrite this history the way one already did. It renders normally. Leave it escaped.
 
-The rule that made the rename safe: **capitalised forms (`Drydown`, `DRYDOWN`) were the brand; bare lowercase `drydown` is the perfumery term.** Slug-style identifiers (`drydown-theme`, `drydown-atelier`) were brand too and were renamed explicitly.
+**Read this before proposing any name, for this project or any other.** The second rename was not a preference change. That domain had to be abandoned because of a collision nobody checked for:
+
+| Brand | What it is | Since |
+|---|---|---|
+| **Parfumo**.com | Fragrance database — **227,701 perfumes, 14,421 brands**, 283K reviews | 2008 |
+| ~~P&#97;rfumoza~~ | us, for about six hours | — |
+| **Parfumado**.com | Perfume subscription, €3.2M raised, ships NL/BE/UK/SE/DK | 2017 |
+
+The dead name contained "Parfumo" whole and was one letter from "Parfumado", in the identical vertical. Three consequences, of decreasing certainty: **SEO damage was certain** (our brand query would be permanently intercepted by a far larger same-niche brand); **affiliate rejection was likely** (a merchant reviewer sees a dupe site named one letter off the sector's biggest database and reads brand-piggybacking); **trademark exposure was plausible but never verified** — no registration was found, which is an open question rather than a clean bill of health.
+
+**The vetting that was skipped, and must not be again.** The name was picked only because `drydown.com` was taken. Nothing was checked against existing fragrance brands. When that check was finally run on replacement candidates it **eliminated five of eight**, including two that were about to be recommended:
+
+- `drydowns.com` — **The Drydown** is an operating San Diego niche fragrance boutique. The founder's *original* brand instinct would have hit the same trap.
+- `echoscent.com` — `echoscentco.com` is a live fragrance brand pitched as *"smell expensive without overspending"*, i.e. our exact positioning.
+- `scentkin.com` — **Maison Kin**, operating fragrance house, same "quality without the price tag" angle.
+- `nearscent.com` — something already trades under the name.
+- `sillageo.com` — ends in "-o" like Parfumo *and* Parfumado; repeats the pattern instead of escaping it.
+
+So: **a free domain is not a clear name.** Search the candidate against operating fragrance businesses *and* trademark registers before buying, not after. Also note `scent`, `note`, `parfum` and `drydown` are all crowded prefixes in this sector — the collision risk is structural, not bad luck.
+
+**Timing is why this was survivable.** It was caught with zero backlinks, nothing indexed, no affiliate application filed and no brand equity — the cheapest moment it could possibly have happened. Two weeks later it would have meant a live Awin application under a name we had to abandon.
+
+### "drydown" is still a real word here
+
+The first rename's trap survives both renames. **Do not run a blanket find-and-replace on "drydown".** It is the perfumery term for the base-note phase and appears legitimately in editorial copy and in code comments explaining why base notes are weighted highest (`lib/similarity.ts`, `app/about/page.tsx`, the guides, `submission-form.tsx`'s placeholder, `DESIGN.md`). Capitalised forms (`Drydown`, `DRYDOWN`) were the brand; bare lowercase `drydown` is the term.
+
+Slug-style identifiers (`drydown-theme`, `drydown-atelier`) were brand too and were renamed explicitly.
+
+### And the second rename had a trap of its own — which fired
+
+The dead brand *was* a pure coinage with no generic meaning, so a case-aware replace across `.ts`/`.tsx`/`.mdx`/`.css`/`.json` was genuinely safe, and it worked: 28 files, 55 replacements, build clean.
+
+**The markdown was not safe, and running the same blanket replace over `.md` corrupted this very section.** Several docs — this one above all — quote the dead name deliberately, as the record of *why* the brand changed. Rewriting those turned the history into nonsense: "Drydown → Counterscent → Counterscent", and a table row claiming the new name "contains Parfumo whole". The script's own docstring said docs must be done by hand; the script was then pointed at them anyway.
+
+**The rule, stated so the next rename does not repeat it:** code is mechanical, prose is not. A find-and-replace over documentation destroys exactly the sentences that explain the change, because those are the only ones that *must* keep saying the old name. Rename code with a script; rename prose by reading it.
 
 ## Commands
 
@@ -48,7 +82,8 @@ Three modules, and the split between them is deliberate:
 **Rules:**
 
 - **Components must never call `computeSimilarity()` for anything a user sees.** Call `getPublishedSimilarity()`. The raw number is internal.
-- **Ranking uses raw; display uses capped.** `getRankedDupesFor()` sorts on the raw score so ordering stays meaningful when several listings tie at the cap. Swapping either side silently flattens the ranking.
+- **Ranking sorts published-score first, raw second, price-per-ml third.** The published key stops the list ever showing #1 at a lower percentage than #2 — reachable whenever two listings share a raw score but only one may pass the cap. The raw key keeps ordering meaningful among listings that display the same capped number. Dropping either key breaks one of those two properties; both are load-bearing.
+- **A house product can never publish above the cap**, whatever its `verificationStatus` says. `getPublishedScore()` takes the whole `DupeCandidate` (not a bare status) specifically so no call site can bypass this, and derives house-ness from `isHouseProducer()` in `lib/producers.ts` — the single definition `lib/catalog.ts` also uses for the buyer-facing disclosure, so scoring and disclosure cannot disagree. **The reason is structural, not cosmetic:** we are the only party who grants `verified`, and we sell a fragrance line here, so lifting our own cap is self-certification wearing the badge of editorial review. Its badge reads "Our own product — self-declared". Added 2026-08-27 after a board review; verified with probe listings identical but for producer (90% house / 92% third party).
 - **`getRankedDupesFor()` also filters out verbatim copies entirely.** That exclusion is a publish gate, not a ranking penalty — a flagged listing must not render anywhere.
 
 **Why any of this exists:** the raw formula is `notes*0.5 + facets*0.35 + familyBonus*0.15`, `familyBonus` is hardcoded to `1`, and the other two terms return `1` on identical inputs. A producer who copies the reference's note pyramid and facet scores scores **exactly 100%** — verified, not theoretical. No formula over self-reported data can tell a real match from a copied answer key, so the defence is structural. Full reasoning: `PRODUCER-PROGRAM.md` §7, and the module doc in `lib/verification.ts`.
@@ -81,7 +116,7 @@ What is still missing is the **pairwise** comparison URL. `/dupe-finder` reads `
 
 This project has several features that are fully built but non-functional, because the service behind them doesn't exist. **They announce that plainly rather than faking success, and that is a requirement, not a placeholder to tidy up:**
 
-- **`app/api/` no longer exists.** The Stripe checkout/webhook routes were **deleted on 2026-08-27**, not left inert: Sirketim is Turkey-based and **Stripe does not serve Turkey** (verified 2026-08-26 against `stripe.com/global`), which `departments/accounting/CLAUDE.md` had already documented two days before that integration was written. Replacement rail is **Paddle**; `prisma/schema.prisma` stays provider-agnostic (`PaymentProvider`, `providerCustomerId`, …) so the next attempt isn't provider-shaped. `/go/[slug]/route.ts` is now the **only** route handler in the project.
+- **`app/api/` no longer exists.** The Stripe checkout/webhook routes were **deleted on 2026-08-27**, not left inert: Sirketim is Turkey-based and **Stripe does not serve Turkey** (verified 2026-08-26 against `stripe.com/global`), which `departments/accounting/CLAUDE.md` had already documented two days before that integration was written. Replacement rail is **Paddle**; `prisma/schema.prisma` stays provider-agnostic (`PaymentProvider`, `providerCustomerId`, …) so the next attempt isn't provider-shaped. **There are now zero route handlers anywhere in the project** — `/go/[slug]/route.ts` was deleted too, in the static-export migration later the same day. Verify with `find app -name route.ts` before assuming otherwise; this line has already been wrong once.
 - `components/reviews/add-review-form.tsx` and `components/producers/submission-form.tsx` tell the user nothing was saved. Don't "fix" these into fake success states.
 
 Unfilled env vars are listed in `.env.example`. Filling them requires the founder's own accounts (Supabase/Neon, a payment provider) — real business, bank, and tax identity that can't be scripted.
@@ -94,7 +129,9 @@ Why they were emptied: the listings named products (`Dossier Ambrosia`, ALT.'s `
 
 **Do not hand-write entries back into any of the three.** If a product name cannot be verified on the producer's own storefront right now, it does not go in. Real listings arrive with an affiliate product feed (`FINALIZATION-GUIDE.md` phase 3 → 4), which is also the lawful imagery source discussed below.
 
-Consequences worth knowing before you plan around them: the site currently has **68 references and zero listings**, so every "alternatives" section renders its empty state; the house-product plumbing (`components/dupe-finder/house-badge.tsx`, the `No. 01 Ember` comment in `lib/verification.ts`) is intact but has nothing to render; and the previously-documented problem of *our own product ranking #1 on Baccarat Rouge 540* is dormant rather than solved — it returns the moment `DUPES` is repopulated with Ember still in it.
+Consequences worth knowing before you plan around them: the site currently has **68 references and zero listings**, so every "alternatives" section renders its empty state, and the house-product plumbing (`components/dupe-finder/house-badge.tsx`, the scoring constraint in `lib/verification.ts`) is intact but has nothing to render.
+
+The previously-documented problem of *our own product ranking #1 on Baccarat Rouge 540* is now **half solved, and it matters which half.** Fixed 2026-08-27: a house product can no longer publish an uncapped score, so it cannot show a number that only independent verification earns, and the ranking can no longer invert against the displayed percentages. **Not fixed, and not fixable in code:** a house product whose declared notes are written to sit close to the reference will still legitimately out-rank honest third-party listings, because the formula only sees the data it is given. That is a data-authorship problem. Whoever repopulates `DUPES` owns it — write house listings as honest formulation compromises, the way the same three products were written before, when our bottles ranked *last* on Aventus and Sauvage. The COO's launch recommendation stands: **ship with no house products at all until Awin approves**, because a merchant reviewer seeing us rank first on our own comparison is the rejection.
 
 ## Content: only `guide` pieces can be written right now
 
@@ -108,7 +145,9 @@ Consequences worth knowing before you plan around them: the site currently has *
 
 With `affiliateLinks` empty and no programme enrolled, a comparison or review would have to **invent a product to point at** — the exact failure Phase 0 spent a day undoing. So those two types are blocked until Phase 3, and their routes are deleted (see Deployment below).
 
-This is not a limitation to work around; guides about the **68 real, researched originals** need no affiliate link, internally link to `/fragrance/[slug]`, and are what makes those pages rank. Four are published (`content/guide/`, ~4,000 words).
+This is not a limitation to work around; guides about the **68 real, researched originals** need no affiliate link, internally link to `/fragrance/[slug]`, and are what makes those pages rank. **Nine are published** (`content/guide/`, 9,309 words as of 2026-08-27).
+
+The next ones should change shape, though. Nine general explainers ("what is an EDP", "how to read a note pyramid") teach a reader something but convert nobody, and they do not seed the pages that will eventually hold affiliate links. The COO's recommendation is **original-anchored** pieces — "*&lt;original&gt;* alternatives" — which are writable as `guide` today, need no `affiliateLinkId`, and land directly on the `/fragrance/[slug]` pages that already exist.
 
 Two rules when adding a piece:
 
@@ -116,6 +155,10 @@ Two rules when adding a piece:
 - **Verify every internal link resolves before committing.** One piece shipped a link to `/fragrance` — there is no index route at that path, only `/fragrance/[slug]`; the catalog index is `/library`. A 404 inside published content is exactly what an affiliate reviewer looks for.
 
 The filename must match the frontmatter `slug`, and bad frontmatter fails the build loudly by design (`content/loader.ts`).
+
+**`content/loader.ts` also refuses to build if a piece's content type has no route** (added 2026-08-27). Every piece renders a card linking to `/<contentType>/<slug>`, and `app/comparison/[slug]` and `app/review/[slug]` were deleted in the static-export migration — so writing one comparison would previously have shipped a card pointing at a 404, which is the first thing an affiliate reviewer clicks. The guard checks the filesystem rather than a hand-maintained list, because keeping a list in step is exactly the step that gets missed. Restore the route (it's in git history) before adding the piece; the error message carries the `git log` command.
+
+Relatedly, `components/library/library-tabs.tsx` **derives its tabs from what is actually published** rather than from the three schema types. It used to render permanent "Comparisons (0)" and "Reviews (0)" tabs, advertising an empty catalog to every visitor. With one type published it drops the tab strip entirely; the tabs return on their own when a second type lands.
 
 ## Product imagery is legally blocked, not missing
 
@@ -164,7 +207,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4321/fragrance/baccara
 
 Note the **trailing slash** — `trailingSlash: true` means `/about` and `/about/` are different paths to a static host. Testing without it is how you get a false 404.
 
-Two known-good expectations for that smoke test: `/go/anything` returns **404** (correct while `affiliateLinks` is empty), and a fragrance page's canonical reads `https://parfumoza.com/...`, never a placeholder or `localhost`.
+Two known-good expectations for that smoke test: `/go/anything` returns **404** (correct while `affiliateLinks` is empty), and a fragrance page's canonical reads `https://counterscent.com/...`, never a placeholder or `localhost`.
 
 ## The producer surface, and the gate that isn't open
 
@@ -203,7 +246,7 @@ It was already statically renderable before the switch — no `cookies()`, `head
 
 ## Canonical URLs and the contact address go through `lib/site.ts`
 
-`lib/site.ts` is the single source for the site origin (`siteUrl()`, `absoluteUrl()`) and the public contact address (`CONTACT_EMAIL = contact@parfumoza.com`, a real monitored inbox since 2026-08-27). Both are **constants with real defaults, not env vars**, deliberately: a forgotten deployment setting would otherwise ship canonicals pointing at a placeholder host, which is invisible in review and expensive in search results. `NEXT_PUBLIC_SITE_URL` still overrides for previews.
+`lib/site.ts` is the single source for the site origin (`siteUrl()`, `absoluteUrl()`) and the public contact address (`CONTACT_EMAIL = contact@counterscent.com`, a real monitored inbox since 2026-08-27). Both are **constants with real defaults, not env vars**, deliberately: a forgotten deployment setting would otherwise ship canonicals pointing at a placeholder host, which is invisible in review and expensive in search results. `NEXT_PUBLIC_SITE_URL` still overrides for previews.
 
 **A previously documented defect here is fixed** — three content routes used to carry their own `process.env.NEXT_PUBLIC_SITE_URL ?? "https://example-placeholder.com"` fallback instead of calling `siteUrl()`, and two of them also emitted **no canonical at all**. `grep -r example-placeholder` now returns nothing. The lesson survives the fix: **never hand-roll the origin in a page** — that literal reached production-shaped output precisely because it looked harmless in review.
 

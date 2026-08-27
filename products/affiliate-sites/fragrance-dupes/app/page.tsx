@@ -17,7 +17,7 @@ import { ProducerCta } from "@/components/home/producer-cta";
 export const metadata: Metadata = {
   // `title.default` from the layout already reads correctly for the homepage,
   // so it is deliberately not overridden here - setting it would push it
-  // through the "%s | Parfumoza" template and repeat the brand twice.
+  // through the "%s | Counterscent" template and repeat the brand twice.
   description:
     "Compare designer fragrances against their closest alternatives on notes, longevity, sillage and price per ml - scored by one published formula, applied the same way to every bottle.",
   alternates: { canonical: "/" },

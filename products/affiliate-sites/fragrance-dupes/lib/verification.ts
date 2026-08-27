@@ -1,3 +1,4 @@
+import { isHouseProducer } from "@/lib/producers";
 import type { DupeCandidate, FacetScores, FragranceNotes, ReferenceFragrance } from "@/lib/types";
 
 /**
@@ -9,17 +10,25 @@ import type { DupeCandidate, FacetScores, FragranceNotes, ReferenceFragrance } f
  * hardcoded to 1 and both notesScore/facetsScore return exactly 1 on identical
  * inputs. A producer who copies a reference's note list and facet scores
  * verbatim gets exactly 100%, deterministically - the formula cannot tell a
- * genuine match from a copy-paste. This already happened to us by accident
- * (lib/dupes-data.ts's No. 01 Ember comment: 79%, 22 points clear, purely
- * from favourably-written data with no producer involved). A producer whose
- * revenue depends on rank has a stronger reason to do it on purpose.
+ * genuine match from a copy-paste. A producer whose revenue depends on rank
+ * has a strong reason to do it on purpose.
+ *
+ * It already happened to us by accident, with no producer involved: our own
+ * `No. 01 Ember` rendered #1 at 79% on Baccarat Rouge 540, 22 points clear of
+ * every real listing, purely from favourably-written data. That listing was
+ * deleted with the rest of DUPES on 2026-08-27, so the evidence now lives in
+ * FINALIZATION-GUIDE.md's board-review section rather than in a code comment -
+ * but the hazard is dormant, not solved. It returns the day DUPES is
+ * repopulated.
  *
  * The fix is not a smarter formula - no formula over self-reported inputs can
  * distinguish "genuinely this close" from "copied the answer key." The fix is
  * structural: (1) catch the specific copy-paste pattern and force it into
  * mandatory review rather than let it score at all, (2) cap what any
- * unverified submission can publish at, regardless of its computed score, and
- * (3) show buyers where a score actually comes from - shared vs. differing
+ * unverified submission can publish at, regardless of its computed score,
+ * (3) refuse to let OUR OWN listings out of that cap, since we are the ones
+ * who grant "verified" and marking our own homework is not verification, and
+ * (4) show buyers where a score actually comes from - shared vs. differing
  * notes - instead of one number standing in for the whole judgement.
  *
  * See MARKETPLACE-PLAN.md §2/§3, PRODUCER-PROGRAM.md §7 (this module is the
@@ -81,17 +90,31 @@ export function isVerbatimCopy(reference: ReferenceFragrance, dupe: DupeCandidat
 
 /**
  * The score a buyer actually sees, given the raw computed score and how much
- * checking stands behind the listing. A verbatim copy is not merely capped -
- * it does not get a published score at all, because it should not be live to
- * begin with (see the flagged branch in getVerificationBadge).
+ * INDEPENDENT checking stands behind the listing. A verbatim copy is not
+ * merely capped - it does not get a published score at all, because it should
+ * not be live to begin with (see the flagged branch in getVerificationBadge).
  *
  * Only "verified" - earned by editorial review, never a default - can publish
- * above the cap. This is deliberately independent of subscription tier: no
- * tier in PRODUCER-PROGRAM.md §3 is allowed to buy rank, and a cap that a
- * higher tier could pay past would be exactly that.
+ * above the cap. That is deliberately independent of subscription tier: no
+ * tier in PRODUCER-PROGRAM.md §3 may buy rank, and a cap a higher tier could
+ * pay past would be exactly that.
+ *
+ * HOUSE PRODUCTS CAN NEVER LIFT THE CAP, whatever their status field says.
+ * This closes a hole found in the 2026-08-27 board review: the cap keyed on
+ * "verified", we are the only party who can grant "verified", and we also sell
+ * a fragrance line here. Nothing structural stopped COUNTERSCENT marking its own
+ * bottle verified and publishing an uncapped score at #1 on a page branded
+ * "Independent Fragrance Comparisons" - self-certification wearing the badge
+ * of editorial review. A house listing can still rank first on merit; it just
+ * cannot show a number that only an independent check is allowed to earn.
+ *
+ * Takes the whole candidate rather than a bare status so this cannot be
+ * bypassed by a call site that has the status to hand but not the producer.
  */
-export function getPublishedScore(rawScore: number, status: DupeCandidate["verificationStatus"]): number {
-  if (status === "verified") return rawScore;
+export function getPublishedScore(rawScore: number, dupe: DupeCandidate): number {
+  if (dupe.verificationStatus === "verified" && !isHouseProducer(dupe.producerSlug)) {
+    return rawScore;
+  }
   return Math.min(rawScore, UNVERIFIED_SCORE_CAP);
 }
 
@@ -137,6 +160,11 @@ export interface VerificationBadgeInfo {
  * A verbatim copy always reads as "flagged," overriding whatever the listing
  * claims, because the flag is a property of the data itself, not something a
  * producer's own status field could opt out of.
+ *
+ * A house listing never reads "Editorially verified" either, for the reason in
+ * getPublishedScore: we would be certifying our own product. It says so on the
+ * badge rather than quietly capping the number and leaving the buyer to wonder
+ * why our bottle scores lower than its data implies.
  */
 export function getVerificationBadge(reference: ReferenceFragrance, dupe: DupeCandidate): VerificationBadgeInfo {
   if (isVerbatimCopy(reference, dupe)) {
@@ -145,6 +173,15 @@ export function getVerificationBadge(reference: ReferenceFragrance, dupe: DupeCa
       label: "Flagged for review",
       description:
         "This listing's declared notes and facet scores match the original too closely to publish as an independent assessment. Held for manual review.",
+    };
+  }
+
+  if (isHouseProducer(dupe.producerSlug)) {
+    return {
+      status: "declared",
+      label: "Our own product — self-declared",
+      description:
+        "This is COUNTERSCENT's own fragrance. We don't mark our own listings editorially verified, so its score is capped exactly like any other unverified listing.",
     };
   }
 

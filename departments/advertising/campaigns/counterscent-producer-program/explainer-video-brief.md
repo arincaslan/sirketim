@@ -1,11 +1,11 @@
-# PARFUMOZA Producer Program: B2B explainer video
+# COUNTERSCENT Producer Program: B2B explainer video
 
-**Campaign folder:** `departments/advertising/campaigns/parfumoza-producer-program/`
+**Campaign folder:** `departments/advertising/campaigns/counterscent-producer-program/`
 **Status:** brief and script only. **No video has been produced.** Nothing has been
 generated, recorded, edited, or posted. This document is the thing you hand to
 whoever (or whatever) actually cuts it.
 **Written:** 2026-08-26 by `ad-strategist`.
-**Product:** `products/affiliate-sites/fragrance-dupes/` (PARFUMOZA). Internal
+**Product:** `products/affiliate-sites/fragrance-dupes/` (COUNTERSCENT). Internal
 Sirketim product, not client work.
 
 This file doubles as the campaign brief for this folder (the `campaign-brief`
@@ -50,7 +50,7 @@ Two things follow from that, and they shape every line of the script:
 
 **The single job.** By the end, a producer must believe one sentence:
 
-> PARFUMOZA puts my product in front of someone who has already decided to buy a
+> COUNTERSCENT puts my product in front of someone who has already decided to buy a
 > specific expensive fragrance and is actively looking for an alternative, and
 > the rank it gives me is one I actually earned, so a good match here converts
 > better than paid traffic does.
@@ -71,7 +71,7 @@ Straight from `PRODUCER-PROGRAM.md` §1:
 
 > A dupe producer's problem is discovery. They make a competent alternative to
 > Baccarat Rouge 540, and the customer searching for it has never heard of
-> them. What PARFUMOZA offers is placement at the exact moment of comparison, in
+> them. What COUNTERSCENT offers is placement at the exact moment of comparison, in
 > front of someone who has already named the expensive fragrance they want and
 > is actively looking for an alternative. That is far later in the funnel than
 > an Instagram ad reaches.
@@ -84,7 +84,7 @@ marketer rather than sounding like positioning copy:
   about fragrance, and has to manufacture the entire intent from zero:
   awareness, desire, trust, and purchase, all inside one scroll. That is why
   the funnel leaks.
-- **A PARFUMOZA comparison intercepts.** The buyer arrived having already named
+- **A COUNTERSCENT comparison intercepts.** The buyer arrived having already named
   the original. Awareness of the category is done. Desire is done. Budget
   objection is done, because the fact that they are looking for a dupe *is*
   the budget objection resolving in the producer's favour. The only question
@@ -122,7 +122,7 @@ video into a trust lecture from a site with no producers on it yet.
 email or a partnerships page. Not vertical.
 
 **Read the on-screen text literally.** It is final copy, not a description of
-copy. Note that PARFUMOZA's voice bans the em-dash everywhere, including
+copy. Note that COUNTERSCENT's voice bans the em-dash everywhere, including
 on-screen strings (`DESIGN.md` §1), and bans blanket "identical" claims about
 any dupe (`DESIGN.md` §8). Both are honoured below.
 
@@ -140,7 +140,7 @@ has to be recognizable as the same thing as the site.
 |---|---|
 | Paper / background | `#F1F1EB` |
 | Ink / body | `#12140F` |
-| Accent (the only one) | Parfumoza Green `#1B5E44` |
+| Accent (the only one) | Counterscent Green `#1B5E44` |
 | Border / rules | `#D8D7CB` |
 | Chart: Reference series | Gold `#B8863A` |
 | Chart: Dupe series | Green `#1E7A52` |
@@ -148,7 +148,7 @@ has to be recognizable as the same thing as the site.
 | UI / labels / subtitles | Public Sans |
 | Shapes | 2px corners on frames and cards, 8px on buttons, full pill only on chips |
 | Motion | "Settle." Entrances `cubic-bezier(0.23, 1, 0.32, 1)`, on-screen movement `cubic-bezier(0.77, 0, 0.175, 1)`. Never `ease-in`. Text and cards settle in over 400 to 600ms. **No bounce, no spring, anywhere in the edit.** The one bounce in this whole product is the Match Reveal, and it is already inside the screen recording |
-| Transitions | The Atomizer. Sections dissolve through a soft mist bloom in Parfumoza Green, never a hard cut, wipe, slide, or crossfade. Nothing enters from `scale(0)`; minimum start scale 0.94 |
+| Transitions | The Atomizer. Sections dissolve through a soft mist bloom in Counterscent Green, never a hard cut, wipe, slide, or crossfade. Nothing enters from `scale(0)`; minimum start scale 0.94 |
 | Lower thirds | Public Sans, small, uppercase, tracked, ink on paper with a single green rule. Never a filled coloured box |
 
 Light mode throughout. Dark mode exists on the site but light is primary.
@@ -157,7 +157,7 @@ Light mode throughout. Dark mode exists on the site but light is primary.
 
 ### Scene 1. Cold open: their problem, in their words (0:00 to 0:07)
 
-**Shown.** Black to paper. The PARFUMOZA preloader plays for real: the wordmark
+**Shown.** Black to paper. The COUNTERSCENT preloader plays for real: the wordmark
 in Cormorant Garamond, the 0-to-100 counter, the green progress rule, then the
 blur-dissolve and mist burst as it clears. This is captured from the running
 site, not recreated. It is 1.35 seconds of genuinely on-brand cold open that
@@ -190,7 +190,7 @@ phone. This audience reads charts for a living and a decorative funnel would
 read as a pitch deck template.
 
 **Voiceover.** "An ad on Instagram reaches someone who was not thinking about
-fragrance at all. You pay to build the whole decision from nothing. PARFUMOZA
+fragrance at all. You pay to build the whole decision from nothing. COUNTERSCENT
 reaches them one step from checkout, after they have already named the
 fragrance they want and started looking for something cheaper that smells like
 it. You are not buying attention. You are buying the last question they ask."
@@ -199,7 +199,7 @@ it. You are not buying attention. You are buying the last question they ask."
 scene)
 
 > Where an ad reaches them.
-> Where PARFUMOZA reaches them.
+> Where COUNTERSCENT reaches them.
 
 **Note.** The gold-versus-green pairing is not arbitrary. Those are literally
 the site's Reference and Dupe chart series colours (`DESIGN.md` §3), so the
@@ -305,14 +305,14 @@ which original, on which listing."
 
 **Note.** See Section 6 on fixture data. The card on screen must not be a real
 competitor's product shown with numbers we invented. Record this shot against
-PARFUMOZA's own house listing (Parfumoza Atelier), or against a clearly generic
+COUNTERSCENT's own house listing (Counterscent Atelier), or against a clearly generic
 placeholder listing created for the recording.
 
 ---
 
 ### Scene 6. The integrity stance (0:58 to 1:14)
 
-This is the section that separates PARFUMOZA from every pay-to-rank directory
+This is the section that separates COUNTERSCENT from every pay-to-rank directory
 this audience has already been burned by. It is a selling point, not a
 disclaimer, and the script treats it that way.
 
@@ -385,11 +385,11 @@ number get improvised into the edit. Section 6 covers this.
 
 ### Scene 8. Close (1:24 to 1:28)
 
-**Shown.** The mist clears to plain paper. The PARFUMOZA wordmark settles in,
+**Shown.** The mist clears to plain paper. The COUNTERSCENT wordmark settles in,
 Cormorant Garamond, all caps, tracked out, with the lockup subline beneath it:
 "Independent Fragrance Comparisons." Then one green rule and the CTA line.
 
-**Voiceover.** "PARFUMOZA. Independent fragrance comparisons. If you make
+**Voiceover.** "COUNTERSCENT. Independent fragrance comparisons. If you make
 something that holds up next to the original, there is a slot waiting for it."
 
 **On-screen text.**
@@ -423,14 +423,14 @@ condition under which subscribing is rational for them.
 
 **And the buyer side is what makes the placement worth anything at all.**
 A directory that sells its top slot trains its readers, fast, to ignore the top
-slot. The clicks keep arriving and stop converting. PARFUMOZA's ranking is only
+slot. The clicks keep arriving and stop converting. COUNTERSCENT's ranking is only
 valuable to a producer for exactly as long as buyers believe it, and buyers
 only believe it while it stays unbuyable. So the integrity stance is not
 principle at the expense of revenue. It is the mechanism that keeps the
 inventory worth selling.
 
 **The structural version, which is the credible version.** Anyone can promise
-independence. What PARFUMOZA can show is that the promise is enforced by
+independence. What COUNTERSCENT can show is that the promise is enforced by
 construction and is publicly checkable:
 
 - The formula lives in `lib/similarity.ts` and is published on `/about`.
@@ -516,7 +516,7 @@ Everything else is.
 **`chrome-devtools` MCP: not available in this session.** No
 `mcp__chrome-devtools__*` tool is in this agent's tool set at all, which per
 root `CLAUDE.md` is the reliable signal rather than a list command's output.
-This matches the three consecutive PARFUMOZA build passes that each recorded the
+This matches the three consecutive COUNTERSCENT build passes that each recorded the
 same absence (`README.md` honesty notes). Worth noting it would not have solved
 this anyway: it screenshots, it does not record video.
 
@@ -611,7 +611,7 @@ companies. That is a direct outreach problem, not a media buying problem.
 - **Secondary:** the video sits on a producer-program page on the site itself,
   once such a page exists and the site is deployed.
 - **Paid spend: no.** Per this department's cost discipline and
-  `departments/sales/CLAUDE.md`, PARFUMOZA has zero revenue and no budget. Paid
+  `departments/sales/CLAUDE.md`, COUNTERSCENT has zero revenue and no budget. Paid
   promotion would also be the wrong instrument even with money available, since
   the entire addressable audience is a list you could write on a napkin. Reach
   them by name.
@@ -674,8 +674,8 @@ scores that `README.md` states plainly are "illustrative constructions for this
 build, not confirmed against live catalogs." Sending a video to Dossier that
 shows a Dossier product with a price we invented and a facet profile we made up
 is a bad first contact, and arguably a misrepresentation of their product.
-**Mitigation:** record Scene 5's held card against PARFUMOZA's own house listing
-(Parfumoza Atelier) or a deliberately generic placeholder. Reference originals
+**Mitigation:** record Scene 5's held card against COUNTERSCENT's own house listing
+(Counterscent Atelier) or a deliberately generic placeholder. Reference originals
 are fine to show by name throughout; that is ordinary nominative use and every
 competitor in the category does it.
 
@@ -687,7 +687,7 @@ what this brief assumes.
 **8. Not verified in a browser, at all.** Every description of the site's
 appearance and motion in Section 3 is read from source (`reference-picker.tsx`,
 `similarity.ts`, `catalog.ts`) and from `DESIGN.md`, not watched running. Three
-consecutive PARFUMOZA build passes recorded the same `chrome-devtools` gap and
+consecutive COUNTERSCENT build passes recorded the same `chrome-devtools` gap and
 flagged the same unknowns: whether the Match Reveal's timing actually reads
 well, whether the mist cursor's density feels right, whether the radar chart's
 gold holds up visually. Those unknowns land directly on this video, because

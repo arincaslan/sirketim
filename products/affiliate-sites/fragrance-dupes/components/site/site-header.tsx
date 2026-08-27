@@ -8,6 +8,7 @@ import { List, X } from "@phosphor-icons/react/dist/ssr";
 
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/site/theme-toggle";
+import { CounterscentLogo } from "@/components/site/logo";
 
 const NAV_LINKS = [
   { href: "/dupe-finder", label: "Dupe Finder" },
@@ -28,11 +29,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex flex-col leading-none" onClick={() => setOpen(false)}>
-          <span className="font-display text-xl font-semibold tracking-[0.02em]">PARFUMOZA</span>
-          <span className="hidden text-[10px] uppercase tracking-[0.16em] text-muted-foreground sm:block">
-            Independent Fragrance Comparisons
-          </span>
+        <Link href="/" onClick={() => setOpen(false)} aria-label="Counterscent — home">
+          <CounterscentLogo tagline />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">

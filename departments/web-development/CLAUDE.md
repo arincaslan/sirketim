@@ -42,7 +42,7 @@ Configured in `.mcp.json` (project-wide, travels with the repo):
 
 ## Hostinger MCP — domain, DNS, hosting, VPS
 
-Added 2026-08-27 for the `parfumoza.com` launch. Four of Hostinger's official MCP servers are configured in `.mcp.json`: `hostinger-domains`, `hostinger-dns`, `hostinger-hosting`, `hostinger-vps` (npm package `hostinger-api-mcp`).
+Added 2026-08-27 for the `counterscent.com` launch. Four of Hostinger's official MCP servers are configured in `.mcp.json`: `hostinger-domains`, `hostinger-dns`, `hostinger-hosting`, `hostinger-vps` (npm package `hostinger-api-mcp`).
 
 **Deliberately NOT configured**: `hostinger-billing`, `hostinger-ecommerce`, `hostinger-reach`. Billing exposes payment and purchase operations, which an agent has no business holding; the other two are unrelated to this work. The founder's original config included all seven — the three were dropped on purpose and are one line each to restore if a real need appears.
 
@@ -54,12 +54,12 @@ Added 2026-08-27 for the `parfumoza.com` launch. Four of Hostinger's official MC
 
 ## Choosing a host — the real numbers, verified 2026-08-27
 
-Researched for the `parfumoza.com` launch, against each vendor's own pricing page. **Two corrections to what this repo previously assumed**, both of which change the decision:
+Researched for the `counterscent.com` launch, against each vendor's own pricing page. **Two corrections to what this repo previously assumed**, both of which change the decision:
 
 1. **Hostinger's ordinary shared plans now run Node.js web apps** — Business/"Unlimited" (5 apps) and every Cloud plan (10 apps), GitHub-connected with auto-rebuild on push, Node 18/20/22/24. The old "shared hosting is PHP/Apache, it can't run a Next.js route handler" reasoning is out of date; don't repeat it.
 2. **Cloudflare is no longer a drop-in for an older Next.js app.** `@opennextjs/cloudflare` ended Next.js 14 support in Q1 2026, and the current recommended path (`vinext`) targets Next.js 16. For a Next 14 project, Cloudflare means either a **static export** or a **Next upgrade** — not `git push`.
 
-| | Hostinger Cloud Startup | Hostinger Unlimited | Cloudflare Pages |
+| | Hostinger Cloud Startup | Hostinger Unlimited | Cloudflare Workers |
 |---|---|---|---|
 | Advertised | $7.99/mo | $3.99/mo | $0 |
 | **Actual commitment** | **48 mo, $383.52 upfront** | **48 mo, $191.52 upfront** | none |
@@ -73,12 +73,14 @@ Cloudflare Workers Paid is $5/mo (10M requests, 30M CPU-ms) if the free tier's 1
 - **The advertised monthly price is a 48-month prepayment, and renewal is 3–4× it.** Always quote the founder the upfront figure and the renewal, never the headline. A four-year commitment on a pre-revenue site is the same trap as the Vercel Pro line above.
 - **Cloud over Business buys CPU, RAM, app slots and a dedicated IP — not capability.** Node.js support is identical. Don't recommend Cloud unless something concrete needs the headroom.
 - **Check whether the app actually needs a server before pricing one.** Grep for `cookies()`, `headers()`, `force-dynamic`, `revalidate`, `runtime =` and route handlers. A Next.js site with none of those is statically exportable, and a redirect-only route handler can usually become a generated `_redirects` file. `products/affiliate-sites/fragrance-dupes/` is exactly this shape.
-- **Email is not an argument for buying hosting.** Hostinger email is attached to the *domain*, not the plan — `contact@parfumoza.com` resolves today with **no hosting plan on the account** (MX/SPF/DKIM/DMARC verified live via the API).
+- **Email is not an argument for buying hosting.** Hostinger email is attached to the *domain*, not the plan — `contact@counterscent.com` resolves today with **no hosting plan on the account** (MX/SPF/DKIM/DMARC verified live via the API).
 - Hostinger has a **30-day money-back guarantee**, so a wrong pick is recoverable at day 20 and not at day 400.
 
 ## Deploying to Cloudflare — what actually worked
 
-`parfumoza.com` is the first site deployed from this repo. Two builds failed before it worked, both for the same reason, and the failure mode is worth recognising because the log does not say what is wrong.
+`counterscent.com` is the first site deployed from this repo, and it has been **live since 2026-08-27**. **Four** builds failed before it worked — the first two for the reason below, then a third that found Node but still never ran the build, and a fourth fixed only by the `postinstall` hook. The failure mode is worth recognising because the log does not say what is wrong.
+
+**A commercial-use check that was nearly missed:** this department rejected Vercel Hobby on its non-commercial clause (see "Hosting" above) and then chose Cloudflare without asking the same question of it. Verified 2026-08-27: **Cloudflare's free plan permits commercial use.** Ask this of every free tier, every time — the question that disqualifies one host does not get to skip the next one.
 
 **Symptom**: the build log shows `Detected the following tools from environment:` with **nothing after it**, goes straight to `Executing user deploy command: npx wrangler deploy`, never runs `npm install` or `npm run build`, and fails with `Could not detect a directory containing static files`.
 
@@ -107,7 +109,23 @@ Running `npm run build` directly also works, but it proves less: it bypasses the
 
 **Config choices worth keeping**: `not_found_handling` is `"404-page"`, deliberately **not** `"single-page-application"` — SPA handling returns `index.html` with a **200** for every unknown URL, which tells a crawler that every typo'd path is a real page and makes a broken redirect render the homepage instead of failing visibly.
 
-**Workers vs Pages, going forward**: staying on Workers is the right call. `assets` serves a static export from the edge on the free plan, and a `main` Worker script can later handle a dynamic path (for Parfumoza, the `/go/*` affiliate chokepoint) while falling through to assets for everything else — which Pages would need a separate Functions directory for. **Gotcha for that day**: `_redirects` rules are **not** applied to requests served by Worker code, only to asset requests, so move the mapping into the script rather than leaving both and guessing.
+### "The site is down" — verify before you believe it
+
+This has been reported **three times** for a site that was live worldwide each time, and it has never once been the site. The founder's **OpenWrt router (`192.168.1.1`) serves a stale apex A record for `2.57.91.91`** — Hostinger's old parked-page IP, which returns a real HTTP 200 with `<title>Parked Domain name on Hostinger DNS system</title>`. A browser shows that parked page and it looks exactly like a broken deploy. `Clear-DnsClientCache` does not help, because the router re-serves it.
+
+The tell is that **`www` resolves correctly through the same router** while the apex does not. Run these before concluding anything:
+
+```bash
+curl -s -o /dev/null -w "%{http_code} %{remote_ip}\n" https://counterscent.com/     # what YOU get
+curl -s -o /dev/null --resolve counterscent.com:443:104.21.23.170 -w "%{http_code}\n" https://counterscent.com/
+nslookup counterscent.com 1.1.1.1                       # public resolver
+nslookup counterscent.com michelle.ns.cloudflare.com    # authoritative
+nslookup counterscent.com ns1.dns-parking.com           # Hostinger: expect NXDOMAIN
+```
+
+If the authoritative and public answers are Cloudflare IPs and only the local one differs, **the site is fine** — say so plainly and point at the router (reboot, or `/etc/init.d/dnsmasq restart`), rather than starting a deploy investigation. The reverse mistake has also been made here: reporting the site *down* on the strength of one local `curl`. Neither direction is safe from a single local lookup.
+
+**Workers vs Pages, going forward**: staying on Workers is the right call. `assets` serves a static export from the edge on the free plan, and a `main` Worker script can later handle a dynamic path (for Counterscent, the `/go/*` affiliate chokepoint) while falling through to assets for everything else — which Pages would need a separate Functions directory for. **Gotcha for that day**: `_redirects` rules are **not** applied to requests served by Worker code, only to asset requests, so move the mapping into the script rather than leaving both and guessing.
 
 ## Skills for UI/motion quality
 

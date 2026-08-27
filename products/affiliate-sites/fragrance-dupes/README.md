@@ -1,4 +1,4 @@
-# Parfumoza — Sirketim Product
+# Counterscent — Sirketim Product
 
 An independent fragrance-dupe comparison and affiliate content site built
 around an **interactive comparison tool** (the Dupe Finder), not a text
