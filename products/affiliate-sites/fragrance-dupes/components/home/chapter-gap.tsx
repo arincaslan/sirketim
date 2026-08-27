@@ -1,7 +1,7 @@
 import { Reveal } from "@/components/site/reveal";
 
 /**
- * Chapter 2: why Drydown exists. Replaces the old mission.tsx (same core
+ * Chapter 2: why Parfumoza exists. Replaces the old mission.tsx (same core
  * copy, since it already earned its place - see DESIGN.md's redesign audit
  * in the Implementation addendum v2), restaged from a centered text block
  * into an asymmetric single-column flow with an indented contrast aside, so

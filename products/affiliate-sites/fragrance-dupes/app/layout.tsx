@@ -32,8 +32,8 @@ const SITE_DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
-    default: "Drydown - Independent Fragrance Dupe Comparisons",
-    template: "%s | Drydown",
+    default: "Parfumoza - Independent Fragrance Dupe Comparisons",
+    template: "%s | Parfumoza",
   },
   description: SITE_DESCRIPTION,
   // Every page inherits a canonical unless it sets its own. Without this the
@@ -45,14 +45,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    siteName: "Drydown",
+    siteName: "Parfumoza",
     url: siteUrl(),
-    title: "Drydown - Independent Fragrance Dupe Comparisons",
+    title: "Parfumoza - Independent Fragrance Dupe Comparisons",
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Drydown - Independent Fragrance Dupe Comparisons",
+    title: "Parfumoza - Independent Fragrance Dupe Comparisons",
     description: SITE_DESCRIPTION,
   },
 };
@@ -62,14 +62,14 @@ export const metadata: Metadata = {
  * only on content routes, so nothing told a search engine what this site or
  * its publisher actually is.
  *
- * `publisher` names Sirketim rather than Drydown: the FTC disclosure and the
+ * `publisher` names Sirketim rather than Parfumoza: the FTC disclosure and the
  * independence claim both rest on who operates the site, and burying that is
  * the opposite of what an affiliate site should do.
  */
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Drydown",
+  name: "Parfumoza",
   url: siteUrl(),
   description: SITE_DESCRIPTION,
   parentOrganization: { "@type": "Organization", name: "Sirketim" },
@@ -78,7 +78,7 @@ const organizationSchema = {
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "Drydown",
+  name: "Parfumoza",
   url: siteUrl(),
   description: SITE_DESCRIPTION,
   publisher: { "@type": "Organization", name: "Sirketim" },
@@ -93,7 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('drydown-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('parfumoza-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
           }}
         />
       </head>

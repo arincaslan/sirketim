@@ -30,7 +30,7 @@ export { REFERENCES };
  * this "illustrative fixture data", which was true of the numbers and quietly
  * untrue of the names.
  *
- * The five "Drydown Atelier" house listings went with them: that line is real
+ * The five "Parfumoza Atelier" house listings went with them: that line is real
  * and planned ($8.51/55ml production cost, see MARKETPLACE-PLAN.md §1) but has
  * no launched products and no measured specifications yet, and leaving only
  * our own listings on a site branded "Independent Fragrance Comparisons" would

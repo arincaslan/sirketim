@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 /**
  * Affiliate managers reply to whatever address is on this page. A contact
@@ -6,12 +7,10 @@ import type { Metadata } from "next";
  * for a merchant application to be declined, so this must resolve to an inbox
  * somebody actually watches before any application is filed.
  *
- * The address is deliberately NOT hardcoded. It comes from
- * NEXT_PUBLIC_CONTACT_EMAIL, and when that is unset the page says plainly
- * that contact is not open yet rather than printing a fake address or
- * quietly exposing a personal one. Set it to a real, monitored address on the
- * site's own domain (e.g. hello@<domain>) once the domain exists -
- * FINALIZATION-GUIDE.md phase 1.3.
+ * The address is contact@parfumoza.com, live since 2026-08-27 and defined in
+ * lib/site.ts. It is a constant rather than an env var precisely because a
+ * forgotten deployment setting would make this page say "contact is not open
+ * yet" in production, which is worse than any of the alternatives.
  *
  * There is no contact FORM here on purpose: a form needs a backend to receive
  * it, and none exists. A form that silently discards what someone typed is
@@ -19,10 +18,9 @@ import type { Metadata } from "next";
  */
 export const metadata: Metadata = {
   title: "Contact",
-  description: "How to reach the team behind Drydown.",
+  description: "How to reach the team behind Parfumoza.",
+  alternates: { canonical: "/contact" },
 };
-
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim();
 
 export default function ContactPage() {
   return (
@@ -31,23 +29,14 @@ export default function ContactPage() {
 
       <div className="prose prose-lg mt-8 max-w-none">
         <p>
-          Drydown is published by Sirketim, a company registered in Türkiye.
+          Parfumoza is published by Sirketim, a company registered in Türkiye.
         </p>
 
-        {CONTACT_EMAIL ? (
-          <p>
-            The fastest way to reach us is email:{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We read
-            everything and reply to most things within a few working days.
-          </p>
-        ) : (
-          <p>
-            <strong>Email is not open yet.</strong> This site is new and does
-            not have a monitored inbox at its own domain so far. Rather than
-            print an address that nobody is watching, we would rather say so.
-            This page will carry a real address as soon as one exists.
-          </p>
-        )}
+        <p>
+          The fastest way to reach us is email:{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We read
+          everything and reply to most things within a few working days.
+        </p>
 
         <h2>Corrections</h2>
         <p>

@@ -2,7 +2,7 @@
   "name": "fragrance-dupes",
   "version": "0.1.0",
   "private": true,
-  "description": "Sirketim product - DRYDOWN, an independent fragrance-dupe comparison and affiliate content site built on Next.js + Tailwind CSS + shadcn/ui + Motion. Editorial/comparison site, not an e-commerce storefront; distinct from the fragrance-store templates.",
+  "description": "Sirketim product - PARFUMOZA, an independent fragrance-dupe comparison and affiliate content site built on Next.js + Tailwind CSS + shadcn/ui + Motion. Editorial/comparison site, not an e-commerce storefront; distinct from the fragrance-store templates.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

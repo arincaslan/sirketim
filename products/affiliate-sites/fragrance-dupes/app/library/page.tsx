@@ -4,7 +4,7 @@ import { getAllContent } from "@/content/loader";
 
 export const metadata: Metadata = {
   title: "Library",
-  description: "Every guide, comparison, and review published on Drydown.",
+  description: "Every guide, comparison, and review published on Parfumoza.",
 };
 
 export default function LibraryPage() {

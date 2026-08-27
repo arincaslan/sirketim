@@ -229,7 +229,7 @@ export function SubmissionForm() {
 
       <Field
         label="Your affiliate tracking link"
-        hint="The link from your program that credits DRYDOWN. We never show it raw - it resolves through our own redirect."
+        hint="The link from your program that credits PARFUMOZA. We never show it raw - it resolves through our own redirect."
       >
         <TextInput value={affiliateUrl} onChange={setAffiliateUrl} placeholder="https://..." />
       </Field>

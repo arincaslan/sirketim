@@ -1,4 +1,4 @@
-# DRYDOWN revenue readiness — rails, ledger taxonomy, and pre-revenue cost model
+# PARFUMOZA revenue readiness — rails, ledger taxonomy, and pre-revenue cost model
 
 **Status: convention proposal + cost model. No ledger row was added — no transaction has occurred.**
 
@@ -12,13 +12,13 @@ No web access was used for this report. Anything not confirmed by §10 or an in-
 
 | Income stream | Rail it needs | Rail status | Blocked on | Single next action |
 |---|---|---|---|---|
-| Producer subscriptions (paid tiers) | Paddle (merchant of record) | **CLEARED** (country availability, §10 item 2) | Zero producers exist. Separately, §10 flags Paddle's acceptable-use policy as reportedly restrictive toward *marketplaces* — DRYDOWN is one. | Ship the **free** tier — it needs no rail at all. In parallel, email Paddle to pre-clear the AUP question before any adapter is written. |
+| Producer subscriptions (paid tiers) | Paddle (merchant of record) | **CLEARED** (country availability, §10 item 2) | Zero producers exist. Separately, §10 flags Paddle's acceptable-use policy as reportedly restrictive toward *marketplaces* — PARFUMOZA is one. | Ship the **free** tier — it needs no rail at all. In parallel, email Paddle to pre-clear the AUP question before any adapter is written. |
 | Affiliate — Awin (ALT. Fragrances) | Payoneer USD/GBP/EUR receiving account (§10 item 5), or intl bank transfer | **CLEARED — prerequisite unmet** | No Payoneer account exists; no deployed site/domain to apply with. ~$5 refundable signup fee. | Open Payoneer, then deploy site + domain. |
 | Affiliate — ShareASale (Dossier) | Same Payoneer rail | **CLEARED — prerequisite unmet** | Same as Awin, plus: ShareASale **rejects subdomains** — needs a real custom domain. | Register a custom `.com`. |
 | Affiliate — CJ (FragranceX) | Same Payoneer rail; W-8BEN required | **CLEARED — prerequisite unmet** | Same as above. §10 confirms the TRY-account constraint hits **CJ and ShareASale too**, not just Amazon. | Open Payoneer; complete W-8BEN at enrollment. |
 | Affiliate — Amazon Associates | Direct deposit (unavailable) | **BLOCKED** | §10 item 4: direct deposit to a Turkish bank confirmed **NOT available** — eligibility is by bank-account currency (USD/GBP/EUR only); a TR account is TRY and Turkey is in neither the Eurozone nor the EEA. **AND** Turkey is invite-only for Associates. Payoneer is the documented workaround for the payout half; it does **not** fix the invite-only half. | **Drop from the plan.** Do not burn the 180-day / 3-sale clock. |
 | House fragrance line ($8.51/55ml cost basis) | Physical-goods checkout | **NOTHING EARNABLE YET** | No checkout exists. Paddle is digital-goods-only and will not process it (§10 item 4, confirming §6). Etsy route needs ETBİS registration + Etsy Payments linked to the firm TRY account. Plus unpriced compliance: fragrance is a limited-quantity dangerous good to ship; EU CPNP / US MoCRA. | Route to Etsy; do not build checkout. |
-| DRYDOWN commission on brokered sales | Merchant-of-record capability Sirketim does not have | **NOTHING EARNABLE YET** | Requires taking real transaction/payment liability (MoR obligations). No rail here provides it, and `MARKETPLACE-PLAN.md` §5 leaves the question open. | None yet — decide the model before the rail. |
+| PARFUMOZA commission on brokered sales | Merchant-of-record capability Sirketim does not have | **NOTHING EARNABLE YET** | Requires taking real transaction/payment liability (MoR obligations). No rail here provides it, and `MARKETPLACE-PLAN.md` §5 leaves the question open. | None yet — decide the model before the rail. |
 
 **The only stream that can realistically receive money this quarter is affiliate commission, and it is gated on two founder actions — opening Payoneer and getting a live domain — not on any code.**
 
@@ -28,7 +28,7 @@ No web access was used for this report. Anything not confirmed by §10 or an in-
 
 ### 2a. New Income category
 
-Propose exactly: **`Subscription revenue — <Product name>`** — e.g. `Subscription revenue — DRYDOWN Producer Program`.
+Propose exactly: **`Subscription revenue — <Product name>`** — e.g. `Subscription revenue — PARFUMOZA Producer Program`.
 
 It parallels the existing `Affiliate commission — <Program name>` pattern: always name the specific product, because each one is its own billing relationship with its own provider, cadence and fee structure.
 
@@ -79,9 +79,9 @@ A Paddle (MoR) subscription has structurally the same lifecycle as an Etsy sale 
 
 ### Second taxonomy gap — flagged, not resolved
 
-The `Department` column cannot express which **product** a cost belongs to, and DRYDOWN spans Content, Web Development and Sales.
+The `Department` column cannot express which **product** a cost belongs to, and PARFUMOZA spans Content, Web Development and Sales.
 
-- Recommend every DRYDOWN row's `Notes` begin with **`DRYDOWN — `** so the product's true total cost stays greppable regardless of which Department it was filed under.
+- Recommend every PARFUMOZA row's `Notes` begin with **`PARFUMOZA — `** so the product's true total cost stays greppable regardless of which Department it was filed under.
 - Recommend `Web Development` for domain/hosting/deploy rows, `Content` for affiliate-program rows.
 
 ---
@@ -97,7 +97,7 @@ Real, pre-revenue spend only.
 | Awin signup fee | ~$5 | One-off, **refundable** | Unconfirmed | Refunded after the first payout threshold. Book as an Expense when charged; update in place / add a matching Income-side note when refunded. Refund mechanics should be confirmed at signup |
 | Payoneer account opening | $0 to open | — | Unconfirmed | ~2% withdrawal fee; possible annual/inactivity fee — all unconfirmed |
 | Paddle | $0 to hold | Per transaction only | Per §10 item 3 | ~5% + $0.50/txn, plus ~$15 flat SWIFT per payout = **~10.2% all-in at $300/mo** |
-| OpenArt (already in ledger) | $29/mo | Monthly | Price unconfirmed | **Not attributable to DRYDOWN — must not be double-counted against this project** |
+| OpenArt (already in ledger) | $29/mo | Monthly | Price unconfirmed | **Not attributable to PARFUMOZA — must not be double-counted against this project** |
 
 **Realistic pre-revenue cash outlay to reach the point of applying to Awin + ShareASale: ~$15–20 if Vercel Hobby is acceptable, or ~$35–40 in month one (~$255–275 over year one) if Vercel Pro turns out to be required.** The domain and Awin fee are small and near-certain; the entire uncertainty is the Vercel commercial-use question, which is unconfirmed and is worth ~$240/yr on its own. ~$5 of the outlay is refundable.
 
@@ -105,11 +105,11 @@ Real, pre-revenue spend only.
 
 | Date | Type | Department | Category | Description | Amount | Currency | Status | Notes |
 |---|---|---|---|---|---|---|---|---|
-| `<date of charge>` | Expense | Web Development | Domain | DRYDOWN custom `.com` domain, year 1 | `<actual charge>` | USD | One-off | DRYDOWN — required because ShareASale rejects subdomains. Registrar + renewal price to be recorded here |
-| `<date of charge>` | Subscription | Web Development | Hosting | Vercel Pro (only if commercial-use terms require it) | `<actual charge>` | USD | Active | DRYDOWN — only add this row if Hobby is ruled out by Vercel's terms. If Hobby is acceptable, no row exists (no charge) |
-| `<date of charge>` | Expense | Content | Affiliate program fees | Awin signup fee | `<actual charge>` | USD | One-off, refundable | DRYDOWN — refundable after first payout threshold. Update this row in place when refunded |
+| `<date of charge>` | Expense | Web Development | Domain | PARFUMOZA custom `.com` domain, year 1 | `<actual charge>` | USD | One-off | PARFUMOZA — required because ShareASale rejects subdomains. Registrar + renewal price to be recorded here |
+| `<date of charge>` | Subscription | Web Development | Hosting | Vercel Pro (only if commercial-use terms require it) | `<actual charge>` | USD | Active | PARFUMOZA — only add this row if Hobby is ruled out by Vercel's terms. If Hobby is acceptable, no row exists (no charge) |
+| `<date of charge>` | Expense | Content | Affiliate program fees | Awin signup fee | `<actual charge>` | USD | One-off, refundable | PARFUMOZA — refundable after first payout threshold. Update this row in place when refunded |
 
-**No income rows whatsoever.** No income row of any kind should be created for DRYDOWN until real money is actually charged or accrued — the first ledger events from this workstream are expenses only.
+**No income rows whatsoever.** No income row of any kind should be created for PARFUMOZA until real money is actually charged or accrued — the first ledger events from this workstream are expenses only.
 
 ---
 

@@ -1,4 +1,4 @@
-// DRYDOWN marketplace schema.
+// PARFUMOZA marketplace schema.
 //
 // STATUS: not migrated, not connected. No database is provisioned - see
 // MARKETPLACE-PLAN.md §4 and PRODUCER-PROGRAM.md §8. `npx prisma validate`
@@ -24,7 +24,7 @@ datasource db {
 // Producers and billing
 // ---------------------------------------------------------------------------
 
-/// A seller listing dupes on DRYDOWN. Mirrors the `Producer` interface in
+/// A seller listing dupes on PARFUMOZA. Mirrors the `Producer` interface in
 /// lib/types.ts. `createdAt` is the "date of subscriber" the founder asked
 /// for - when they joined, as distinct from when their current billing period
 /// started (that lives on Subscription, and resets every renewal).
@@ -33,7 +33,7 @@ model Producer {
   slug      String   @unique
   name      String
   blurb     String   @default("")
-  /// DRYDOWN's own line. Skips subscription and approval entirely.
+  /// PARFUMOZA's own line. Skips subscription and approval entirely.
   isHouse   Boolean  @default(false)
   contactEmail String?
   createdAt DateTime @default(now())

@@ -123,7 +123,7 @@ export function getProducerSlugsFor(reference: ReferenceFragrance): string[] {
   return [...new Set(DUPES.filter((d) => d.referenceSlug === reference.slug).map((d) => d.producerSlug))];
 }
 
-/** True when this listing is DRYDOWN's own product rather than a third
+/** True when this listing is PARFUMOZA's own product rather than a third
  *  party's. Drives the house-product disclosure shown wherever it appears. */
 export function isHouseProduct(dupe: DupeCandidate): boolean {
   return getProducer(dupe.producerSlug)?.isHouse === true;

@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 export const metadata: Metadata = {
   title: "List your fragrance",
   description:
-    "How producers list an alternative on Drydown: what we ask for, what a subscription does and does not buy, and how listings are reviewed.",
+    "How producers list an alternative on Parfumoza: what we ask for, what a subscription does and does not buy, and how listings are reviewed.",
 };
 
 /**
@@ -24,7 +24,7 @@ export default function ProducersPage() {
         <div className="flex flex-col gap-4">
           <h1 className="font-display text-fluid-h1">List your fragrance</h1>
           <p className="text-lg text-muted-foreground">
-            Drydown puts your bottle in front of someone who has already named the expensive
+            Parfumoza puts your bottle in front of someone who has already named the expensive
             fragrance they want and is actively looking for an alternative. That is a much later
             moment in the decision than an ad reaches.
           </p>

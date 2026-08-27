@@ -10,7 +10,7 @@ The data model this assumes (`Producer`, `DupeCandidate.producerSlug`, the `Revi
 
 Worth settling before pricing, because if this answer is thin nobody subscribes at any price.
 
-A dupe producer's problem is discovery. They make a competent alternative to Baccarat Rouge 540, and the customer searching for it has never heard of them. What DRYDOWN offers is **placement at the exact moment of comparison** - in front of someone who has already named the expensive fragrance they want and is actively looking for an alternative. That is far later in the funnel than an Instagram ad reaches.
+A dupe producer's problem is discovery. They make a competent alternative to Baccarat Rouge 540, and the customer searching for it has never heard of them. What PARFUMOZA offers is **placement at the exact moment of comparison** - in front of someone who has already named the expensive fragrance they want and is actively looking for an alternative. That is far later in the funnel than an Instagram ad reaches.
 
 Concretely, a subscription should buy:
 
@@ -27,12 +27,12 @@ What a subscription must **never** buy: a better match score, a higher rank, or 
 
 The founder's model is subscription **plus** commission on every sale. Mechanically:
 
-1. Producer subscribes (recurring fee to DRYDOWN).
-2. Producer enrols DRYDOWN in their affiliate program and supplies a tracking link that credits us.
+1. Producer subscribes (recurring fee to PARFUMOZA).
+2. Producer enrols PARFUMOZA in their affiliate program and supplies a tracking link that credits us.
 3. Approved listing goes live; clicks route through `/go/[slug]`.
-4. DRYDOWN earns commission on conversions **and** the monthly fee.
+4. PARFUMOZA earns commission on conversions **and** the monthly fee.
 
-**The risk, stated plainly:** charging a subscription *and* taking commission is a double-dip that most marketplaces deliberately avoid - they pick one. Amazon takes commission only. Etsy takes a listing fee plus a small commission, but the listing fee is cents, not a subscription. A small dupe house with thin margins may do the arithmetic and conclude that a monthly fee on top of commission makes DRYDOWN their most expensive channel, and simply not sign up. The whole marketplace depends on producers actually joining, so this is not a detail to discover after building the billing system.
+**The risk, stated plainly:** charging a subscription *and* taking commission is a double-dip that most marketplaces deliberately avoid - they pick one. Amazon takes commission only. Etsy takes a listing fee plus a small commission, but the listing fee is cents, not a subscription. A small dupe house with thin margins may do the arithmetic and conclude that a monthly fee on top of commission makes PARFUMOZA their most expensive channel, and simply not sign up. The whole marketplace depends on producers actually joining, so this is not a detail to discover after building the billing system.
 
 Three ways to de-risk it, in rough order of how much they protect the launch:
 
@@ -77,7 +77,7 @@ Six steps, three of them ours:
 | Product name, concentration, size (ml), price | Price feeds the "Nx cheaper per ml" claim, so it must be maintained, not set once. |
 | Note pyramid (top / heart / base) | Structured input, not free text - this feeds the similarity score. |
 | Facet self-assessment (6 sliders, 0-10) | **The integrity problem, see §7.** |
-| Affiliate tracking link | Their program's link crediting DRYDOWN. Stored, never rendered raw - resolved through `/go/[slug]`. |
+| Affiliate tracking link | Their program's link crediting PARFUMOZA. Stored, never rendered raw - resolved through `/go/[slug]`. |
 | Product image | Only where they hold the rights. This is also how the site's empty `imageUrl` fields eventually get filled for dupes. |
 
 **3. Automated validation before a human sees it** - link resolves and is not a redirect chain to somewhere unexpected, required fields present, price is plausible, no duplicate listing of the same product against the same reference.
@@ -118,7 +118,7 @@ The founder is the gate, so the criteria should be written down before volume ma
 
 This is the part most likely to quietly wreck the site, and it deserves to be decided deliberately rather than drifted into.
 
-DRYDOWN's positioning is "Independent Fragrance Comparisons." The pivot introduces two direct conflicts with that:
+PARFUMOZA's positioning is "Independent Fragrance Comparisons." The pivot introduces two direct conflicts with that:
 
 **Producers pay us and we rank them.** Every incentive points toward favouring payers. The defence has to be structural, not a promise: the ranking formula lives in `lib/similarity.ts`, is published on `/about`, takes no input related to subscription tier, and `getRankedDupesFor()` in `lib/catalog.ts` breaks ties toward the cheaper bottle rather than toward anyone paying. Keep it that way, and keep the tier table in §3 free of anything that touches rank.
 

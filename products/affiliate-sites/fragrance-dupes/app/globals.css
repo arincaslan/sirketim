@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
-  DRYDOWN design tokens. See DESIGN.md §3 for the reasoning and the computed
+  PARFUMOZA design tokens. See DESIGN.md §3 for the reasoning and the computed
   WCAG contrast pairs. Fonts are loaded via next/font in app/layout.tsx and
   exposed here as --font-display / --font-sans custom properties - never a
   <link> tag or @import, per the taste skill's font-loading rule.

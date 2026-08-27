@@ -2,7 +2,7 @@ import { Storefront } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 
 /**
- * Marks a listing as DRYDOWN's own product.
+ * Marks a listing as PARFUMOZA's own product.
  *
  * This is a disclosure, not a promotional badge. The site is branded
  * "Independent Fragrance Comparisons" and ranks its own bottles with its own

@@ -231,7 +231,7 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
       </section>
 
       <p className="mt-14 border-t border-border pt-6 text-sm text-muted-foreground">
-        {reference.name} and {reference.brand} are trade marks of their owner. Drydown is not
+        {reference.name} and {reference.brand} are trade marks of their owner. Parfumoza is not
         affiliated with or endorsed by them; we name the fragrance in order to compare it. See{" "}
         <Link href="/about#methodology" className="underline underline-offset-4">
           our standards

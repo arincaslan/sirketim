@@ -1,4 +1,4 @@
-# DRYDOWN — Finalization Guide
+# PARFUMOZA — Finalization Guide
 
 **One ordered path from where the site actually is to where it earns money.**
 
@@ -58,8 +58,8 @@ All nine items landed. The site now contains no invented data and no claim it ca
 | 0.4 ✅ | **"This is a template build" removed** from the footer | Honest during the build, wrong the moment it is public. |
 | 0.5 ✅ | **Dead Stripe code deleted** | `lib/stripe.ts`, both API routes, the npm dependency and 6 env lines. Its 503 said "No Stripe account is connected", implying one could be; Stripe cannot serve a Turkish business. `PaidTier`/`BillingInterval` moved into `lib/plans.ts`, where a payment processor no longer owns the pricing page's type layer. |
 | 0.6 ✅ | **`/privacy` written** | Hard blocker for every affiliate application, and required before GA4 fires a single event (KVKK / GDPR). Describes what the site actually does — no accounts, no newsletter, no ad pixels. |
-| 0.7 ✅ | **`/contact` added** | Affiliate managers reply there. The address comes from `NEXT_PUBLIC_CONTACT_EMAIL`; while unset the page says contact is not open yet rather than printing an unwatched address. **Set this before applying anywhere.** |
-| 0.8 ✅ | **`LICENSE` added** | MIT for the code, with editorial content, the Drydown name, and third-party trade marks explicitly excluded. |
+| 0.7 ✅ | **`/contact` live at contact@parfumoza.com** (27 Aug) | Affiliate managers reply there. Hardcoded in `lib/site.ts` rather than an env var, so a forgotten deployment setting cannot make the page claim contact is closed. |
+| 0.8 ✅ | **`LICENSE` added** | MIT for the code, with editorial content, the Parfumoza name, and third-party trade marks explicitly excluded. |
 | 0.9 ✅ | **Everything committed and pushed** | |
 
 **Also done, not originally on the list:** buy buttons no longer render at all unless a link resolves to a real enrolled programme (`hasRealAffiliateLink`). A button leading to `example.com` reads as broken to a visitor and as low quality to a merchant reviewing our application.
@@ -78,8 +78,8 @@ Cost: **~$15–20**, or **~$255** if Vercel Pro is required. Owner: Founder, the
 |---|---|---|---|
 | 1.1 ✅ | **Payee decided: personal account** (with the `mali müşavir`, 27 Aug) | Founder | Every enrollment. Cannot be casually changed later — use the same answer everywhere. |
 | 1.2 ✅ | **Payoneer open** (27 Aug) | Founder | All affiliate income. Highest-value single action in this guide. |
-| 1.3 | **Register an apex domain** (not a subdomain) | **Founder only** | Every application. Awin reviews the site itself. |
-| 1.4 | Deploy to Vercel, set `NEXT_PUBLIC_SITE_URL` | Web Dev | Metadata, sitemap and robots currently all emit `example-placeholder.com`. |
+| 1.3 ✅ | **Domain registered: `parfumoza.com`** (27 Aug) — apex, not a subdomain | Founder | Done. `drydown.com` was taken, so the brand was renamed to **Parfumoza** in the same change. |
+| 1.4 | **Deploy** — host not yet chosen | Founder + Web Dev | `parfumoza.com` is already the built-in default, so metadata, canonicals, sitemap and robots all emit it with no env var needed. **Do not use Vercel Hobby** — it prohibits commercial use. Hostinger's managed Node.js plan (~$4/mo, bundles the email) or Cloudflare Pages (free, commercial allowed) both work; Hostinger *shared* hosting does not — it cannot run `/go/[slug]`. |
 | 1.5 | GA4 + Google Search Console | Web Dev | Must run **2–4 weeks before applying**, so "monthly unique visitors" can be answered honestly. **Only after 0.6 exists.** |
 
 > **Note on the payee choice.** Personal works for Amazon Associates, which accepts an individual with a W-8BEN. It is awkward for Awin specifically: Awin does **not** self-bill Turkish tax residents (verified against Awin's own policy — Turkey is an explicit exception), so we would have to issue our own invoice to Awin Ltd per payout, which a Turkish individual cannot casually do. Revisit only if Awin is added.

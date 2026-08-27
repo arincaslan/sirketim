@@ -112,7 +112,7 @@ export function Preloader() {
             }}
           >
             <p className="font-display text-2xl font-semibold tracking-[0.02em] text-foreground/90">
-              DRYDOWN
+              PARFUMOZA
             </p>
 
             <div className="flex items-baseline font-display text-6xl font-medium tabular-nums text-foreground md:text-7xl">

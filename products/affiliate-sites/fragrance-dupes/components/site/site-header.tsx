@@ -29,7 +29,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex flex-col leading-none" onClick={() => setOpen(false)}>
-          <span className="font-display text-xl font-semibold tracking-[0.02em]">DRYDOWN</span>
+          <span className="font-display text-xl font-semibold tracking-[0.02em]">PARFUMOZA</span>
           <span className="hidden text-[10px] uppercase tracking-[0.16em] text-muted-foreground sm:block">
             Independent Fragrance Comparisons
           </span>

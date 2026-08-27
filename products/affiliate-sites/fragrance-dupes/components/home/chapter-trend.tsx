@@ -4,7 +4,7 @@ import { Reveal } from "@/components/site/reveal";
 /**
  * Chapter 1 of the homepage narrative: what a dupe actually is, and why the
  * culture around them is real rather than a bootleg-market punchline. Sets
- * up chapter 2's turn (the gap Drydown exists to close) without naming a
+ * up chapter 2's turn (the gap Parfumoza exists to close) without naming a
  * competitor - see chapter-gap.tsx's own note on why this site never names
  * Fragrantica in on-page copy.
  */

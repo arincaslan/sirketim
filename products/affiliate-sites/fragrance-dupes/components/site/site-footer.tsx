@@ -32,7 +32,7 @@ export function SiteFooter() {
     <footer className="border-t border-border">
       <div className="container grid gap-10 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="flex flex-col gap-3">
-          <span className="font-display text-xl font-semibold tracking-[0.02em]">DRYDOWN</span>
+          <span className="font-display text-xl font-semibold tracking-[0.02em]">PARFUMOZA</span>
           <p className="max-w-[38ch] text-sm text-muted-foreground">
             Independent fragrance-dupe comparisons. We buy what we review and
             we say plainly where a match is strong and where it isn&apos;t.
@@ -62,7 +62,7 @@ export function SiteFooter() {
 
       <div className="border-t border-border">
         <div className="container flex flex-col gap-2 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>Drydown is a Sirketim product. Independent editorial, funded by affiliate commissions.</p>
+          <p>Parfumoza is a Sirketim product. Independent editorial, funded by affiliate commissions.</p>
         </div>
       </div>
     </footer>

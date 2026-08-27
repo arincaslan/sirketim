@@ -7,7 +7,7 @@ import { Reveal } from "@/components/site/reveal";
 export const metadata: Metadata = {
   title: "Our Standards",
   description:
-    "How Drydown tests fragrances, calculates similarity scores, and keeps affiliate revenue from influencing a single rating.",
+    "How Parfumoza tests fragrances, calculates similarity scores, and keeps affiliate revenue from influencing a single rating.",
 };
 
 export default function AboutPage() {
@@ -106,7 +106,7 @@ export default function AboutPage() {
           <h2 className="font-display text-fluid-h2">Independence and revenue</h2>
           <Accordion type="single" collapsible className="mt-6">
             <AccordionItem value="revenue">
-              <AccordionTrigger>How does Drydown make money?</AccordionTrigger>
+              <AccordionTrigger>How does Parfumoza make money?</AccordionTrigger>
               <AccordionContent>
                 Through affiliate commissions when a reader buys through one
                 of our links. It costs you nothing extra, and it never moves

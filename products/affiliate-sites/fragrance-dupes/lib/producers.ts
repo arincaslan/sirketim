@@ -13,13 +13,13 @@ import type { Producer } from "@/lib/types";
  * MARKETPLACE-PLAN.md §4). Treat every entry as illustrative until a real
  * producer actually enrolls.
  *
- * DRYDOWN's own line (`isHouse`) is the exception: it is ours, so it carries
+ * PARFUMOZA's own line (`isHouse`) is the exception: it is ours, so it carries
  * no subscription and skips the approval queue entirely.
  */
 export const PRODUCERS: Producer[] = [
   {
-    slug: "drydown-atelier",
-    name: "Drydown Atelier",
+    slug: "parfumoza-atelier",
+    name: "Parfumoza Atelier",
     blurb:
       "Our own line. Made in small batches and priced from what it actually costs us to make, with the margin stated plainly rather than buried.",
     isHouse: true,
@@ -69,7 +69,7 @@ export function getProducerName(slug: string): string {
   return getProducer(slug)?.name ?? slug;
 }
 
-/** The house producer (DRYDOWN's own line), if one is configured. */
+/** The house producer (PARFUMOZA's own line), if one is configured. */
 export function getHouseProducer(): Producer | undefined {
   return PRODUCERS.find((p) => p.isHouse);
 }

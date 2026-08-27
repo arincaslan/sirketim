@@ -2,7 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Scope: the DRYDOWN affiliate/marketplace site. Read the chain — root `CLAUDE.md` → `departments/web-development/CLAUDE.md` → this file. `README.md` here covers the stack, how to run it, and the honesty caveats; `DESIGN.md` covers visual direction. **This file covers the invariants that span several files and are easy to break without noticing.**
+Scope: the PARFUMOZA affiliate/marketplace site. Read the chain — root `CLAUDE.md` → `departments/web-development/CLAUDE.md` → this file. `README.md` here covers the stack, how to run it, and the honesty caveats; `DESIGN.md` covers visual direction. **This file covers the invariants that span several files and are easy to break without noticing.**
+
+## The brand is Parfumoza — and "drydown" is still a real word here
+
+Renamed from **Drydown** to **Parfumoza** on 2026-08-27, when `parfumoza.com` was chosen as the domain (`drydown.com` was taken).
+
+**Do not run a blanket find-and-replace on "drydown".** It is also the perfumery term for the base-note phase — the part of a fragrance still on skin hours later — and it appears legitimately in editorial copy and in code comments explaining why base notes are weighted highest (`lib/similarity.ts`, `app/about/page.tsx`, the guide, `submission-form.tsx`'s placeholder, `DESIGN.md`). Those uses are correct and must survive.
+
+The rule that made the rename safe: **capitalised forms (`Drydown`, `DRYDOWN`) were the brand; bare lowercase `drydown` is the perfumery term.** Slug-style identifiers (`drydown-theme`, `drydown-atelier`) were brand too and were renamed explicitly.
 
 ## Commands
 
