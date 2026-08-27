@@ -9,24 +9,24 @@ Canonical copy. Published visual version is linked from the dashboard.
 
 ## The honest snapshot
 
-**Updated 27 Aug (second pass), after phase 2 was closed out except content.** The site now contains no invented data and no claim it cannot defend, its catalog is indexable, and it has a real share card. What remains between it and revenue is a deploy and more content.
+**Updated 27 Aug (third pass) — the site is LIVE.** `parfumoza.com` serves over HTTPS on Cloudflare Workers at **$0/month**, email survived the DNS migration, GA4 is collecting and Search Console is verified. Phases 0, 1 and 2 are done. **What stands between here and revenue is no longer build work — it is 1–3 more content pieces and the 2–4 week analytics window before applying to Awin.**
 
 | | Reality | |
 |---|---|---|
 | Routes building | 89 pages, typecheck clean, lint clean | ✅ |
 | Reference fragrances | 68, across 8 houses — real, researched | ✅ |
 | **Indexable catalog URLs** | **68** (was 0) | ✅ |
-| Sitemap entries | **81** (was ~11) | ✅ |
+| Sitemap entries | **86** (was ~11), all trailing-slash canonical | ✅ |
 | Privacy policy / contact | `/privacy` and `/contact` live | ✅ |
 | Canonicals, OG, site schema | On every page — **incl. the 3 content routes that were missing canonicals entirely** | ✅ |
 | Social share image | `og-cover.png`, 1200×630, on every page | ✅ |
 | Invented data | **None** — all removed | ✅ |
 | Payoneer | Open | ✅ |
 | Domain + email | `parfumoza.com`, `contact@parfumoza.com` live | ✅ |
-| Published content | **4 pieces, ~4,000 words** (was 1 piece / 434 words) | ◐ needs 10–12 |
+| Published content | **9 pieces, ~9,300 words** (was 1 piece / 434 words) | ◐ needs 10–12 |
 | Dupe listings | **0** (37 removed as invented) | ❌ needs real data |
 | Working affiliate links | **0** — none enrolled | ❌ |
-| Deployment / host | **Not chosen** — comparison done, decision is the founder's | ❌ |
+| Deployment / host | **LIVE** at parfumoza.com — Cloudflare **Workers**, $0/mo | ✅ |
 | Revenue to date | **$0** | — |
 
 **The catalog is now the site's asset.** 68 real fragrance pages with note pyramids, profiles, longevity and price-per-ml — each one a page a search engine can land on, and each one honestly saying no alternative is listed yet rather than inventing one.
@@ -70,11 +70,11 @@ All nine items landed. The site now contains no invented data and no claim it ca
 
 ---
 
-## Phase 1 — Get it online
+## Phase 1 — Get it online  ✅ DONE (27 Aug)
 
-Cost: **~$15–20**, or **~$255** if Vercel Pro is required. Owner: Founder, then Web Development.
+Actual recurring cost: **$0/month.** Owner: Founder, then Web Development.
 
-> ⚠️ **The single biggest cost unknown in this whole plan.** Vercel's Hobby tier is for *non-commercial* use, and an affiliate-monetised site is arguably commercial. If Pro is required that is ~$20/mo — more than every other pre-revenue cost combined. **Read Vercel's terms before deploying.**
+> **The biggest cost unknown in this plan resolved to zero.** Vercel Pro (~$255/yr) was the feared outcome; Cloudflare Workers' free plan permits commercial use and serves static assets free and unlimited, so the site hosts for nothing. The rejected alternatives were Hostinger Cloud Startup (**$383.52 upfront**, then $25.99/mo) and Hostinger Unlimited ($191.52, then $16.99/mo). Only the domain and mailbox cost money, and **those amounts are not yet in the ledger** — see the accounting note at the foot of this doc.
 
 | # | Task | Owner | Blocks |
 |---|---|---|---|
@@ -194,7 +194,7 @@ The catalog cannot be hand-expanded. All 68 references are hand-typed TypeScript
 | 4.2 | Import real prices; retire the hand-maintained constants |
 | 4.3 | Populate `imageUrl` from affiliate-supplied imagery |
 | 4.4 | Expand the reference catalog from the feed |
-| 4.5 | **Remove the illustrative-data banner** — it stops being true here |
+| 4.5 | **Re-check the house-product ranking before listings go back in** — see the integrity problem at the foot of this doc. (Replaces the old "remove the illustrative-data banner": that banner was never built.) |
 
 **Done when:** the banner from 0.2 can be deleted honestly.
 
@@ -240,8 +240,37 @@ Nothing below can be done by an agent. Everything downstream waits on them.
 1. ~~**Decide payee — A.Ş. vs individual.**~~ ✅ Personal, with the `mali müşavir` (27 Aug).
 2. ~~**Open Payoneer.**~~ ✅ Open (27 Aug).
 3. ~~**Register the apex domain.**~~ ✅ `parfumoza.com`, plus `contact@parfumoza.com` (27 Aug).
-4. **Choose a host and deploy.** ⬅ **the only thing now blocking Phase 3.** Comparison and recommendation are in Phase 1 above; this is a spending decision, so it is the founder's.
+4. ~~**Choose a host and deploy.**~~ ✅ Done 27 Aug — Cloudflare Workers, $0/mo, live at parfumoza.com with email intact.
 5. **Apply to Awin**, once the site is live and has content — and only after GA4 has run 2–4 weeks (1.5), so "monthly unique visitors" can be answered honestly.
+
+---
+
+## Board review, 27 Aug — what the COO and CFO found
+
+Both ran read-only and verified against files rather than asserting. Their findings, with what has already been actioned:
+
+**Fixed immediately:**
+
+- **Every sitemap URL was a redirect.** `trailingSlash: true` means `/about` 307s to `/about/`, but all 86 sitemap entries were emitted *without* the slash while every canonical carried one. The sitemap was advertising 86 explicitly non-canonical URLs at the exact moment Google started crawling. Fixed via `canonicalUrl()` in `lib/site.ts`; all 86 now match.
+- **`scripts/generate-redirects.mjs` named the wrong platform.** It told the next session to restore click logging with "a Cloudflare Pages Function at `functions/go/[slug].js`" — but this deploys as a **Worker**, where a `functions/` directory does nothing. Two files gave contradictory instructions on the one path that will carry every affiliate click. Corrected.
+
+**Open, and worth acting on before listings return:**
+
+- **The score cap does not protect against us.** `getPublishedSimilarity()` caps only *unverified* listings, and `isVerbatimCopy()` would not have flagged `No. 01 Ember` at 79%. Nothing structurally prevents a house product being marked verified and publishing uncapped at #1. Before repopulating `DUPES`: bar house products from `verified` status, source Ember's facets externally, and **launch with no house products at all until Awin approves** — a merchant reviewer seeing us rank first on our own comparison is the rejection.
+- **`components/library/library-tabs.tsx` still filters `comparison`/`review` types** whose routes were deleted. Harmless at zero pieces; produces links to 404s the moment either type is written.
+- **`lib/verification.ts` cites a comment that no longer exists** ("lib/dupes-data.ts's No. 01 Ember comment"). Dangling evidence pointer.
+- **Content has no commercial intent.** Nine informational guides compete in the most saturated vertical online and will not convert even after links land. Original-anchored formats — "*&lt;original&gt;* alternatives" — are writable as `guide` **today** and seed the pages that will hold links later. Stop generic guides at 9–10; spend the rest there.
+
+**Accounting — the ledger does not know this project exists:**
+
+- `departments/accounting/ledger.md` holds **one row** (OpenArt, $29/mo, itself unconfirmed since 19 Aug). Running balance −$29.00, and **100% of it unconfirmed**.
+- The domain and mailbox were paid today and are **not logged**. No agent can retrieve the amounts: `hostinger-billing` is deliberately not configured, so the founder must supply the receipt — amount, currency (TRY or USD), and whether auto-renew is on. This recurs at every renewal.
+- **Unnamed structural risk: costs sit in the A.Ş., revenue will land personally.** Domain, hosting and OpenArt are company expenses, but a personal payee puts affiliate income outside the entity. The A.Ş. shows permanent loss with no revenue line, and the income becomes a personal declaration this ledger does not track.
+- **The payee escape clause has already triggered.** This doc says the Awin invoicing problem should be revisited "only if Awin is added" — but Awin *is* the plan, since Amazon was dropped and ShareASale merged into it. Narrow question for the *mali müşavir*: **can an individual issue a valid invoice to a UK company per payout, or does that require the A.Ş.?**
+- **Two docs disagree on the Awin signup fee** (~$5 refundable vs "free to join"). Unverified either way.
+- Also unlogged and unchecked: whether `TWENTY_FIRST_API_KEY` is a paid tier, whether Payoneer charged an opening or inactivity fee, and whether the *mali müşavir* billed for the payee consultation.
+
+**Checked and closed:** Cloudflare's free plan permits commercial use — the same question that ruled out Vercel Hobby had never been asked of Cloudflare.
 
 ---
 

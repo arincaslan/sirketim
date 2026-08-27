@@ -73,3 +73,30 @@ export function gaMeasurementId(): string | null {
 export function absoluteUrl(path: string): string {
   return `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;
 }
+
+/**
+ * Absolute URL in the site's CANONICAL form - with a trailing slash.
+ *
+ * `next.config.mjs` sets `trailingSlash: true`, so /about is not a page: it is
+ * a 307 to /about/. Next's own canonical tags already account for this, but
+ * anything we build by hand does not, and the two silently disagreed.
+ *
+ * That is not cosmetic. Every one of the 86 URLs in sitemap.xml was emitted
+ * without the slash while the matching page's canonical carried one, so the
+ * sitemap advertised 86 redirecting, explicitly non-canonical URLs. Search
+ * Console logs those as "Page with redirect", crawls them more slowly, and
+ * the contradiction lands at exactly the wrong moment - the start of the
+ * analytics/indexing window before an affiliate application.
+ *
+ * Use this for sitemap entries and any hand-built absolute URL. Asset paths
+ * with a file extension (/og-cover.png) are returned unchanged, since those
+ * are real files and must NOT gain a slash.
+ */
+export function canonicalUrl(path: string): string {
+  const url = absoluteUrl(path);
+  if (url.endsWith("/")) return url;
+  // A dot in the last segment means a file, not a route.
+  const lastSegment = url.slice(url.lastIndexOf("/") + 1);
+  if (lastSegment.includes(".")) return url;
+  return `${url}/`;
+}

@@ -11,7 +11,12 @@ export function buildContentSitemapEntries(
   pieces: ContentPiece[]
 ): MetadataRoute.Sitemap {
   return pieces.map((p) => ({
-    url: `${siteUrl}/${p.frontmatter.contentType}/${p.frontmatter.slug}`,
+    // Trailing slash is deliberate: the site sets `trailingSlash: true`, so the
+    // slash-less form is a 307 and NOT the canonical URL. A sitemap that lists
+    // redirecting URLs is a contradictory signal - see lib/site.ts's
+    // canonicalUrl(). This kit function takes a bare origin rather than
+    // importing the site module, so the slash is applied here.
+    url: `${siteUrl}/${p.frontmatter.contentType}/${p.frontmatter.slug}/`,
     lastModified: p.frontmatter.updatedAt ?? p.frontmatter.publishedAt,
     changeFrequency: "monthly" as const,
     priority: p.frontmatter.contentType === "comparison" ? 0.9 : 0.7,

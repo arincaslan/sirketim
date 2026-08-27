@@ -25,10 +25,22 @@
  * What IS lost is our own server-side click logging — there is no server to
  * log on. Two honest options when that matters:
  *   1. Client-side GA4 outbound-click events (enough for "which pages convert").
- *   2. A Cloudflare Pages Function at functions/go/[slug].js, which restores
- *      the per-request chokepoint on the free tier (100k requests/day).
+ *   2. A `main` Worker script declared in the repo-root wrangler.jsonc, which
+ *      handles /go/* per-request and falls through to the static assets for
+ *      everything else. The free tier covers it (100k requests/day).
  * Option 2 is the right one before the first real campaign spend. Neither is
  * needed today: `affiliateLinks` is empty and no programme is enrolled.
+ *
+ * CORRECTED 2026-08-27: this comment previously said to add "a Cloudflare
+ * Pages Function at functions/go/[slug].js". That is WRONG for this project.
+ * The site deploys as a WORKER with static assets, not as Pages, and a
+ * functions/ directory does nothing there. The root wrangler.jsonc always
+ * carried the right advice; this file contradicted it — on the one code path
+ * that will carry every affiliate click. Caught in a board review.
+ *
+ * When that Worker script lands, note also that `_redirects` rules are NOT
+ * applied to requests served by Worker code. Move the /go/ mapping into the
+ * script rather than leaving both in place and guessing which one wins.
  *
  * UNRESOLVED COMPLIANCE QUESTION — carried over verbatim, still unresolved:
  * Amazon's Associates operating agreement bars obscuring the source site

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllContent } from "@/content/loader";
 import { buildContentSitemapEntries } from "@/lib/sitemap-builder";
 import { REFERENCES } from "@/lib/data/references";
-import { siteUrl } from "@/lib/site";
+import { canonicalUrl, siteUrl } from "@/lib/site";
 
 /**
  * Before /fragrance/[slug] existed this sitemap listed about eleven URLs for a
@@ -37,13 +37,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     ...STATIC_ROUTES.map(({ path, priority }) => ({
-      url: `${base}${path}`,
+      url: canonicalUrl(path || "/"),
       lastModified: builtAt,
       changeFrequency: "weekly" as const,
       priority,
     })),
     ...REFERENCES.map((reference) => ({
-      url: `${base}/fragrance/${reference.slug}`,
+      url: canonicalUrl(`/fragrance/${reference.slug}`),
       lastModified: builtAt,
       // These change when a listing is added against them, not on a schedule.
       changeFrequency: "monthly" as const,
