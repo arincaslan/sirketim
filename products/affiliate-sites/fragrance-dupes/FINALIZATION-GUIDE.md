@@ -120,7 +120,7 @@ Cost: **~$15–20**, or **~$255** if Vercel Pro is required. Owner: Founder, the
 | 2.4 ✅ | `Organization` + `WebSite` sitewide, `BreadcrumbList` on fragrance pages | |
 | 2.5 ✅ | Homepage metadata | |
 | 2.6 ✅ | `lastModified` in the sitemap | Verified present on all three entry groups (static, references, content). |
-| 2.7 ◐ | **Content: 10–12 real pieces** | **6 published, ~6,100 words** (was 1 piece / 434 words). See the constraint below — this is not simply "write more". |
+| 2.7 ◐ | **Content: 10–12 real pieces** | **9 published, ~9,300 words** (was 1 piece / 434 words). See the constraint below — this is not simply "write more". |
 
 > **Why the share image is a committed PNG, not `opengraph-image.tsx`.** Next's `ImageResponse` only runs under the **edge** runtime in this project — the Node runtime path crashes the request outright. Adopting edge would have given the site its first dynamic route and cost it the property that makes free static hosting viable (see Phase 1's host comparison). The card is one fixed brand image that never varies per page, so generating it per request bought nothing. To change it, re-render from a throwaway edge route rather than editing the PNG.
 
@@ -136,14 +136,19 @@ Published so far (all `guide`, all `disclosure: false`):
 
 | Piece | Words |
 |---|---|
-| How to Actually Find a Fragrance Dupe That Works | 434 — thin, worth expanding |
+| How to Actually Find a Fragrance Dupe That Works | 954 (was 434 — expanded) |
 | EDT, EDP, Extrait: What Fragrance Concentration Actually Changes | 1,166 |
 | Why a Fragrance Smells Different on You Than in Every Review | 1,227 |
 | Top, Heart, Base: How to Actually Read a Fragrance Note Pyramid | 1,169 |
 | How to Make a Fragrance Last Longer (and What Doesn't Work) | 1,051 |
 | Are Fragrance Dupes Legal? And Are They Safe to Wear? | 1,036 |
+| Fragrance Families Explained | 879 |
+| Designer vs Niche vs Dupe: What You're Actually Paying For | 919 |
+| How to Buy a Fragrance Online Without Smelling It First | 908 |
 
-**6 of 10–12. ~6,100 words.** Every internal link across all six is verified resolving against the built site, not assumed. The six form a deliberate cluster: each answers a real search question, needs no affiliate link, and internally links to the `/fragrance/[slug]` pages 2.1 created — which is what gets those 68 pages crawled.
+**9 of 10–12. ~9,300 words.** All **30 distinct internal links** across the nine are verified resolving against the built site, not assumed — a check that exists because an early piece shipped a link to `/fragrance`, which has no index route.
+
+The nine are a deliberate cluster, not nine unrelated posts: each answers a real search question, needs no affiliate link, cross-links to the others, and points into the `/fragrance/[slug]` pages 2.1 created — which is what gets those 68 pages crawled rather than sitting orphaned in a sitemap.
 
 > **`disclosure` was being set dishonestly.** The block reads "This piece contains affiliate links" — untrue on every piece currently published, since none contain any. The schema defaults it to `true`, and the pre-existing guide had it on. All four are now `disclosure: false`; it flips back per-piece as real links land in Phase 3.
 
