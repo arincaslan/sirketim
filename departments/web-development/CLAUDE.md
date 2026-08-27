@@ -76,6 +76,33 @@ Cloudflare Workers Paid is $5/mo (10M requests, 30M CPU-ms) if the free tier's 1
 - **Email is not an argument for buying hosting.** Hostinger email is attached to the *domain*, not the plan — `contact@parfumoza.com` resolves today with **no hosting plan on the account** (MX/SPF/DKIM/DMARC verified live via the API).
 - Hostinger has a **30-day money-back guarantee**, so a wrong pick is recoverable at day 20 and not at day 400.
 
+## Deploying to Cloudflare — what actually worked
+
+`parfumoza.com` is the first site deployed from this repo. Two builds failed before it worked, both for the same reason, and the failure mode is worth recognising because the log does not say what is wrong.
+
+**Symptom**: the build log shows `Detected the following tools from environment:` with **nothing after it**, goes straight to `Executing user deploy command: npx wrangler deploy`, never runs `npm install` or `npm run build`, and fails with `Could not detect a directory containing static files`.
+
+**What that means**: Cloudflare created a **Workers** project (the current default — it does *not* create Pages projects any more), cloned the repo root, and found no `package.json` there because the app is four levels down. Nothing about the code was wrong.
+
+**The fix used here** — make the repo root self-sufficient so the deploy depends on **one** dashboard setting rather than on monorepo support behaving:
+
+- Root `package.json` with a single `build` script that `cd`s into the project and builds it.
+- Root `wrangler.jsonc` with `assets.directory` pointing at that project's `out/`.
+- In the dashboard, set only the **build command** to `npm run build`. Leave the deploy command as `npx wrangler deploy`.
+
+Setting a **root directory** in the dashboard is the other fix, and is the better one *if it takes* — but it needs **Build System V2** for monorepo support, and it silently did not apply here. Also note **"Retry deployment" replays the previous build's settings**; after changing settings you need a *new* deployment (push a commit, or use Create/Deploy) or you will debug a config that is no longer current.
+
+**Verify locally before pushing** — this catches both failure modes in about a minute:
+
+```bash
+npm run build                      # from the repo root, exactly as Cloudflare runs it
+npx wrangler@4 deploy --dry-run    # should print "Read N files from the assets directory"
+```
+
+**Config choices worth keeping**: `not_found_handling` is `"404-page"`, deliberately **not** `"single-page-application"` — SPA handling returns `index.html` with a **200** for every unknown URL, which tells a crawler that every typo'd path is a real page and makes a broken redirect render the homepage instead of failing visibly.
+
+**Workers vs Pages, going forward**: staying on Workers is the right call. `assets` serves a static export from the edge on the free plan, and a `main` Worker script can later handle a dynamic path (for Parfumoza, the `/go/*` affiliate chokepoint) while falling through to assets for everything else — which Pages would need a separate Functions directory for. **Gotcha for that day**: `_redirects` rules are **not** applied to requests served by Worker code, only to asset requests, so move the mapping into the script rather than leaving both and guessing.
+
 ## Skills for UI/motion quality
 
 - **`ui-ux-pro-max`** (`.claude/skills/ui-ux-pro-max/`) — local design-intelligence data (styles, palettes, typography, UX rules) for reviewing or generating a screen/component. This is the skill referenced above and in `web-developer.md`; installed via `uipro init --ai claude` (npm package `ui-ux-pro-max-cli`). Its installer also bundles several *other* skills (`design`, `brand`, `banner-design`, `design-system`, `slides`, `ui-styling`) — deliberately not kept: the bundled `design` skill has the exact same name as Anthropic's own built-in `design` skill (Claude Design canvas), which the internal dashboard workflow depends on, and shadows/overrides it if present. Re-running `uipro init` will recreate those folders — delete them again (keep only `ui-ux-pro-max/`) rather than letting the shadow reappear.

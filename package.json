@@ -1,0 +1,9 @@
+{
+  "name": "sirketim-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Repo-root deploy shim. NOT a workspace root and NOT a build system for this repo - see the note below.",
+  "scripts": {
+    "build": "cd products/affiliate-sites/fragrance-dupes && npm install && npm run build"
+  }
+}

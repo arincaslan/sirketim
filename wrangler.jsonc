@@ -1,0 +1,49 @@
+{
+  // Cloudflare Workers deploy config for Parfumoza (parfumoza.com).
+  //
+  // WHY THIS SITS AT THE REPO ROOT AND NOT IN THE PROJECT
+  // ----------------------------------------------------
+  // Cloudflare runs `npx wrangler deploy` from whatever it treats as the
+  // project root, and this repo's Cloudflare project has no "root directory"
+  // set - two builds failed with "Could not detect a directory containing
+  // static files" because wrangler ran at the repo root and found nothing
+  // there to serve.
+  //
+  // Setting a root directory in the dashboard is the other fix, but it needs
+  // Build System V2 for monorepo support and did not take when tried. Putting
+  // the config (and a build shim in the root package.json) here instead means
+  // the deploy depends on ONE dashboard setting - the build command - rather
+  // than on monorepo support behaving.
+  //
+  // Deliberately the ONLY wrangler config in this repo. An earlier copy lived
+  // in products/affiliate-sites/fragrance-dupes/ and was removed: whichever
+  // one wrangler picked would depend on its working directory, and two configs
+  // that must agree are two configs that will eventually disagree.
+  //
+  // If a second site is ever deployed from this repo, do NOT add a competing
+  // root config - give that project its own Cloudflare project with a root
+  // directory set, and revisit this one.
+  "name": "parfumoza",
+  "compatibility_date": "2026-08-27",
+
+  "assets": {
+    // Written by `npm run build` at the repo root, which delegates to the
+    // project's own build (next build with output: "export"). The project's
+    // prebuild step writes public/_redirects, and the export copies it in.
+    "directory": "./products/affiliate-sites/fragrance-dupes/out",
+
+    // Serve the exported 404 page with a real 404 status. NOT
+    // "single-page-application": that returns index.html with a 200 for every
+    // unknown URL, which would tell a crawler every typo'd path is a real
+    // page, and would make /go/<unknown> render the homepage instead of
+    // failing loudly the way this project requires.
+    "not_found_handling": "404-page"
+  }
+
+  // FUTURE, for FINALIZATION-GUIDE.md 3.5: when the affiliate click
+  // chokepoint needs to come back, add a `main` Worker script here that
+  // handles /go/* and falls through to these assets for everything else.
+  // Note that `_redirects` rules are NOT applied to requests served by Worker
+  // code - so move the /go/ mapping into the script rather than leaving both
+  // in place and guessing which wins.
+}
