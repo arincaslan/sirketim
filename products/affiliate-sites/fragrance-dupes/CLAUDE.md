@@ -62,7 +62,9 @@ lib/data/houses/*.ts   (one file per fragrance house — the reference catalog)
 
 Adding fragrances: append to the relevant `lib/data/houses/<house>.ts`. Adding a house: new file + one line in `references.ts`. Note the reference catalog is curated editorial data — producers must never be able to create originals (that's what stops forty spellings of "Baccarat Rouge").
 
-**The catalog has no URLs.** 68 references × 37 listings currently generate **zero** indexable pages: `/dupe-finder` reads `?ref=<slug>` server-side to seed the initial reference, but picking a dupe is pure React state inside `dupe-finder.tsx` — no router push, no URL sync — and `ComparisonDetail` only ever renders inside that component or an MDX embed. So there is no `/fragrance/[slug]` and no `/compare/[a]-vs-[b]`, and the sitemap carries ~11 URLs for the whole site. This is the single highest-leverage SEO fix and it is a *routing* change, not a content one. Everything downstream of it (canonicals, per-page OG, breadcrumbs) is blocked on those routes existing.
+**The catalog is now indexable — `/fragrance/[slug]` exists (2026-08-27).** It statically generates one page per reference via `generateStaticParams()` over `REFERENCES`, with canonical + OG metadata and BreadcrumbList JSON-LD, and the sitemap went from ~11 URLs to 78. Four routes use `generateStaticParams`: `/fragrance/[slug]`, `/comparison/[slug]`, `/guide/[slug]`, `/review/[slug]`.
+
+What is still missing is the **pairwise** comparison URL. `/dupe-finder` reads `?ref=<slug>` to seed the initial reference, but picking a dupe is pure React state inside `dupe-finder.tsx` — no router push, no URL sync — so there is still no `/compare/[a]-vs-[b]`. That route is blocked on listings existing at all (see below), not on routing work.
 
 **All data is hand-typed TypeScript literals — there is no import path anywhere.** No feed, no CSV, no fetch. That is why "add every fragrance on the market" is not a bigger version of the same task: it needs an ingest source, which is expected to be an affiliate product feed (which also supplies the legally usable imagery discussed below). Prices are hand-maintained constants that feed a user-facing "Nx cheaper" claim, so they go stale silently.
 
@@ -70,11 +72,20 @@ Adding fragrances: append to the relevant `lib/data/houses/<house>.ts`. Adding a
 
 This project has several features that are fully built but non-functional, because the service behind them doesn't exist. **They announce that plainly rather than faking success, and that is a requirement, not a placeholder to tidy up:**
 
-- `app/api/subscribe` and `app/api/webhooks/stripe` return **503 with an explicit reason** when Stripe env vars are absent. **⚠ This code is dead and slated for deletion — do not extend it.** Sirketim is Turkey-based and **Stripe does not serve Turkey** (verified 2026-08-26 against `stripe.com/global`); this was already documented in `departments/accounting/CLAUDE.md` two days before the integration was written. Its 503 message ("No Stripe account is connected to this site") is itself misleading, because it implies one *could* be. Replacement rail is **Paddle**; `prisma/schema.prisma` is already provider-agnostic (`PaymentProvider`, `providerCustomerId`, …). See `FINALIZATION-GUIDE.md` phase 0.5.
+- **`app/api/` no longer exists.** The Stripe checkout/webhook routes were **deleted on 2026-08-27**, not left inert: Sirketim is Turkey-based and **Stripe does not serve Turkey** (verified 2026-08-26 against `stripe.com/global`), which `departments/accounting/CLAUDE.md` had already documented two days before that integration was written. Replacement rail is **Paddle**; `prisma/schema.prisma` stays provider-agnostic (`PaymentProvider`, `providerCustomerId`, …) so the next attempt isn't provider-shaped. `/go/[slug]/route.ts` is now the **only** route handler in the project.
 - `components/reviews/add-review-form.tsx` and `components/producers/submission-form.tsx` tell the user nothing was saved. Don't "fix" these into fake success states.
-- Every affiliate destination in `lib/affiliate-links.ts` is a marked placeholder; no program is enrolled.
 
-Unfilled env vars are listed in `.env.example`. Filling them requires the founder's own accounts (Supabase/Neon, Stripe) — real business, bank, and tax identity that can't be scripted.
+Unfilled env vars are listed in `.env.example`. Filling them requires the founder's own accounts (Supabase/Neon, a payment provider) — real business, bank, and tax identity that can't be scripted.
+
+## Three arrays are deliberately empty — and refilling them by hand is the failure mode
+
+As of 2026-08-27, `DUPES`, `REVIEWS` and `affiliateLinks` are all empty (`[]`, `[]`, `{}`). This is the **corrected** state, not an unfinished one, and each file's header says so. The site renders its empty states correctly throughout — that is why the empty states exist.
+
+Why they were emptied: the listings named products (`Dossier Ambrosia`, ALT.'s `Bright` and `Blue Cedar`) that **do not exist**, attributed to real operating companies — verified against those companies' own storefronts. `lib/reviews.ts` held six invented reviews with human names, star ratings and dates about the same real companies, including a negative one, rendered with an aggregate average and no on-screen fixture label. That is FTC Fake Reviews Rule and trade-libel territory, not a tidiness problem.
+
+**Do not hand-write entries back into any of the three.** If a product name cannot be verified on the producer's own storefront right now, it does not go in. Real listings arrive with an affiliate product feed (`FINALIZATION-GUIDE.md` phase 3 → 4), which is also the lawful imagery source discussed below.
+
+Consequences worth knowing before you plan around them: the site currently has **68 references and zero listings**, so every "alternatives" section renders its empty state; the house-product plumbing (`components/dupe-finder/house-badge.tsx`, the `No. 01 Ember` comment in `lib/verification.ts`) is intact but has nothing to render; and the previously-documented problem of *our own product ranking #1 on Baccarat Rouge 540* is dormant rather than solved — it returns the moment `DUPES` is repopulated with Ember still in it.
 
 ## Product imagery is legally blocked, not missing
 
@@ -105,7 +116,7 @@ curl -s "http://localhost:<port>/dupe-finder?ref=<slug>" -o out.html
 grep -oE ".{30}note and facet match" out.html    # the displayed (capped) score
 ```
 
-Also confirm the API routes still refuse honestly (`POST /api/subscribe` → 503 with a message), and that `/go/<id>` 302s to the expected placeholder while an invalid id still 404s.
+Also confirm `/go/<id>` still 404s for an unknown id (with `affiliateLinks` empty, **every** id currently 404s — that is correct), and that the submission and review forms still say plainly that nothing was saved.
 
 ## The producer surface, and the gate that isn't open
 
@@ -124,7 +135,17 @@ Four routes: `/producers` and `/producers/pricing` (public), `/producers/login`,
 
 `MARKETPLACE-PLAN.md` (the two-sided marketplace model, data model, open business questions) and `PRODUCER-PROGRAM.md` (subscription tiers, submission flow, approval criteria, the integrity standard) remain the reference for *why* things are shaped as they are. Both are `Status: planning only` where they describe unbuilt things — check which parts have since been implemented rather than assuming either extreme.
 
-## Two open problems, both deliberately unresolved
+## Deployment shape — the site needs almost no server
 
-- **`lib/reviews.ts` renders fabricated reviews as real.** Six invented reviews with human names, star ratings and dates, about **real, named, operating companies** (including a negative one), rendered with an aggregate average and no on-screen fixture label — despite the file's own header forbidding exactly that. FTC Fake Reviews Rule plus trade-libel exposure. It is the **first item** in `FINALIZATION-GUIDE.md` and a one-line data change; the empty state already renders correctly.
-- **Our own house product ranks #1 on its reference.** `No. 01 Ember` renders at 79% on `baccarat-rouge-540`, ahead of every real listing — confirmed against the running server. This is *not* the producer-copying exploit (that one is fixed and enforced); it is the same failure by our own hand, because Ember's note list was written close to the reference. The mechanism is honest (same formula, `HouseBadge` discloses it, ties break toward the cheaper bottle) but the data isn't. Resolving it is a founder call — don't quietly re-weight the formula to hide it.
+Worth knowing before anyone picks a host or reaches for a server-side feature: **there is no dynamic server surface in this project.** Verified 2026-08-27 by grepping `app/` and `lib/` — no `cookies()`, no `headers()`, no `force-dynamic`, no `revalidate`, no `runtime` exports, and one route handler (`/go/[slug]`) that does a static map lookup and returns a 302. `lib/producer-session.ts` returns `null` at build time and stays null.
+
+Two consequences:
+
+- Every page is statically renderable, so a static export plus generated redirects is a real deployment option, not a downgrade. That is what makes free static hosting viable here.
+- **The project is pinned to Next.js 14.2.35, and that constrains hosts.** `@opennextjs/cloudflare` ended Next.js 14 support in Q1 2026, and Cloudflare's current recommended path (`vinext`) targets Next.js 16 — so deploying to Cloudflare Workers as a Node app means upgrading Next first. Hosts that run a plain Node process (Hostinger's Node.js web apps, a VPS) run this code unmodified. See `departments/web-development/CLAUDE.md` for the cost/tradeoff comparison.
+
+## Canonical URLs go through `lib/site.ts` — and three files still bypass it
+
+`lib/site.ts` is the single source for the site origin (`siteUrl()`, `absoluteUrl()`) and the public contact address (`CONTACT_EMAIL = contact@parfumoza.com`, a real monitored inbox since 2026-08-27). Both are **constants with real defaults, not env vars**, deliberately: a forgotten deployment setting would otherwise ship canonicals pointing at a placeholder host, which is invisible in review and expensive in search results. `NEXT_PUBLIC_SITE_URL` still overrides for previews.
+
+**Known defect, not yet fixed:** `app/comparison/[slug]/page.tsx`, `app/guide/[slug]/page.tsx` and `app/review/[slug]/page.tsx` each still hold their own `process.env.NEXT_PUBLIC_SITE_URL ?? "https://example-placeholder.com"` fallback instead of calling `siteUrl()` — the exact drift `lib/site.ts` was created to eliminate. Three one-line edits. Check for this pattern before adding a fourth.

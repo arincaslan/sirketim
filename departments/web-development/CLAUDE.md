@@ -8,7 +8,7 @@ Builds and ships client websites end to end: design-to-code, front-end build, de
 - **Styling / UI**: Tailwind CSS + shadcn/ui for component primitives
 - **Backend**: this department owns the backend, not just the front end. Next.js Route Handlers / Server Actions for API logic; **Prisma** as the default ORM; **Postgres** as the default database (via Neon or Supabase — pick one per client when the project needs persistent data; neither is provisioned yet, so say so rather than assuming a database is live). **Auth.js (NextAuth)** as the default auth layer when a client needs accounts/login.
 - **Payments (when a build needs them)**: **do not default to Stripe.** Sirketim is a Turkey-based A.Ş. and Stripe does not serve Turkey — check `../accounting/CLAUDE.md` and its `reports/payment-rails-investigation.md` before writing a line of integration code. Defaults that actually work: **Paddle** (merchant of record, digital goods only, will not process physical products), **iyzico**/**PayTR** (Turkish, TRY, both support recurring). A full Stripe checkout + webhook integration was built and thrown away in 2026-08-26 for exactly this reason. Whatever the provider, keep the shape provider-agnostic — hosted checkout redirect, signed webhook as the *only* writer of subscription state, a local projection of the provider's own object — which is the ~60–70% that survives a provider swap.
-- **Hosting**: Vercel. **Its Hobby tier is for non-commercial use** — an ad-supported, affiliate-monetised, or otherwise revenue-generating site arguably needs Pro (~$20/mo/member). Check the current terms before deploying anything that earns money, and flag the cost to the founder rather than assuming free; for a pre-revenue project this single line can outweigh every other launch cost combined.
+- **Hosting**: no standing default — pick per project against the comparison below. **Vercel's Hobby tier is for non-commercial use**, so an ad-supported, affiliate-monetised, or otherwise revenue-generating site needs Pro (~$20/mo/member). Check the current terms before deploying anything that earns money, and flag the cost to the founder rather than assuming free; for a pre-revenue project this single line can outweigh every other launch cost combined.
 - **Repos**: GitHub, one repo per client under `departments/web-development/clients/<slug>/`
 - **CMS (when needed)**: prefer a headless option (Sanity or Payload) over a custom admin panel unless the client specifically needs one
 
@@ -51,6 +51,30 @@ Added 2026-08-27 for the `parfumoza.com` launch. Four of Hostinger's official MC
 **Gotcha that cost real time:** a PowerShell/Bash tool call inherits its environment from the Claude Code process, which was started *before* `setx` ran — so `$env:HOSTINGER_API_TOKEN` reads as empty in the same session that set it, and every API call comes back `401 Unauthenticated`. That looks exactly like a bad token. Read it with `[Environment]::GetEnvironmentVariable("HOSTINGER_API_TOKEN","User")` instead, or check the length before concluding the key is wrong.
 
 **API notes**: base URL is `https://developers.hostinger.com` (the docs host *is* the API host), auth is `Authorization: Bearer <token>`. Useful paths: `/api/domains/v1/portfolio`, `/api/dns/v1/zones/{domain}` (GET/PUT), `/api/vps/v1/virtual-machines`. **Rate limits are aggressive** — expect `429 Too Many Attempts` on back-to-back calls; space requests ~20–40s apart.
+
+## Choosing a host — the real numbers, verified 2026-08-27
+
+Researched for the `parfumoza.com` launch, against each vendor's own pricing page. **Two corrections to what this repo previously assumed**, both of which change the decision:
+
+1. **Hostinger's ordinary shared plans now run Node.js web apps** — Business/"Unlimited" (5 apps) and every Cloud plan (10 apps), GitHub-connected with auto-rebuild on push, Node 18/20/22/24. The old "shared hosting is PHP/Apache, it can't run a Next.js route handler" reasoning is out of date; don't repeat it.
+2. **Cloudflare is no longer a drop-in for an older Next.js app.** `@opennextjs/cloudflare` ended Next.js 14 support in Q1 2026, and the current recommended path (`vinext`) targets Next.js 16. For a Next 14 project, Cloudflare means either a **static export** or a **Next upgrade** — not `git push`.
+
+| | Hostinger Cloud Startup | Hostinger Unlimited | Cloudflare Pages |
+|---|---|---|---|
+| Advertised | $7.99/mo | $3.99/mo | $0 |
+| **Actual commitment** | **48 mo, $383.52 upfront** | **48 mo, $191.52 upfront** | none |
+| **Renewal** | **$25.99/mo** ($311.88/yr) | **$16.99/mo** ($203.88/yr) | $0 |
+| Resources | 4 CPU / 4 GB / 100 GB | 2 CPU / 3 GB / 50 GB | edge |
+
+Cloudflare Workers Paid is $5/mo (10M requests, 30M CPU-ms) if the free tier's 100k requests/day is exceeded; **static asset requests are free and unlimited on both tiers**, which is what matters for a content site.
+
+**How to reason about it:**
+
+- **The advertised monthly price is a 48-month prepayment, and renewal is 3–4× it.** Always quote the founder the upfront figure and the renewal, never the headline. A four-year commitment on a pre-revenue site is the same trap as the Vercel Pro line above.
+- **Cloud over Business buys CPU, RAM, app slots and a dedicated IP — not capability.** Node.js support is identical. Don't recommend Cloud unless something concrete needs the headroom.
+- **Check whether the app actually needs a server before pricing one.** Grep for `cookies()`, `headers()`, `force-dynamic`, `revalidate`, `runtime =` and route handlers. A Next.js site with none of those is statically exportable, and a redirect-only route handler can usually become a generated `_redirects` file. `products/affiliate-sites/fragrance-dupes/` is exactly this shape.
+- **Email is not an argument for buying hosting.** Hostinger email is attached to the *domain*, not the plan — `contact@parfumoza.com` resolves today with **no hosting plan on the account** (MX/SPF/DKIM/DMARC verified live via the API).
+- Hostinger has a **30-day money-back guarantee**, so a wrong pick is recoverable at day 20 and not at day 400.
 
 ## Skills for UI/motion quality
 
