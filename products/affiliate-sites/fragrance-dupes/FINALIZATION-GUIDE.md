@@ -114,9 +114,11 @@ Actual recurring cost: **$0/month.** Owner: Founder, then Web Development.
 
 ---
 
-## Phase 2 — Make it findable  ✅ TECHNICALLY DONE (27 Aug) · content ongoing
+## Phase 2 — Make it findable  ✅ DONE (27 Aug)
 
-**2.1–2.6 are all built and verified against the running site.** 2.7 (content) is the only open item and remains the longest-lead item in the whole plan.
+**Every item is built and verified against the running site, content included.** The sitemap now carries **89 URLs**.
+
+**Phases 0, 1 and 2 are complete. Nothing in Phase 3 is blocked by build work any more** — it is blocked by the company USD account (opening 28 Aug) and the 2–4 week analytics window, in that order.
 
 | # | Task | Status |
 |---|---|---|
@@ -126,7 +128,7 @@ Actual recurring cost: **$0/month.** Owner: Founder, then Web Development.
 | 2.4 ✅ | `Organization` + `WebSite` sitewide, `BreadcrumbList` on fragrance pages | |
 | 2.5 ✅ | Homepage metadata | |
 | 2.6 ✅ | `lastModified` in the sitemap | Verified present on all three entry groups (static, references, content). |
-| 2.7 ◐ | **Content: 10–12 real pieces** | **9 published, 9,309 words** (was 1 piece / 434 words). See the constraint below — this is not simply "write more", and the *shape* of the next pieces should change: see the COO's finding in the board review. |
+| 2.7 ✅ | **Content: 10–12 real pieces — target met** | **12 published, 11,996 words** (was 1 piece / 434 words). The last three took the COO's steer and changed shape: **original-anchored** rather than generic — *Baccarat Rouge 540 alternatives*, *Aventus alternatives*, *Sauvage alternatives*, the three highest-demand dupe queries in the category. Each analyses the real note structure from our own catalog data, explains **why** that original is easy or hard to copy (BR540 is six notes built on freely-available amberwood; Aventus is twelve notes whose character is an *interaction*, and whose own batches vary), and says what to check before buying. All 21 internal links verified resolving against the built site. |
 | 2.8 ✅ | **Sitemap emitted 86 redirecting URLs** — found by the board, fixed | `trailingSlash: true` makes `/about` a 307 to `/about/`, but every sitemap entry was emitted **without** the slash while every canonical carried one. The sitemap advertised 86 explicitly non-canonical URLs on the day Google began crawling. Fixed via `canonicalUrl()` in `lib/site.ts`; verified 86 of 86 now match. |
 | 2.9 ✅ | **Build now refuses to ship a link to a 404** | `content/loader.ts` fails the build if a piece's content type has no route. `app/comparison/[slug]` and `app/review/[slug]` were deleted in the export migration, so writing one comparison would have shipped a card pointing at a dead URL — the first thing an affiliate reviewer clicks. Checks the filesystem rather than a hand-maintained list, because keeping a list in step is the step that gets missed. Verified by hiding the guide route and watching the build fail. |
 
