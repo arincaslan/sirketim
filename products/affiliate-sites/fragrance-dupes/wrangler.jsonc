@@ -1,0 +1,40 @@
+{
+  // Cloudflare Workers deploy config for Parfumoza.
+  //
+  // WHY A WORKER AND NOT PAGES
+  // --------------------------
+  // Cloudflare's dashboard now creates Workers projects by default, and Pages
+  // is no longer where new static sites are steered. The first build failed
+  // because the project was created as a Worker while nothing here told
+  // wrangler what to deploy: it ran `npx wrangler deploy` against the repo
+  // root and reported "Could not detect a directory containing static files".
+  //
+  // Staying on Workers is the better call anyway. `assets` serves the exported
+  // site from the edge for free, and when Phase 3 needs the affiliate click
+  // chokepoint back (FINALIZATION-GUIDE.md 3.5), a small Worker script can
+  // handle /go/* server-side and fall through to these assets for everything
+  // else - which Pages could only do with a separate Functions directory.
+  //
+  // NOTE for that future change: `_redirects` rules are NOT applied to
+  // requests served by Worker code, only to asset requests. So once a Worker
+  // script handles /go/*, the generated _redirects entries for those paths
+  // stop being the thing that runs. Move the mapping into the script rather
+  // than leaving both in place and guessing which one wins.
+  "name": "parfumoza",
+  "compatibility_date": "2026-08-27",
+
+  "assets": {
+    // `npm run build` runs `next build` with output: "export", which writes
+    // the whole static site here. scripts/generate-redirects.mjs writes
+    // public/_redirects during prebuild, and the export copies it into out/.
+    "directory": "./out",
+
+    // Serve the exported 404 page with a real 404 status. NOT
+    // "single-page-application": this is a statically exported multi-page
+    // site, and SPA handling would return index.html with a 200 for every
+    // unknown URL - which tells a crawler that every typo'd path is a real
+    // page, and would make /go/<unknown> silently render the homepage
+    // instead of failing loudly the way it must.
+    "not_found_handling": "404-page"
+  }
+}
