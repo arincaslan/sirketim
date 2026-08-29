@@ -1,6 +1,6 @@
 import { DUPES, REFERENCES } from "@/lib/dupes-data";
 import { isHouseProducer } from "@/lib/producers";
-import { computeSimilarity } from "@/lib/similarity";
+import { computeSimilarity, getRelatedReferences } from "@/lib/similarity";
 import { getPublishedScore, isVerbatimCopy } from "@/lib/verification";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
 
@@ -128,6 +128,23 @@ export function getRankedDupesFor(reference: ReferenceFragrance): DupeCandidate[
  */
 export function getPublishedSimilarity(reference: ReferenceFragrance, dupe: DupeCandidate): number {
   return getPublishedScore(computeSimilarity(reference, dupe), dupe);
+}
+
+/**
+ * The N most similar OTHER originals in the catalog to `reference` - the
+ * "Related originals" module on a fragrance page. This is a different
+ * question from getRankedDupesFor: that ranks third-party dupes against one
+ * original; this ranks originals against each other, which is why it goes
+ * through computeOriginalSimilarity (lib/similarity.ts) rather than the
+ * DUPES-shaped computeSimilarity/getPublishedScore pipeline above - there is
+ * no submission to cap here, just two pieces of our own editorial data.
+ */
+export function getRelatedOriginals(
+  reference: ReferenceFragrance,
+  limit = 6,
+  references: ReferenceFragrance[] = REFERENCES
+): (ReferenceFragrance & { similarity: number })[] {
+  return getRelatedReferences(reference, references, limit);
 }
 
 /** Filter a ranked dupe list down to one producer. Empty slug means "all". */

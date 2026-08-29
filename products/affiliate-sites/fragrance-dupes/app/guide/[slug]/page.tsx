@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getContentBySlug, getContentByType } from "@/content/loader";
-import { articleSchema } from "@/lib/jsonld";
+import { articleSchema, breadcrumbSchema } from "@/lib/jsonld";
 import { JsonLd } from "@/components/kit/JsonLd";
+import { Breadcrumb } from "@/components/kit/Breadcrumb";
 import { ArticleHeader } from "@/components/content/article-header";
 import { DisclosureBlock } from "@/components/content/disclosure-block";
 import { mdxComponents } from "@/components/content/mdx-components";
@@ -39,7 +40,21 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
   const piece = getContentBySlug("guide", params.slug);
   if (!piece || piece.frontmatter.contentType !== "guide") notFound();
 
-  const url = absoluteUrl(`/guide/${piece.frontmatter.slug}`);
+  const path = `/guide/${piece.frontmatter.slug}`;
+  const url = absoluteUrl(path);
+
+  // Home / Library / [title] - Library (/library) is the real content index
+  // this piece is filed under (components/library/library-tabs.tsx renders
+  // it), the same way /fragrance/[slug]'s breadcrumb routes through the
+  // catalog index rather than a tool page. This page had no breadcrumb at
+  // all before; adding one is a small lift once lib/jsonld.ts's
+  // breadcrumbSchema and components/kit/Breadcrumb.tsx exist for the
+  // fragrance page to share.
+  const breadcrumbItems = [
+    { name: "Home", path: "/" },
+    { name: "Library", path: "/library" },
+    { name: piece.frontmatter.title, path },
+  ];
 
   return (
     <article className="container max-w-3xl py-14 sm:py-16">
@@ -54,6 +69,11 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
           image: piece.frontmatter.heroImage,
         })}
       />
+      <JsonLd
+        data={breadcrumbSchema(breadcrumbItems.map((i) => ({ name: i.name, url: absoluteUrl(i.path) })))}
+      />
+
+      <Breadcrumb items={breadcrumbItems} />
 
       <ArticleHeader
         contentType="guide"

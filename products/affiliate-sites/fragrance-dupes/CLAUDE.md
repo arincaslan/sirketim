@@ -154,7 +154,7 @@ This is not a limitation to work around; guides about the **68 real, researched 
 Two rules when adding a piece:
 
 - **`disclosure` defaults to `true` and that is wrong for every current piece.** The block renders "This piece contains affiliate links" — false where there are none. Set `disclosure: false` until real links land, then flip it per-piece.
-- **Verify every internal link resolves before committing.** One piece shipped a link to `/fragrance` — there is no index route at that path, only `/fragrance/[slug]`; the catalog index is `/library`. A 404 inside published content is exactly what an affiliate reviewer looks for.
+- **Verify every internal link resolves before committing.** One piece shipped a link to `/fragrance` — there is no index route at that path, only `/fragrance/[slug]`. **There is no catalog index at all**, which is a real gap, not a routing detail: `/library` is the *content* library (it renders `getAllContent()`, i.e. the 12 guides), and this file previously claimed it was the catalog index, which is false. Nothing anywhere on the site links to a `/fragrance/` page except the guides, so 37 of the 68 are reachable only via `sitemap.xml`. A 404 inside published content is exactly what an affiliate reviewer looks for; so is a catalog nothing links to.
 
 The filename must match the frontmatter `slug`, and bad frontmatter fails the build loudly by design (`content/loader.ts`).
 

@@ -3,13 +3,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { JsonLd } from "@/components/kit/JsonLd";
+import { Breadcrumb } from "@/components/kit/Breadcrumb";
 import { FragranceImage } from "@/components/fragrance/fragrance-image";
 import { buttonVariants } from "@/components/ui/button";
 import { REFERENCES } from "@/lib/data/references";
-import { getRankedDupesFor, getPublishedSimilarity } from "@/lib/catalog";
+import { getRankedDupesFor, getPublishedSimilarity, getRelatedOriginals } from "@/lib/catalog";
+import { getGuidesLinkingTo } from "@/lib/related-guides";
 import { hasRealAffiliateLink } from "@/lib/affiliate-links";
 import { formatPricePerMl } from "@/lib/similarity";
-import { siteUrl } from "@/lib/site";
+import { breadcrumbSchema } from "@/lib/jsonld";
+import { absoluteUrl } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import type { ReferenceFragrance } from "@/lib/types";
 
@@ -71,7 +74,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
       type: "article",
       title,
       description,
-      url: `${siteUrl()}${path}`,
+      url: absoluteUrl(path),
     },
     twitter: { card: "summary_large_image", title, description },
   };
@@ -82,30 +85,29 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
   if (!reference) notFound();
 
   const dupes = getRankedDupesFor(reference);
+  const relatedOriginals = getRelatedOriginals(reference);
+  const relatedGuides = getGuidesLinkingTo(reference.slug);
   const [minHours, maxHours] = reference.longevityHoursRange;
   const path = `/fragrance/${reference.slug}`;
 
-  const breadcrumbs = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl() },
-      { "@type": "ListItem", position: 2, name: "Dupe Finder", item: `${siteUrl()}/dupe-finder` },
-      { "@type": "ListItem", position: 3, name: reference.name, item: `${siteUrl()}${path}` },
-    ],
-  };
+  // Routes through the catalog index rather than straight to "Dupe Finder" -
+  // that used to be the only step 2, before /fragrance existed as a real
+  // index page. Dupe Finder is still one click away (see the header CTA and
+  // the "Compare it" link below), just no longer the breadcrumb's only path
+  // back up.
+  const breadcrumbItems = [
+    { name: "Home", path: "/" },
+    { name: "Fragrances", path: "/fragrance" },
+    { name: reference.name, path },
+  ];
 
   return (
     <div className="container max-w-4xl py-14 sm:py-16">
-      <JsonLd data={breadcrumbs} />
+      <JsonLd
+        data={breadcrumbSchema(breadcrumbItems.map((i) => ({ name: i.name, url: absoluteUrl(i.path) })))}
+      />
 
-      <nav aria-label="Breadcrumb" className="mb-8 text-sm text-muted-foreground">
-        <Link href="/dupe-finder" className="underline-offset-4 hover:underline">
-          Dupe Finder
-        </Link>
-        <span aria-hidden> / </span>
-        <span className="text-foreground">{reference.name}</span>
-      </nav>
+      <Breadcrumb items={breadcrumbItems} />
 
       <header className="flex flex-col gap-8 sm:flex-row sm:items-start">
         <FragranceImage fragrance={reference} className="h-32 w-32 shrink-0" />
@@ -118,6 +120,11 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
             {reference.concentration} in the {reference.family.toLowerCase()} family.{" "}
             {formatPricePerMl(reference.priceUsd, reference.bottleMl)} at $
             {reference.priceUsd} for {reference.bottleMl}ml.
+          </p>
+          <p className="max-w-[58ch] text-xs text-muted-foreground">
+            That price is an approximate US retail figure we maintain by hand, not a
+            live feed from a retailer &mdash; it drifts, and the per-ml figure is
+            derived from it. Check the retailer for what it costs today.
           </p>
 
           {hasRealAffiliateLink(reference.affiliateLinkId) && (
@@ -188,7 +195,15 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
       </section>
 
       <section className="mt-14">
-        <h2 className="font-display text-2xl">Alternatives</h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+          <h2 className="font-display text-2xl">Alternatives</h2>
+          <Link
+            href={`/dupe-finder?ref=${reference.slug}`}
+            className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Compare in the Dupe Finder &rarr;
+          </Link>
+        </div>
         {dupes.length === 0 ? (
           <div className="mt-5 rounded-frame border border-dashed border-border p-8">
             <p className="max-w-[60ch] text-muted-foreground">
@@ -229,6 +244,63 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
           </ul>
         )}
       </section>
+
+      {relatedOriginals.length > 0 && (
+        <section className="mt-14">
+          <h2 className="font-display text-2xl">Related originals</h2>
+          <p className="mt-2 max-w-[60ch] text-sm text-muted-foreground">
+            Other fragrances in our catalog closest to {reference.name} by note overlap, facet
+            profile, and olfactive family &mdash; not a ranked list of dupes, just other originals
+            worth knowing about if you like this one.
+          </p>
+          <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+            {relatedOriginals.map((related) => (
+              <li key={related.slug}>
+                <Link
+                  href={`/fragrance/${related.slug}`}
+                  data-cursor="view"
+                  className="group flex items-center gap-3 rounded-frame border border-border bg-card p-4 transition-[border-color,transform] duration-150 ease-out hover:border-primary/50 active:scale-[0.99]"
+                >
+                  <FragranceImage fragrance={related} className="h-11 w-11 shrink-0 text-sm" />
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="line-clamp-2 font-semibold transition-colors group-hover:text-primary">
+                      {related.name}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {related.brand} &middot; {related.family}
+                    </span>
+                  </div>
+                  <span className="shrink-0 font-display text-lg tabular-nums text-muted-foreground">
+                    {related.similarity}%
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {relatedGuides.length > 0 && (
+        <section className="mt-14">
+          <h2 className="font-display text-2xl">Related reading</h2>
+          <p className="mt-2 max-w-[60ch] text-sm text-muted-foreground">
+            Guides that mention {reference.name}.
+          </p>
+          <ul className="mt-5 flex flex-col gap-3">
+            {relatedGuides.map((guide) => (
+              <li key={guide.slug}>
+                <Link
+                  href={`/guide/${guide.slug}`}
+                  className="flex items-center justify-between gap-4 rounded-frame border border-border p-4 transition-colors duration-150 hover:border-primary/50"
+                >
+                  <span className="font-semibold">{guide.title}</span>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <p className="mt-14 border-t border-border pt-6 text-sm text-muted-foreground">
         {reference.name} and {reference.brand} are trade marks of their owner. Counterscent is not

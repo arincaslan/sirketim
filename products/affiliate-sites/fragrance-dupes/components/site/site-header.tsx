@@ -12,6 +12,7 @@ import { CounterscentLogo } from "@/components/site/logo";
 
 const NAV_LINKS = [
   { href: "/dupe-finder", label: "Dupe Finder" },
+  { href: "/fragrance", label: "Catalog" },
   { href: "/library", label: "Library" },
   { href: "/about", label: "Our Standards" },
 ];

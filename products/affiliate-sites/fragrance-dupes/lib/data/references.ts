@@ -1,11 +1,18 @@
 import { ARMANI } from "@/lib/data/houses/armani";
+import { BYREDO } from "@/lib/data/houses/byredo";
 import { CHANEL } from "@/lib/data/houses/chanel";
 import { CREED } from "@/lib/data/houses/creed";
 import { DIOR } from "@/lib/data/houses/dior";
 import { GUCCI } from "@/lib/data/houses/gucci";
 import { JEAN_PAUL_GAULTIER } from "@/lib/data/houses/jean-paul-gaultier";
+import { KILIAN } from "@/lib/data/houses/kilian";
+import { LE_LABO } from "@/lib/data/houses/le-labo";
+import { MAISON_MARGIELA } from "@/lib/data/houses/maison-margiela";
 import { OTHER_HOUSES } from "@/lib/data/houses/other";
 import { PARFUMS_DE_MARLY } from "@/lib/data/houses/parfums-de-marly";
+import { TOM_FORD } from "@/lib/data/houses/tom-ford";
+import { VERSACE } from "@/lib/data/houses/versace";
+import { YSL } from "@/lib/data/houses/ysl";
 import type { ReferenceFragrance } from "@/lib/types";
 
 /**
@@ -50,6 +57,13 @@ export const REFERENCES: ReferenceFragrance[] = [
   ...GUCCI,
   ...JEAN_PAUL_GAULTIER,
   ...PARFUMS_DE_MARLY,
+  ...TOM_FORD,
+  ...YSL,
+  ...KILIAN,
+  ...BYREDO,
+  ...MAISON_MARGIELA,
+  ...LE_LABO,
+  ...VERSACE,
   ...OTHER_HOUSES,
 ];
 

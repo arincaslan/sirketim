@@ -58,6 +58,61 @@ export function computeSimilarity(reference: ReferenceFragrance, dupe: DupeCandi
   return Math.round(raw * 100);
 }
 
+/** The subset of ReferenceFragrance/DupeCandidate that noteOverlap and
+ *  facetCloseness actually read. Both real types satisfy this shape, so
+ *  computeOriginalSimilarity below can accept a ReferenceFragrance on both
+ *  sides without a new scoring scheme. */
+export interface ScentProfile {
+  family: string;
+  notes: FragranceNotes;
+  facets: FacetScores;
+}
+
+/**
+ * Similarity between two ORIGINAL reference fragrances - e.g. for a
+ * "related originals" module on a fragrance page. Reuses the exact same
+ * noteOverlap/facetCloseness weighting as computeSimilarity (50% notes /
+ * 35% facets / 15% family), not a different formula.
+ *
+ * The family term is computed for real here rather than reusing
+ * computeSimilarity's `familyBonus = 1` shortcut. That shortcut is
+ * correct there only because every DUPES listing is scored against its
+ * own reference's family (documented as a known, deliberately-unfixed
+ * limitation - see CLAUDE.md and lib/verification.ts); two arbitrary
+ * originals are not guaranteed to share a family at all, so assuming
+ * "always full credit" would systematically overstate cross-family
+ * matches. Full credit on a family match, partial credit otherwise, is
+ * the behaviour the top-of-file comment on this module already
+ * documents as the intended design - this just implements it instead of
+ * substituting the shortcut. 0.4 partial credit is an editorial choice
+ * (same convention as the facet scores: not a measurement), not a
+ * measured constant.
+ */
+const CROSS_FAMILY_CREDIT = 0.4;
+
+export function computeOriginalSimilarity(a: ScentProfile, b: ScentProfile): number {
+  const notesScore = noteOverlap(a.notes, b.notes);
+  const facetsScore = Math.max(0, facetCloseness(a.facets, b.facets));
+  const familyBonus = a.family === b.family ? 1 : CROSS_FAMILY_CREDIT;
+  const raw = notesScore * 0.5 + facetsScore * 0.35 + familyBonus * 0.15;
+  return Math.round(raw * 100);
+}
+
+/** Ranks every other reference in the catalog by similarity to `reference`
+ *  (via computeOriginalSimilarity) and returns the top `limit`, ties broken
+ *  alphabetically by name for a stable order. Excludes `reference` itself. */
+export function getRelatedReferences<T extends ScentProfile & { slug: string; name: string }>(
+  reference: T,
+  candidates: T[],
+  limit = 6
+): (T & { similarity: number })[] {
+  return candidates
+    .filter((c) => c.slug !== reference.slug)
+    .map((c) => ({ ...c, similarity: computeOriginalSimilarity(reference, c) }))
+    .sort((x, y) => y.similarity - x.similarity || x.name.localeCompare(y.name))
+    .slice(0, limit);
+}
+
 export function pricePerMl(priceUsd: number, bottleMl: number): number {
   return priceUsd / bottleMl;
 }

@@ -7,6 +7,7 @@ const COLUMNS = [
     heading: "Tool",
     links: [
       { href: "/dupe-finder", label: "Dupe Finder" },
+      { href: "/fragrance", label: "Fragrance Catalog" },
       { href: "/library", label: "Library" },
     ],
   },

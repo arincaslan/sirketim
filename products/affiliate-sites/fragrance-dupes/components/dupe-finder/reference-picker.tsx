@@ -225,7 +225,7 @@ export function ReferencePicker({
                     {selected.name}
                   </span>
                   <span className="truncate text-xs tabular-nums text-muted-foreground">
-                    ${selected.priceUsd} / {selected.bottleMl}ml - {selected.concentration}
+                    approx. ${selected.priceUsd} / {selected.bottleMl}ml - {selected.concentration}
                   </span>
                 </div>
               </div>

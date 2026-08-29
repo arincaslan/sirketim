@@ -67,3 +67,25 @@ export function itemListSchema(
     })),
   };
 }
+
+/**
+ * A page's breadcrumb trail, both as JSON-LD and (via the same array) the
+ * data a visible breadcrumb nav renders from - one source for both, so they
+ * cannot drift apart the way a hand-duplicated pair would.
+ *
+ * `app/fragrance/[slug]/page.tsx` built its BreadcrumbList inline before this
+ * existed; `app/guide/[slug]/page.tsx` had no breadcrumb at all. Both now
+ * call this rather than each hand-rolling the same shape.
+ */
+export function breadcrumbSchema(items: { name: string; url: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}

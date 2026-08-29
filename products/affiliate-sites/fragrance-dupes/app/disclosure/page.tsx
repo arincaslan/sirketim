@@ -47,10 +47,12 @@ export default function DisclosurePage() {
         <h2>No active program yet</h2>
         <p>
           As of this build, Counterscent has not enrolled in any affiliate
-          program. Every outbound link on this site currently points to a
-          clearly marked placeholder destination, not a live merchant. This
-          page describes the policy that will govern real links once a
-          program exists.
+          program, and there are <strong>no affiliate links on this site at
+          all</strong> &mdash; not even placeholder ones. A buy button does
+          not render unless its link resolves to a real, enrolled merchant,
+          so nothing on any page currently earns us anything. This page
+          describes the policy that will govern real links once a program
+          exists.
         </p>
       </div>
     </div>
