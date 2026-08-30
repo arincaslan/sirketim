@@ -11,28 +11,31 @@ Canonical copy. Published visual version is linked from the dashboard.
 
 **Updated 27 Aug (fourth pass) — the site is LIVE and the board's findings are actioned.** `counterscent.com` serves over HTTPS on Cloudflare Workers at **$0/month**, email survived the DNS migration, GA4 is collecting and Search Console is verified. Phases 0, 1 and 2 are done, and every code defect the 27 Aug board review found is now fixed and verified. **What stands between here and revenue is no longer build work.** *(Updated 29 Aug: the payee bank account — previously the top blocker — is now open, USD and EUR. What is left is the 2–4 week analytics window, which gates **Amazon only**, and one founder decision: whether to run producer store-direct links.)*
 
+**Updated 30 Aug (fifth pass) — Phase 3 is actually underway.** Awin: applied, **verified/approved**, payment details configured (Payoneer pass-through into the company USD account, no standalone Payoneer account needed), threshold set. Applications went out to ALT. Fragrances, My Perfume Shop, The Fragrance Counter and the in-network "ShareASale" listing — **ALT. Fragrances and The Fragrance Counter subsequently vanished from Awin entirely** (their programmes closed; this reads as the advertiser leaving the network, not a rejection or an account issue), so **3.1's claim below that "ALT. Fragrances and Dossier are both merchants inside Awin" is now stale** — Dossier was never found there either. Currently pending: **My Perfume Shop** (still red link status, watch before building around it) and **Escentual** (originals-side, not a dupe house). CJ (3.3) has **not** been applied yet — next action. Separately, the catalog grew from 68 to **111 references** (merchant-verified against Dossier's and ALT.'s own storefronts rather than expanded by house depth) and stopped being orphaned — a catalog index page, a "related originals" module, and a "related reading" reverse-index into the guides all shipped and are live, none of which needed Awin. Company Payoneer account (separate from the founder's personal one) approved, earmarked for CJ.
+
 | | Reality | |
 |---|---|---|
 | Routes building | 90 pages, typecheck clean, lint clean | ✅ |
-| Reference fragrances | 68, across 8 houses — real, researched | ✅ |
-| **Indexable catalog URLs** | **68** (was 0) | ✅ |
-| Sitemap entries | **86** (was ~11), all trailing-slash canonical | ✅ |
+| Reference fragrances | **111**, merchant-verified against Dossier/ALT.'s own storefronts (was 68 across 8 houses) | ✅ |
+| **Indexable catalog URLs** | **111** — plus a catalog index page, "related originals," and "related reading" (was 0) | ✅ |
+| Sitemap entries | **132** (was ~11), all trailing-slash canonical | ✅ |
 | Privacy policy / contact | `/privacy` and `/contact` live | ✅ |
 | Canonicals, OG, site schema | On every page — **incl. the 3 content routes that were missing canonicals entirely** | ✅ |
 | Social share image | `og-cover.png`, 1200×630, on every page | ✅ |
 | Invented data | **None** — all removed | ✅ |
 | Payoneer | Open | ✅ |
 | Domain + email | `counterscent.com`, `contact@counterscent.com` live | ✅ |
-| Published content | **9 pieces, ~9,300 words** (was 1 piece / 434 words) | ◐ needs 10–12 |
+| Published content | **12 pieces, 11,996 words** (was 1 piece / 434 words) | ✅ 10–12 met |
 | Dupe listings | **0** (37 removed as invented) | ❌ needs real data |
 | Working affiliate links | **0** — none enrolled | ❌ |
 | Deployment / host | **LIVE** at counterscent.com — Cloudflare **Workers**, $0/mo | ✅ |
 | Scoring integrity | House products can no longer publish an uncapped score; rank can no longer invert | ✅ fixed 27 Aug |
 | Broken-link guard | Build now fails if a content type has no route | ✅ fixed 27 Aug |
-| Payee entity | **A.Ş.** — decided 27 Aug | ◐ receiving account unresolved |
+| Payee entity | **A.Ş.** — decided 27 Aug, **receiving account (company USD+EUR) open 29 Aug** | ✅ |
+| Awin | **Applied, verified/approved, payment configured** (30 Aug) | ✅ |
 | Revenue to date | **$0** | — |
 
-**The catalog is now the site's asset.** 68 real fragrance pages with note pyramids, profiles, longevity and price-per-ml — each one a page a search engine can land on, and each one honestly saying no alternative is listed yet rather than inventing one.
+**The catalog is now the site's asset.** 111 real fragrance pages with note pyramids, profiles, longevity and price-per-ml — each one a page a search engine can land on, each one honestly saying no alternative is listed yet rather than inventing one, and — new since 29 Aug — each one reachable from a catalog index and cross-linked via "related originals" and "related reading" instead of sitting orphaned in the sitemap.
 
 ---
 
@@ -172,11 +175,11 @@ Cost: ~$5, refundable. Owner: Communication. Blocked on: Phases 0–2.
 
 | # | Task | Note |
 |---|---|---|
-| 3.1 | **Apply to Awin** | **One application, not two.** ShareASale migrated into Awin (2025-08-15) and its platform closed 2025-10-06 — verified. ALT. Fragrances and Dossier are both merchants *inside* Awin. |
-| 3.2 | Apply to merchants inside Awin | Network approval ≠ merchant approval. The **merchant** gate is what rejects a thin site, and it usually fails as silence, not a "no". |
-| 3.3 | **Apply to CJ, then FragranceX** | Not optional diversification — **the backup rail.** Post-merger, ALT. *and* Dossier both sit behind one Awin account. That is a single point of failure. |
-| 3.4 | Populate `affiliateLinks` (now **empty**, was 18 placeholders); flip the placeholder fallback to **hard failure** | The placeholders are gone rather than fixed — `affiliateLinks` is `{}`, so `/go/<id>` currently 404s for every id, which is correct. After launch a missing link must keep breaking loudly rather than sending a customer nowhere. |
-| 3.5 | **Sub-ID scheme + click logging, before the first real click** | `<listingId>__<referenceSlug>__<surface>`, composed once in `/go/[slug]`, emitted as Awin `clickref` / CJ `sid`. **Cannot be retrofitted** — untagged traffic is unattributable forever. |
+| 3.1 ✅ | **Apply to Awin** — **done 30 Aug, verified/approved** | **One application, not two.** ShareASale migrated into Awin (2025-08-15) and its platform closed 2025-10-06 — verified. ~~ALT. Fragrances and Dossier are both merchants *inside* Awin.~~ **Stale as of 30 Aug: ALT. Fragrances' Awin programme closed** (vanished from Pending *and* from the general advertiser search, not just rejected) and **Dossier was never found there either.** Treat Awin's dupe-side coverage as unresolved, not settled. |
+| 3.2 ◐ | Apply to merchants inside Awin | **In progress, 30 Aug.** Applied to ALT. Fragrances, My Perfume Shop, The Fragrance Counter, and the in-network "ShareASale" listing — ALT., The Fragrance Counter and "ShareASale" all subsequently disappeared (programmes closed, not rejected). Still pending: **My Perfume Shop** (red link status — don't build around it until it turns green) and **Escentual** (originals-side, applied same day). Network approval ≠ merchant approval, and now: **merchant existence on the network isn't stable either.** |
+| 3.3 | **Apply to CJ, then FragranceX** | **Not yet applied (as of 30 Aug) — next live action.** Not optional diversification — **the backup rail.** A company Payoneer account (separate from the founder's personal one) is approved and earmarked for this. |
+| 3.4 | Populate `affiliateLinks` (now **empty**, was 18 placeholders); flip the placeholder fallback to **hard failure** | Still not done — no enrolled merchant has a working product feed yet. The placeholders are gone rather than fixed — `affiliateLinks` is `{}`, so `/go/<id>` currently 404s for every id, which is correct. After launch a missing link must keep breaking loudly rather than sending a customer nowhere. |
+| 3.5 | **Sub-ID scheme + click logging, before the first real click** | Still not built. `<listingId>__<referenceSlug>__<surface>`, composed once in `/go/[slug]`, emitted as Awin `clickref` / CJ `sid`. **Cannot be retrofitted** — untagged traffic is unattributable forever. |
 
 > **Link shape needs changing.** `AffiliateLinkEntry` holds one bare `destinationUrl`, but Awin and CJ both require a network click URL with the destination URL-encoded inside it. The shape needs `network` + `merchantId` + `deepLink`, not a single string.
 
@@ -268,9 +271,9 @@ Nothing below can be done by an agent. Everything downstream waits on them.
 4. ~~**Choose a host and deploy.**~~ ✅ Done 27 Aug — Cloudflare Workers, $0/mo, live at counterscent.com with email intact.
 5. ✅ **Open the company USD (*döviz*) account** — **DONE 29 Aug: USD *and* EUR company accounts opened.** Was the top blocker. The reasoning it closed out stands as the record of why it mattered: an A.Ş. invoice paid into a personal account would not survive review by the *mali müşavir*, and could not be fixed retroactively once payouts had started.
 6. **Supply the Hostinger receipt** — amount, currency, and whether auto-renew is on. No agent can retrieve this: `hostinger-billing` is deliberately not configured because it exposes purchase operations. The ledger records **nothing** about this project until you provide it.
-7. **Decide on producer store-direct links** (§3.6) — this is the one path to a populated catalog that does not wait on Awin approving us.
-8. **Decide GA4 cookies vs KVKK.** The privacy policy claims legitimate interest; analytics cookies generally need consent. Recommendation: cookieless GA4 (`client_storage: 'none'`), which keeps the visitor counts an affiliate application needs without the consent question.
-9. **Apply to Awin** — **item 5 is now resolved (29 Aug), so this is the next live action.** The remaining consideration is honesty, not eligibility: GA4 has run since 27 Aug, so "monthly unique visitors" must be answered with the real, small number. **Awin rejection is recoverable and Amazon's is not** — that asymmetry, not a fixed waiting period, is what should decide the timing. Weigh a now-application against waiting to ~10 Sep for a stronger traffic answer; the *merchant* gate inside Awin (ALT., Dossier) is the one that fails silently on a thin site.
+7. **Decide on producer store-direct links** (§3.6) — this is the one path to a populated catalog that does not wait on Awin approving us. **Still open as of 30 Aug.**
+8. ~~**Decide GA4 cookies vs KVKK.**~~ ✅ **Cookieless GA4 chosen and shipped** (`client_storage: 'none'` + `anonymize_ip`) — no consent banner needed under KVKK/ePrivacy since no cookie is written. Trade-off recorded elsewhere: this inflates *Users* toward *Sessions*, so that number must never be quoted on an affiliate application — use Cloudflare Web Analytics instead.
+9. ~~**Apply to Awin.**~~ ✅ **Applied and verified 30 Aug**, payment details configured (Payoneer pass-through into the company USD account), threshold set. Merchant-level applications are the current work — see §3.2. **Next founder-facing decision: apply to CJ (§3.3), not yet done.**
 
 ---
 

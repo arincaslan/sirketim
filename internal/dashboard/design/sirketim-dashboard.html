@@ -299,7 +299,7 @@
   </div>
   <div class="header-right">
     <div class="pulse"><span class="pulse-dot"></span>Live</div>
-    <div class="header-date">Updated Aug 24</div>
+    <div class="header-date">Updated Aug 30</div>
     <button class="icon-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle color theme">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
         <g class="sun"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12H5M19 12h2.5M4.2 19.8L6 18M18 6l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g>
@@ -354,8 +354,8 @@
 
   var DEPARTMENTS = [
     { id: 'web',   name: 'Web Development', short: 'Web',       hue: 243, icon: 'M8 6 L3 12 L8 18 M16 6 L21 12 L16 18',
-      activity: 'PARFUMOZA marketplace build — finalization guide issued',
-      report: { label: 'PARFUMOZA Finalization Guide · Aug 26', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
+      activity: 'Counterscent catalog 68→111, index + related-originals/reading shipped, live',
+      report: { label: 'Finalization Guide · Aug 26', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
     { id: 'arch',  name: 'Architecture', short: 'Arch',          hue: 205, icon: 'M3 11 L12 4 L21 11 M5 10 V19 H19 V10 M9 19 V14 M15 19 V14',
       activity: 'Plan-notes review — 377/1 paused pending founder decision',
       report: { label: 'CAD Tooling Gap Analysis · Aug 20', url: 'https://claude.ai/code/artifact/3dbf2aec-3ced-4352-b096-6dd81cb4956b' } },
@@ -364,15 +364,15 @@
     { id: 'ads',   name: 'Advertising', short: 'Ads',            hue: 28,  icon: 'M3 11 V13 A1 1 0 0 0 4 14 H7 L12 18 V6 L7 10 H4 A1 1 0 0 0 3 11 Z M15 8 A4 4 0 0 1 15 16 M18 5 A8 8 0 0 1 18 19',
       activity: 'Milena Dranka cadence — Fanvue piece still blocked', report: null },
     { id: 'comms', name: 'Communication', short: 'Comms',        hue: 325, icon: 'M4 4 H20 V16 H8 L4 20 Z',
-      activity: 'Awin-first affiliate sequence — Amazon dropped',
-      report: { label: 'PARFUMOZA Finalization Guide · Aug 26', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
+      activity: 'Awin applied & verified, CJ next, Amazon still planned (last)',
+      report: { label: 'Finalization Guide · Aug 26', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
     { id: 'acct',  name: 'Accounting', short: 'Accounting',      hue: 45,  icon: 'M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 Z M12 7 V17 M15 9.5 C15 8.1 13.7 7 12 7 C10.3 7 9 8 9 9.2 C9 12.2 15 10.6 15 13.5 C15 14.9 13.7 16 12 16 C10.3 16 9 14.9 9 13.5',
-      activity: 'Payment rails settled — Payoneer first, Stripe ruled out',
-      report: { label: 'PARFUMOZA Finalization Guide · Aug 26', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
+      activity: 'Company USD/EUR live; Awin approved & configured, CJ pending',
+      report: { label: 'Finalization Guide · Aug 26', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
     { id: 'ctrl',  name: 'Control / Audit', short: 'Control',    hue: 275, icon: 'M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z M9 12 L11 14 L15 10',
       activity: 'Standing checks — dashboard/report sync, cost cross-check', report: null },
     { id: 'content', name: 'Content', short: 'Content',          hue: 0,   icon: 'M6 3 H14 L19 8 V21 H6 Z M14 3 V8 H19 M9 12 H16 M9 16 H16 M9 19 H13',
-      activity: 'New department, 2026-08-24 — no content library yet', report: null },
+      activity: 'Library at 12 pieces; comparison/review still gated on affiliateLinkId', report: null },
   ];
   var DEPT_BY_ID = {};
   DEPARTMENTS.forEach(function (d) { DEPT_BY_ID[d.id] = d; });
