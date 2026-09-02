@@ -1,5 +1,7 @@
 import type { Config } from "tailwindcss";
 
+import { tailwindMotion } from "./lib/motion";
+
 const config: Config = {
   darkMode: ["class"],
   content: [
@@ -50,15 +52,11 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
-      keyframes: {
-        "fade-up": {
-          "0%": { opacity: "0", transform: "translateY(12px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-      },
-      animation: {
-        "fade-up": "fade-up 0.6s ease-out forwards",
-      },
+      // Motion tokens come from the Sirketim motion system (lib/motion.ts,
+      // canonical copy at shared/motion/motion.ts). This replaces the old
+      // hand-written "fade-up" keyframe, which was defined here and never
+      // used by a single component.
+      ...tailwindMotion,
     },
   },
   plugins: [require("tailwindcss-animate")],
