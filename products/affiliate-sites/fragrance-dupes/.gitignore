@@ -29,3 +29,9 @@ next-env.d.ts
 # and carries a timestamp, so committing it would only produce noisy diffs
 # and risk a stale redirect table shipping.
 /public/_redirects
+
+# Raw affiliate product feeds — large, licensed data, not ours to redistribute
+# in a public repo. Ingested locally into typed data files; the feed itself
+# stays out. The README stays tracked. See scripts/feeds/README.md.
+/scripts/feeds/*
+!/scripts/feeds/README.md

@@ -1,0 +1,179 @@
+# Candidate references for the 111 -> 200 catalog expansion.
+# Checked against the merchant feed by scripts/check-candidates.mjs before any
+# note pyramid is authored. Format: Brand :: Name
+#
+# Chosen as widely-duped or widely-worn flagships — the fragrances the dupe
+# market actually targets — not by house depth. Anything the merchant does not
+# carry is dropped rather than written.
+
+Chanel :: Chance
+Chanel :: Chance Eau Tendre
+Chanel :: Gabrielle
+Chanel :: Coco Noir
+Chanel :: Allure Homme Edition Blanche
+Chanel :: Platinum Egoiste
+Chanel :: Cristalle
+
+Dior :: Miss Dior
+Dior :: Hypnotic Poison
+Dior :: Poison Girl
+Dior :: Dior Homme Intense
+Dior :: Bois d'Argent
+Dior :: Gris Dior
+Dior :: Addict
+Dior :: Dune
+
+Creed :: Silver Mountain Water
+Creed :: Green Irish Tweed
+Creed :: Virgin Island Water
+Creed :: Royal Oud
+Creed :: Millesime Imperial
+Creed :: Viking
+Creed :: Love in White
+Creed :: Spring Flower
+
+Armani :: Code Profumo
+Armani :: Because It's You
+Armani :: Emporio Armani Stronger With You Intensely
+
+Yves Saint Laurent :: Opium
+Yves Saint Laurent :: Mon Paris
+Yves Saint Laurent :: Kouros
+Yves Saint Laurent :: Tuxedo
+
+Tom Ford :: Bitter Peach
+Tom Ford :: Neroli Portofino
+Tom Ford :: Tuscan Leather
+Tom Ford :: Soleil Blanc
+Tom Ford :: Noir de Noir
+Tom Ford :: White Suede
+Tom Ford :: Velvet Orchid
+Tom Ford :: Costa Azzurra
+
+Parfums de Marly :: Kalan
+Parfums de Marly :: Godolphin
+Parfums de Marly :: Sedley
+Parfums de Marly :: Greenley
+Parfums de Marly :: Haltane
+Parfums de Marly :: Valaya
+
+Le Labo :: Rose 31
+Le Labo :: Bergamote 22
+Le Labo :: The Noir 29
+Le Labo :: The Matcha 26
+
+Byredo :: Blanche
+Byredo :: Rose of No Man's Land
+Byredo :: Black Saffron
+
+Maison Francis Kurkdjian :: Grand Soir
+Maison Francis Kurkdjian :: Oud Satin Mood
+Maison Francis Kurkdjian :: Amyris Homme
+Maison Francis Kurkdjian :: Aqua Universalis
+Maison Francis Kurkdjian :: Gentle Fluidity Gold
+
+Xerjoff :: Naxos
+Xerjoff :: Erba Pura
+Xerjoff :: Alexandria II
+Xerjoff :: Lira
+Xerjoff :: Accento
+
+Initio :: Oud for Greatness
+Initio :: Side Effect
+Initio :: Psychedelic Love
+Initio :: Rehab
+
+Versace :: Bright Crystal
+Versace :: Eros Flame
+Versace :: Versace Pour Homme
+Versace :: Crystal Noir
+
+Paco Rabanne :: Invictus
+Paco Rabanne :: Phantom
+Paco Rabanne :: Lady Million
+Paco Rabanne :: Olympea
+Paco Rabanne :: Pure XS
+
+Jean Paul Gaultier :: Scandal
+Jean Paul Gaultier :: La Belle
+Jean Paul Gaultier :: Classique
+
+Dolce & Gabbana :: The One
+Dolce & Gabbana :: K
+Dolce & Gabbana :: Devotion
+
+Prada :: Luna Rossa Carbon
+Prada :: Paradoxe
+Prada :: Candy
+
+Valentino :: Born in Roma
+Valentino :: Uomo
+Valentino :: Voce Viva
+
+Givenchy :: Gentleman
+Givenchy :: L'Interdit
+
+Azzaro :: Wanted
+Azzaro :: The Most Wanted
+Azzaro :: Chrome
+
+Mugler :: Alien
+Mugler :: A*Men
+
+Lancome :: Idole
+Lancome :: Tresor
+
+Carolina Herrera :: Good Girl
+Carolina Herrera :: Very Good Girl
+Carolina Herrera :: 212 VIP
+Carolina Herrera :: Bad Boy
+
+Maison Margiela :: Lazy Sunday Morning
+Maison Margiela :: Sailing Day
+
+By Kilian :: Black Phantom
+
+Bvlgari :: Man in Black
+Bvlgari :: Aqva Pour Homme
+
+Guerlain :: Shalimar
+Guerlain :: L'Homme Ideal
+Guerlain :: Mon Guerlain
+
+Hugo Boss :: Bottled
+Hugo Boss :: The Scent
+
+Calvin Klein :: CK One
+Calvin Klein :: Eternity
+Calvin Klein :: Obsession
+
+Viktor&Rolf :: Spicebomb
+
+Ralph Lauren :: Polo Blue
+
+Burberry :: Her
+Burberry :: London
+
+Nishane :: Hacivat
+Nishane :: Ani
+
+Roja :: Elysium
+Roja :: Enigma
+
+Amouage :: Reflection Man
+Amouage :: Interlude
+
+Mancera :: Cedrat Boise
+Mancera :: Red Tobacco
+
+Montale :: Intense Cafe
+Montale :: Arabians
+
+Lattafa :: Khamrah
+Lattafa :: Asad
+Lattafa :: Yara
+Lattafa :: Fakhar
+
+Armaf :: Club de Nuit Intense Man
+Armaf :: Club de Nuit Sillage
+Armaf :: Club de Nuit Urban Man

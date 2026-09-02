@@ -80,6 +80,67 @@ export interface Producer {
  */
 export type VerificationStatus = "declared" | "verified" | "flagged";
 
+/** Currencies merchants quote in. Never converted between — see MerchantOffer.price. */
+export type Currency = "USD" | "GBP" | "EUR" | "AUD";
+
+/**
+ * One retailer's offer of one product: their price, their link, their name for
+ * it. A listing carries an array of these because the same fragrance is sold
+ * by several retailers at several prices, and the buyer picks.
+ *
+ * REPLACED the singular `merchantListing` + a listing-level `affiliateLinkId`
+ * on 2026-09-01. The old shape allowed exactly one retailer, which forced the
+ * UI to explain in prose why the one price it showed differed from the per-ml
+ * figure beside it. With several offers on screen that explanation is
+ * unnecessary: prices obviously differ between retailers, so showing them side
+ * by side says it without a paragraph.
+ *
+ * `price` is the retailer's own figure in the retailer's own currency and is
+ * NEVER converted. A hardcoded FX rate would be unsourced and would go stale
+ * silently — and on a buy button it would be stale one click away from the page
+ * that disproves it. This is also why offers are not sorted by price: ranking
+ * £19.99 against $34.00 is an FX claim, and we do not have a sourced rate to
+ * make it with. They render in authored order and nothing is labelled cheapest.
+ *
+ * `affiliateLinkId` is optional and its absence is meaningful: it means we are
+ * not enrolled with that retailer, or are enrolled but their programme does not
+ * track. Such an offer still renders — as a price with no button — because
+ * "three retailers sell this, we can only link one" is useful and honest.
+ */
+export interface MerchantOffer {
+  /** Retailer's display name, as a buyer would recognise it. */
+  merchant: string;
+  /** The retailer's own product title, verbatim from their feed. Kept
+   *  unedited: it is what identifies which variant the price belongs to. */
+  productName: string;
+  /** The retailer's product page. Recorded so the claim is checkable; it is
+   *  NOT what we link to — outbound clicks go through the affiliate network. */
+  productUrl: string;
+  price: number;
+  currency: Currency;
+  /**
+   * Key into `affiliateLinks`. Absent = no working programme with this
+   * retailer, so no buy button. Never point this at a merchant whose links
+   * have not been traced end to end (see scripts/feeds/README.md).
+   */
+  affiliateLinkId?: string;
+  /**
+   * Whether the retailer had it in stock when last checked. `false` suppresses
+   * the buy button; the row still renders, saying it is out of stock.
+   *
+   * Set from `node scripts/check-affiliate-links.mjs`, which reads the
+   * merchant's own schema.org availability. **Do not take this from a product
+   * feed.** The Awin feed said `in_stock=1` for the Armaf limited edition while
+   * the live Opulensi page said `OutOfStock` — feed stock is a snapshot and
+   * goes stale, the product page is the truth.
+   *
+   * Undefined means unchecked, and renders a button: we cannot re-verify every
+   * offer continuously, and a link that is merely unchecked is not known-broken.
+   * That is a deliberate trade — re-run the checker when it matters.
+   */
+  inStock?: boolean;
+}
+
 export interface DupeCandidate {
   slug: string;
   referenceSlug: string;
@@ -87,9 +148,6 @@ export interface DupeCandidate {
   brand: string;
   /** Which Producer lists this. See `PRODUCERS` in lib/producers.ts. */
   producerSlug: string;
-  /** Absent for house products, which route to our own buy flow rather than
-   *  an outbound affiliate redirect. */
-  affiliateLinkId?: string;
   notes: FragranceNotes;
   facets: FacetScores;
   longevityHoursRange: [number, number];
@@ -101,6 +159,75 @@ export interface DupeCandidate {
    *  reporting. Never rendered to buyers. */
   costUsd?: number;
   verdict: string;
+  /**
+   * Licensed product photograph, when one exists. Same constraint as
+   * ReferenceFragrance.imageUrl above — a bottle is protected trade dress, so
+   * this may only hold imagery supplied by an affiliate programme we are
+   * enrolled in, or a photo of a bottle we own.
+   *
+   * Do NOT set this by hand. It is merged in from
+   * lib/data/dupe-images.generated.ts, written by scripts/fetch-dupe-images.mjs,
+   * which will only take an image for a listing whose merchant programme
+   * actually tracks — because the licence rides on the affiliate relationship,
+   * not on the picture. Hand-setting it is how a photograph from a closed
+   * programme, or from a retailer we have no relationship with at all, ends up
+   * shipped with nothing in the diff to say where it came from.
+   */
+  imageUrl?: string;
+  /**
+   * Why this listing is presented as an alternative to `referenceSlug` at all.
+   *
+   * The pairing is the single most consequential editorial claim on the page —
+   * everything else (the score, the note diff, the price-per-ml) is downstream
+   * of "these two are comparable". Until 2026-09-02 that claim rested entirely
+   * on our own say-so, which is the weakest possible footing for the one thing
+   * a reader is here to check.
+   *
+   * It turns out most of it does not have to. Retailers state the pairing
+   * themselves — Opulensi sells Barakkat Rouge 540 at a URL ending
+   * `inspired-by-baccarat-rouge-540`, and describes Bint Hooran as
+   * `Inspired by "Good Girl"`. Quoting that is both stronger evidence and more
+   * honest: it shows the reader who is claiming what.
+   *
+   * Recording it also makes disagreement visible. Bint Hooran is the case that
+   * proves the point — the retailer claims the pairing and then publishes a
+   * note list for it that shares almost nothing with Good Girl. That
+   * contradiction is worth surfacing, and it can only be surfaced if the claim
+   * and its source are stored rather than silently absorbed into our own voice.
+   *
+   * Absent means the pairing is our own editorial judgement, which is
+   * legitimate but weaker. Say so rather than inventing a citation.
+   */
+  pairingBasis?: {
+    /** Who makes the claim, e.g. "Opulensi product listing". */
+    source: string;
+    /** Their words, verbatim and short enough to be quoted in the UI. */
+    quote: string;
+    /** Where a reader can check it. */
+    url?: string;
+  };
+  /**
+   * Where this can actually be bought, one entry per retailer.
+   *
+   * At least one entry is expected on every third-party listing and it is how
+   * the listing's existence is checkable: this array was once emptied because
+   * it held product names that did not exist, attributed to real companies.
+   * The fix was not "be more careful" — it was to require a third-party source
+   * per listing and record it in the data, so a reviewer can verify a name
+   * without taking our word for it. Each offer's `productName` and
+   * `productUrl` are that record.
+   *
+   * An offer's `price` is a retailer's price for one presentation and is a
+   * different figure from the listing's `priceUsd`, which is a typical street
+   * price driving the per-ml comparison. They are deliberately separate: My
+   * Perfume Shop lists Club de Nuit Intense Man at $129 and Opulensi's limited
+   * edition runs GBP 68.99, against a street price near $40. Feeding a
+   * retailer's price into "Nx cheaper per ml" would corrupt that claim.
+   *
+   * House products have no offers — they route to our own buy flow, which does
+   * not exist yet, and say so rather than rendering a button.
+   */
+  offers?: MerchantOffer[];
   /**
    * Defaults to "declared" when absent - see lib/verification.ts. Every
    * fixture listing in lib/dupes-data.ts is implicitly "declared" (none of

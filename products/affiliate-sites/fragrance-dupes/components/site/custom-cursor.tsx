@@ -233,7 +233,8 @@ export function CustomCursor() {
 
       // The precision anchor: always exactly at the real pointer
       // position, regardless of the mist trail, so the cursor stays
-      // usable for actual clicking.
+      // usable for actual clicking. Sized and opaque enough to read
+      // clearly at a glance, not just as a trailing hint.
       if (pointer.visible && variant !== "text") {
         const isView = variant === "view";
         const isLink = variant === "link";
@@ -276,6 +277,7 @@ export function CustomCursor() {
       document.documentElement.classList.remove("custom-cursor-active");
       themeObserver.disconnect();
       cancelAnimationFrame(raf);
+      themeObserver.disconnect();
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", handleMove);
       document.removeEventListener("mouseover", handleOver);

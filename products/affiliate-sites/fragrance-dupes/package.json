@@ -8,7 +8,9 @@
     "prebuild": "node scripts/generate-redirects.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "preview": "npm run build && npx wrangler@4 dev --config ../../../wrangler.jsonc --port 8788 --local",
+    "check:links": "node scripts/check-affiliate-links.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "2.1.7",

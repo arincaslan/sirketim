@@ -56,6 +56,7 @@ export function ComparisonDetail({
                 brand: dupe.brand,
                 family: reference.family,
                 facets: dupe.facets,
+                imageUrl: dupe.imageUrl,
               }}
               className="h-11 w-11 text-base"
             />
@@ -100,6 +101,58 @@ export function ComparisonDetail({
 
         <SpecPanel reference={reference} dupe={dupe} />
       </div>
+
+      {/* Who says these two are comparable at all. The pairing is the claim
+          every other number on this page depends on, and for most listings it
+          is the retailer's claim rather than ours — so it is shown as a quote
+          with a link, not absorbed into our own voice. Absent means the pairing
+          is our own editorial judgement. See DupeCandidate.pairingBasis. */}
+      {!house && (
+        <div className="flex flex-col gap-1 rounded-frame border border-border bg-background/40 p-4 text-xs">
+          <span className="font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            Why these are compared
+          </span>
+          {dupe.pairingBasis ? (
+            <>
+              <p className="text-foreground/80">
+                {dupe.pairingBasis.source} describes {dupe.name} as{" "}
+                <q className="italic">{dupe.pairingBasis.quote}</q>.{" "}
+                {dupe.pairingBasis.url && (
+                  <a
+                    href={dupe.pairingBasis.url}
+                    rel="nofollow noopener"
+                    target="_blank"
+                    className="underline underline-offset-2 hover:text-primary"
+                  >
+                    Check it
+                  </a>
+                )}
+              </p>
+              <p className="text-muted-foreground">
+                That is their claim, not our finding. The score above is computed from notes and
+                facets independently of it.
+              </p>
+            </>
+          ) : (
+            // The absent-basis branch is NOT a blank. A reader cannot otherwise
+            // tell "the retailer says this" from "we decided this", and those
+            // are very different claims — the second is the weaker one and is
+            // ours. Saying nothing would quietly let our judgement borrow the
+            // credibility of the cited listings sitting next to it.
+            <>
+              <p className="text-foreground/80">
+                Our own judgement. No retailer describes {dupe.name} as an alternative to{" "}
+                {reference.name} — we paired them, based on how the two are composed and on how{" "}
+                {dupe.name} is generally regarded.
+              </p>
+              <p className="text-muted-foreground">
+                That is weaker evidence than a pairing the seller states themselves. The note
+                comparison below is the thing to judge it on.
+              </p>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="border-t border-border/70 pt-8">
         <NoteDiff reference={reference} dupe={dupe} />

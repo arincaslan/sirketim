@@ -128,4 +128,22 @@ export const JEAN_PAUL_GAULTIER: ReferenceFragrance[] = [
     concentration: "Eau de Toilette",
     affiliateLinkId: "original-le-beau",
   },
+  {
+    slug: "la-belle",
+    name: "La Belle",
+    brand: "Jean Paul Gaultier",
+    family: "Oriental Vanilla",
+    notes: {
+      top: ["Pear", "Bergamot"],
+      heart: ["Orange Blossom", "Jasmine"],
+      base: ["Vanilla", "Tonka Bean", "Sandalwood"],
+    },
+    facets: { freshness: 4, sweetness: 9, warmth: 7, woodyDepth: 4, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 125,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-la-belle",
+  },
 ];

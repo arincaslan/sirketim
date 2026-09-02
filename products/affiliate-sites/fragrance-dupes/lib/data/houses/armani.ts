@@ -146,4 +146,22 @@ export const ARMANI: ReferenceFragrance[] = [
     concentration: "Eau de Toilette",
     affiliateLinkId: "original-bois-dencens",
   },
+  {
+    slug: "because-its-you",
+    name: "Because It's You",
+    brand: "Armani",
+    family: "Floral Fruity",
+    notes: {
+      top: ["Raspberry", "Pink Pepper", "Bergamot"],
+      heart: ["Rose", "Jasmine", "Orange Blossom"],
+      base: ["Vanilla", "Musk", "Patchouli"],
+    },
+    facets: { freshness: 5, sweetness: 8, warmth: 6, woodyDepth: 3, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 130,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-because-its-you",
+  },
 ];

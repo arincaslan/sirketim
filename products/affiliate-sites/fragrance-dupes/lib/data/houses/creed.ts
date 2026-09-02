@@ -146,4 +146,22 @@ export const CREED: ReferenceFragrance[] = [
     concentration: "Eau de Parfum",
     affiliateLinkId: "original-love-in-white",
   },
+  {
+    slug: "spring-flower",
+    name: "Spring Flower",
+    brand: "Creed",
+    family: "Floral Fruity",
+    notes: {
+      top: ["Melon", "Peach", "Apple", "Bergamot"],
+      heart: ["Rose", "Jasmine", "Carnation"],
+      base: ["Musk", "Ambergris", "Vanilla"],
+    },
+    facets: { freshness: 7, sweetness: 7, warmth: 4, woodyDepth: 3, longevity: 6, sillage: 6 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Moderate",
+    priceUsd: 295,
+    bottleMl: 75,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-spring-flower",
+  },
 ];

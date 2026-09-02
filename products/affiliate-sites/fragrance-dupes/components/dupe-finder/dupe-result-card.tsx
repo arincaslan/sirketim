@@ -63,6 +63,10 @@ export function DupeResultCard({
               brand: dupe.brand,
               family: reference.family,
               facets: dupe.facets,
+              // A listing only has one where the merchant's programme actually
+              // tracks (see scripts/fetch-dupe-images.mjs); the others fall
+              // back to the generated note signature, same as references do.
+              imageUrl: dupe.imageUrl,
             }}
             className="h-10 w-10 text-base"
           />

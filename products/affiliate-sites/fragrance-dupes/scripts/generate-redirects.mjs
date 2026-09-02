@@ -60,6 +60,10 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const outFile = resolve(here, "..", "public", "_redirects");
 
+/** Must match SUB_ID_PARAM in lib/affiliate-links.ts. Duplicated because this
+ *  script deliberately reads the TS file as text rather than importing it. */
+const SUB_ID_PARAM = { awin: "clickref", cj: "sid" };
+
 /**
  * Read the affiliate map without pulling in the TypeScript toolchain.
  *
@@ -94,9 +98,31 @@ async function readAffiliateLinks() {
   const entries = [...body.matchAll(/["']?([\w-]+)["']?\s*:\s*\{([^}]*)\}/g)];
   const out = {};
   for (const [, id, fields] of entries) {
-    const dest = fields.match(/destinationUrl:\s*["']([^"']+)["']/)?.[1];
     const network = fields.match(/network:\s*["']([^"']+)["']/)?.[1];
-    if (dest && network && network !== "placeholder") out[id] = dest;
+    const deepLink = fields.match(/deepLink:\s*["']([^"']+)["']/)?.[1];
+    const subId = fields.match(/subId:\s*["']([^"']+)["']/)?.[1];
+    if (!network || network === "placeholder") continue;
+
+    // Mirrors affiliateDestination() in lib/affiliate-links.ts. Kept in step by
+    // the assertion below rather than by hope: this file cannot import the TS
+    // module, and a silent divergence here would strip attribution from every
+    // affiliate click while the links still appeared to work.
+    if (!deepLink || !subId) {
+      throw new Error(
+        `generate-redirects: affiliate link "${id}" is missing deepLink or subId. ` +
+          "Every real entry needs both — a link without a sub-ID is unattributable " +
+          "forever, and there is no way to recover which listing earned a commission."
+      );
+    }
+    const param = SUB_ID_PARAM[network];
+    if (!param) {
+      throw new Error(
+        `generate-redirects: unknown network "${network}" on affiliate link "${id}". ` +
+          `Add its sub-ID parameter to SUB_ID_PARAM in both this file and lib/affiliate-links.ts.`
+      );
+    }
+    const joiner = deepLink.includes("?") ? "&" : "?";
+    out[id] = `${deepLink}${joiner}${param}=${encodeURIComponent(subId)}`;
   }
   return out;
 }

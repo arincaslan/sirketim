@@ -59,6 +59,62 @@ export const PRODUCERS: Producer[] = [
     name: "hkPerfumes",
     blurb: "Niche-leaning interpretations, including harder-to-dupe woody compositions.",
   },
+  // Added 2026-09-01 with the first real listings in lib/dupes-data.ts. Unlike
+  // the entries above, these two are not merely "found in research": specific
+  // products of theirs were read off a live retailer's product feed, which is
+  // what made those listings writable at all.
+  {
+    slug: "armaf",
+    name: "Armaf",
+    blurb:
+      "Sharjah-based house whose Club de Nuit line is the most widely worn set of designer alternatives in the category. Sold through mainstream retailers rather than direct-to-consumer.",
+  },
+  {
+    slug: "lattafa",
+    name: "Lattafa",
+    blurb:
+      "Dubai perfume house with a large catalog spanning both original compositions and closely-inspired interpretations of Western releases.",
+  },
+  // Added 2026-09-02, same standard: each has a specific product read off the
+  // Opulensi feed, and in every case the retailer's own listing names the
+  // Western release it is interpreting.
+  {
+    slug: "maison-alhambra",
+    name: "Maison Alhambra",
+    blurb:
+      "Lattafa's sister label, aimed almost entirely at close interpretations of European designer releases. Its listings are usually sold under a renamed version of the original.",
+  },
+  {
+    slug: "ard-al-zaafaran",
+    name: "Ard Al Zaafaran",
+    blurb:
+      "Dubai house working at the budget end of the category, with a catalog split between traditional Arabian compositions and interpretations of Western bestsellers.",
+  },
+  {
+    slug: "fragrance-world",
+    name: "Fragrance World",
+    blurb:
+      "UAE house that builds its range almost exclusively around near-name interpretations of niche and designer releases, typically sold under a deliberately similar name.",
+  },
+  // Added 2026-09-02 with the coverage batch.
+  {
+    slug: "afnan",
+    name: "Afnan",
+    blurb:
+      "Long-established Dubai house, at the upper end of the category on price and on composition quality. Its Supremacy line is the range most often bought as a designer alternative.",
+  },
+  {
+    slug: "rasasi",
+    name: "Rasasi",
+    blurb:
+      "One of the oldest UAE perfume houses, founded 1979, with its own perfumery rather than a pure clone catalogue. The Hawas line is what brings it into dupe comparisons.",
+  },
+  {
+    slug: "french-avenue",
+    name: "French Avenue",
+    blurb:
+      "Fragrance World's higher-priced label, working the same near-interpretation model at extrait concentration.",
+  },
 ];
 
 export function getProducer(slug: string): Producer | undefined {

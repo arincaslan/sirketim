@@ -1,18 +1,27 @@
 import { ARMANI } from "@/lib/data/houses/armani";
+import { AZZARO } from "@/lib/data/houses/azzaro";
 import { BYREDO } from "@/lib/data/houses/byredo";
+import { CALVIN_KLEIN } from "@/lib/data/houses/calvin-klein";
+import { CAROLINA_HERRERA } from "@/lib/data/houses/carolina-herrera";
 import { CHANEL } from "@/lib/data/houses/chanel";
 import { CREED } from "@/lib/data/houses/creed";
 import { DIOR } from "@/lib/data/houses/dior";
 import { GUCCI } from "@/lib/data/houses/gucci";
+import { GUERLAIN } from "@/lib/data/houses/guerlain";
+import { INITIO } from "@/lib/data/houses/initio";
 import { JEAN_PAUL_GAULTIER } from "@/lib/data/houses/jean-paul-gaultier";
 import { KILIAN } from "@/lib/data/houses/kilian";
 import { LE_LABO } from "@/lib/data/houses/le-labo";
 import { MAISON_MARGIELA } from "@/lib/data/houses/maison-margiela";
 import { OTHER_HOUSES } from "@/lib/data/houses/other";
+import { PACO_RABANNE } from "@/lib/data/houses/paco-rabanne";
 import { PARFUMS_DE_MARLY } from "@/lib/data/houses/parfums-de-marly";
 import { TOM_FORD } from "@/lib/data/houses/tom-ford";
+import { VALENTINO } from "@/lib/data/houses/valentino";
 import { VERSACE } from "@/lib/data/houses/versace";
+import { XERJOFF } from "@/lib/data/houses/xerjoff";
 import { YSL } from "@/lib/data/houses/ysl";
+import { FEED_IMAGES } from "@/lib/data/feed-images.generated";
 import type { ReferenceFragrance } from "@/lib/types";
 
 /**
@@ -49,7 +58,15 @@ import type { ReferenceFragrance } from "@/lib/types";
  * See lib/affiliate-links.ts.
  * ======================================================================
  */
-export const REFERENCES: ReferenceFragrance[] = [
+/**
+ * The hand-authored catalog, before merchant data is merged over it.
+ *
+ * Kept separate from the exported REFERENCES so the editorial layer stays
+ * obviously editorial: notes, facets, families and prices are written by a
+ * person and reviewed as prose. Nothing generated is ever written back into
+ * lib/data/houses/*.ts.
+ */
+const EDITORIAL: ReferenceFragrance[] = [
   ...CHANEL,
   ...DIOR,
   ...CREED,
@@ -64,8 +81,42 @@ export const REFERENCES: ReferenceFragrance[] = [
   ...MAISON_MARGIELA,
   ...LE_LABO,
   ...VERSACE,
+  // Added 2026-09-01 in the 111 -> 200 expansion. Every one was checked against
+  // the merchant feed by scripts/check-candidates.mjs before its note pyramid
+  // was written — a page for a fragrance no merchant carries can never hold a
+  // listing or earn a commission, which is the lesson of the 68 -> 111 pass.
+  ...PACO_RABANNE,
+  ...CAROLINA_HERRERA,
+  ...XERJOFF,
+  ...INITIO,
+  ...GUERLAIN,
+  ...CALVIN_KLEIN,
+  ...AZZARO,
+  ...VALENTINO,
   ...OTHER_HOUSES,
 ];
+
+/**
+ * The catalog as the site sees it: editorial data with locally-hosted merchant
+ * product photography merged in where a real affiliate feed supplied one.
+ *
+ * ONLY `imageUrl` IS MERGED, and that is a deliberate limit rather than a
+ * first step. The obvious next candidate — `priceUsd` — is not taken from the
+ * feed, because the feed carries no bottle size. My Perfume Shop lists "Bleu
+ * de CHANEL EDP" six times between $15 and $259, plainly a sample vial through
+ * to a large bottle, with nothing saying which is which. `priceUsd` feeds the
+ * "Nx cheaper per ml" claim, which needs price AND volume; a price detached
+ * from its size would make that claim wrong on the page rather than merely
+ * stale. So the hand-maintained approximate prices above still stand, and the
+ * merchant's real price is shown separately as a range, attributed to them.
+ *
+ * Re-run `node scripts/ingest-feed.mjs && node scripts/fetch-feed-images.mjs`
+ * after a feed refresh.
+ */
+export const REFERENCES: ReferenceFragrance[] = EDITORIAL.map((ref) => {
+  const image = FEED_IMAGES[ref.slug];
+  return image ? { ...ref, imageUrl: image } : ref;
+});
 
 /** Guards against a copy-paste duplicate slug silently shadowing a fragrance:
  *  two entries with the same slug would make getReference ambiguous and break
