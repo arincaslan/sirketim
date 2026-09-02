@@ -11,6 +11,11 @@ Thumbs.db
 __pycache__/
 *.pyc
 
+# wrangler's local state/cache, created by `npm run preview` (the only way to
+# click an affiliate buy link locally -- see the fragrance-dupes CLAUDE.md).
+# Machine-local, regenerable, and it holds a local KV/asset cache, not source.
+.wrangler/
+
 # Generated test/demo CAD artifacts from the cadgen library's synthetic
 # validation harness (departments/architecture/lib/cadgen/examples/) --
 # regenerable output, not source, and not a real client deliverable.
