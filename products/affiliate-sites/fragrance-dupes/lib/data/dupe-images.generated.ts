@@ -9,8 +9,8 @@
  * the generated note-signature mark instead. See the script header for why the
  * licence is tied to the link rather than to the picture.
  *
- * Generated: 2026-09-02T11:51:46.585Z
- * Images:    23
+ * Generated: 2026-09-03T09:39:55.327Z
+ * Images:    30
  */
 
 export const DUPE_IMAGES: Record<string, string> = {
@@ -36,5 +36,12 @@ export const DUPE_IMAGES: Record<string, string> = {
   "maison-alhambra-sceptre-amazonite": "/images/dupe/maison-alhambra-sceptre-amazonite.jpg",
   "lattafa-velvet-rose": "/images/dupe/lattafa-velvet-rose.jpg",
   "rasasi-hawas-black": "/images/dupe/rasasi-hawas-black.jpg",
-  "afnan-supremacy-not-only-intense": "/images/dupe/afnan-supremacy-not-only-intense.jpg"
+  "afnan-supremacy-not-only-intense": "/images/dupe/afnan-supremacy-not-only-intense.jpg",
+  "fragrance-world-neroli-riviera": "/images/dupe/fragrance-world-neroli-riviera.jpg",
+  "ard-al-zaafaran-oud-orchid": "/images/dupe/ard-al-zaafaran-oud-orchid.jpg",
+  "lattafa-qaed": "/images/dupe/lattafa-qaed.jpg",
+  "lattafa-mohra": "/images/dupe/lattafa-mohra.jpg",
+  "fragrance-world-vanille-en-tobacco": "/images/dupe/fragrance-world-vanille-en-tobacco.jpg",
+  "lattafa-ameer-al-oudh-intense-oud": "/images/dupe/lattafa-ameer-al-oudh-intense-oud.jpg",
+  "zimaya-oud-is-great": "/images/dupe/zimaya-oud-is-great.jpg"
 };

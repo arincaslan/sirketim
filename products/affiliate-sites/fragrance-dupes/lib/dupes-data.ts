@@ -8,8 +8,8 @@ export { REFERENCES };
  * Producer listings for the Dupe Finder.
  *
  * WAS DELIBERATELY EMPTY 2026-08-27 → 2026-09-01, and the reasoning below is
- * kept in full because it is the standard all twenty-five current listings had
- * to meet, not a superseded note. Read it before adding a twenty-sixth.
+ * kept in full because it is the standard all twenty-nine current listings had
+ * to meet, not a superseded note. Read it before adding a thirtieth.
  *
  * It previously held 37 listings. They were removed at the founder's
  * instruction ("take out all the gimmick data") once verification showed the
@@ -107,9 +107,29 @@ export { REFERENCES };
  *
  *        node scripts/check-affiliate-links.mjs
  *
- * So today: twenty-five listings across eighteen originals, twenty-six offers,
- * twenty-three with a working programme behind them, twenty-two rendering an
- * actual buy button.
+ * So as of 2026-09-01/02: twenty-five listings across eighteen originals,
+ * twenty-six offers, twenty-three with a working programme behind them,
+ * twenty-two rendering an actual buy button. EXTENDED 2026-09-03 (four more,
+ * all cited pairings, two of them landing on originals that previously had no
+ * alternative at all - Neroli Portofino and Black Orchid): twenty-nine
+ * listings across twenty originals, thirty offers, twenty-seven with a
+ * working programme behind them, twenty-three rendering an actual buy button.
+ * EXTENDED AGAIN the same day, the FINAL batch from this feed (three more,
+ * found by hand-scanning the feed a second time for retailer-stated pairings
+ * the first pass missed; two land on originals that previously had no
+ * alternative at all - Tobacco Vanille and By the Fireplace): now
+ * **thirty-two listings across twenty-two originals**, thirty-three offers,
+ * thirty with a working programme behind them, still **twenty-three
+ * rendering an actual buy button** - all three new offers are OUT OF STOCK on
+ * the merchant's own page despite the feed marking them `in_stock=1`, the
+ * same pattern as every batch before it, checked the same way
+ * (scripts/check-affiliate-links.mjs). Recompute rather than trusting this
+ * comment before adding a thirty-fourth: `grep -c "^  {$" lib/dupes-data.ts`
+ * undercounts (nested objects share that shape), so count `slug: "` at the
+ * top level instead, or just count entries by eye. **This merchant is now
+ * exhausted** - see the "COVERAGE IS CAPPED" section at the foot of this
+ * project's CLAUDE.md; growing past this needs a second dupe-side merchant,
+ * not more scanning of this one.
  *
  * The two My Perfume Shop-only listings also have NO IMAGE, for the same reason
  * rather than by coincidence. The licence we rely on for bottle photography is
@@ -1095,6 +1115,348 @@ const LISTINGS: DupeCandidate[] = [
         currency: "GBP",
         affiliateLinkId: "dupe-afnan-supremacy-not-only-intense",
         inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+
+  /* -- Added 2026-09-03 ---------------------------------------------------
+   * Four more from the Opulensi feed, all cited pairings (the retailer names
+   * the Western original itself, in the product URL or its own description).
+   * Two new originals get their first alternative: Neroli Portofino and
+   * Black Orchid. The other two land on Oud Wood, which already had one
+   * listing (Jean Lowe Matiere), taking it to three.
+   *
+   * STOCK, CHECKED LIVE 2026-09-03 against each product's own schema.org
+   * availability (not the feed, which marks all four `in_stock=1` the same
+   * way it did for the Armaf listing before this project learned not to trust
+   * it): Neroli Riviera, Oud Orchid and Qaa'ed are OutOfStock; Mohra is
+   * InStock. All four links still trace correctly end to end (curl -L with
+   * clickref=probe lands on opulensi.com with utm_id=..._probe and an awc
+   * cookie), so all four are kept per the standing rule - the link earns the
+   * moment stock returns, deleting it would only have to be redone.
+   *
+   * Qaa'ed's bottle size was a genuine conflict worth resolving rather than
+   * guessing: the feed's product_name says "100ml" but the URL slug says
+   * "30ml". The live page's own schema.org Product name resolves it -
+   * "Lattafa Qaa'ed Eau de Parfum 100ml Lattafa" - so bottleMl is 100, and the
+   * URL slug is simply stale.
+   *
+   * Mohra is the weakest citation of the four and the verdict says so. The
+   * retailer's description calls it "reminiscent of Tom Ford's Oud Wood," but
+   * its own published note pyramid lists no oud at all - the real overlap
+   * with Oud Wood is one shared base note (sandalwood) and a pepper note
+   * (black pepper vs. Oud Wood's Chinese pepper). Same posture as Bint
+   * Hooran: quote the claim, show the note diff, let the score say what it
+   * says.
+   */
+  {
+    slug: "fragrance-world-neroli-riviera",
+    referenceSlug: "neroli-portofino",
+    name: "Neroli Riviera",
+    brand: "Fragrance World",
+    producerSlug: "fragrance-world",
+    pairingBasis: {
+      source: "Opulensi product listing",
+      quote: "Inspired by the freshness of Neroli Portofino",
+      url: "https://www.opulensi.com/products/neroli-riviera-80ml-edp-by-fragrance-world",
+    },
+    notes: {
+      top: ["Bergamot", "Mandarin Orange", "Lemon", "Bitter Orange", "Lavender", "Rosemary", "Myrtle"],
+      heart: ["African Orange Flower", "Neroli", "Jasmine", "Pittosporum"],
+      base: ["Amber", "Ambrette Seed", "Angelica"],
+    },
+    facets: { freshness: 8, sweetness: 3, warmth: 4, woodyDepth: 2, longevity: 6, sillage: 6 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Strong",
+    priceUsd: 18,
+    bottleMl: 80,
+    concentration: "Eau de Parfum",
+    verdict:
+      "Gets the core outline right: bergamot and lemon up top, angelica and amber in the base, and neroli itself carried through to the heart rather than dropped. It is a busier build than the original - rosemary and myrtle add an herbal edge Neroli Portofino does not have - and the base swaps Tom Ford's sandalwood-and-musk warmth for a drier ambrette seed, so it reads a shade greener and less skin-close.",
+    offers: [
+      {
+        merchant: "Opulensi Perfumes",
+        productName: "Neroli Riviera 80ml EDP by Fragrance World",
+        productUrl: "https://www.opulensi.com/products/neroli-riviera-80ml-edp-by-fragrance-world",
+        price: 13.79,
+        currency: "GBP",
+        affiliateLinkId: "dupe-fragrance-world-neroli-riviera",
+        // Checked 2026-09-03: live page's schema.org availability is
+        // OutOfStock; the Awin feed row says in_stock=1. Feed is stale, the
+        // merchant's page is the truth - see scripts/check-affiliate-links.mjs.
+        inStock: false,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "ard-al-zaafaran-oud-orchid",
+    referenceSlug: "black-orchid",
+    name: "Oud Orchid",
+    brand: "Ard Al Zaafaran",
+    producerSlug: "ard-al-zaafaran",
+    pairingBasis: {
+      source: "Opulensi product listing",
+      quote: "inspired by tom ford black orchid",
+      url: "https://www.opulensi.com/products/oud-orchid-edp-100ml-by-ard-al-zaafaran-inspired-by-tom-ford-black-orchid",
+    },
+    notes: {
+      top: ["Oudh", "Dark Chocolate", "Tuber", "Orchids", "Vanilla"],
+      heart: ["Patchouli", "Ylang-Ylang", "Sandalwood", "White Musk", "Citrus"],
+      base: ["Jasmine", "Incense"],
+    },
+    facets: { freshness: 2, sweetness: 6, warmth: 8, woodyDepth: 8, longevity: 8, sillage: 8 },
+    longevityHoursRange: [7, 10],
+    sillageLabel: "Beast Mode",
+    priceUsd: 22,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    verdict:
+      "Shares more of Black Orchid's unusual architecture than the name change suggests: dark chocolate, orchid, vanilla, patchouli, sandalwood and incense all carry over. What it adds is oud up top, which Black Orchid does not have at all, pulling the opening in a smokier direction; what it drops is the black truffle and black currant that give the original its odd fruity-earthy signature. Worth trying if you want the gourmand-woody heart without the truffle.",
+    offers: [
+      {
+        merchant: "Opulensi Perfumes",
+        productName: "Oud Orchid EDP 100ml by Ard Al Zaafaran",
+        productUrl:
+          "https://www.opulensi.com/products/oud-orchid-edp-100ml-by-ard-al-zaafaran-inspired-by-tom-ford-black-orchid",
+        price: 17.99,
+        currency: "GBP",
+        affiliateLinkId: "dupe-ard-al-zaafaran-oud-orchid",
+        // Checked 2026-09-03: live page's schema.org availability is
+        // OutOfStock; the Awin feed row says in_stock=1.
+        inStock: false,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "lattafa-qaed",
+    referenceSlug: "oud-wood",
+    name: "Qaa'ed",
+    brand: "Lattafa",
+    producerSlug: "lattafa",
+    pairingBasis: {
+      source: "Opulensi product listing",
+      quote: "inspired by tf oud wood",
+      url: "https://www.opulensi.com/products/qaa-ed-eau-de-parfum-30ml-lattafa-inspired-by-tf-oud-wood",
+    },
+    notes: {
+      top: ["Saffron", "Nutmeg", "Cinnamon Bark", "Cardamom"],
+      heart: ["Oud Wood", "Sandalwood"],
+      base: ["Vanilla", "Amber", "Leather"],
+    },
+    facets: { freshness: 2, sweetness: 5, warmth: 7, woodyDepth: 8, longevity: 8, sillage: 7 },
+    longevityHoursRange: [7, 10],
+    sillageLabel: "Strong",
+    priceUsd: 26,
+    // Bottle size conflict in the feed: product_name says "100ml", the URL
+    // slug says "30ml". Resolved 2026-09-03 against the live page's own
+    // schema.org Product name ("Lattafa Qaa'ed Eau de Parfum 100ml Lattafa") -
+    // the slug is stale, the bottle is 100ml.
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    verdict:
+      "The heart is an exact note-for-note match - oud and sandalwood, nothing else - which is unusual even among the closer alternatives here. It diverges at both ends: the top trades Oud Wood's rosewood-and-Chinese-pepper for a warmer saffron-cinnamon-cardamom spice mix, and the base swaps tonka bean for leather, so the drydown reads more oriental-leathery than the original's creamy sandalwood-vanilla finish. A second, spicier route to the same original alongside Jean Lowe Matiere.",
+    offers: [
+      {
+        merchant: "Opulensi Perfumes",
+        productName: "Lattafa Qaa'ed Eau de Parfum 100ml Lattafa",
+        productUrl:
+          "https://www.opulensi.com/products/qaa-ed-eau-de-parfum-30ml-lattafa-inspired-by-tf-oud-wood",
+        price: 17.99,
+        currency: "GBP",
+        affiliateLinkId: "dupe-lattafa-qaed",
+        // Checked 2026-09-03: live page's schema.org availability is
+        // OutOfStock; the Awin feed row says in_stock=1.
+        inStock: false,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "lattafa-mohra",
+    referenceSlug: "oud-wood",
+    name: "Mohra",
+    brand: "Lattafa",
+    producerSlug: "lattafa",
+    pairingBasis: {
+      source: "Opulensi product listing",
+      quote: "reminiscent of Tom Ford's Oud Wood",
+      url: "https://www.opulensi.com/products/mohra-eau-de-parfum-100ml-by-lattafa",
+    },
+    notes: {
+      top: ["Bergamot", "Blood Orange", "Lavender", "Saffron"],
+      heart: ["Rose", "Black Pepper", "Cashmeran"],
+      base: ["Cedarwood", "Sandalwood", "Patchouli", "Cistus Labdanum", "Musk"],
+    },
+    facets: { freshness: 3, sweetness: 4, warmth: 7, woodyDepth: 6, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 9],
+    sillageLabel: "Strong",
+    priceUsd: 25,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    verdict:
+      "The retailer's own copy calls this 'reminiscent of Tom Ford's Oud Wood,' but its published note pyramid barely supports that: there is no oud listed at all, and the real overlap is one shared base note (sandalwood) plus a pepper note that is black pepper here against Oud Wood's Chinese pepper. What Mohra actually is, by its own notes, is a rose-pepper-cedarwood fragrance with cashmeran and labdanum - closer to a modern woody-spicy than to Oud Wood's rosewood-and-cardamom opening or its tonka-vanilla base. Buy it as its own thing rather than expecting Oud Wood in a different bottle.",
+    offers: [
+      {
+        merchant: "Opulensi Perfumes",
+        productName: "Mohra Eau De Parfum 100ml by Lattafa",
+        productUrl: "https://www.opulensi.com/products/mohra-eau-de-parfum-100ml-by-lattafa",
+        price: 19.79,
+        currency: "GBP",
+        affiliateLinkId: "dupe-lattafa-mohra",
+        // Checked 2026-09-03 (scripts/check-affiliate-links.mjs and schema.org
+        // availability): InStock.
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  /**
+   * FINAL BATCH FROM THIS FEED, added 2026-09-03. Found by hand-scanning the
+   * same 610-row Opulensi feed for retailer-stated pairings the earlier passes
+   * missed. This is the realistic end of what this merchant supports - see the
+   * "COVERAGE IS CAPPED" note at the top of this file. All three checked with
+   * scripts/check-affiliate-links.mjs: links track, but all three are
+   * OUT OF STOCK on the live merchant page despite the feed marking them
+   * `in_stock=1` - the same pattern as every prior batch here. That brings
+   * the running total to 7 of the 30 linked offers in this file where the
+   * feed's `in_stock=1` disagreed with the live page; treat the flag as
+   * decorative and always re-check live.
+   */
+  {
+    slug: "fragrance-world-vanille-en-tobacco",
+    referenceSlug: "tobacco-vanille",
+    name: "Vanille En Tobacco",
+    brand: "Fragrance World",
+    producerSlug: "fragrance-world",
+    pairingBasis: {
+      source: "Opulensi product listing",
+      quote: "Inspired by Tobacco Vanilla",
+      url: "https://www.opulensi.com/products/vanille-en-tobacco-80ml-edp-by-fragrance-world",
+    },
+    notes: {
+      top: ["Black Pepper", "Spicy Notes"],
+      heart: ["Vanilla", "Tobacco", "Tonka Beans"],
+      base: ["Dry Fruit", "Sugary Wood Sap"],
+    },
+    facets: { freshness: 1, sweetness: 9, warmth: 8, woodyDepth: 5, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 22,
+    bottleMl: 80,
+    concentration: "Eau de Parfum",
+    verdict:
+      "Keeps Tobacco Vanille's actual core - vanilla and tonka bean in the heart, dried fruit in the base - and simplifies everything else. The Tom Ford original opens on tobacco leaf itself and layers in cacao and a mix of woods underneath; this opens on black pepper instead, folds tobacco down into the heart rather than the top, and reduces the base to one gourmand woody-sap note. Reads sweeter and less complex, not a flaw for a fifth of the price, but the opening is a genuinely different note.",
+    offers: [
+      {
+        merchant: "Opulensi Perfumes",
+        productName: "Vanille En Tobacco 80ml EDP by Fragrance World",
+        productUrl: "https://www.opulensi.com/products/vanille-en-tobacco-80ml-edp-by-fragrance-world",
+        price: 14.3,
+        currency: "GBP",
+        affiliateLinkId: "dupe-fragrance-world-vanille-en-tobacco",
+        // Checked 2026-09-03 (scripts/check-affiliate-links.mjs): live page's
+        // schema.org availability is OutOfStock; the Awin feed row says
+        // in_stock=1.
+        inStock: false,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "lattafa-ameer-al-oudh-intense-oud",
+    referenceSlug: "by-the-fireplace",
+    name: "Ameer Al Oudh Intense Oud",
+    brand: "Lattafa",
+    producerSlug: "lattafa",
+    pairingBasis: {
+      source: "Opulensi product listing",
+      quote: "An aroma of sweet smoky woody notes makes you feel a cozy vibe of being By The Fireplace",
+      url: "https://www.opulensi.com/products/ameer-al-oudh-intense-oud-100ml",
+    },
+    // The feed's description repeats the pyramid twice with a discrepancy in
+    // the heart - "Geranium, Woody Notes, Labdanum" the first time, "Geranium,
+    // Woody Notes, Sugar and Labdanum" the second. Using the fuller version,
+    // per the founder's instruction.
+    notes: {
+      top: ["Saffron", "Nutmeg"],
+      heart: ["Geranium", "Woody Notes", "Sugar", "Labdanum"],
+      base: ["Oud", "Vanilla", "Leather"],
+    },
+    facets: { freshness: 1, sweetness: 6, warmth: 8, woodyDepth: 8, longevity: 8, sillage: 8 },
+    longevityHoursRange: [7, 10],
+    sillageLabel: "Beast Mode",
+    priceUsd: 30,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    verdict:
+      "The retailer's own copy names By the Fireplace outright, but the published pyramid barely backs it up. The two share one note - vanilla, sitting in both bases - and nothing else: Maison Margiela's pink pepper, clove and chestnut are entirely absent here, and this fragrance's saffron, nutmeg, oud and leather are entirely absent from the original. What both share is a general warm-woody-sweet register, which is a fair reason a retailer would use the name, but it is an oud fragrance being sold against a gourmand-woody one, not a close match.",
+    offers: [
+      {
+        merchant: "Opulensi Perfumes",
+        productName: "Ameer Al Oudh Intense Oud 100ml EDP by Lattafa",
+        productUrl: "https://www.opulensi.com/products/ameer-al-oudh-intense-oud-100ml",
+        price: 18.99,
+        currency: "GBP",
+        affiliateLinkId: "dupe-lattafa-ameer-al-oudh-intense-oud",
+        // Checked 2026-09-03 (scripts/check-affiliate-links.mjs): live page's
+        // schema.org availability is OutOfStock; the Awin feed row says
+        // in_stock=1. There is also a separate 200ml deodorant row for this
+        // same fragrance (feed id 43494950631) - not a separate listing,
+        // deliberately excluded.
+        inStock: false,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "zimaya-oud-is-great",
+    referenceSlug: "oud-for-greatness",
+    name: "Oud Is Great",
+    brand: "Zimaya",
+    producerSlug: "zimaya",
+    // No "inspired by"/"alternative to" phrasing anywhere in the retailer's
+    // copy, but the feed's full product description - longer than what a
+    // first read of the CSV shows - does name Initio directly, once you read
+    // past the note pyramid: "Zimaya Oud Is Great captures the essence of
+    // luxury and refinement of the renowned Initio Oud for Greatness, with
+    // its own twist, focusing on patchouli and nutmeg." Found and verified
+    // live on the merchant page 2026-09-03; this listing was proposed as an
+    // "our own judgement" candidate and upgraded to a cited pairing once this
+    // sentence turned up.
+    pairingBasis: {
+      source: "Opulensi product listing",
+      quote:
+        "captures the essence of luxury and refinement of the renowned Initio Oud for Greatness, with its own twist, focusing on patchouli and nutmeg",
+      url: "https://www.opulensi.com/products/oud-is-great-extrait-de-parfum-100ml-by-zimaya-afnan",
+    },
+    notes: {
+      top: ["Saffron", "Nutmeg", "Lavender"],
+      heart: ["Agarwood", "Oud"],
+      base: ["Patchouli", "Musk"],
+    },
+    facets: { freshness: 2, sweetness: 5, warmth: 8, woodyDepth: 8, longevity: 9, sillage: 8 },
+    longevityHoursRange: [8, 11],
+    sillageLabel: "Beast Mode",
+    priceUsd: 35,
+    bottleMl: 100,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The closest match in this whole batch: all three of Initio's top notes - saffron, nutmeg, lavender - carry over exactly, and oud and musk both run into the base on both sides. What thins out is the middle of the formula - Initio's sandalwood drops entirely, and this shifts patchouli down from the heart into the base rather than keeping it alongside oud - so the dry-down reads as a more linear oud-patchouli-musk where Oud for Greatness has an extra woody layer holding it up. At extrait concentration it should at least match the original on projection and staying power.",
+    offers: [
+      {
+        merchant: "Opulensi Perfumes",
+        productName: "Oud Is Great Extrait De Parfum 100ml by Zimaya (Afnan)",
+        productUrl: "https://www.opulensi.com/products/oud-is-great-extrait-de-parfum-100ml-by-zimaya-afnan",
+        price: 25.99,
+        currency: "GBP",
+        affiliateLinkId: "dupe-zimaya-oud-is-great",
+        // Checked 2026-09-03 (scripts/check-affiliate-links.mjs): live page's
+        // schema.org availability is OutOfStock; the Awin feed row says
+        // in_stock=1.
+        inStock: false,
       },
     ],
     verificationStatus: "declared",

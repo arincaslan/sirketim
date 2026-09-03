@@ -115,6 +115,13 @@ export const PRODUCERS: Producer[] = [
     blurb:
       "Fragrance World's higher-priced label, working the same near-interpretation model at extrait concentration.",
   },
+  // Added 2026-09-03, final batch from the Opulensi feed.
+  {
+    slug: "zimaya",
+    name: "Zimaya",
+    blurb:
+      "Afnan-perfumed sister label sold under its own name — the feed's own copy credits Afnan as the perfumer behind Zimaya's range.",
+  },
 ];
 
 export function getProducer(slug: string): Producer | undefined {

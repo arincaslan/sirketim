@@ -78,6 +78,15 @@ const SOURCES = {
   "lattafa-velvet-rose": { feed: FEED, productId: "43494950547" },
   "rasasi-hawas-black": { feed: FEED, productId: "44072471577" },
   "afnan-supremacy-not-only-intense": { feed: FEED, productId: "43494950550" },
+  // Added 2026-09-03.
+  "fragrance-world-neroli-riviera": { feed: FEED, productId: "43494950190" },
+  "ard-al-zaafaran-oud-orchid": { feed: FEED, productId: "43494950500" },
+  "lattafa-qaed": { feed: FEED, productId: "43494950511" },
+  "lattafa-mohra": { feed: FEED, productId: "43494950593" },
+  // Added 2026-09-03, final batch from this feed.
+  "fragrance-world-vanille-en-tobacco": { feed: FEED, productId: "43494950250" },
+  "lattafa-ameer-al-oudh-intense-oud": { feed: FEED, productId: "43494950497" },
+  "zimaya-oud-is-great": { feed: FEED, productId: "43494950652" },
 };
 
 /* ── feed reading ──────────────────────────────────────────────────────────

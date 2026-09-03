@@ -282,6 +282,65 @@ export const affiliateLinks: Record<string, AffiliateLinkEntry> = {
     subId: "afnan-supremacy-not-only-intense__aventus",
     label: "Afnan Supremacy Not Only Intense 100ml at Opulensi",
   },
+
+  // Added 2026-09-03. All four traced end to end (curl -L with clickref=probe
+  // lands on opulensi.com carrying utm_id=..._probe) before being added. Three
+  // of the four are OUT OF STOCK on the merchant's own page as of this date,
+  // despite the Awin feed marking every row `in_stock=1` — the by-now-expected
+  // pattern (see the Armaf entry, and the header comment on this file). The
+  // links are kept anyway: they track, and they start earning the moment
+  // stock returns. See lib/dupes-data.ts for the corresponding `inStock` flags.
+  "dupe-fragrance-world-neroli-riviera": {
+    network: "awin",
+    merchantId: "123248",
+    deepLink: "https://www.awin1.com/pclick.php?p=43494950190&a=3064149&m=123248",
+    subId: "fragrance-world-neroli-riviera__neroli-portofino",
+    label: "Fragrance World Neroli Riviera EDP 80ml at Opulensi",
+  },
+  "dupe-ard-al-zaafaran-oud-orchid": {
+    network: "awin",
+    merchantId: "123248",
+    deepLink: "https://www.awin1.com/pclick.php?p=43494950500&a=3064149&m=123248",
+    subId: "ard-al-zaafaran-oud-orchid__black-orchid",
+    label: "Ard Al Zaafaran Oud Orchid EDP 100ml at Opulensi",
+  },
+  "dupe-lattafa-qaed": {
+    network: "awin",
+    merchantId: "123248",
+    deepLink: "https://www.awin1.com/pclick.php?p=43494950511&a=3064149&m=123248",
+    subId: "lattafa-qaed__oud-wood",
+    label: "Lattafa Qaa'ed EDP 100ml at Opulensi",
+  },
+  "dupe-lattafa-mohra": {
+    network: "awin",
+    merchantId: "123248",
+    deepLink: "https://www.awin1.com/pclick.php?p=43494950593&a=3064149&m=123248",
+    subId: "lattafa-mohra__oud-wood",
+    label: "Lattafa Mohra EDP 100ml at Opulensi",
+  },
+  // Added 2026-09-03, the final batch from this feed — see the header comment
+  // in lib/dupes-data.ts for why the feed does not support more than this.
+  "dupe-fragrance-world-vanille-en-tobacco": {
+    network: "awin",
+    merchantId: "123248",
+    deepLink: "https://www.awin1.com/pclick.php?p=43494950250&a=3064149&m=123248",
+    subId: "fragrance-world-vanille-en-tobacco__tobacco-vanille",
+    label: "Fragrance World Vanille En Tobacco EDP 80ml at Opulensi",
+  },
+  "dupe-lattafa-ameer-al-oudh-intense-oud": {
+    network: "awin",
+    merchantId: "123248",
+    deepLink: "https://www.awin1.com/pclick.php?p=43494950497&a=3064149&m=123248",
+    subId: "lattafa-ameer-al-oudh-intense-oud__by-the-fireplace",
+    label: "Lattafa Ameer Al Oudh Intense Oud EDP 100ml at Opulensi",
+  },
+  "dupe-zimaya-oud-is-great": {
+    network: "awin",
+    merchantId: "123248",
+    deepLink: "https://www.awin1.com/pclick.php?p=43494950652&a=3064149&m=123248",
+    subId: "zimaya-oud-is-great__oud-for-greatness",
+    label: "Zimaya Oud Is Great Extrait 100ml at Opulensi",
+  },
 };
 
 /**
