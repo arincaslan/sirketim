@@ -341,6 +341,107 @@ export const affiliateLinks: Record<string, AffiliateLinkEntry> = {
     subId: "zimaya-oud-is-great__oud-for-greatness",
     label: "Zimaya Oud Is Great Extrait 100ml at Opulensi",
   },
+
+  /* ── SECOND MERCHANT, 2026-09-03 — Clone of Perfume, Awin advertiser 117395.
+   *
+   * Every entry above this line is Opulensi (123248). These nine are the first
+   * links to a different advertiser that actually earns, and the first to a
+   * DUPE HOUSE SELLING DIRECT rather than to a reseller — the storefront is
+   * the brand's own (cloneofperfume.com, branded "The CLONE").
+   *
+   * Traced end to end before being added, the same gate every entry above
+   * passed. All nine land on cloneofperfume.com with HTTP 200 and an
+   * `awc=117395_<ts>_<hash>` on the destination URL.
+   *
+   * ONE DIFFERENCE FROM OPULENSI, AND IT IS NOT A DEFECT. This merchant does
+   * NOT echo our sub-ID into the destination URL. Opulensi does, as
+   * `utm_id=3064149_<subId>`, but that is its Shopify theme's own behaviour and
+   * was never an Awin guarantee — reading it as one is what made
+   * scripts/check-affiliate-links.mjs report these nine as unattributable.
+   *
+   * The sub-ID does survive, in the channel that actually decides attribution:
+   * Awin's own click cookie, set on `.awin1.com` at the first hop of the chain.
+   *
+   *   aw117395=3064149|0|0|<timestamp>|<our clickref>|aw|<aw_product_id>
+   *
+   * Opulensi sets the identical cookie shape (`aw123248=...`), so this is the
+   * network-level record and the URL echo is the merchant-specific extra.
+   * Confirmed independently by the founder in the Awin Click Report, which
+   * recorded our `clickref=probe` against 117395 on 2026-09-03. The checker was
+   * fixed to read the cookie rather than to exempt this merchant — see the
+   * MERCHANT_NOTES block and traceChain() in that script.
+   *
+   * Deep links are the feed's own `aw_deep_link` (scripts/feeds/clone-of-perfume.csv,
+   * 11 rows). Each `p=` is the same aw_product_id used in scripts/fetch-dupe-images.mjs,
+   * so a buy button and a photograph cannot silently refer to different products.
+   *
+   * All nine are 50ml extrait — this merchant's only size for eight of them, and
+   * the cheaper of two for Rouge Veil (a 100ml exists at $54.99; the feed row,
+   * and therefore this link, is the 50ml).
+   */
+  "dupe-the-clone-rouge-veil-no-13": {
+    network: "awin",
+    merchantId: "117395",
+    deepLink: "https://www.awin1.com/pclick.php?p=44269697233&a=3064149&m=117395",
+    subId: "the-clone-rouge-veil-no-13__baccarat-rouge-540",
+    label: "The CLONE No. 13 Rouge Veil Extrait 50ml at Clone of Perfume",
+  },
+  "dupe-the-clone-thunderstorm-no-93": {
+    network: "awin",
+    merchantId: "117395",
+    deepLink: "https://www.awin1.com/pclick.php?p=44269697235&a=3064149&m=117395",
+    subId: "the-clone-thunderstorm-no-93__aventus",
+    label: "The CLONE No. 93 Thunderstorm Extrait 50ml at Clone of Perfume",
+  },
+  "dupe-the-clone-ultimatum-no-53": {
+    network: "awin",
+    merchantId: "117395",
+    deepLink: "https://www.awin1.com/pclick.php?p=44269697236&a=3064149&m=117395",
+    subId: "the-clone-ultimatum-no-53__oud-wood",
+    label: "The CLONE No. 53 Ultimatum Extrait 50ml at Clone of Perfume",
+  },
+  "dupe-the-clone-naked-cherry-no-33": {
+    network: "awin",
+    merchantId: "117395",
+    deepLink: "https://www.awin1.com/pclick.php?p=44269697231&a=3064149&m=117395",
+    subId: "the-clone-naked-cherry-no-33__lost-cherry",
+    label: "The CLONE No. 33 Naked Cherry Extrait 50ml at Clone of Perfume",
+  },
+  "dupe-the-clone-whisper-no-43": {
+    network: "awin",
+    merchantId: "117395",
+    deepLink: "https://www.awin1.com/pclick.php?p=44269697237&a=3064149&m=117395",
+    subId: "the-clone-whisper-no-43__sauvage",
+    label: "The CLONE No. 43 Whisper Extrait 50ml at Clone of Perfume",
+  },
+  "dupe-the-clone-lady-on-fire-no-23": {
+    network: "awin",
+    merchantId: "117395",
+    deepLink: "https://www.awin1.com/pclick.php?p=44269697229&a=3064149&m=117395",
+    subId: "the-clone-lady-on-fire-no-23__black-opium",
+    label: "The CLONE No. 23 Lady on Fire Extrait 50ml at Clone of Perfume",
+  },
+  "dupe-the-clone-pleasure-noir-no-63": {
+    network: "awin",
+    merchantId: "117395",
+    deepLink: "https://www.awin1.com/pclick.php?p=44269697232&a=3064149&m=117395",
+    subId: "the-clone-pleasure-noir-no-63__santal-33",
+    label: "The CLONE No. 63 Pleasure Noir Extrait 50ml at Clone of Perfume",
+  },
+  "dupe-the-clone-brave-in-love-no-37": {
+    network: "awin",
+    merchantId: "117395",
+    deepLink: "https://www.awin1.com/pclick.php?p=44269697227&a=3064149&m=117395",
+    subId: "the-clone-brave-in-love-no-37__love-dont-be-shy",
+    label: "The CLONE No. 37 Brave in Love Extrait 50ml at Clone of Perfume",
+  },
+  "dupe-the-clone-brutal-story-no-73": {
+    network: "awin",
+    merchantId: "117395",
+    deepLink: "https://www.awin1.com/pclick.php?p=44269697228&a=3064149&m=117395",
+    subId: "the-clone-brutal-story-no-73__fucking-fabulous",
+    label: "The CLONE No. 73 Brutal Story Extrait 50ml at Clone of Perfume",
+  },
 };
 
 /**

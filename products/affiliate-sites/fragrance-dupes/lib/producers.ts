@@ -122,6 +122,36 @@ export const PRODUCERS: Producer[] = [
     blurb:
       "Afnan-perfumed sister label sold under its own name — the feed's own copy credits Afnan as the perfumer behind Zimaya's range.",
   },
+  // Added 2026-09-03 with the FIRST listings from a second merchant, Clone of
+  // Perfume (Awin 117395). Structurally different from every producer above and
+  // it is worth being explicit about why:
+  //
+  //   Every other entry here is a HOUSE WHOSE PRODUCT A RESELLER CARRIES —
+  //   Opulensi stocks Lattafa, Armaf, Afnan and the rest, so producer and
+  //   merchant are two different companies and an offer's `merchant` names the
+  //   shop rather than the maker. The CLONE sells only its own line, direct, so
+  //   here the producer and the merchant ARE the same company under two names:
+  //   the brand is "The CLONE", the storefront and Awin advertiser are
+  //   "Clone of Perfume" (cloneofperfume.com).
+  //
+  // That matters for reading the data, not for the schema: `brand`/`producerSlug`
+  // say The CLONE and `offers[].merchant` says Clone of Perfume, and those
+  // pointing at one legal entity is correct rather than a duplication to tidy up.
+  //
+  // It also means this producer's price IS the street price, which is why these
+  // listings take `priceUsd` from the merchant while every listing above hand-
+  // maintains it — see the note above LISTINGS in lib/dupes-data.ts.
+  //
+  // NOT A HOUSE PRODUCER. `isHouse` stays absent (so isHouseProducer() is false):
+  // this is a third party we have an affiliate relationship with, not Counterscent's
+  // own line. Setting it true would lift nothing and break the disclosure — the
+  // house badge exists to tell buyers when we are selling to them, and we are not.
+  {
+    slug: "the-clone",
+    name: "The CLONE",
+    blurb:
+      "US dupe house selling direct rather than through retailers, with a small numbered range built entirely at extrait concentration in 50ml bottles. Its listings name the designer original outright, including in the product's own type field.",
+  },
 ];
 
 export function getProducer(slug: string): Producer | undefined {

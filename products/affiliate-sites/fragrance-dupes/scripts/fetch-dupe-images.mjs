@@ -15,9 +15,18 @@
  * link, not to the picture. An image is therefore only taken here when:
  *
  *   1. the product is in a feed from a merchant whose programme actually
- *      TRACKS (Opulensi, Awin 123248 — not My Perfume Shop, Awin 106089,
- *      which is approved but closed for tracking), and
+ *      TRACKS — Opulensi (Awin 123248) and Clone of Perfume (Awin 117395), but
+ *      NOT My Perfume Shop (Awin 106089), which is approved but closed for
+ *      tracking — and
  *   2. the listing has an offer with a real affiliateLinkId to that merchant.
+ *
+ * TWO MERCHANTS AS OF 2026-09-03, and the `feed` field on each SOURCES entry is
+ * what keeps them apart. It was already there — this script has always resolved
+ * a feed path per entry rather than assuming one global feed — so adding Clone
+ * of Perfume needed a second FEED constant and nothing else. Do the same for a
+ * third merchant: add a constant, point its entries at it, and leave the loop
+ * alone. Do NOT fork this file per merchant; the orphan report at the bottom
+ * only works because one script owns the whole directory.
  *
  * Note that being temporarily OUT OF STOCK does not disqualify an image: the
  * affiliate relationship is what the licence rests on, and that is unaffected
@@ -45,7 +54,10 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 const OUT_DIR = resolve(root, "public", "images", "dupe");
+/** Awin 123248 — Opulensi Perfumes, a reseller. 610 rows, GBP. */
 const FEED = resolve(here, "feeds", "opulensi.csv");
+/** Awin 117395 — Clone of Perfume, the brand's own store. 11 rows, USD. */
+const CLONE_FEED = resolve(here, "feeds", "clone-of-perfume.csv");
 
 const FORCE = process.argv.includes("--force");
 
@@ -87,6 +99,24 @@ const SOURCES = {
   "fragrance-world-vanille-en-tobacco": { feed: FEED, productId: "43494950250" },
   "lattafa-ameer-al-oudh-intense-oud": { feed: FEED, productId: "43494950497" },
   "zimaya-oud-is-great": { feed: FEED, productId: "43494950652" },
+
+  // ── Clone of Perfume (Awin 117395), added 2026-09-03. First entries here
+  // from a second merchant. Same two conditions as everything above: the
+  // programme tracks, and each of these listings carries a real
+  // affiliateLinkId to it in lib/dupes-data.ts.
+  //
+  // The product ids are the `p=` values from the same feed rows that produced
+  // the deep links in lib/affiliate-links.ts, which is what makes a photograph
+  // and a buy button provably the same product.
+  "the-clone-rouge-veil-no-13": { feed: CLONE_FEED, productId: "44269697233" },
+  "the-clone-thunderstorm-no-93": { feed: CLONE_FEED, productId: "44269697235" },
+  "the-clone-ultimatum-no-53": { feed: CLONE_FEED, productId: "44269697236" },
+  "the-clone-naked-cherry-no-33": { feed: CLONE_FEED, productId: "44269697231" },
+  "the-clone-whisper-no-43": { feed: CLONE_FEED, productId: "44269697237" },
+  "the-clone-lady-on-fire-no-23": { feed: CLONE_FEED, productId: "44269697229" },
+  "the-clone-pleasure-noir-no-63": { feed: CLONE_FEED, productId: "44269697232" },
+  "the-clone-brave-in-love-no-37": { feed: CLONE_FEED, productId: "44269697227" },
+  "the-clone-brutal-story-no-73": { feed: CLONE_FEED, productId: "44269697228" },
 };
 
 /* ── feed reading ──────────────────────────────────────────────────────────

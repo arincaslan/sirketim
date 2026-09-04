@@ -9,8 +9,8 @@
  * the generated note-signature mark instead. See the script header for why the
  * licence is tied to the link rather than to the picture.
  *
- * Generated: 2026-09-03T09:39:55.327Z
- * Images:    30
+ * Generated: 2026-09-03T11:13:07.932Z
+ * Images:    39
  */
 
 export const DUPE_IMAGES: Record<string, string> = {
@@ -43,5 +43,14 @@ export const DUPE_IMAGES: Record<string, string> = {
   "lattafa-mohra": "/images/dupe/lattafa-mohra.jpg",
   "fragrance-world-vanille-en-tobacco": "/images/dupe/fragrance-world-vanille-en-tobacco.jpg",
   "lattafa-ameer-al-oudh-intense-oud": "/images/dupe/lattafa-ameer-al-oudh-intense-oud.jpg",
-  "zimaya-oud-is-great": "/images/dupe/zimaya-oud-is-great.jpg"
+  "zimaya-oud-is-great": "/images/dupe/zimaya-oud-is-great.jpg",
+  "the-clone-rouge-veil-no-13": "/images/dupe/the-clone-rouge-veil-no-13.jpg",
+  "the-clone-thunderstorm-no-93": "/images/dupe/the-clone-thunderstorm-no-93.jpg",
+  "the-clone-ultimatum-no-53": "/images/dupe/the-clone-ultimatum-no-53.jpg",
+  "the-clone-naked-cherry-no-33": "/images/dupe/the-clone-naked-cherry-no-33.jpg",
+  "the-clone-whisper-no-43": "/images/dupe/the-clone-whisper-no-43.jpg",
+  "the-clone-lady-on-fire-no-23": "/images/dupe/the-clone-lady-on-fire-no-23.jpg",
+  "the-clone-pleasure-noir-no-63": "/images/dupe/the-clone-pleasure-noir-no-63.jpg",
+  "the-clone-brave-in-love-no-37": "/images/dupe/the-clone-brave-in-love-no-37.jpg",
+  "the-clone-brutal-story-no-73": "/images/dupe/the-clone-brutal-story-no-73.jpg"
 };

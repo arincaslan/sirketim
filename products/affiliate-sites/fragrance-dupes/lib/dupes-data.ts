@@ -117,19 +117,31 @@ export { REFERENCES };
  * EXTENDED AGAIN the same day, the FINAL batch from this feed (three more,
  * found by hand-scanning the feed a second time for retailer-stated pairings
  * the first pass missed; two land on originals that previously had no
- * alternative at all - Tobacco Vanille and By the Fireplace): now
- * **thirty-two listings across twenty-two originals**, thirty-three offers,
- * thirty with a working programme behind them, still **twenty-three
- * rendering an actual buy button** - all three new offers are OUT OF STOCK on
- * the merchant's own page despite the feed marking them `in_stock=1`, the
- * same pattern as every batch before it, checked the same way
- * (scripts/check-affiliate-links.mjs). Recompute rather than trusting this
- * comment before adding a thirty-fourth: `grep -c "^  {$" lib/dupes-data.ts`
- * undercounts (nested objects share that shape), so count `slug: "` at the
- * top level instead, or just count entries by eye. **This merchant is now
- * exhausted** - see the "COVERAGE IS CAPPED" section at the foot of this
- * project's CLAUDE.md; growing past this needs a second dupe-side merchant,
- * not more scanning of this one.
+ * alternative at all - Tobacco Vanille and By the Fireplace): thirty-two
+ * listings across twenty-two originals, thirty-three offers, thirty with a
+ * working programme behind them, still twenty-three rendering an actual buy
+ * button - all three of those offers are OUT OF STOCK on the merchant's own
+ * page despite the feed marking them `in_stock=1`, the same pattern as every
+ * batch before it, checked the same way (scripts/check-affiliate-links.mjs).
+ *
+ * **THE OPULENSI FEED IS EXHAUSTED AT THAT POINT AND STILL IS. THE SITE IS NOT.**
+ * Two passes over its 610 rows found nothing further, and the fix was never
+ * more scanning - it was a second dupe-side merchant, which arrived on
+ * 2026-09-03: The CLONE, via Clone of Perfume (Awin 117395), nine listings from
+ * an 11-row feed. So "this merchant tops out at 32/22" remains true of Opulensi
+ * and is no longer a statement about the catalog.
+ *
+ * CURRENT TOTAL, 2026-09-03, across BOTH merchants: **forty-one listings across
+ * twenty-seven originals**, forty-two offers, thirty-nine with a working
+ * programme behind them, **thirty-two rendering an actual buy button**. The
+ * jump in buyable listings is larger than the jump in listings because all nine
+ * new offers are genuinely in stock, which had not happened before.
+ *
+ * Recompute rather than trusting any of this before adding a forty-second.
+ * `grep -c "^  {$"` undercounts (nested objects share that shape); count
+ * top-level slugs instead:
+ *
+ *     grep -c '^    slug: "' lib/dupes-data.ts
  *
  * The two My Perfume Shop-only listings also have NO IMAGE, for the same reason
  * rather than by coincidence. The licence we rely on for bottle photography is
@@ -137,10 +149,12 @@ export { REFERENCES };
  * merchant" — which evaporates for a closed programme. They render the
  * generated note-signature mark instead.
  *
- * ALL FIVE ARE `declared`, NOT `verified`. We have not bought or worn any of
+ * EVERY LISTING IS `declared`, NOT `verified`. We have not bought or worn any of
  * them. `verified` is earned by editorial review and must never be defaulted
- * to — so all five are capped by getPublishedScore(), which is the intended
- * behaviour, not a limitation to work around.
+ * to — so all of them are capped by getPublishedScore(), which is the intended
+ * behaviour, not a limitation to work around. Three of the nine Clone of Perfume
+ * listings actually reach that cap; the batch comment above them explains why
+ * that is a warning sign about the merchant's data rather than a compliment.
  *
  * NO HOUSE PRODUCTS. The COO's standing recommendation is to launch with none,
  * and the data-authorship problem at the foot of this project's CLAUDE.md is
@@ -1457,6 +1471,469 @@ const LISTINGS: DupeCandidate[] = [
         // schema.org availability is OutOfStock; the Awin feed row says
         // in_stock=1.
         inStock: false,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+
+  /* ══ SECOND MERCHANT, 2026-09-03 — The CLONE, via Clone of Perfume (Awin 117395)
+   *
+   * The thirty-two listings above are all Opulensi (Awin 123248) and that feed
+   * is exhausted. These nine come from a different advertiser, approved
+   * 2026-09-03, and they are different in kind rather than just in source:
+   *
+   *   Opulensi is a RESELLER — it stocks Lattafa, Armaf, Afnan and so on, so
+   *   producer and merchant are separate companies. The CLONE is a DUPE HOUSE
+   *   SELLING DIRECT: the brand and the shop are one company under two names
+   *   ("The CLONE" on the bottle, "Clone of Perfume" on Awin and the domain).
+   *
+   * Five of the nine land on originals that had NO listing at all before today
+   * — Sauvage, Black Opium, Santal 33, Love Don't Be Shy and Fucking Fabulous —
+   * so this is reach, not depth, which is the number that matters (see the
+   * "COVERAGE IS CAPPED" section in this project's CLAUDE.md).
+   *
+   * ── priceUsd IS THE MERCHANT'S PRICE HERE, AND ONLY HERE ──────────────────
+   *
+   * Every listing above hand-maintains `priceUsd` as an approximate street
+   * price, deliberately ignoring the merchant's figure, because Opulensi is a
+   * discounter quoting one presentation: its only Armaf row is a GBP 68.99
+   * limited edition of a fragrance that street-prices near $40, and feeding
+   * that into "Nx cheaper per ml" would corrupt the one number this site
+   * exists to get right.
+   *
+   * That reasoning does not apply to a brand's own direct store. There is no
+   * other place to buy The CLONE No. 13; the price on cloneofperfume.com IS
+   * the street price, so inventing a separate one would be less accurate, not
+   * more careful. `priceUsd` below is therefore the merchant's own current
+   * selling price — the same figure as `offers[0].price`, which is expected
+   * here and would be a mistake anywhere above.
+   *
+   * ── AND IT IS THE LIVE PRICE, NOT THE FEED'S ──────────────────────────────
+   *
+   * The feed was stale on two of eleven rows when checked against the product
+   * pages on 2026-09-03: Naked Cherry ($39.99 in the feed, $45.00 live) and
+   * Brave in Love ($34.99 in the feed, $39.99 live). Both are recorded live.
+   * Same rule as stock — a feed describes what was true at export.
+   *
+   * ── bottleMl AND concentration CAME OFF THE PRODUCT PAGES ─────────────────
+   *
+   * This feed has NO size field. `dimensions`, `specifications`, `product_model`
+   * and `colour` are empty on all 11 rows and no ml or oz figure appears in any
+   * description — the same gap that stopped ingest-feed.mjs deriving a price-per-ml
+   * from the My Perfume Shop feed. Both were read off the live pages instead,
+   * where each states "Size: 50ML / 1.7 OZ" and "Extrait de Parfum" in the buy
+   * block. All nine are 50ml extrait. Rouge Veil also offers a 100ml at $54.99,
+   * which is NOT what the feed row or the affiliate link point at; the 50ml is.
+   * No size had to be guessed and none is missing.
+   *
+   * ── HOW THE NOTES BELOW WERE TRANSCRIBED ──────────────────────────────────
+   *
+   * Unusually for a feed, this one publishes a full note pyramid per product in
+   * its `description`, so these are the MERCHANT'S declared notes rather than
+   * ours — the same standing as every listing above. One editorial step is
+   * applied and it only ever moves in one direction:
+   *
+   *   A merchant note is renamed to the reference catalog's spelling when the
+   *   two denote the same material and the merchant's extra word is a
+   *   geographic or processing qualifier carrying no compositional information
+   *   — "Blackcurrant" -> "Black Currant", "Cedarwood" -> "Cedar",
+   *   "Calabrian Bergamot" -> "Bergamot", "Black Coffee" -> "Coffee",
+   *   "Violet Accord" -> "Violet", "Ambrox" -> "Ambroxan".
+   *
+   *   A qualifier is NEVER ADDED. Where the merchant says plain "Vanilla" and
+   *   our catalog says "Vanilla Bourbon" (Kilian), the merchant's plainer word
+   *   stands and the diff shows them as different notes. That understates the
+   *   match, which is the safe direction.
+   *
+   * Why bother: getNoteDiff() compares strings, so "Blackcurrant" against
+   * "Black Currant" would render to a reader as "the dupe does not contain
+   * blackcurrant", which is false. Note that this is a pre-existing gap and NOT
+   * retrofitted here — armaf-club-de-nuit-intense-man above declares
+   * "Blackcurrant" against Aventus's "Black Currant" and scores lower for it.
+   * Fixing that changes an existing published score, so it belongs in its own
+   * considered change, like the familyBonus bug.
+   *
+   * ── THREE OF THESE HIT THE UNVERIFIED CAP, AND THAT IS THE SYSTEM WORKING ─
+   *
+   * Rouge Veil raw-scores 99, Whisper and Lady on Fire 93; all three publish at
+   * 90 via getPublishedSimilarity(). The reason is not that they are unusually
+   * good matches — it is that this merchant, unlike Opulensi, tends to publish
+   * the ORIGINAL'S pyramid as its own. Rouge Veil's declared notes are Baccarat
+   * Rouge 540's note for note, and Lady on Fire's top and heart are Black
+   * Opium's unchanged. That is a marketing claim, not an independent analysis
+   * of what is in the bottle, and each of those three verdicts says so on the
+   * page rather than letting a big number speak for itself.
+   *
+   * None of the nine trips isVerbatimCopy(), which needs notes AND facets to
+   * match: the facets are our editorial estimates and were written from the
+   * declared differences (extrait vs EDT/EDP concentration, notes added or
+   * missing), not tuned against the flag threshold. Had one flagged, it would
+   * have been left flagged.
+   */
+  {
+    slug: "the-clone-rouge-veil-no-13",
+    referenceSlug: "baccarat-rouge-540",
+    name: "Rouge Veil No. 13",
+    brand: "The CLONE",
+    producerSlug: "the-clone",
+    pairingBasis: {
+      source: "Clone of Perfume product listing",
+      quote:
+        "This compelling interpretation of Baccarat Rouge 540 bursts into life with the fiery intensity of saffron",
+      url: "https://cloneofperfume.com/products/the-clone-13-rouge-veil-inspired-by-baccarat-rouge",
+    },
+    // Identical to baccarat-rouge-540's pyramid, note for note. Transcribed as
+    // published rather than adjusted - see the batch header on why that inflates
+    // the note half of the score and what the verdict does about it.
+    notes: {
+      top: ["Saffron", "Jasmine"],
+      heart: ["Amberwood", "Ambergris"],
+      base: ["Fir Resin", "Cedar"],
+    },
+    facets: { freshness: 2, sweetness: 7, warmth: 8, woodyDepth: 6, longevity: 8, sillage: 8 },
+    longevityHoursRange: [7, 10],
+    sillageLabel: "Beast Mode",
+    priceUsd: 39.99,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Read the two note lists before reading the percentage. The CLONE publishes Baccarat Rouge 540's pyramid for this bottle unchanged - saffron and jasmine, amberwood and ambergris, fir resin and cedar - so the note half of this score is the retailer restating the original's own answer, not an independent account of what is in the bottle. That is why it publishes at our 90% cap rather than the 99% it computes to, and the cap is the honest number here. What can be said without taking the merchant's word for it: this is an extrait against MFK's extrait, so the concentration really is comparable, and Baccarat Rouge 540 is among the most-copied formulas in the category because its core is a widely available amberwood material rather than anything rare. The usual result is an opening that lands and a drydown that flattens, where the original keeps developing.",
+    offers: [
+      {
+        merchant: "Clone of Perfume",
+        productName: "Rouge Veil No. 13 Unisex",
+        // The feed's merchant_deep_link ends "-baccarat-rouge-540" and 301s to
+        // this canonical handle; the resolved URL is recorded so a reader is
+        // not sent through a redirect to check the claim.
+        productUrl: "https://cloneofperfume.com/products/the-clone-13-rouge-veil-inspired-by-baccarat-rouge",
+        // 50ml. A 100ml exists at $54.99 and is a different variant; the feed
+        // row, this price and the affiliate link are all the 50ml.
+        price: 39.99,
+        currency: "USD",
+        affiliateLinkId: "dupe-the-clone-rouge-veil-no-13",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "the-clone-thunderstorm-no-93",
+    referenceSlug: "aventus",
+    name: "Thunderstorm No. 93",
+    brand: "The CLONE",
+    producerSlug: "the-clone",
+    pairingBasis: {
+      source: "Clone of Perfume product listing",
+      quote:
+        "The CLONE No. 93 - Thunderstorm is a modern clone fragrance inspired by Aventus: bright fruits up top, a refined floral-woody heart, and a smooth long-lasting base",
+      url: "https://cloneofperfume.com/products/the-clone-93-thunderstorm-inspiredby-aventus",
+    },
+    // Merchant writes "Blackcurrant"; recorded as the catalog's "Black Currant".
+    notes: {
+      top: ["Bergamot", "Black Currant", "Apple", "Pineapple"],
+      heart: ["Rose", "Jasmine", "Patchouli"],
+      base: ["Oakmoss", "Ambergris", "Vanilla"],
+    },
+    facets: { freshness: 7, sweetness: 7, warmth: 6, woodyDepth: 6, longevity: 8, sillage: 8 },
+    longevityHoursRange: [7, 10],
+    sillageLabel: "Beast Mode",
+    priceUsd: 39.99,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The whole Aventus opening is declared here - pineapple, bergamot, blackcurrant and apple, all four of them - and the base keeps oakmoss, ambergris and vanilla. Two absences do the damage and both are load-bearing. Birch is the first: it is where Aventus gets its smoke, and it is the reason the fruit reads dry rather than jammy. Musk is the second. Without birch this should sit sweeter and more linear than the original, which is the standard shortcoming of a cheap Aventus interpretation rather than something specific to this one. Against Creed's eau de parfum it is an extrait, so expect it to outlast the original while smelling progressively less like it as the hours pass - the opposite of the trade most buyers assume they are making.",
+    offers: [
+      {
+        merchant: "Clone of Perfume",
+        productName: "Thunderstorm No. 93 Male",
+        productUrl: "https://cloneofperfume.com/products/the-clone-93-thunderstorm-inspiredby-aventus",
+        price: 39.99,
+        currency: "USD",
+        affiliateLinkId: "dupe-the-clone-thunderstorm-no-93",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "the-clone-ultimatum-no-53",
+    referenceSlug: "oud-wood",
+    name: "Ultimatum No. 53",
+    brand: "The CLONE",
+    producerSlug: "the-clone",
+    pairingBasis: {
+      source: "Clone of Perfume product listing",
+      quote: "The CLONE No. 53 - Ultimatum (Inspired by Tom Ford Oud Wood)",
+      url: "https://cloneofperfume.com/products/the-clone-53-ultimatum-oud-wood",
+    },
+    notes: {
+      top: ["Cardamom"],
+      heart: ["Oud", "Sandalwood", "Vetiver"],
+      base: ["Tonka Bean", "Amber", "Vanilla"],
+    },
+    facets: { freshness: 2, sweetness: 5, warmth: 7, woodyDepth: 8, longevity: 8, sillage: 7 },
+    longevityHoursRange: [7, 9],
+    sillageLabel: "Strong",
+    priceUsd: 45,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The base is Tom Ford's exactly - tonka bean, amber, vanilla - and the heart keeps both oud and sandalwood, which between them are most of what anyone means by Oud Wood. The top is where it thins out: Tom Ford opens on rosewood and Chinese pepper alongside the cardamom, and this declares only the cardamom, so the bright, faintly medicinal first few minutes should be missing. It adds vetiver to the heart, pulling the middle drier and earthier than the original's creamier reading. One inconsistency worth knowing about, since it cuts in our favour and we did not use it: the merchant's own prose mentions rosewood while its published pyramid does not, and we scored the pyramid, which is the structured claim. At extrait strength this should also project harder than Tom Ford's notoriously quiet eau de parfum, which for some buyers is the point.",
+    offers: [
+      {
+        merchant: "Clone of Perfume",
+        productName: "Ultimatum No. 53 Unisex",
+        productUrl: "https://cloneofperfume.com/products/the-clone-53-ultimatum-oud-wood",
+        price: 45,
+        currency: "USD",
+        affiliateLinkId: "dupe-the-clone-ultimatum-no-53",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "the-clone-naked-cherry-no-33",
+    referenceSlug: "lost-cherry",
+    name: "Naked Cherry No. 33",
+    brand: "The CLONE",
+    producerSlug: "the-clone",
+    pairingBasis: {
+      source: "Clone of Perfume product listing",
+      quote: "The CLONE No. 33 - Naked Cherry (Inspired by Lost Cherry)",
+      url: "https://cloneofperfume.com/products/the-clone-33-inspired-by-lost-cherry",
+    },
+    // "Roasted Tonka Bean" -> "Tonka Bean" and "Cedarwood" -> "Cedar" per the
+    // batch header's rule. "Cherry Liqueur" and "Griotte Syrup" are kept: those
+    // name genuinely different materials from black cherry, not the same one
+    // with a qualifier.
+    notes: {
+      top: ["Black Cherry", "Cherry Liqueur", "Bitter Almond"],
+      heart: ["Griotte Syrup", "Turkish Rose", "Jasmine Sambac"],
+      base: ["Peru Balsam", "Tonka Bean", "Sandalwood", "Vetiver", "Cedar", "Clove"],
+    },
+    facets: { freshness: 2, sweetness: 9, warmth: 7, woodyDepth: 6, longevity: 8, sillage: 8 },
+    longevityHoursRange: [7, 10],
+    sillageLabel: "Beast Mode",
+    priceUsd: 45,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The skeleton is genuinely shared: black cherry and bitter almond over Turkish rose and jasmine sambac, on peru balsam, tonka, sandalwood and vetiver. What differs is how the cherry is drawn. Tom Ford pairs black cherry with sour cherry and plum; this pairs it with cherry liqueur and griotte syrup, which is a boozier, more candied reading of the same idea rather than a different idea. The base swaps Lost Cherry's patchouli for cedar and clove, so expect it spicier and less earthy underneath. Seventy-five per cent reflects real substitutions across every layer, not a bad pairing - this is exactly the comparison a Lost Cherry buyer makes, and the differences are the useful part of the answer.",
+    offers: [
+      {
+        merchant: "Clone of Perfume",
+        productName: "Naked Cherry No.33 Unisex",
+        productUrl: "https://cloneofperfume.com/products/the-clone-33-inspired-by-lost-cherry",
+        // FEED WAS STALE: the row says $39.99, the live page says $45.00
+        // (checked 2026-09-03). Live price recorded.
+        price: 45,
+        currency: "USD",
+        affiliateLinkId: "dupe-the-clone-naked-cherry-no-33",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "the-clone-whisper-no-43",
+    referenceSlug: "sauvage",
+    name: "Whisper No. 43",
+    brand: "The CLONE",
+    producerSlug: "the-clone",
+    pairingBasis: {
+      source: "Clone of Perfume product listing",
+      quote: "The CLONE No. 43 - Whisper, inspired by the iconic Sauvage",
+      url: "https://cloneofperfume.com/products/the-clone-43-inspired-by-sauvage",
+    },
+    // "Calabrian Bergamot" -> "Bergamot", "Cedarwood" -> "Cedar".
+    notes: {
+      top: ["Bergamot", "Pepper"],
+      heart: ["Sichuan Pepper", "Lavender", "Pink Pepper", "Vetiver", "Patchouli", "Geranium", "Elemi"],
+      base: ["Ambroxan", "Cedar", "Labdanum"],
+    },
+    facets: { freshness: 7, sweetness: 2, warmth: 5, woodyDepth: 7, longevity: 9, sillage: 8 },
+    longevityHoursRange: [8, 11],
+    sillageLabel: "Beast Mode",
+    priceUsd: 45,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Structurally about as close as a Sauvage interpretation gets: the same bergamot-and-pepper opening, the same ambroxan, cedar and labdanum base, and five of the original's heart notes intact. It adds vetiver and patchouli, which should make the middle earthier and a shade less bright than Dior's. Note that the top and base are declared identical to Sauvage's, so as with our other listings from this merchant a chunk of the 90% is the retailer restating the original rather than describing its own juice. The thing actually worth weighing here is price, not similarity. Sauvage is a cheap designer fragrance, and $45 for 50ml works out barely a fifth cheaper per millilitre than a $110 100ml bottle of the real thing - the smallest saving of any listing on this site by a wide margin. What you are buying is concentration, an extrait against an eau de toilette, not a discount. If cost was the reason for wanting a Sauvage alternative, this is not one.",
+    offers: [
+      {
+        merchant: "Clone of Perfume",
+        productName: "Whisper No. 43 Male",
+        productUrl: "https://cloneofperfume.com/products/the-clone-43-inspired-by-sauvage",
+        price: 45,
+        currency: "USD",
+        affiliateLinkId: "dupe-the-clone-whisper-no-43",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "the-clone-lady-on-fire-no-23",
+    referenceSlug: "black-opium",
+    name: "Lady on Fire No. 23",
+    brand: "The CLONE",
+    producerSlug: "the-clone",
+    pairingBasis: {
+      source: "Clone of Perfume product listing",
+      quote: "The CLONE No. 23 Lady on Fire (Inspired by Black Opium)",
+      url: "https://cloneofperfume.com/products/the-clone-23-lady-on-fire-black-opium-dupe",
+    },
+    // "Black Coffee" -> "Coffee" per the batch header's rule.
+    notes: {
+      top: ["Pear", "Pink Pepper", "Orange Blossom"],
+      heart: ["Coffee", "Jasmine", "Bitter Almond"],
+      base: ["Vanilla", "Patchouli", "Cashmere Wood", "Cedar"],
+    },
+    facets: { freshness: 3, sweetness: 8, warmth: 7, woodyDepth: 4, longevity: 9, sillage: 8 },
+    longevityHoursRange: [8, 11],
+    sillageLabel: "Beast Mode",
+    priceUsd: 34.99,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The merchant publishes Black Opium's top and heart unchanged - pear, pink pepper and orange blossom, then coffee, jasmine and bitter almond - so as with Rouge Veil a large part of this score is the retailer repeating the original's own pyramid rather than describing its bottle independently. The 90% cap is doing its job; treat it as a claim, not a measurement. The one declared difference is real and plausible: cashmere wood added alongside YSL's vanilla, patchouli and cedar, which would give a softer and slightly woodier close than the original's fairly thin base. It is an extrait against YSL's eau de parfum, so longer wear is the reasonable expectation and is usually the actual reason to buy one of these rather than any claim about smelling identical.",
+    offers: [
+      {
+        merchant: "Clone of Perfume",
+        productName: "Lady on Fire No. 23 Female",
+        productUrl: "https://cloneofperfume.com/products/the-clone-23-lady-on-fire-black-opium-dupe",
+        price: 34.99,
+        currency: "USD",
+        affiliateLinkId: "dupe-the-clone-lady-on-fire-no-23",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "the-clone-pleasure-noir-no-63",
+    referenceSlug: "santal-33",
+    name: "Pleasure Noir No. 63",
+    brand: "The CLONE",
+    producerSlug: "the-clone",
+    pairingBasis: {
+      source: "Clone of Perfume product listing",
+      quote:
+        "The CLONE No. 63 - Pleasure Noir is a modern clone fragrance inspired by Santal 33, blending dry woods, soft florals, and a clean leather finish",
+      url: "https://cloneofperfume.com/products/the-clone-63-pleasure-noir-santal",
+    },
+    // "Violet Accord" -> "Violet", "Ambrox" -> "Ambroxan". Cedarwood is left as
+    // "Cedarwood" here because santal-33's own reference entry spells it that
+    // way - this is the one case where matching the catalog means NOT shortening.
+    notes: {
+      top: ["Violet", "Cardamom"],
+      heart: ["Iris", "Ambroxan", "Papyrus"],
+      base: ["Cedarwood", "Leather", "Sandalwood"],
+    },
+    facets: { freshness: 4, sweetness: 3, warmth: 5, woodyDepth: 8, longevity: 8, sillage: 7 },
+    longevityHoursRange: [7, 9],
+    sillageLabel: "Strong",
+    priceUsd: 40,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Every one of Santal 33's signature materials is here - cardamom, violet, iris, papyrus, sandalwood, cedarwood and leather - and almost nothing is missing except musk. What the 71% is picking up is not absence but rearrangement. Le Labo puts iris in the opening and sandalwood in the heart; this pushes iris down into the heart and sandalwood all the way into the base, and adds ambroxan where Le Labo has none. That matters more than it sounds: a base sandalwood arrives later and sits closer to the skin than a heart sandalwood, so the creamy woody accord that is the whole point of Santal 33 should show up on a different schedule. This is the first Santal 33 alternative this site lists, and it is a re-stacking of the same materials rather than a copy - which is a fair thing to want, provided you know that is what you are buying.",
+    offers: [
+      {
+        merchant: "Clone of Perfume",
+        productName: "Pleasure Noir No. 63 Unisex",
+        productUrl: "https://cloneofperfume.com/products/the-clone-63-pleasure-noir-santal",
+        price: 40,
+        currency: "USD",
+        affiliateLinkId: "dupe-the-clone-pleasure-noir-no-63",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "the-clone-brave-in-love-no-37",
+    referenceSlug: "love-dont-be-shy",
+    name: "Brave in Love No. 37",
+    brand: "The CLONE",
+    producerSlug: "the-clone",
+    pairingBasis: {
+      source: "Clone of Perfume product listing",
+      quote:
+        "Inspired by the cult favorite Love, Don't Be Shy, this perfume wraps you in a creamy cloud of warm florals and decadent gourmand notes",
+      url: "https://cloneofperfume.com/products/the-clone-no-37-brave-in-love",
+    },
+    // Merchant declares plain "Vanilla"; the reference records "Vanilla Bourbon".
+    // Left as declared - the batch header's rule never adds a qualifier, so the
+    // diff shows these as different notes and the score is understated.
+    notes: {
+      top: ["Neroli", "Bergamot", "Pink Pepper", "Coriander"],
+      heart: ["Orange Blossom", "Jasmine", "Honeysuckle", "Iris", "Rose"],
+      base: ["Marshmallow", "Vanilla", "Musk", "Caramel", "Labdanum"],
+    },
+    facets: { freshness: 3, sweetness: 9, warmth: 7, woodyDepth: 2, longevity: 8, sillage: 7 },
+    longevityHoursRange: [7, 9],
+    sillageLabel: "Strong",
+    priceUsd: 39.99,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "A far bigger and busier fragrance than the one it names. Kilian's is deliberately spare - bergamot, then orange blossom, jasmine and marshmallow, then vanilla and musk - and most of its effect comes from that restraint. This adds neroli, pink pepper and coriander to the opening, honeysuckle, iris and rose to the heart, and caramel and labdanum to the base, keeping marshmallow and vanilla but crowding them. Sixty per cent is the honest figure for that: the same gourmand-floral idea executed with roughly twice the material. Whether it works as an alternative depends on why you liked Love, Don't Be Shy - if it was the sweetness, this delivers it; if it was how little else was in the bottle, this is the wrong direction entirely. One caveat on the number itself: the merchant declares plain vanilla where our catalog records Kilian's as bourbon vanilla, and we count those separately rather than assume, so the real overlap is a little higher than 60%.",
+    offers: [
+      {
+        merchant: "Clone of Perfume",
+        productName: "Brave in Love No. 37 Female",
+        productUrl: "https://cloneofperfume.com/products/the-clone-no-37-brave-in-love",
+        // FEED WAS STALE: the row says $34.99, the live page says $39.99
+        // (checked 2026-09-03). Live price recorded.
+        price: 39.99,
+        currency: "USD",
+        affiliateLinkId: "dupe-the-clone-brave-in-love-no-37",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "the-clone-brutal-story-no-73",
+    referenceSlug: "fucking-fabulous",
+    name: "Brutal Story No. 73",
+    brand: "The CLONE",
+    producerSlug: "the-clone",
+    // The feed description only manages "If you love the vibe of Fabulous Tom
+    // Ford but want a more accessible option" - the original's name mangled,
+    // and weaker than the URL slug (".../brutal-story-fabulous-tom-ford")
+    // suggests. The live product page states it outright in three places: the
+    // browser title, the buy block, and the Shopify product type field. Quoted
+    // from the page rather than the feed for that reason.
+    pairingBasis: {
+      source: "Clone of Perfume product page",
+      quote: "Inspired by Tom Ford's Fucking Fabulous",
+      url: "https://cloneofperfume.com/products/the-clone-73-brutal-story-fabulous-tom-ford",
+    },
+    notes: {
+      top: ["Lavender", "Clary Sage"],
+      heart: ["Bitter Almond", "Vanilla", "Leather"],
+      base: ["Tonka Bean", "Amber", "Woods"],
+    },
+    facets: { freshness: 4, sweetness: 5, warmth: 7, woodyDepth: 6, longevity: 8, sillage: 7 },
+    longevityHoursRange: [7, 9],
+    sillageLabel: "Strong",
+    priceUsd: 45,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Much the same materials, a different architecture. Tom Ford opens on bitter almond and lavender, hearts on leather and tonka, and settles into vanilla, vetiver, amber and musk. This opens on lavender and clary sage, moves bitter almond and vanilla up into the heart beside the leather, and finishes on tonka, amber and an unhelpfully vague 'woods'. Almost nothing has been left out - it has been re-stacked, and where a note sits is most of what a fragrance's development actually is, which is why 60% is lower than the shared ingredient list suggests. Expect the almond later and the leather in roughly the same place. Clary sage is the one genuinely new material and should make the opening more aromatic and less sweet than the original's. Credit where it is due: the merchant's own page is unusually candid about this, pointing buyers who like Lost Cherry or Black Orchid toward it rather than claiming a one-to-one match.",
+    offers: [
+      {
+        merchant: "Clone of Perfume",
+        productName: "Brutal Story No. 73 Unisex",
+        productUrl: "https://cloneofperfume.com/products/the-clone-73-brutal-story-fabulous-tom-ford",
+        price: 45,
+        currency: "USD",
+        affiliateLinkId: "dupe-the-clone-brutal-story-no-73",
+        inStock: true,
       },
     ],
     verificationStatus: "declared",
