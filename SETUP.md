@@ -39,7 +39,13 @@ The repo is **public** (deliberate — see the "Git remote" bullet in [CLAUDE.md
 
 ## 5. Per-project installs
 
-Nothing installs at the repo root — there's no root `package.json`. Each web-development client or product (e.g. `products/web-templates/agency-landing/`, `departments/web-development/clients/<slug>/`) is a self-contained Next.js project with its own `package.json`. `cd` into the specific one you're working on and run `npm install` there before `npm run dev`/`build`/`lint`.
+Each web-development client or product (e.g. `products/web-templates/agency-landing/`, `departments/web-development/clients/<slug>/`) is a self-contained Next.js project with its own `package.json`. `cd` into the specific one you're working on and run `npm install` there before `npm run dev`/`build`/`lint`.
+
+**There is now a root `package.json` too, and it is not a workspace root** — it is a deploy shim that exists only so Cloudflare can build `products/affiliate-sites/fragrance-dupes` from the repo root. Its `postinstall` runs that project's build when `WORKERS_CI`/`CF_PAGES`/`CI` is set, which is why `WORKERS_CI=1 npm install` at the root is the only faithful rehearsal of a Cloudflare deploy — `npm run build` at the root is not what Cloudflare runs and proves little. Running a plain `npm install` at the root is harmless (the hook is gated). See the "deploy shim" section of [CLAUDE.md](CLAUDE.md).
+
+## 5b. Licensed merchant feeds do not travel
+
+`products/affiliate-sites/fragrance-dupes/scripts/feeds/` is gitignored except its README — the feeds are licensed affiliate data, large, and not ours to redistribute in a public repo. A fresh clone therefore has **no** feed files, and every ingest/matching script will fail with "feed not found" until you re-download them from Awin. That is expected, not breakage. Which feeds, which advertiser ids, and the column-selection gotcha are in [HANDOFF.md](HANDOFF.md) and in that directory's own README.
 
 ## 6. What needs no setup at all
 
