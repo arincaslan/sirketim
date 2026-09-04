@@ -130,6 +130,23 @@ const MERCHANT_NOTES = {
       "script now reads directly; (b) the founder confirmed in the Awin Click Report dashboard " +
       "that a probe click with clickref=probe was recorded against advertiser 117395.",
   },
+  34989: {
+    name: "AromaPassions",
+    echoesSubIdInUrl: false,
+    note:
+      "Does NOT echo the sub-ID into the destination URL — observed 2026-09-04, not assumed. " +
+      "It appends its OWN tracking params instead (`sv1=affiliate&sv_campaign_id=3064149&sscid=" +
+      "34989_<ts>_<hash>&awc=34989_<ts>_<hash>`), which look like attribution but carry the " +
+      "advertiser/click id, never our clickref. Our sub-ID arrives on the other channel only: " +
+      "aw34989=3064149|0|0|<ts>|<clickref>|aw|<pid>, set on .awin1.com at hop 0. Note this " +
+      "merchant also sets NO `awc` cookie — it puts awc in the query string — so the 'awc cookie " +
+      "set in the chain' note is absent here and that is expected. " +
+      "SECOND FACT, and it changes how a link is built: the pclick deep link is PRODUCT-level, " +
+      "not variant-level. All three of EROTIC's feed rows (30/50/100 ml) redirect to the same " +
+      "product page, so a row whose variant has since been discontinued still lands correctly. " +
+      "That is why Eros Flame can be linked from aw_product_id 41943775357 even though that id " +
+      "is the delisted 30 ml. Do not read a working link as proof its variant still exists.",
+  },
   106089: {
     name: "My Perfume Shop",
     echoesSubIdInUrl: null,

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { ValueBar } from "@/components/dupe-finder/value-bar";
-import { formatPricePerMl, pricePerMl, valueMultiple } from "@/lib/similarity";
+import { describeValueMultiple, formatPricePerMl, pricePerMl, valueMultiple } from "@/lib/similarity";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
 
 /**
@@ -71,8 +71,8 @@ export function SpecPanel({
           formatValue={(n) => `$${n.toFixed(2)}`}
         />
         <p className="text-sm text-muted-foreground">
-          {dupe.name} runs about{" "}
-          <strong className="font-semibold text-foreground">{multiple.toFixed(1)}x cheaper per ml</strong>{" "}
+          Per millilitre, {dupe.name} is{" "}
+          <strong className="font-semibold text-foreground">{describeValueMultiple(multiple)}</strong>{" "}
           than {reference.name} (
           {formatPricePerMl(reference.priceUsd, reference.bottleMl)} vs{" "}
           {formatPricePerMl(dupe.priceUsd, dupe.bottleMl)}, {dupe.bottleMl}ml bottle).

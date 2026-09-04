@@ -49,6 +49,13 @@ export function BuyActions({
     (o) => hasRealAffiliateLink(o.affiliateLinkId) && o.inStock === false
   );
   const referenceLinked = hasRealAffiliateLink(reference.affiliateLinkId);
+  // Offers are per PRESENTATION, not per retailer, and the two stopped being
+  // the same thing on 2026-09-04: AromaPassions sells one product in 50ml and
+  // 100ml, so those listings carry two offers from one shop. The header used to
+  // count offers and would have said "2 retailers - prices are each retailer's
+  // own", which is simply untrue of one retailer's two bottles. Count distinct
+  // merchants and say the other thing when there is only one.
+  const merchantCount = new Set(offers.map((o) => o.merchant)).size;
 
   if (house) {
     return (
@@ -76,7 +83,9 @@ export function BuyActions({
         <h3 className="font-display text-lg">Where to buy</h3>
         {offers.length > 1 && (
           <span className="text-xs text-muted-foreground">
-            {offers.length} retailers - prices are each retailer&rsquo;s own
+            {merchantCount > 1
+              ? `${merchantCount} retailers - prices are each retailer's own`
+              : `${offers.length} options at one retailer`}
           </span>
         )}
       </div>

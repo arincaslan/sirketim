@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { CaretRight, Star } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
-import { formatPricePerMl, valueMultiple } from "@/lib/similarity";
+import { describeValueMultiple, formatPricePerMl, valueMultiple } from "@/lib/similarity";
 import { getPublishedSimilarity, isHouseProduct } from "@/lib/catalog";
 import { getReviewSummary } from "@/lib/reviews";
 import { getVerificationBadge } from "@/lib/verification";
@@ -87,7 +87,9 @@ export function DupeResultCard({
             <span className="text-sm font-semibold tabular-nums">
               {formatPricePerMl(dupe.priceUsd, dupe.bottleMl)}
             </span>
-            <span className="mt-1 text-xs text-muted-foreground">{multiple.toFixed(1)}x cheaper</span>
+            <span className="mt-1 text-xs text-muted-foreground">
+              {describeValueMultiple(multiple)}
+            </span>
           </span>
 
           <CaretRight

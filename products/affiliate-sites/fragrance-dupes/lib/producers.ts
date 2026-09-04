@@ -152,6 +152,30 @@ export const PRODUCERS: Producer[] = [
     blurb:
       "US dupe house selling direct rather than through retailers, with a small numbered range built entirely at extrait concentration in 50ml bottles. Its listings name the designer original outright, including in the product's own type field.",
   },
+  // Added 2026-09-04 with the third merchant, AromaPassions (Awin 34989).
+  // Same structure as The CLONE above: a dupe house selling ONLY its own line,
+  // direct, so producer and merchant are one company. `priceUsd` therefore
+  // comes from the merchant for the same reason it does there — nowhere else
+  // sells this — and NOT for any reason to do with the feed being good.
+  //
+  // NOT A HOUSE PRODUCER, for the reason spelled out above The CLONE.
+  //
+  // ONE THING ABOUT THIS SELLER THAT IS NOT IN THE BLURB, DELIBERATELY: every
+  // product in the range is marketed as a "Pheromone Perfume". There is no
+  // sound evidence that human pheromones produce attraction effects, so that
+  // claim is not repeated in our own voice anywhere — not in this blurb, not
+  // in a listing `name`, not in a verdict, and not inside the quoted
+  // `pairingBasis` (only the "Inspired by X" half of their title is quoted).
+  // It survives verbatim in each offer's `productName`, because that field is
+  // the merchant's own title reproduced unedited so a reader can check the
+  // product exists; quoting a seller's title under the seller's name is not
+  // the same as asserting it. See the batch header in lib/dupes-data.ts.
+  {
+    slug: "aromapassions",
+    name: "AromaPassions",
+    blurb:
+      "US dupe house selling direct, with a range named for a feeling rather than for the original it interprets — though every product title states that original outright. Bottles are 50ml and 100ml, and the seller states a 20% concentration it labels Extrait de Parfum, which we have not verified.",
+  },
 ];
 
 export function getProducer(slug: string): Producer | undefined {

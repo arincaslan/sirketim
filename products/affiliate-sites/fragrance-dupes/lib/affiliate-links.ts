@@ -442,6 +442,140 @@ export const affiliateLinks: Record<string, AffiliateLinkEntry> = {
     subId: "the-clone-brutal-story-no-73__fucking-fabulous",
     label: "The CLONE No. 73 Brutal Story Extrait 50ml at Clone of Perfume",
   },
+
+  // ── Added 2026-09-04 ────────────────────────────────────────────────────
+  // AromaPassions, Awin advertiser 34989. A third merchant, and the second
+  // dupe house selling its own line direct.
+  //
+  // ONE LINK PER LISTING, NOT ONE PER SIZE — and that is a decision, not an
+  // omission. Each of these listings carries TWO offers (50ml and 100ml), and
+  // the feed does hold a separate row with its own aw_product_id for each. It
+  // would therefore be easy to mint two ids per product. It would also be
+  // misleading: **this merchant's pclick link is PRODUCT-level, not
+  // variant-level** — verified, and recorded in MERCHANT_NOTES in
+  // scripts/check-affiliate-links.mjs — so both ids land on the identical page
+  // with the identical default variant selected. Two link ids for one
+  // destination would imply a variant-level link we do not have, in exchange
+  // for a click breakdown Awin cannot honour. The buyer picks the size on the
+  // merchant's page; the offer row on ours says which price is which.
+  //
+  // The id used is the 50ml row's, because that is the size each listing's
+  // own `priceUsd`/`bottleMl` describes.
+  //
+  // TWO MERCHANT-SPECIFIC FACTS, both observed rather than assumed:
+  //  - 34989 does NOT echo our clickref into the destination URL. It appends
+  //    its own `sv1`/`sscid`/`awc` query params, which look like attribution
+  //    and are not ours. Our sub-ID arrives only in Awin's own click cookie
+  //    (`aw34989=…`) at hop 0, which is the channel that actually decides
+  //    attribution — same situation as Clone of Perfume, see the header of
+  //    scripts/feeds/README.md.
+  //  - It sets no `awc` COOKIE at all (it puts awc in the query string). That
+  //    absence is expected here and is not a broken link.
+  "dupe-aromapassions-spark": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775349&a=3064149&m=34989",
+    subId: "aromapassions-spark__allure-homme-sport",
+    label: "AromaPassions SPARK, inspired by Chanel Allure Homme Sport",
+  },
+  "dupe-aromapassions-heavenly": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775170&a=3064149&m=34989",
+    subId: "aromapassions-heavenly__angel",
+    label: "AromaPassions HEAVENLY, inspired by Mugler Angel",
+  },
+  "dupe-aromapassions-freedom": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775182&a=3064149&m=34989",
+    subId: "aromapassions-freedom__another-13",
+    label: "AromaPassions FREEDOM, inspired by Le Labo Another 13",
+  },
+  "dupe-aromapassions-virility": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775222&a=3064149&m=34989",
+    subId: "aromapassions-virility__antaeus",
+    label: "AromaPassions VIRILITY, inspired by Chanel Antaeus",
+  },
+  "dupe-aromapassions-bittersweet": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775168&a=3064149&m=34989",
+    subId: "aromapassions-bittersweet__bitter-peach",
+    label: "AromaPassions BITTERSWEET, inspired by Tom Ford Bitter Peach",
+  },
+  "dupe-aromapassions-glamorous": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775355&a=3064149&m=34989",
+    subId: "aromapassions-glamorous__bright-crystal",
+    label: "AromaPassions GLAMOROUS, inspired by Versace Bright Crystal",
+  },
+  "dupe-aromapassions-sparkle": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775224&a=3064149&m=34989",
+    subId: "aromapassions-sparkle__cedrat-boise",
+    label: "AromaPassions SPARKLE, inspired by Mancera Cedrat Boise",
+  },
+  "dupe-aromapassions-admire": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775346&a=3064149&m=34989",
+    subId: "aromapassions-admire__chance-eau-tendre",
+    label: "AromaPassions ADMIRE, inspired by Chanel Chance Eau Tendre",
+  },
+  "dupe-aromapassions-sensual": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775156&a=3064149&m=34989",
+    subId: "aromapassions-sensual__costa-azzurra",
+    label: "AromaPassions SENSUAL, inspired by Tom Ford Costa Azzurra",
+  },
+  "dupe-aromapassions-erotic": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775352&a=3064149&m=34989",
+    subId: "aromapassions-erotic__eros",
+    label: "AromaPassions EROTIC, inspired by Versace Eros",
+  },
+  // THE ONE EXCEPTION TO "the id is the 50ml row's": AromaPassions' Eros Flame
+  // product has exactly one row in the feed, `VRF-093` — the 30ml, which the
+  // store discontinued along with every other 30ml. There is no 50ml row to
+  // point at. Because the deep link is product-level (above), this id still
+  // lands on the live product page offering 50ml and 100ml, which is why the
+  // listing ships at all. **Do not read a working link as proof its variant
+  // still exists** — here it provably does not.
+  "dupe-aromapassions-masculinity": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775357&a=3064149&m=34989",
+    subId: "aromapassions-masculinity__eros-flame",
+    label: "AromaPassions MASCULINITY, inspired by Versace Eros Flame",
+  },
+  "dupe-aromapassions-mystical": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775371&a=3064149&m=34989",
+    subId: "aromapassions-mystical__flora-gorgeous-gardenia",
+    label: "AromaPassions MYSTICAL, inspired by Gucci Flora Gorgeous Gardenia",
+  },
+  "dupe-aromapassions-blooming": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775162&a=3064149&m=34989",
+    subId: "aromapassions-blooming__flowerbomb",
+    label: "AromaPassions BLOOMING, inspired by Viktor & Rolf Flowerbomb",
+  },
+  "dupe-aromapassions-revive": {
+    network: "awin",
+    merchantId: "34989",
+    deepLink: "https://www.awin1.com/pclick.php?p=41943775220&a=3064149&m=34989",
+    subId: "aromapassions-revive__green-irish-tweed",
+    label: "AromaPassions REVIVE, inspired by Creed Green Irish Tweed",
+  },
 };
 
 /**

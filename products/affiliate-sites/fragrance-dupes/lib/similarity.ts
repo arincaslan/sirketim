@@ -128,6 +128,28 @@ export function valueMultiple(reference: ReferenceFragrance, dupe: DupeCandidate
   return refPerMl / dupePerMl;
 }
 
+/**
+ * valueMultiple as a phrase, because `${multiple.toFixed(1)}x cheaper` is a
+ * FALSE PRICE CLAIM whenever the multiple is at or below 1, and both call
+ * sites used to render exactly that.
+ *
+ * It stayed invisible for as long as every listing happened to be several
+ * times cheaper than its original. It stopped being invisible on 2026-09-04:
+ * AromaPassions' Eros interpretation is $39/50ml against Versace's $75/100ml,
+ * a multiple of 0.96 — which the old code would have rounded to the words
+ * "1.0x cheaper" on a page whose entire purpose is to get that comparison
+ * right, one click from the merchant page that disproves it. Cheap designer
+ * originals are where dupe economics stop working, so this will recur.
+ *
+ * The 0.95–1.05 dead band exists so a fraction of a per cent either way is not
+ * announced as a saving or a penalty; inside it the honest answer is neither.
+ */
+export function describeValueMultiple(multiple: number): string {
+  if (multiple >= 1.05) return `${multiple.toFixed(1)}x cheaper`;
+  if (multiple <= 0.95) return `${(1 / multiple).toFixed(1)}x more expensive`;
+  return "no cheaper";
+}
+
 export const RADAR_AXES: { key: keyof FacetScores; label: string }[] = [
   { key: "freshness", label: "Freshness" },
   { key: "sweetness", label: "Sweetness" },

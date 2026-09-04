@@ -9,8 +9,8 @@
  * the generated note-signature mark instead. See the script header for why the
  * licence is tied to the link rather than to the picture.
  *
- * Generated: 2026-09-03T11:13:07.932Z
- * Images:    39
+ * Generated: 2026-09-04T09:02:41.840Z
+ * Images:    53
  */
 
 export const DUPE_IMAGES: Record<string, string> = {
@@ -52,5 +52,19 @@ export const DUPE_IMAGES: Record<string, string> = {
   "the-clone-lady-on-fire-no-23": "/images/dupe/the-clone-lady-on-fire-no-23.jpg",
   "the-clone-pleasure-noir-no-63": "/images/dupe/the-clone-pleasure-noir-no-63.jpg",
   "the-clone-brave-in-love-no-37": "/images/dupe/the-clone-brave-in-love-no-37.jpg",
-  "the-clone-brutal-story-no-73": "/images/dupe/the-clone-brutal-story-no-73.jpg"
+  "the-clone-brutal-story-no-73": "/images/dupe/the-clone-brutal-story-no-73.jpg",
+  "aromapassions-spark": "/images/dupe/aromapassions-spark.png",
+  "aromapassions-heavenly": "/images/dupe/aromapassions-heavenly.jpg",
+  "aromapassions-freedom": "/images/dupe/aromapassions-freedom.jpg",
+  "aromapassions-virility": "/images/dupe/aromapassions-virility.jpg",
+  "aromapassions-bittersweet": "/images/dupe/aromapassions-bittersweet.jpg",
+  "aromapassions-glamorous": "/images/dupe/aromapassions-glamorous.png",
+  "aromapassions-sparkle": "/images/dupe/aromapassions-sparkle.jpg",
+  "aromapassions-admire": "/images/dupe/aromapassions-admire.png",
+  "aromapassions-sensual": "/images/dupe/aromapassions-sensual.jpg",
+  "aromapassions-erotic": "/images/dupe/aromapassions-erotic.png",
+  "aromapassions-masculinity": "/images/dupe/aromapassions-masculinity.png",
+  "aromapassions-mystical": "/images/dupe/aromapassions-mystical.png",
+  "aromapassions-blooming": "/images/dupe/aromapassions-blooming.jpg",
+  "aromapassions-revive": "/images/dupe/aromapassions-revive.jpg"
 };

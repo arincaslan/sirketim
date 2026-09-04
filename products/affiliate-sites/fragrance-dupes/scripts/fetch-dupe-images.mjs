@@ -58,6 +58,8 @@ const OUT_DIR = resolve(root, "public", "images", "dupe");
 const FEED = resolve(here, "feeds", "opulensi.csv");
 /** Awin 117395 — Clone of Perfume, the brand's own store. 11 rows, USD. */
 const CLONE_FEED = resolve(here, "feeds", "clone-of-perfume.csv");
+/** Awin 34989 — AromaPassions, the brand's own store. 230 rows, USD. */
+const AROMAPASSIONS_FEED = resolve(here, "feeds", "aromapassions.csv");
 
 const FORCE = process.argv.includes("--force");
 
@@ -117,6 +119,36 @@ const SOURCES = {
   "the-clone-pleasure-noir-no-63": { feed: CLONE_FEED, productId: "44269697232" },
   "the-clone-brave-in-love-no-37": { feed: CLONE_FEED, productId: "44269697227" },
   "the-clone-brutal-story-no-73": { feed: CLONE_FEED, productId: "44269697228" },
+
+  // ── AromaPassions (Awin 34989), added 2026-09-04. Third merchant, and it
+  // needed exactly what the header promised: one new FEED constant and a block
+  // of entries. The loop was not touched.
+  //
+  // Same two conditions as everything above — the programme tracks (all
+  // fourteen links traced 2026-09-04), and each listing carries a real
+  // affiliateLinkId to it.
+  //
+  // The ids are the same `p=` values as the deep links in
+  // lib/affiliate-links.ts, so a photograph and a buy button are provably the
+  // same product. That includes MASCULINITY, whose id 41943775357 is the
+  // DISCONTINUED 30ml row — the only row this product has. The bottle in that
+  // row's photograph is the same bottle at a different size, and the link is
+  // product-level, so both remain correct; it is noted because "the feed row
+  // exists" and "you can buy that variant" came apart here.
+  "aromapassions-spark": { feed: AROMAPASSIONS_FEED, productId: "41943775349" },
+  "aromapassions-heavenly": { feed: AROMAPASSIONS_FEED, productId: "41943775170" },
+  "aromapassions-freedom": { feed: AROMAPASSIONS_FEED, productId: "41943775182" },
+  "aromapassions-virility": { feed: AROMAPASSIONS_FEED, productId: "41943775222" },
+  "aromapassions-bittersweet": { feed: AROMAPASSIONS_FEED, productId: "41943775168" },
+  "aromapassions-glamorous": { feed: AROMAPASSIONS_FEED, productId: "41943775355" },
+  "aromapassions-sparkle": { feed: AROMAPASSIONS_FEED, productId: "41943775224" },
+  "aromapassions-admire": { feed: AROMAPASSIONS_FEED, productId: "41943775346" },
+  "aromapassions-sensual": { feed: AROMAPASSIONS_FEED, productId: "41943775156" },
+  "aromapassions-erotic": { feed: AROMAPASSIONS_FEED, productId: "41943775352" },
+  "aromapassions-masculinity": { feed: AROMAPASSIONS_FEED, productId: "41943775357" },
+  "aromapassions-mystical": { feed: AROMAPASSIONS_FEED, productId: "41943775371" },
+  "aromapassions-blooming": { feed: AROMAPASSIONS_FEED, productId: "41943775162" },
+  "aromapassions-revive": { feed: AROMAPASSIONS_FEED, productId: "41943775220" },
 };
 
 /* ── feed reading ──────────────────────────────────────────────────────────
@@ -181,10 +213,50 @@ function extensionFor(url, contentType) {
 
 const EXTS = [".jpg", ".jpeg", ".png", ".webp", ".avif"];
 
+const UA = "counterscent-feed-ingest/1.0 (+https://counterscent.com)";
+
+/**
+ * The merchant's CURRENT image for a product, read off its own Shopify page.
+ *
+ * A FEED'S IMAGE URL DECAYS LIKE EVERY OTHER FEED FIELD, and on 2026-09-04 all
+ * fourteen AromaPassions rows proved it: every `merchant_image_url` in that
+ * export returns 404, because the shop re-uploaded its photography and Shopify
+ * CDN paths are content-addressed rather than stable. The prices and the stock
+ * flags in the same rows were stale too. This is the same doctrine already
+ * applied to those two — the feed is a snapshot, the merchant's own page is the
+ * truth — extended to the one field that had not needed it yet.
+ *
+ * The licence is unaffected and that is the point: it rests on the affiliate
+ * relationship, not on which of the merchant's own URLs the bytes came from.
+ * This is still the enrolled merchant's own photograph of the exact product
+ * whose id the affiliate link is built from.
+ *
+ * Only reachable for a feed row that carries a `merchant_deep_link` on the
+ * merchant's own storefront; `.js` on a Shopify product URL returns its JSON.
+ * Returns null rather than throwing, so a failure here is reported as a
+ * failure rather than crashing the run.
+ */
+async function liveImageUrl(productUrl) {
+  if (!productUrl) return null;
+  try {
+    const res = await fetch(`${productUrl.split("?")[0]}.js`, { headers: { "user-agent": UA } });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const found = json.featured_image ?? json.images?.[0];
+    if (!found) return null;
+    // Shopify returns protocol-relative URLs here (`//cdn.shopify.com/...`).
+    return found.startsWith("//") ? `https:${found}` : found;
+  } catch {
+    return null;
+  }
+}
+
 mkdirSync(OUT_DIR, { recursive: true });
 
 const feeds = new Map();
 const failures = [];
+/** Slugs whose picture came from the live page because the feed's URL was dead. */
+const rescued = [];
 let fetched = 0;
 let skipped = 0;
 
@@ -199,24 +271,48 @@ for (const [slug, { feed, productId }] of Object.entries(SOURCES)) {
     continue;
   }
 
-  const url = row.merchant_image_url;
-  if (!url) {
-    failures.push(`${slug}: feed row ${productId} has no merchant_image_url`);
-    continue;
-  }
-
   const already = EXTS.map((e) => resolve(OUT_DIR, `${slug}${e}`)).find((p) => existsSync(p));
   if (already && !FORCE) {
     skipped++;
     continue;
   }
 
+  let url = row.merchant_image_url;
+  let res = null;
+  if (url) {
+    try {
+      res = await fetch(url, { headers: { "user-agent": UA } });
+    } catch {
+      res = null;
+    }
+  }
+
+  // Feed image missing or dead -> ask the merchant's own product page. See
+  // liveImageUrl above for why this is the same licence, not a looser one.
+  if (!res?.ok) {
+    const live = await liveImageUrl(row.merchant_deep_link);
+    if (live) {
+      try {
+        const liveRes = await fetch(live, { headers: { "user-agent": UA } });
+        if (liveRes.ok) {
+          res = liveRes;
+          url = live;
+          rescued.push(slug);
+        }
+      } catch {
+        /* fall through to the failure below */
+      }
+    }
+  }
+
+  if (!url) {
+    failures.push(`${slug}: feed row ${productId} has no merchant_image_url and no live fallback`);
+    continue;
+  }
+
   try {
-    const res = await fetch(url, {
-      headers: { "user-agent": "counterscent-feed-ingest/1.0 (+https://counterscent.com)" },
-    });
-    if (!res.ok) {
-      failures.push(`${slug}: HTTP ${res.status}`);
+    if (!res?.ok) {
+      failures.push(`${slug}: HTTP ${res ? res.status : "request failed"} (feed URL and live page both)`);
       continue;
     }
     const buf = Buffer.from(await res.arrayBuffer());
@@ -281,6 +377,13 @@ export const DUPE_IMAGES: Record<string, string> = ${JSON.stringify(manifest, nu
 
 console.log(`fetch-dupe-images: ${fetched} downloaded, ${skipped} already present`);
 console.log(`fetch-dupe-images: manifest lists ${Object.keys(manifest).length} images`);
+if (rescued.length) {
+  console.log(
+    `fetch-dupe-images: ${rescued.length} image(s) came from the merchant's live product page ` +
+      "because the feed's own merchant_image_url was dead — the feed has gone stale on imagery too:"
+  );
+  for (const r of rescued) console.log(`  ${r}`);
+}
 if (orphans.length) {
   console.log(
     `fetch-dupe-images: ${orphans.length} file(s) in public/images/dupe/ are not claimed by SOURCES ` +
