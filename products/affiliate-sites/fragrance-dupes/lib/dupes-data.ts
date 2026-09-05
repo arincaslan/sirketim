@@ -2092,17 +2092,6 @@ const LISTINGS: DupeCandidate[] = [
         affiliateLinkId: "dupe-aromapassions-spark",
         inStock: true,
       },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "SPARK | Inspired by CHANEL ALLURE HOMME SPORT | Allure Homme Sport Dupe Pheromone Perfume - 100 ml",
-        productUrl:
-          "https://aromapassions.com/products/spark-inspired-by-chanel-allure-homme-sport-dupe-perfume",
-        price: 69,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-spark",
-        inStock: true,
-      },
     ],
     verificationStatus: "declared",
   },
@@ -2144,17 +2133,6 @@ const LISTINGS: DupeCandidate[] = [
         affiliateLinkId: "dupe-aromapassions-heavenly",
         inStock: true,
       },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "HEAVENLY | Inspired by MUGLER ANGEL | Mugler Angel Shooting Star Dupe Pheromone Perfume | Vanilla Patchouli Bergamot Currant Jasmine Nutmeg Orange Essential Oils - 100 ml / 3.4 Oz",
-        productUrl:
-          "https://aromapassions.com/products/heavenly-mugler-angel-perfume-women-essential-oils-cheap-perfume-dupe-shop",
-        price: 69,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-heavenly",
-        inStock: true,
-      },
     ],
     verificationStatus: "declared",
   },
@@ -2191,17 +2169,6 @@ const LISTINGS: DupeCandidate[] = [
         productUrl:
           "https://aromapassions.com/products/freedom-le-labos-another-13-pheromone-perfume-dupe-shop",
         price: 39,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-freedom",
-        inStock: true,
-      },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "FREEDOM | Inspired by LE LABO ANOTHER 13 | Another 13 Dupe Pheromone Perfume - 100 ml / 3.4 Oz",
-        productUrl:
-          "https://aromapassions.com/products/freedom-le-labos-another-13-pheromone-perfume-dupe-shop",
-        price: 69,
         currency: "USD",
         affiliateLinkId: "dupe-aromapassions-freedom",
         inStock: true,
@@ -2247,16 +2214,6 @@ const LISTINGS: DupeCandidate[] = [
         affiliateLinkId: "dupe-aromapassions-virility",
         inStock: true,
       },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "VIRILITY | Inspired by CHANEL ANTAEUS | Antaeus Dupe Pheromone Perfume - 100 ml",
-        productUrl: "https://aromapassions.com/products/virility-chanel-antaeus-dupe-perfume-essential-oils",
-        price: 69,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-virility",
-        inStock: true,
-      },
     ],
     verificationStatus: "declared",
   },
@@ -2294,17 +2251,6 @@ const LISTINGS: DupeCandidate[] = [
         productUrl:
           "https://aromapassions.com/products/bittersweet-tom-ford-bitter-peach-men-women-perfume-essential-oils-cheap-perfume-dupe-shop",
         price: 39,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-bittersweet",
-        inStock: true,
-      },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "BITTERSWEET | Inspired by TOM FORD BITTER PEACH | Bitter Peach Dupe Pheromone Perfume | Peach Davana Scent Notes | Cardamom Nutmeg Jasmine Patchouli Sandalwood Essential Oils - 100 ml / 3.4 Oz",
-        productUrl:
-          "https://aromapassions.com/products/bittersweet-tom-ford-bitter-peach-men-women-perfume-essential-oils-cheap-perfume-dupe-shop",
-        price: 69,
         currency: "USD",
         affiliateLinkId: "dupe-aromapassions-bittersweet",
         inStock: true,
@@ -2362,17 +2308,6 @@ const LISTINGS: DupeCandidate[] = [
         affiliateLinkId: "dupe-aromapassions-glamorous",
         inStock: true,
       },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "GLAMOROUS | Inspired by VERSACE BRIGHT CRYSTAL | Bright Crystal Dupe Pheromone Perfume - 100 ml",
-        productUrl:
-          "https://aromapassions.com/products/glamorous-inspired-by-versace-bright-crystal-dupe-perfume",
-        price: 59,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-glamorous",
-        inStock: true,
-      },
     ],
     verificationStatus: "declared",
   },
@@ -2416,16 +2351,6 @@ const LISTINGS: DupeCandidate[] = [
         affiliateLinkId: "dupe-aromapassions-sparkle",
         inStock: true,
       },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "SPARKLE | Inspired by MANCERA CEDRAT BOISE | Cedrat Boise Dupe Pheromone Perfume - 100 ml",
-        productUrl: "https://aromapassions.com/products/sparkle-mancera-cedrat-boise-dupe-perfume",
-        price: 69,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-sparkle",
-        inStock: true,
-      },
     ],
     verificationStatus: "declared",
   },
@@ -2464,17 +2389,6 @@ const LISTINGS: DupeCandidate[] = [
         productUrl:
           "https://aromapassions.com/products/admire-inspired-by-chanel-chance-eau-tendre-dupe-perfume",
         price: 39,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-admire",
-        inStock: true,
-      },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "ADMIRE | Inspired by CHANEL CHANCE EAU TENDRE | Chance Eau Tendre Dupe Pheromone Perfume - 100 ml",
-        productUrl:
-          "https://aromapassions.com/products/admire-inspired-by-chanel-chance-eau-tendre-dupe-perfume",
-        price: 69,
         currency: "USD",
         affiliateLinkId: "dupe-aromapassions-admire",
         inStock: true,
@@ -2522,17 +2436,6 @@ const LISTINGS: DupeCandidate[] = [
         affiliateLinkId: "dupe-aromapassions-sensual",
         inStock: true,
       },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "SENSUAL | Inspired by Tom Ford COSTA AZZURRA | Costa Azzurra Eau De Parfum Dupe Pheromone Perfume | Lemon Rosemary Essential Oils - 100 ml / 3.4 Oz",
-        productUrl:
-          "https://aromapassions.com/products/sensual-tom-ford-costa-azzura-perfume-men-women-essential-oils-cheap-perfume-dupe-shop",
-        price: 69,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-sensual",
-        inStock: true,
-      },
     ],
     verificationStatus: "declared",
   },
@@ -2570,15 +2473,6 @@ const LISTINGS: DupeCandidate[] = [
         productName: "EROTIC | Inspired by VERSACE EROS | Eros Dupe Pheromone Perfume - 50 ml",
         productUrl: "https://aromapassions.com/products/erotic-inspired-by-versace-eros-dupe-perfume",
         price: 39,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-erotic",
-        inStock: true,
-      },
-      {
-        merchant: "AromaPassions",
-        productName: "EROTIC | Inspired by VERSACE EROS | Eros Dupe Pheromone Perfume - 100 ml",
-        productUrl: "https://aromapassions.com/products/erotic-inspired-by-versace-eros-dupe-perfume",
-        price: 69,
         currency: "USD",
         affiliateLinkId: "dupe-aromapassions-erotic",
         inStock: true,
@@ -2630,17 +2524,6 @@ const LISTINGS: DupeCandidate[] = [
         affiliateLinkId: "dupe-aromapassions-masculinity",
         inStock: true,
       },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "MASCULINITY | Inspired by VERSACE EROS FLAME | Eros Flame Dupe Pheromone Perfume - 100 ml",
-        productUrl:
-          "https://aromapassions.com/products/masculinity-inspired-by-versace-eros-flame-dupe-perfume",
-        price: 69,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-masculinity",
-        inStock: true,
-      },
     ],
     verificationStatus: "declared",
   },
@@ -2679,17 +2562,6 @@ const LISTINGS: DupeCandidate[] = [
         productUrl:
           "https://aromapassions.com/products/mystical-inspired-by-gucci-flora-gorgeous-gardenia-dupe-perfume",
         price: 39,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-mystical",
-        inStock: true,
-      },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "MYSTICAL | Inspired by GUCCI FLORA GORGEOUS GARDENIA | Flora Gorgeous Gardenia Dupe Pheromone Perfume - 100 ml",
-        productUrl:
-          "https://aromapassions.com/products/mystical-inspired-by-gucci-flora-gorgeous-gardenia-dupe-perfume",
-        price: 69,
         currency: "USD",
         affiliateLinkId: "dupe-aromapassions-mystical",
         inStock: true,
@@ -2736,17 +2608,6 @@ const LISTINGS: DupeCandidate[] = [
         affiliateLinkId: "dupe-aromapassions-blooming",
         inStock: true,
       },
-      {
-        merchant: "AromaPassions",
-        productName:
-          "BLOOMING | Inspired by VIKTOR ROLF FLOWERBOMB | Flowerbomb Dupe Pheromone Eau De Parfum | Bergamot Jasmine Patchouli Vanilla Rose Essential Oils - 100 ml / 3.4 Oz",
-        productUrl:
-          "https://aromapassions.com/products/blooming-flowerbomb-viktor-rolf-perfume-women-essential-oils-cheap-perfume-dupe-shop",
-        price: 69,
-        currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-blooming",
-        inStock: true,
-      },
     ],
     verificationStatus: "declared",
   },
@@ -2786,15 +2647,961 @@ const LISTINGS: DupeCandidate[] = [
         affiliateLinkId: "dupe-aromapassions-revive",
         inStock: true,
       },
+    ],
+    verificationStatus: "declared",
+  },
+  /* ═══════════════════════════════════════════════════════════════════════
+   * AROMAPASSIONS BATCH A2 — 23 listings, added 2026-09-05.
+   *
+   * Same merchant (Awin 34989), same standard, one deliberate change of shape:
+   * **every listing carries ONE offer, the 50 ml bottle.** The A1 batch shipped
+   * two offers per listing, 50 ml and 100 ml, both pointing at the SAME
+   * affiliateLinkId — so the page rendered two buy buttons that went to exactly
+   * the same place, and buy-actions.tsx, which counts distinct merchants for its
+   * header, called one retailer's two bottles "2 retailers". A1 was collapsed to
+   * 50 ml in the same change. `priceUsd`/`bottleMl` were already the 50 ml
+   * figures, so no price moved.
+   *
+   * ─── THE SPLIT IS OURS, AND IT MOVES THE SCORE ────────────────────────────
+   * AromaPassions publishes ONE FLAT SENTENCE — "Scented using A, B, C ...
+   * essential oils" — and no pyramid at all. Our formula weights tiers
+   * 20/35/45, so whoever divides that list sets the score. Measured on
+   * FEMININITY against Chanel No. 5 with facets held constant, the same
+   * merchant data scores **70-82% depending only on where the two cuts land.**
+   *
+   * The cuts here are aligned to the ORIGINAL's own published pyramid, which is
+   * what A1 did by hand. That is knowingly the flattering choice: aligning
+   * maximises per-tier overlap by construction, which is circular — it selects
+   * on the metric and then publishes the metric. It is shipped anyway, on the
+   * founder's call of 2026-09-05, with the disclosure as the mitigation: **every
+   * verdict in this batch says on the page that the merchant published no
+   * pyramid and the split is ours.**
+   *
+   * The obvious alternative was tried first and is WORSE — do not re-propose it.
+   * Splitting by standard perfumery convention instead disagrees with **17.1% of
+   * our own reference notes (253 of 1476)**, because tier placement is a
+   * per-fragrance fact published by the house, not a property of the material:
+   * saffron is a top note in Baccarat Rouge 540 and a heart note elsewhere, and
+   * both are correct. Convention-splitting scored Red Tobacco at 0.04 against a
+   * reference it shares nine materials with. Two guards on the alignment,
+   * because unconstrained maximisation produces pyramids no reader would
+   * believe: no tier may be empty, and none may hold more than 60% of the list
+   * (Poison came out 1/1/10 without the second). Ties break to the LOWER score.
+   *
+   * ─── ONE CANDIDATE WITHHELD ───────────────────────────────────────────────
+   * **SPICY (Viktor & Rolf Spicebomb)** is absent and stays absent. Its declared
+   * list is Spicebomb's note set exactly — every material, nothing added,
+   * nothing missing, note overlap 1.000. `notesAreVerbatim()` compares each
+   * tier's set for equality and would return true, so the only ways to publish
+   * it were to invent facet differences we have no basis for purely to clear
+   * `isVerbatimCopy()`, or to ship a listing `getRankedDupesFor()` correctly
+   * hides while its link and photograph sat in the tree pointing at nothing.
+   * Same reasoning as ILLUMINATE in A1. Spicebomb therefore still has no
+   * alternative, and the reason is on the record.
+   *
+   * ─── THREE FLANKERS REFUSED ───────────────────────────────────────────────
+   * The feed names a flanker, not the original we hold, on three products:
+   * INTRINSIC (Acqua di Gio **Profondo**), TANTALIZE (Armani Code **Profumo**)
+   * and STUNNING (Delina **Exclusif**). A flanker is a different fragrance;
+   * pairing one to the base would misstate which bottle the alternative is for.
+   *
+   * ─── WHERE A DIFF IS VOCABULARY, NOT COMPOSITION ──────────────────────────
+   * We never rewrite a seller's word into ours, so some diffs overstate the gap
+   * and the verdicts say so at the listing: **pelargonium IS geranium**
+   * (HARMONY), **litchi IS lychee** (PRECIOUS — and our own catalogue spells it
+   * "Lychee" on Chloe and "Litchi" on Delina), ambrette/ambrette seed and
+   * seaweed/red algae (NATURE), wild strawberry vs strawberry (SWEET),
+   * pineapple leaf vs pineapple (LEGENDARY). Each of those understates the
+   * score, which is the safe direction.
+   *
+   * Prices and stock are the merchant's live `/products/<handle>.js`, not the
+   * feed: the feed was stale on LA VIE EST BELLE and ARMANI CODE ($45 against a
+   * live $39). Links are joined to the 50 ml variant **by SKU**, because
+   * `aw_product_id` is Awin's id and not the Shopify variant id.
+   * ═══════════════════════════════════════════════════════════════════════ */
+  {
+    slug: "aromapassions-intense",
+    referenceSlug: "pegasus",
+    name: "Intense",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "INTENSE | Inspired by PARFUMS DE MARLY PEGASUS",
+      url: "https://aromapassions.com/products/intense-inspired-by-parfums-de-marly-pegasus-dupe-perfume-men-pheromone",
+    },
+    notes: {
+      top: ["Heliotrope", "Cumin", "Bergamot", "Bitter Almond"],
+      heart: ["Lavender", "Jasmine"],
+      base: ["Vanilla", "Sandalwood", "Amber"],
+    },
+    facets: { freshness: 3, sweetness: 8, warmth: 8, woodyDepth: 6, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The highest score in this batch and the one to read most carefully. AromaPassions declares every material Parfums de Marly lists for Pegasus - bitter almond, bergamot and heliotrope over jasmine and lavender, on vanilla, sandalwood and amber - and adds only cumin. A merchant whose product copy restates the original's materials will score well here by construction, because half the formula is declared-note overlap, so treat this as their claim rather than our finding. The cumin is the one declared departure and it is not a small one: cumin is warm and faintly animalic, and against Pegasus's very clean almond-and-vanilla sweetness it should read as a dirtier, more skin-like opening. Note also that AromaPassions publishes a single flat note list, not a pyramid, so the division into top, heart and base above is ours, not theirs.",
+    offers: [
       {
         merchant: "AromaPassions",
-        productName:
-          "REVIVE | Inspired by CREED GREEN IRISH TWEED | Green Irish Tweed Dupe Pheromone Perfume - 100 ml",
-        productUrl:
-          "https://aromapassions.com/products/revive-creed-green-irish-tweed-dupe-perfume-men",
-        price: 69,
+        productName: "INTENSE | Inspired by PARFUMS DE MARLY PEGASUS | Pegasus Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/intense-inspired-by-parfums-de-marly-pegasus-dupe-perfume-men-pheromone",
+        price: 39,
         currency: "USD",
-        affiliateLinkId: "dupe-aromapassions-revive",
+        affiliateLinkId: "dupe-aromapassions-intense",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-delight",
+    referenceSlug: "la-vie-est-belle",
+    name: "Delight",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "DELIGHT | Inspired by LANCÔME LA VIE EST BELLE",
+      url: "https://aromapassions.com/products/delight-inspired-by-lancome-la-vie-est-belle-dupe-perfume",
+    },
+    notes: {
+      top: ["Black Currant", "Pear"],
+      heart: ["Iris", "Jasmine", "Orange Blossom"],
+      base: ["Praline", "Vanilla", "Patchouli", "Tonka Bean"],
+    },
+    facets: { freshness: 2, sweetness: 8, warmth: 6, woodyDepth: 2, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "AromaPassions declares Lancome's list back almost whole - blackcurrant and pear, iris, jasmine and orange blossom, praline, vanilla, patchouli and tonka - omitting only sweet pea. That is a merchant restating the original's own pyramid, and since half the score is declared-note overlap it produces a high number more or less automatically; read it as their claim, not as our finding. What the omission actually costs is small: sweet pea is a light, slightly green floral that sits under the iris rather than driving the composition, so the expectation here is La Vie Est Belle's praline-and-iris shape largely intact, marginally less airy in the heart. The honest caveat is the reverse of the usual one - there is so little declared difference that there is very little for us to independently tell you. AromaPassions publishes one flat note list and no pyramid; the top/heart/base division above is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "DELIGHT | Inspired by LANCÔME LA VIE EST BELLE | La Vie Est Belle Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/delight-inspired-by-lancome-la-vie-est-belle-dupe-perfume",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-delight",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-mesmorize",
+    referenceSlug: "armani-code",
+    name: "Mesmorize",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "MESMORIZE | Inspired by GIORGIO ARMANI CODE",
+      url: "https://aromapassions.com/products/mesmorize-inspired-by-giorgio-armani-code-dupe-perfume",
+    },
+    notes: {
+      top: ["Lemon", "Bergamot"],
+      heart: ["Star Anise", "Olive Blossom", "Guaiac Wood"],
+      base: ["Leather", "Tonka Bean", "Tobacco"],
+    },
+    facets: { freshness: 4, sweetness: 5, warmth: 7, woodyDepth: 6, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Another listing where the merchant has declared the original's materials back - lemon and bergamot, star anise and olive blossom, tonka, tobacco and leather is Armani Code's published pyramid - and added one of its own, guaiac wood. The score follows from that restatement rather than from anything we verified, so read it as AromaPassions' claim. Guaiac is the interesting part: it is a dry, smoky, almost tarry wood, and adding it to a composition whose character is the sweet-anise-over-leather accord should push this drier and smokier than the Armani, which stays soft and powdery in the base. Expect Code's silhouette with more smoke and less powder. As with every AromaPassions listing here, the merchant publishes a single flat note list and no pyramid, so the three-tier split above is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "MESMORIZE | Inspired by GIORGIO ARMANI CODE | Armani Code Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/mesmorize-inspired-by-giorgio-armani-code-dupe-perfume",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-mesmorize",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-cool",
+    referenceSlug: "y",
+    name: "Cool",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "COOL | Inspired by YVES SAINT LRNT YSL Y EDP",
+      url: "https://aromapassions.com/products/cool-inspired-by-yves-saint-laurent-ysl-y-edp-dupe-perfume-men",
+    },
+    notes: {
+      top: ["Apple", "Ginger", "Bergamot"],
+      heart: ["Sage", "Juniper Berries", "Geranium"],
+      base: ["Amberwood", "Tonka Bean", "Cedar", "Vetiver", "Olibanum"],
+    },
+    facets: { freshness: 7, sweetness: 3, warmth: 5, woodyDepth: 6, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "AromaPassions declares all nine of Y's materials and adds two, vetiver and olibanum. The high note-overlap is therefore largely a fact about their copywriting rather than a finding of ours, and should be read that way. The two additions do point somewhere real: olibanum is frankincense, dry and resinous, and vetiver is earthy and rooty, so both push away from Y's clean apple-and-ginger freshness toward something smokier and more mineral in the drydown. Y is a bright, deliberately uncomplicated woody aromatic; this is declared as the same opening over a heavier, more incense-like base. AromaPassions publishes one flat note list rather than a pyramid, so the top, heart and base division above was made by us.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "COOL | Inspired by YVES SAINT LRNT YSL Y EDP | Ysl Y Dupe Pheromone Perfume| Fragrance Essential Oils | Apple Ginger Cedar | Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/cool-inspired-by-yves-saint-laurent-ysl-y-edp-dupe-perfume-men",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-cool",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-beauty",
+    referenceSlug: "delina",
+    name: "Beauty",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "BEAUTY | Inspired by PARFUMS DE MRLY DELINA",
+      url: "https://aromapassions.com/products/beauty-inspired-by-parfums-de-marly-delina-dupe-perfume-women",
+    },
+    notes: {
+      top: ["Litchi", "Rhubarb", "Bergamot", "Nutmeg"],
+      heart: ["Turkish Rose", "Peony", "Musk", "Petalia", "Vanilla"],
+      base: ["Cashmeran", "Incense", "Cedar", "Vetiver"],
+    },
+    facets: { freshness: 6, sweetness: 7, warmth: 6, woodyDepth: 5, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "A genuinely close declared match on the fruity-rose half of Delina - litchi, rhubarb, bergamot and nutmeg over Turkish rose and peony - with two materials of its own, petalia and vetiver. Petalia is a synthetic with a fresh, slightly metallic rosy-geranium character, so it reinforces the rose rather than adding a new direction; the vetiver is the real departure, and it should make the drydown drier and earthier than Delina's, which is a soft cashmeran-and-musk affair. Worth being plain about the price gap being the point here: Delina is a 75ml bottle at $355, and this is 50ml at $39. AromaPassions publishes a single flat note list and no pyramid, so the split into top, heart and base above is ours, not the merchant's.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "BEAUTY | Inspired by PARFUMS DE MRLY DELINA | Delina Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/beauty-inspired-by-parfums-de-marly-delina-dupe-perfume-women",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-beauty",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-femininity",
+    referenceSlug: "chanel-no-5",
+    name: "Femininity",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "FEMININITY | Inspired by CHANEL NO 5 EDP",
+      url: "https://aromapassions.com/products/femininity-inspired-by-chanel-no-5-edp-dupe-perfume-women",
+    },
+    notes: {
+      top: ["Aldehydes", "Ylang-Ylang", "Neroli", "Bergamot"],
+      heart: ["Peach", "Iris", "Jasmine", "Rose", "Lily of the Valley"],
+      base: ["Sandalwood", "Vanilla", "Oakmoss", "Patchouli", "Vetiver"],
+    },
+    facets: { freshness: 5, sweetness: 4, warmth: 5, woodyDepth: 5, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The declared aldehyde-and-floral spine is No. 5's own - aldehydes, ylang-ylang, neroli and bergamot, then iris, jasmine, rose and lily of the valley - which is why the number lands where it does, and is a reason to read it as AromaPassions' claim rather than our finding. The base is where the two genuinely part company, and it is the part that lasts: No. 5 closes on sandalwood, vetiver, vanilla, amber and musk, while this declares sandalwood, vanilla, oakmoss, patchouli and vetiver, dropping amber and musk and adding oakmoss and patchouli. That is a real substitution rather than a rounding difference - oakmoss and patchouli are the mossy, earthy backbone of a chypre, where amber and musk are soft and skin-like - so expect a drier, greener, more old-fashioned close than the Chanel's. It also adds peach up top, which No. 5 does not declare. AromaPassions publishes one flat note list; the tier split above is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "FEMININITY | Inspired by CHANEL NO 5 EDP | Chanel No5 Dupe Pheromone Perfume| Fragrance Essential Oils | Bergamot Peach Rose | Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/femininity-inspired-by-chanel-no-5-edp-dupe-perfume-women",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-femininity",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-harmony",
+    referenceSlug: "terre-dhermes",
+    name: "Harmony",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "HARMONY | Inspired by HERMES TERRE D'HERMES",
+      url: "https://aromapassions.com/products/harmony-inspired-by-hermes-terre-dhermes-dupe-perfume-men-women",
+    },
+    notes: {
+      top: ["Orange", "Grapefruit"],
+      heart: ["Pepper", "Pelargonium", "Flint"],
+      base: ["Vetiver", "Cedar", "Patchouli", "Benzoin"],
+    },
+    facets: { freshness: 6, sweetness: 2, warmth: 4, woodyDepth: 7, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "A close declared match, with one caveat that is about vocabulary rather than composition: the diff shows geranium missing and pelargonium added, and pelargonium IS geranium - the botanical name for the same material. Our catalogue records Terre d'Hermes with 'Geranium' and the merchant writes 'Pelargonium', and we do not silently rewrite a seller's word into ours, so the comparison above counts them as different and the score is understated by exactly that much. The real declared difference is at the close: this adds patchouli and omits oakmoss, so expect a slightly sweeter, more earthy drydown against Terre's drier mineral-and-moss finish. The flint-and-pepper mineral character that makes the Hermes recognisable is declared present. AromaPassions publishes a single flat note list and no pyramid; the three tiers above are our division.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "HARMONY | Inspired by HERMES TERRE D'HERMES | Terre D'Hermes Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/harmony-inspired-by-hermes-terre-dhermes-dupe-perfume-men-women",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-harmony",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-precious",
+    referenceSlug: "chloe",
+    name: "Precious",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "PRECIOUS | Inspired by CHLOE EAU DE PARFUM",
+      url: "https://aromapassions.com/products/precious-inspired-by-chloe-chloe-eau-de-parfum-dupe-perfume",
+    },
+    notes: {
+      top: ["Peony", "Litchi", "Freesia"],
+      heart: ["Rose", "Lily of the Valley", "Magnolia"],
+      base: ["Cedar", "Amber"],
+    },
+    facets: { freshness: 4, sweetness: 4, warmth: 4, woodyDepth: 2, longevity: 5, sillage: 4 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Moderate",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Read the diff here with one correction in mind: it lists lychee as missing and litchi as added, and those are the same fruit. Our own catalogue is inconsistent - it spells it 'Lychee' on Chloe and 'Litchi' on Delina - and we do not rewrite a merchant's spelling into ours, so this listing is scored as though the two were different materials and is understated accordingly. Taking that as read, the declared match on Chloe's peony-freesia-rose heart is close. The one genuine omission is musk, which matters more than it sounds: Chloe's drydown is a clean, powdery musk over cedar and amber, and without it the declared composition closes on cedar and amber alone, which should read drier and less soft. It adds lily of the valley, pushing the floral heart greener. AromaPassions publishes one flat list, not a pyramid, so the split above is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "PRECIOUS | Inspired by CHLOE EAU DE PARFUM | Chloe EDP Dupe Pheromone Perfume| Fragrance Essential Oils | Rose Magnolia Amber | Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/precious-inspired-by-chloe-chloe-eau-de-parfum-dupe-perfume",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-precious",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-luxurious",
+    referenceSlug: "herod",
+    name: "Luxurious",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "LUXURIOUS | Inspired by PARFUMS DE MARLY HEROD",
+      url: "https://aromapassions.com/products/luxurious-inspired-by-parfums-de-marly-herod-dupe-perfume",
+    },
+    notes: {
+      top: ["Cinnamon", "Pepper"],
+      heart: ["Tobacco Leaf", "Incense", "Osmanthus", "Labdanum"],
+      base: ["Vanilla", "Iso E Super", "Cedar", "Musk", "Cypriol Oil or Nagarmotha", "Vetiver"],
+    },
+    facets: { freshness: 3, sweetness: 6, warmth: 8, woodyDepth: 7, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Every material our catalogue records for Herod is declared here - cinnamon and pepper, osmanthus and tobacco leaf, vanilla, vetiver, incense, cedar and musk - and three more are added: labdanum, Iso E Super and cypriol. That combination is coherent rather than random. Labdanum is a sweet, dark resin and cypriol (nagarmotha) is a smoky, leathery root, so both reinforce the tobacco-and-incense direction Herod already runs in; Iso E Super is the transparent woody-amber synthetic that makes a composition project without smelling of anything in particular. The reasonable expectation is Herod's cinnamon-and-vanilla-over-tobacco shape, pushed smokier and more resinous, and probably with more carry. AromaPassions publishes a single flat note list and no pyramid, so the top, heart and base division above is ours, not the merchant's.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "LUXURIOUS | Inspired by PARFUMS DE MARLY HEROD | Cinnamon Labdanum Vanilla Cedar Cypriol Vetiver Essential Oils | Herod Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/luxurious-inspired-by-parfums-de-marly-herod-dupe-perfume",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-luxurious",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-fiery",
+    referenceSlug: "fahrenheit",
+    name: "Fiery",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "FIERY | Inspired by D. FAHRENHEIT",
+      url: "https://aromapassions.com/products/fiery-inspired-by-dior-fahrenheit-dupe-perfume-men",
+    },
+    notes: {
+      top: ["Nutmeg Flower", "Lavender", "Cedar", "Chamomile", "Mandarin Orange", "Hawthorn", "Bergamot", "Lemon", "Violet Leaf", "Nutmeg"],
+      heart: ["Sandalwood", "Carnation", "Honeysuckle", "Jasmine"],
+      base: ["Lily of the Valley", "Leather", "Vetiver", "Musk", "Amber", "Patchouli", "Tonka Bean"],
+    },
+    facets: { freshness: 4, sweetness: 3, warmth: 6, woodyDepth: 6, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The longest declared list in this batch - twenty-one materials - and that length is itself worth noting, because a longer list overlaps a short reference pyramid less efficiently and drags the score down regardless of how the fragrance smells. The recognisable Fahrenheit signature is declared present: violet leaf, carnation, honeysuckle, nutmeg and above all leather, which is the note the original is built around. What our catalogue records that this does not declare is the specific violet-and-mandarin pairing; what it adds is a long tail of chamomile, hawthorn, lemon, cedar, patchouli and lily of the valley. Fahrenheit's oddity is that its leather reads as petrol-and-violet rather than as hide, and nothing in the declaration confirms that particular accord survives. Expect the leather-floral shape with more herbal and green material around it. AromaPassions publishes one flat note list; the tier split is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "FIERY | Inspired by D. FAHRENHEIT | Fahrenheit Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/fiery-inspired-by-dior-fahrenheit-dupe-perfume-men",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-fiery",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-glimmer",
+    referenceSlug: "velvet-orchid",
+    name: "Glimmer",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "GLIMMER | Inspired by TOM FORD VELVET ORCHID",
+      url: "https://aromapassions.com/products/glimmer-inspired-by-tom-ford-velvet-orchid-dupe-perfume-women",
+    },
+    notes: {
+      top: ["Rum", "Honey", "Mandarin Orange", "Bergamot", "Black Orchid"],
+      heart: ["Orchid", "Jasmine", "Heliotrope", "Hyacinth", "Rose Oil", "Narcissus"],
+      base: ["Magnolia", "Orange Blossom", "Vanilla", "Myrrh", "Suede", "Sandalwood", "Peru Balsam", "Labdanum"],
+    },
+    facets: { freshness: 3, sweetness: 8, warmth: 7, woodyDepth: 5, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Nineteen declared materials against a nine-note reference, so the score is held down partly by breadth rather than by disagreement. The core of Velvet Orchid is declared present - rum, honey, orchid and jasmine over vanilla, suede and sandalwood - which is the honeyed, boozy floral the original is known for. Around it the merchant declares a substantially larger floral bouquet than Tom Ford does: heliotrope, hyacinth, narcissus, magnolia and orange blossom, plus myrrh, Peru balsam and labdanum in the close. Those resins point to a heavier, sweeter, more balsamic drydown than Velvet Orchid's, which stays comparatively suede-soft. Read this as a fuller, denser interpretation rather than a copy. AromaPassions publishes a single flat note list and no pyramid, so the three-tier division above was made by us.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "GLIMMER | Inspired by TOM FORD VELVET ORCHID | Velvet Orchid Dupe Pheromone Perfume| Honey Rum Bergamot | Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/glimmer-inspired-by-tom-ford-velvet-orchid-dupe-perfume-women",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-glimmer",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-adventure",
+    referenceSlug: "virgin-island-water",
+    name: "Adventure",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "ADVENTURE | Inspired by CREED VIRGIN ISLAND WATER",
+      url: "https://aromapassions.com/products/adventure-inspired-by-creed-virgin-island-water-dupe-perfume",
+    },
+    notes: {
+      top: ["Coconut", "Lime", "White Bergamot", "Mandarin"],
+      heart: ["Ginger", "Ylang-Ylang", "Jasmine", "Hibiscus", "White Rum"],
+      base: ["Sugar Cane", "Musk"],
+    },
+    facets: { freshness: 8, sweetness: 7, warmth: 4, woodyDepth: 2, longevity: 6, sillage: 5 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Moderate",
+    priceUsd: 45,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The declared list captures what Virgin Island Water is actually about - coconut, lime, ginger, white rum, sugar cane and ylang-ylang - which is the rum-and-coconut cocktail accord the Creed is famous for, and it is all present. Two differences are worth stating. It declares white bergamot where our catalogue records plain bergamot, which we count as a difference rather than rewriting the merchant's word, so the score is understated by that much. And it does not declare copra, the dried-coconut material that gives the original its slightly oily, sun-cream richness rather than a sweet-shop coconut; hibiscus appears instead. The price gap is the argument here: $400 for 100ml against $45 for 50ml. This is also the only listing in the batch at $45 rather than $39. AromaPassions publishes one flat note list; the split above is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "ADVENTURE | Inspired by CREED VIRGIN ISLAND WATER | Virgin Island Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/adventure-inspired-by-creed-virgin-island-water-dupe-perfume",
+        price: 45,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-adventure",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-legendary",
+    referenceSlug: "legend",
+    name: "Legendary",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "LEGENDARY | Inspired by MONTBLANC LEGEND",
+      url: "https://aromapassions.com/products/legendary-inspired-by-montblanc-legend-dupe-perfume-men",
+    },
+    notes: {
+      top: ["Lavender", "Pineapple", "Bergamot"],
+      heart: ["Lemon Verbena", "Red Apple", "Dried Fruits", "Oakmoss", "Geranium"],
+      base: ["Coumarin", "Rose", "Tonka Bean", "Sandalwood"],
+    },
+    facets: { freshness: 6, sweetness: 5, warmth: 4, woodyDepth: 5, longevity: 6, sillage: 6 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Moderate",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "A moderate declared match on a fragrance that is itself simple. The lavender-bergamot-over-tonka-and-sandalwood fougere structure of Montblanc Legend is declared present, and so is the pineapple that gives the original its slightly fruity lift - though the merchant declares plain pineapple where our catalogue records pineapple leaf, which is a different material with a green rather than sweet character, and we count it as different. Evernyl, the synthetic that supplies Legend's mossy dryness, is not declared at all; oakmoss is, which points in a similar direction by a different route. Added are lemon verbena, red apple, dried fruits, coumarin and rose, which together suggest a sweeter and fruitier reading than the Montblanc's rather austere one. AromaPassions publishes a single flat note list and no pyramid, so the tier split above is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "LEGENDARY | Inspired by MONTBLANC LEGEND | Legend Dupe Pheromone Perfume| Fragrance Essential Oils | Lavender Geranium Sandlewood | Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/legendary-inspired-by-montblanc-legend-dupe-perfume-men",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-legendary",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-sweet",
+    referenceSlug: "her",
+    name: "Sweet",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "SWEET | Inspired by BURBERRY HER",
+      url: "https://aromapassions.com/products/sweet-inspired-by-burberry-burberry-her-dupe-perfume-women",
+    },
+    notes: {
+      top: ["Strawberry", "Raspberry", "Blackberry"],
+      heart: ["Sour Cherry", "Black Currant", "Mandarin Orange", "Lemon", "Violet", "Jasmine"],
+      base: ["Musk", "Vanilla", "Cashmeran", "Woody Notes", "Oakmoss", "Amber", "Patchouli"],
+    },
+    facets: { freshness: 3, sweetness: 8, warmth: 5, woodyDepth: 3, longevity: 6, sillage: 6 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Moderate",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Sixteen declared materials against a short reference list, which holds the number down more than any disagreement does. The berry-and-musk idea of Burberry Her is declared present - blackberry, violet, jasmine, musk, vanilla and amber - and the merchant fills out the fruit with strawberry, raspberry, sour cherry and blackcurrant where our catalogue records wild strawberry and rhubarb specifically. Wild strawberry is not the same material as strawberry and we do not promote one to the other, so part of the gap is vocabulary rather than composition. The more substantive additions are cashmeran, oakmoss and patchouli in the close, which should make this drier and mossier underneath than Her, whose drydown is deliberately soft and almost entirely musk. Expect the same berry-sweet opening over a firmer base. AromaPassions publishes one flat list; the split is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "SWEET | Inspired by BURBERRY HER | Burberry Her Dupe Pheromone Perfume| Fragrance Essential Oils | Strawberry Blackberry Jasmine | Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/sweet-inspired-by-burberry-burberry-her-dupe-perfume-women",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-sweet",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-charisma",
+    referenceSlug: "l-homme",
+    name: "Charisma",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "CHARISMA | Inspired by YVES SAINT LAURENT YSL L'HOMME",
+      url: "https://aromapassions.com/products/charisma-inspired-by-yves-saint-laurent-ysl-lhomme-dupe-perfume",
+    },
+    notes: {
+      top: ["Ginger", "Bergamot", "Lemon"],
+      heart: ["Spices"],
+      base: ["Violet Leaf", "White Pepper", "Basil", "Tonka Bean", "Cedar", "Vetiver"],
+    },
+    facets: { freshness: 6, sweetness: 3, warmth: 4, woodyDepth: 6, longevity: 6, sillage: 5 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Moderate",
+    priceUsd: 45,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "A low score and a fair one. YSL L'Homme is built on a ginger-and-bergamot opening over a tea-and-incense heart with violet leaf and cedar underneath, and it is the middle of that structure the declaration is missing: no tea accord, no incense, no jasmine, no spearmint. What is declared is the citrus-and-ginger opening, which is genuinely shared, plus white pepper, basil and spices, then tonka, cedar and vetiver. The result reads as the same bright start heading somewhere drier and more herbal than L'Homme's soft, slightly powdery tea drydown. This is one where a buyer should treat it as an adjacent fresh woody rather than an interpretation of the YSL. This listing is $45 rather than the batch's usual $39. AromaPassions publishes a single flat note list and no pyramid; the tiers above are ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "CHARISMA | Inspired by YVES SAINT LAURENT YSL L'HOMME | YSL L'homme Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/charisma-inspired-by-yves-saint-laurent-ysl-lhomme-dupe-perfume",
+        price: 45,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-charisma",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-robust",
+    referenceSlug: "red-tobacco",
+    name: "Robust",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "ROBUST | Inspired by MANCERA RED TOBACCO",
+      url: "https://aromapassions.com/products/robust-inspired-by-mancera-red-tobacco-pheromone-perfume-dupe-men-women",
+    },
+    notes: {
+      top: ["Cinnamon", "Oud", "Incense", "Saffron", "Nutmeg", "Green Apple", "White Pear"],
+      heart: ["Patchouli", "Jasmine", "Tobacco"],
+      base: ["Vanilla", "Amber", "Guaiac Wood", "Sandalwood", "White Musk", "Vetiver"],
+    },
+    facets: { freshness: 2, sweetness: 6, warmth: 8, woodyDepth: 8, longevity: 8, sillage: 8 },
+    longevityHoursRange: [7, 9],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The score understates the relationship here and it is worth saying why. Mancera Red Tobacco is a short, dense pyramid - cinnamon, saffron and nutmeg over tobacco, oud and leather, on vanilla, amber and musk - and this declares all of it except leather and musk, then adds nine more materials including incense, patchouli, guaiac wood, sandalwood and vetiver. Because the formula compares tier by tier and a longer list dilutes each tier's overlap, breadth costs it heavily even though the spicy-tobacco-and-oud core is declared intact. The genuine omission worth knowing is leather, which is a good part of what makes Red Tobacco smell the way it does. The expectation is the same spiced-tobacco direction, woodier and less hide-like. AromaPassions publishes one flat note list and no pyramid, so the split above is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "ROBUST | Inspired by MANCERA RED TOBACCO | Red Tobacco Dupe Pheromone Perfume| Fragrance Essential Oils | Saffron Green Apple | Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/robust-inspired-by-mancera-red-tobacco-pheromone-perfume-dupe-men-women",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-robust",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-luminous",
+    referenceSlug: "amyris-homme",
+    name: "Luminous",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "LUMINOUS | Inspired by MFK AMYRIS HOMME",
+      url: "https://aromapassions.com/products/luminous-inspired-by-maison-francis-kurkdjian-mfk-amyris-homme-dupe-perfume",
+    },
+    notes: {
+      top: ["Mandarin", "Rosemary", "Amyris"],
+      heart: ["Iris", "Milk Chocolate", "Coconut"],
+      base: ["Coffee", "Tonka Bean", "Oud"],
+    },
+    facets: { freshness: 5, sweetness: 6, warmth: 6, woodyDepth: 6, longevity: 6, sillage: 6 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Moderate",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "A genuine divergence rather than a near miss. Maison Francis Kurkdjian's Amyris Homme is a bright, resinous woody built on amyris wood with iris, vetiver and vanilla; this declares amyris and iris but replaces most of the rest with milk chocolate, coconut, coffee and oud. That is a different idea - gourmand and dark where the original is clean and luminous - and the two are only really adjacent in their opening, where mandarin and rosemary are shared. Whether that is a fault depends on what you want: as an interpretation of Amyris Homme it is loose, and as a bottle it may be perfectly good. The comparison is a reasonable one to put in front of a buyer precisely because the answer is 'not really the same fragrance', which is what the diff above shows. AromaPassions publishes a single flat note list; the tier split is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "LUMINOUS | Inspired by MFK AMYRIS HOMME | Amyris Homme Dupe Pheromone Perfume | Rosemary Agarwood Amyris Essential Oils | Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/luminous-inspired-by-maison-francis-kurkdjian-mfk-amyris-homme-dupe-perfume",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-luminous",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-blossom",
+    referenceSlug: "gucci-bloom",
+    name: "Blossom",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "BLOSSOM | Inspired by GUCCI BLOOM",
+      url: "https://aromapassions.com/products/blossom-inspired-by-gucci-bloom-dupe-perfume",
+    },
+    notes: {
+      top: ["Neroli"],
+      heart: ["Bergamot", "Mandarin Orange", "Lemon", "Tuberose", "Jasmine", "Orange Blossom"],
+      base: ["Rangoon Creeper", "Musk", "Sandalwood"],
+    },
+    facets: { freshness: 4, sweetness: 6, warmth: 4, woodyDepth: 3, longevity: 6, sillage: 6 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Moderate",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Gucci Bloom is an unusually stark composition - essentially tuberose, jasmine, Rangoon creeper and orris root, with almost no citrus opening at all - and that is exactly where this parts from it. The white-floral core is declared present, tuberose, jasmine and Rangoon creeper included, but the merchant wraps it in a conventional citrus top of neroli, bergamot, mandarin and lemon that Bloom deliberately does not have, and omits orris root, the powdery iris material that gives the original its dry, almost dusty quality. So expect a brighter, more conventionally pretty white floral rather than Bloom's flat, heady, green-tuberose effect. The low score is doing real work here rather than reflecting a vocabulary difference. AromaPassions publishes one flat note list and no pyramid; the division above is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "BLOSSOM | Inspired by GUCCI BLOOM | Bloom Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/blossom-inspired-by-gucci-bloom-dupe-perfume",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-blossom",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-nature",
+    referenceSlug: "wood-sage-sea-salt",
+    name: "Nature",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "NATURE | Inspired by JO MALONE LONDON WOOD SAGE & SEA SALT",
+      url: "https://aromapassions.com/products/nature-inspired-by-jo-malone-london-wood-sage-sea-salt-dupe-perfume",
+    },
+    notes: {
+      top: ["Sea Salt"],
+      heart: ["Sage", "Grapefruit", "Ambrette (Musk Mallow)"],
+      base: ["Seaweed"],
+    },
+    facets: { freshness: 6, sweetness: 2, warmth: 2, woodyDepth: 3, longevity: 4, sillage: 3 },
+    longevityHoursRange: [3, 5],
+    sillageLabel: "Moderate",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Only five materials are declared, against a reference that is itself minimal, so small differences move this score a long way. Sea salt and sage - the two materials the Jo Malone is named for - are both declared, which is the important part. What is not declared is the rest of what makes it work: ambrette seed, red algae and driftwood, replaced here by grapefruit, seaweed and 'Ambrette (Musk Mallow)', which is the same plant as ambrette seed but not the same material designation, and we do not rewrite a seller's wording into ours. Seaweed and red algae are likewise adjacent rather than identical. So a good part of this low number is vocabulary, and the honest summary is that the declaration is too thin to tell you much either way. Wood Sage & Sea Salt is also a deliberately quiet, short-lived cologne, which is worth expecting here too. AromaPassions publishes one flat list; the split is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "NATURE | Inspired by JO MALONE LONDON WOOD SAGE & SEA SALT | Wood Sage & Sea Salt Dupe Pheromone Perfume Dupes",
+        productUrl: "https://aromapassions.com/products/nature-inspired-by-jo-malone-london-wood-sage-sea-salt-dupe-perfume",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-nature",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-bold",
+    referenceSlug: "percival",
+    name: "Bold",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "BOLD | Inspired by PARFUMS DE MARLY PERCIVAL",
+      url: "https://aromapassions.com/products/bold-inspired-by-parfums-de-marly-percival-dupe-perfume-men-women",
+    },
+    notes: {
+      top: ["Lavender", "Mandarin Orange", "Bergamot", "Geranium", "Hedione"],
+      heart: ["Violet", "Coriander", "Jasmine", "Cinnamon"],
+      base: ["Ambroxan", "Amberwood", "Musk", "Balsam Fir", "Clearwood"],
+    },
+    facets: { freshness: 7, sweetness: 5, warmth: 5, woodyDepth: 5, longevity: 6, sillage: 6 },
+    longevityHoursRange: [5, 7],
+    sillageLabel: "Moderate",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Parfums de Marly Percival is a lavender-and-neroli fougere over amber, cedar and vetiver, and the declaration keeps the lavender and bergamot opening while replacing most of the rest. Neroli and orange blossom - the pairing that gives Percival its clean, slightly soapy brightness - are not declared at all; nor are cedar, amber or vetiver. In their place are hedione, ambroxan, amberwood, balsam fir and clearwood, which is a set of modern transparent-woody synthetics. That is a real difference in construction: those materials tend to read as clean, airy and diffusive rather than as the specific woods Percival uses. The shared lavender-violet-coriander thread is genuine, but this is an adjacent fougere rather than a close interpretation, and the score says so. AromaPassions publishes a single flat note list and no pyramid, so the tiers above are ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "BOLD | Inspired by PARFUMS DE MARLY PERCIVAL | Percival Dupe Pheromone Perfume| Fragrance Essential Oils | Bergamot Jasmine Cinnamon | Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/bold-inspired-by-parfums-de-marly-percival-dupe-perfume-men-women",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-bold",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-clarity",
+    referenceSlug: "elysium",
+    name: "Clarity",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "CLARITY | Inspired by ROJA ELYSIUM PARFUM COLOGNE",
+      url: "https://aromapassions.com/products/clarity-inspired-by-roja-elysium-parfum-cologne-dupe-perfume",
+    },
+    notes: {
+      top: ["Grapefruit", "Lemon", "Bergamot", "Lime", "Thyme", "Galbanum", "Artemisia"],
+      heart: ["Vetiver", "Juniper Berries", "Black Currant", "Apple", "Pink Pepper", "Cedar", "Cypriol Oil or Nagarmotha", "Lily of the Valley", "Rose"],
+      base: ["Jasmine", "Ambergris", "Leather", "Vanilla", "Benzoin", "Labdanum"],
+    },
+    facets: { freshness: 8, sweetness: 4, warmth: 5, woodyDepth: 6, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Twenty-two declared materials against a nine-note reference, the widest gap in this batch, and the arithmetic of that alone accounts for much of the low score. The grapefruit-and-lemon opening Roja Elysium is built on is declared, and so is the vetiver, cedar and ambergris that carry it. What the merchant does not declare is black pepper, juniper, musk or amber specifically; what it adds is a long list including lime, thyme, galbanum, artemisia, blackcurrant, apple, pink pepper, rose, jasmine, leather, vanilla, benzoin and labdanum. Elysium's appeal is its transparency - a bright citrus that stays bright - and a declaration this crowded, with leather and labdanum in it, suggests something considerably heavier. Treat the citrus-woody direction as shared and the weight as unknown. AromaPassions publishes one flat note list; the split above is ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "CLARITY | Inspired by ROJA ELYSIUM PARFUM COLOGNE | Elysium Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/clarity-inspired-by-roja-elysium-parfum-cologne-dupe-perfume",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-clarity",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-captivate",
+    referenceSlug: "poison",
+    name: "Captivate",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "CAPTIVATE | Inspired by D. POISON",
+      url: "https://aromapassions.com/products/captivate-inspired-by-dior-poison-dupe-perfume-women",
+    },
+    notes: {
+      top: ["Bitter Orange"],
+      heart: ["Lemon", "Damask Rose", "Grasse Rose"],
+      base: ["Orange Blossom", "Vanilla", "Almond", "Tonka Bean", "Tolu Balsam", "Sandalwood", "Cashmeran", "Heliotrope"],
+    },
+    facets: { freshness: 3, sweetness: 8, warmth: 8, woodyDepth: 5, longevity: 8, sillage: 8 },
+    longevityHoursRange: [7, 9],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "One of the widest gaps here, and the diff shows why plainly. Dior Poison is a dense, unusual composition - coriander, plum and anise over tuberose, honey, cinnamon and opoponax - and almost none of that is declared. What is declared instead is a rose-and-almond oriental: damask and Grasse rose, orange blossom, almond, tonka, tolu balsam, vanilla and sandalwood, with heliotrope the main material genuinely shared with the original's character. The result should be recognisably in Poison's family - sweet, heavy, powdery, carrying a long way - without the anise-and-plum strangeness that makes the Dior what it is. This is a comparison worth putting in front of a buyer, because plenty of people want that weight without that peculiarity, but it is not a close match and the number should be read literally. AromaPassions publishes a single flat list and no pyramid; the tiers are ours.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "CAPTIVATE | Inspired by D. POISON | Poison Dupe Pheromone Perfume",
+        productUrl: "https://aromapassions.com/products/captivate-inspired-by-dior-poison-dupe-perfume-women",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-captivate",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-uplifting",
+    referenceSlug: "light-blue",
+    name: "Uplifting",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "UPLIFTING | Inspired by DG LIGHT BLUE",
+      url: "https://aromapassions.com/products/uplifting-dolce-gabbana-light-blue-perfume-women-essential-oils-cheap-perfume-dupe-shop",
+    },
+    notes: {
+      top: ["Lemon"],
+      heart: ["Mandarin", "Orange", "Ginger", "Cinnamon", "White Rose"],
+      base: ["Jasmine"],
+    },
+    facets: { freshness: 8, sweetness: 4, warmth: 3, woodyDepth: 2, longevity: 4, sillage: 4 },
+    longevityHoursRange: [3, 5],
+    sillageLabel: "Moderate",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "The lowest score in the batch, and mostly an honest one. Dolce & Gabbana Light Blue is a specific accord - Sicilian lemon and green apple over bluebell, bamboo and white rose, on cedar, musk and amber - and what is declared here shares only white rose and jasmine with it. There is no apple, no bamboo, no cedar and no musk in the declaration; instead there is mandarin, orange, ginger and cinnamon, which makes it a warm spiced citrus rather than the crisp apple-and-cedar sketch the original is. Both are light, bright and summery, and that is about as far as the resemblance goes on the data available. Light Blue is also very cheap for a designer bottle, so the saving here is the smallest in the batch. AromaPassions publishes one flat note list and no pyramid, so the top, heart and base division above is ours, not theirs.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "UPLIFTING | Inspired by DG LIGHT BLUE | Lemon  Ginger Cinnamon Lemon Rose Jasmine Essential Oils| Light Blue Dupe Pheromone Perfume|Natural Deodorant Antiperspirant",
+        productUrl: "https://aromapassions.com/products/uplifting-dolce-gabbana-light-blue-perfume-women-essential-oils-cheap-perfume-dupe-shop",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-uplifting",
+        inStock: true,
+      },
+    ],
+    verificationStatus: "declared",
+  },
+  {
+    slug: "aromapassions-audacious",
+    referenceSlug: "linterdit",
+    name: "Audacious",
+    brand: "AromaPassions",
+    producerSlug: "aromapassions",
+    pairingBasis: {
+      source: "AromaPassions product title",
+      quote: "AUDACIOUS | Inspired by GIVNCHY LINTERDIT",
+      url: "https://aromapassions.com/products/audacious-givenchy-l-interdit-perfume-women-essential-oil-cheap-perfume-dupe-shop",
+    },
+    notes: {
+      top: ["Bergamot"],
+      heart: ["Tuberose", "Orange Blossom", "Jasmine Sambac"],
+      base: ["Patchouli", "Vanilla", "Vetiver"],
+    },
+    facets: { freshness: 5, sweetness: 6, warmth: 6, woodyDepth: 5, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 39,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    verdict:
+      "Read one line of the diff as vocabulary rather than composition: our catalogue records L'Interdit with 'Jasmine' and AromaPassions declares 'Jasmine Sambac', which is a jasmine species and not a different flower. We do not promote a seller's word to ours, so the comparison counts them as different materials and the score is understated by that much. Beyond it the declared match on the white-floral heart is genuinely close - tuberose, orange blossom and jasmine over patchouli and vetiver is L'Interdit's structure. Two real differences: no pear in the opening, which is what gives the Givenchy its brief fruity lift, and no ambroxan in the base, replaced here by vanilla. That swap matters more than it looks, because ambroxan is dry, mineral and diffusive where vanilla is sweet and soft - so expect the same tuberose-over-earth idea closing warmer and less airy than the original. This listing was very nearly missed entirely: the feed spells the original 'GIVNCHY LINTERDIT', so exact matching rejected it, and it was recovered by fuzzy-matching the unmatched inspirations against reference names. AromaPassions publishes a single flat note list and no pyramid, so the top, heart and base division above is ours, not the merchant's.",
+    offers: [
+      {
+        merchant: "AromaPassions",
+        productName: "AUDACIOUS | Inspired by GIVNCHY LINTERDIT | L'Interdit Dupe Pheromone Eau De Parfum",
+        productUrl: "https://aromapassions.com/products/audacious-givenchy-l-interdit-perfume-women-essential-oil-cheap-perfume-dupe-shop",
+        price: 39,
+        currency: "USD",
+        affiliateLinkId: "dupe-aromapassions-audacious",
         inStock: true,
       },
     ],

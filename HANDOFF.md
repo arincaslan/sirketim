@@ -1,4 +1,4 @@
-# Handoff — 2026-09-04
+# Handoff — 2026-09-05
 
 **Perishable.** This is where a working session stopped, not a permanent document. When its open items are done, delete it rather than letting it rot into a false account of the project. Durable lessons belong in the relevant `CLAUDE.md`; the ordered roadmap belongs in `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`.
 
@@ -6,17 +6,25 @@ Machine setup is `SETUP.md`. This file is only about *what state the work is in*
 
 ## Where things stand
 
-`counterscent.com` is live and current with `main` at commit `9328f31`. Working tree clean, nothing unpushed.
+`counterscent.com` is live. **`main` is at `ed73957`; the AromaPassions A2 batch below is committed-pending — it is in the working tree, built and verified, not yet committed or deployed.**
 
 | | |
 |---|---|
-| Dupe listings | **55** across **41** originals |
-| Tracking affiliate links | **53**, all traced and stock-checked |
+| Dupe listings | **79** across **65** originals |
+| Tracking affiliate links | **77**, all traced and stock-checked (8 out of stock, all Opulensi) |
 | Merchants we can earn from | **3** — Opulensi (Awin 123248), Clone of Perfume (117395), AromaPassions (34989) |
-| Reference catalog | 200 originals, 221 sitemap URLs |
-| Images | 195 committed (156 reference, 39 dupe) + 14 AromaPassions added since |
+| Reference catalog | 200 originals |
+| Images | 195 committed. **The 24 new A2 listings have none** — see below |
 
-Three merchants were approved and wired in two days, taking listings 25 → 55. Two more approvals exist and are **not wired**: **The Fragrance Shop** and **Perfumania**, both on CJ.
+Three merchants were approved and wired in two days, taking listings 25 → 55; A2 on 2026-09-05 took it to **79 listings on 65 originals**. Two more approvals exist and are **not wired**: **The Fragrance Shop** and **Perfumania**, both on CJ.
+
+**Coverage is now inside the estimated 50–70 ceiling, so treat AromaPassions as spent.** Its remaining unlisted products all need a *new researched original* first — the cheap matches are gone.
+
+## What A2 changed, and the one decision behind it
+
+- **One offer per listing, the 50ml price, one link** (founder's call). A1's second 100ml offer pointed at the *same* affiliate link, so it rendered a duplicate buy button and made `buy-actions.tsx` call one retailer's two bottles "2 retailers". A1 was collapsed too; no price moved.
+- **SPICY (Spicebomb) withheld** — its declared notes are Spicebomb's set exactly (overlap 1.000), so `notesAreVerbatim()` fires. Same call as ILLUMINATE. **Three flankers refused**: Acqua di Gio *Profondo*, Armani Code *Profumo*, Delina *Exclusif*.
+- **The scoring problem got sharper and is still open.** AromaPassions publishes **one flat note list and no pyramid at all**, but our formula weights tiers 20/35/45 — so *we* choose the split and the split moves the score **70–82% on identical merchant data**. Aligning the split to the original's pyramid (what A1 and A2 both do) maximises overlap by construction. Splitting by perfumery convention instead was tried and is worse: it disagrees with **17.1% of our own reference notes**, because tier placement is a per-fragrance fact, not a property of the material. Shipped with the disclosure in every verdict, on the founder's call. **The real fix — compare tier-agnostically when the merchant gives no pyramid — is still unbuilt** and belongs with the `familyBonus` bug in one considered change.
 
 ## Do this first on the other machine — the feeds do not travel
 
@@ -28,7 +36,7 @@ Re-download from Awin (Toolbox → Create-a-Feed), publisher **3064149**, and sa
 |---|---|---|
 | `opulensi.csv` | 123248 | 610 rows. Exhausted — two full hand-scans found nothing further. |
 | `clone-of-perfume.csv` | 117395 | 11 rows, 10 fragrances. All mined. |
-| `aromapassions.csv` | 34989 | 230 rows, 101 distinct claims. **Only partly mined — this is the live work.** |
+| `aromapassions.csv` | 34989 | 230 rows, 103 distinct products. **Mined out as of A2** — what is left needs a new researched original first. |
 | `my-perfume-shop.csv` | 106089 | Originals-side, programme closed for tracking. Kept for reference imagery only. |
 
 Take **all** columns, not the default preset — the default is ~11 columns and drops `description`, which is where every "Inspired by" citation and note pyramid lives. The Opulensi export is 86 columns; match that.
@@ -49,13 +57,14 @@ Fixing it changes every existing score, so it is its own change, and it belongs 
 
 ## Work queue, in the order it makes sense
 
-1. **The scoring decision above.** Everything below inflates the problem if it goes first.
-2. **AromaPassions batch A2** — 14 more exact matches, same standard as the 14 shipped. The list is derivable by re-running `node scripts/match-feed-pairings.mjs --feed aromapassions` and filtering to exact brand+name matches whose original has no listing yet.
-3. **Brand-alias mapping — 18 listings, no new data needed.** The feed writes brands abbreviated or misspelled (`MFK`, `CH`, `DG`, `D.`, `INTIO`, `MRLY`, `GIVNCHY`), so exact matching rejects originals we *do* hold: `MFK BACCARAT ROUGE 540`→`baccarat-rouge-540`, `CH GOOD GIRL`→`good-girl`, `D. FAHRENHEIT`→`fahrenheit`, `INTIO OUD FOR GREATNESS`→`oud-for-greatness`, `MARLY LAYTON`→`layton`, `ROJA ELYSIUM`→`elysium`, and about a dozen more. Cheapest remaining win.
-4. **~44 missing originals.** Real, famous fragrances with publicly documented pyramids (Coco Mademoiselle, Chanel No 5, Noir Extreme, Delina, 1 Million, A*Men, Musc Ravageur, Portrait of a Lady, Luna Rossa Ocean, YSL Libre, Jubilation XXV, Philosykos, Do Son…). Each unlocks exactly one AromaPassions listing. **Research them properly — do not create placeholder references.** A reference carries the note pyramid and facets the score is computed from, so a dummy publishes a meaningless percentage about a real company's product on a live, indexed page. Note also that a CJ feed cannot fill this gap: feeds supply names, prices and images, never note pyramids.
+1. **Commit and deploy A2.** It is verified in the working tree but unpushed: `tsc` and `lint` clean, `npm run build` succeeds, all 77 links traced with attribution intact, 84 redirect rules generated, all 38 AromaPassions listings confirmed visible via `getRankedDupesFor()` and 0 flagged verbatim.
+2. **Images for the 24 new listings.** `scripts/fetch-dupe-images.mjs` regenerates the *whole* manifest, so it needs `opulensi.csv` and `clone-of-perfume.csv` present too — only `aromapassions.csv` was re-downloaded. Re-download those two and one run fills them in. They render the generated note-signature mark until then. **`imageUrl` was deliberately not hand-set** — the generated manifest is what records licensing provenance.
+3. **The scoring decision.** Now sharper (see above) and still the thing that gates honest growth.
+4. ~~**Brand-alias mapping**~~ — **done in A2.** The alias cases (`MFK`, `CH`, `DG`, `D.`, `INTIO`, `MRLY`, `GIVNCHY`, `ROJA`) were resolved by matching on the reference *name* with word boundaries and requiring brand confirmation only for short names; `fahrenheit`, `elysium`, `light-blue`, `delina`, `l-homme`, `y`, `poison` and `la-vie-est-belle` all shipped from it.
+5. **~32 missing originals.** Real, famous fragrances with publicly documented pyramids (Noir Extreme, 1 Million, A*Men, Musc Ravageur, Portrait of a Lady, Luna Rossa Ocean, Jubilation XXV, Philosykos, Do Son, Acqua di Gioia, Black Afgano, Grand Soir, MFK 724…). Each unlocks exactly one AromaPassions listing. **Chanel No 5, Coco Mademoiselle and Delina were on this list and should not have been — we hold all three**, and No 5 and Delina now carry listings; Coco Mademoiselle is held, uncovered, and blocked only by the split problem in item 3 (see the project CLAUDE.md on SEDUCTIVE). Re-check the catalogue before adding a name here. **Research them properly — do not create placeholder references.** A reference carries the note pyramid and facets the score is computed from, so a dummy publishes a meaningless percentage about a real company's product on a live, indexed page. Note also that a CJ feed cannot fill this gap: feeds supply names, prices and images, never note pyramids.
    Two claims in that list must never become references: `Designer Brands` (a category label, not a fragrance) and `LAKESIDE MORNING by BBW`.
-5. **Wire the CJ merchants for the originals side.** The site says "Nx cheaper" but cannot link the original at all — My Perfume Shop has been closed for tracking since 1 Sep. Perfumania and The Fragrance Shop fix that. Note The Fragrance Shop is itself a dupe house selling **alcohol-free oil concentrates**; if its products are ever listed as dupes, the format difference is real and must be stated — unlike AromaPassions, where I wrongly assumed the same thing (see below).
-6. **Root `CLAUDE.md` edits, analysed but not applied.** One verified stale claim (line 58 still says Opulensi supplies 23 links and is the only dupe merchant), plus three lessons that currently live only in the project-level file although they are not fragrance-specific: merchant copy is not product fact; affiliate attribution lives in the network's cookie, not the destination URL; feed image URLs decay because Shopify CDN paths are content-addressed. Also worth adding: a subagent refusing a brief is a success mode, not a failure.
+6. **Wire the CJ merchants for the originals side.** The site says "Nx cheaper" but cannot link the original at all — My Perfume Shop has been closed for tracking since 1 Sep. Perfumania and The Fragrance Shop fix that. Note The Fragrance Shop is itself a dupe house selling **alcohol-free oil concentrates**; if its products are ever listed as dupes, the format difference is real and must be stated — unlike AromaPassions, where I wrongly assumed the same thing (see below).
+7. **Root `CLAUDE.md` edits — the stale line 58 is now FIXED** (it said Opulensi supplied 23 links and was the only dupe merchant; it now reads 77 links across three merchants). Still worth promoting: three lessons that currently live only in the project-level file although they are not fragrance-specific: merchant copy is not product fact; affiliate attribution lives in the network's cookie, not the destination URL; feed image URLs decay because Shopify CDN paths are content-addressed. Also worth adding: a subagent refusing a brief is a success mode, not a failure.
 
 ## Founder actions still open
 
