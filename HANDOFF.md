@@ -1,4 +1,4 @@
-# Handoff — 2026-09-05
+# Handoff — 2026-09-05, updated 2026-09-07
 
 **Perishable.** This is where a working session stopped, not a permanent document. When its open items are done, delete it rather than letting it rot into a false account of the project. Durable lessons belong in the relevant `CLAUDE.md`; the ordered roadmap belongs in `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`.
 
@@ -6,7 +6,9 @@ Machine setup is `SETUP.md`. This file is only about *what state the work is in*
 
 ## Where things stand
 
-`counterscent.com` is live. **`main` is at `ed73957`; the AromaPassions A2 batch below is committed-pending — it is in the working tree, built and verified, not yet committed or deployed.**
+`counterscent.com` is live and **the AromaPassions A2 batch below is shipped** — committed, pushed and verified in production on 2026-09-05 (deploy landed 140s after push; new `/go/` links return 302 to `awin1.com` with the sub-ID intact, withheld SPICY correctly 404s). Working tree clean, nothing unpushed.
+
+**Continuing on the other machine:** everything below is in git. What does NOT travel is listed under "the feeds do not travel" — plus `.agents/` skills, `HOSTINGER_API_TOKEN` / `TWENTY_FIRST_API_KEY`, and `node_modules`/`.next`/`out`. Run `git fetch origin` first: two scheduled routines push to `main` directly, and one (the CFO weekly report) landed mid-session on 2026-09-07.
 
 | | |
 |---|---|
@@ -37,6 +39,7 @@ Re-download from Awin (Toolbox → Create-a-Feed), publisher **3064149**, and sa
 | `opulensi.csv` | 123248 | 610 rows. Exhausted — two full hand-scans found nothing further. |
 | `clone-of-perfume.csv` | 117395 | 11 rows, 10 fragrances. All mined. |
 | `aromapassions.csv` | 34989 | 230 rows, 103 distinct products. **Mined out as of A2** — what is left needs a new researched original first. |
+| `fragranceshop` (CJ) | CJ, not Awin | **The live work.** Export created 5 Sep, not yet delivered — see item 6. CJ is a different network with a different schema; do not expect the Awin columns. A 66-column format sample sits in `scripts/feeds/sample-shopping.csv` (also gitignored, so it does not travel either — re-download it from CJ's export page if needed). |
 | `my-perfume-shop.csv` | 106089 | Originals-side, programme closed for tracking. Kept for reference imagery only. |
 
 Take **all** columns, not the default preset — the default is ~11 columns and drops `description`, which is where every "Inspired by" citation and note pyramid lives. The Opulensi export is 86 columns; match that.
@@ -79,7 +82,7 @@ Fixing it changes every existing score, so it is its own change, and it belongs 
    **Do not apply the ">\$100 EDP" filter to originals we already hold.** It is a fair heuristic for *discovering new* originals worth adding — dupe houses clone expensive bestsellers — but Light Blue (\$75), Legend (\$78), Burberry Her (\$78), Wood Sage & Sea Salt (\$78), Y (\$92) and Terre d'Hermès (\$98) all sit under it, and several already carry dupe listings. Filtering them out would drop images and buy-links for products the site actively compares against.
 
    **Credentials note:** CJ emailed SFTP credentials (CID doubles as the username). They are deliberately **not** recorded in this repo — it is public. Look them up in the CJ dashboard, and rotate the password, since it has travelled through a mail forward.
-7. **Root `CLAUDE.md` edits — the stale line 58 is now FIXED** (it said Opulensi supplied 23 links and was the only dupe merchant; it now reads 77 links across three merchants). Still worth promoting: three lessons that currently live only in the project-level file although they are not fragrance-specific: merchant copy is not product fact; affiliate attribution lives in the network's cookie, not the destination URL; feed image URLs decay because Shopify CDN paths are content-addressed. Also worth adding: a subagent refusing a brief is a success mode, not a failure.
+7. ~~**Root `CLAUDE.md` edits**~~ — **done 2026-09-07.** The stale line 58 was fixed, and eight cross-department lessons were promoted into the root file's bullet list (repo root not gitignored; identify a vendor by domain not name; CRLF diffs and the `package-lock` side effect; assert against shipped code via esbuild; marketing copy is not product fact; attribution can live in the click cookie; feed image URLs decay; a subagent refusing a brief is a success mode). Kept to one line each — task 179 records that this file is a real per-session context cost.
 
 ## Founder actions still open
 
