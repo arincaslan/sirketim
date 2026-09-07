@@ -43,9 +43,20 @@ Each web-development client or product (e.g. `products/web-templates/agency-land
 
 **There is now a root `package.json` too, and it is not a workspace root** — it is a deploy shim that exists only so Cloudflare can build `products/affiliate-sites/fragrance-dupes` from the repo root. Its `postinstall` runs that project's build when `WORKERS_CI`/`CF_PAGES`/`CI` is set, which is why `WORKERS_CI=1 npm install` at the root is the only faithful rehearsal of a Cloudflare deploy — `npm run build` at the root is not what Cloudflare runs and proves little. Running a plain `npm install` at the root is harmless (the hook is gated). See the "deploy shim" section of [CLAUDE.md](CLAUDE.md).
 
-## 5b. Licensed merchant feeds do not travel
+## 5b. Licensed merchant feeds do not travel — and the site does not need them
 
-`products/affiliate-sites/fragrance-dupes/scripts/feeds/` is gitignored except its README — the feeds are licensed affiliate data, large, and not ours to redistribute in a public repo. A fresh clone therefore has **no** feed files, and every ingest/matching script will fail with "feed not found" until you re-download them from Awin. That is expected, not breakage. Which feeds, which advertiser ids, and the column-selection gotcha are in [HANDOFF.md](HANDOFF.md) and in that directory's own README.
+`products/affiliate-sites/fragrance-dupes/scripts/feeds/` is gitignored except its README — the feeds are licensed affiliate data, large, and not ours to redistribute in a public repo. A fresh clone therefore has **no** feed files, and every ingest/matching script fails with "feed not found". That is expected, not breakage.
+
+**What still works with zero feeds present, which is almost everything:** the site builds, lints and deploys normally, because the ingested results are committed — `lib/data/*.generated.ts` and all 407 images under `public/images/`. **You only need a feed to ingest *new* products or fetch *new* images.** Do not re-download one just to build.
+
+Two networks now, and they are not interchangeable:
+
+- **Awin** (publisher 3064149) — Toolbox → Create-a-Feed, saved as `opulensi.csv` (123248), `clone-of-perfume.csv` (117395), `aromapassions.csv` (34989). Take **all** columns, not the default ~11-column preset, which drops `description` — where every "Inspired by" citation and note pyramid lives.
+- **CJ** (advertiser 16941446, our CID 101873278) — a **product export created in CJ's dashboard**, not a download link, and it arrives on CJ's own schedule with a separate "ready" notification. 87 columns, TAB-delimited. **Do not attempt CJ SFTP:** `datatransfer.cj.com` offers only `ssh-dss` host keys, which modern OpenSSH and paramiko have both removed. Use CJ's HTTP/S transport.
+
+Which feeds are mined out, and the per-feed gotchas, are in [HANDOFF.md](HANDOFF.md) and in that directory's own README (which carries the full 87-column CJ schema table).
+
+**One script-level consequence worth knowing before you re-download anything:** `fetch-dupe-images.mjs` now only reads a feed when something actually needs downloading from it, and reports a missing feed per-slug instead of aborting. So having just one of the three Awin feeds present is fine — it will service that merchant and tell you which slugs it skipped. Until 2026-09-07 it did the opposite, and a single expired feed blocked every merchant.
 
 ## 6. What needs no setup at all
 
