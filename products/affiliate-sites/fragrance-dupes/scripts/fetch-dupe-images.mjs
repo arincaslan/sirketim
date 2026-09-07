@@ -20,13 +20,22 @@
  *      tracking — and
  *   2. the listing has an offer with a real affiliateLinkId to that merchant.
  *
- * TWO MERCHANTS AS OF 2026-09-03, and the `feed` field on each SOURCES entry is
- * what keeps them apart. It was already there — this script has always resolved
- * a feed path per entry rather than assuming one global feed — so adding Clone
- * of Perfume needed a second FEED constant and nothing else. Do the same for a
- * third merchant: add a constant, point its entries at it, and leave the loop
- * alone. Do NOT fork this file per merchant; the orphan report at the bottom
- * only works because one script owns the whole directory.
+ * THREE MERCHANTS AS OF 2026-09-07, and the `feed` field on each SOURCES entry
+ * is what keeps them apart. It was already there — this script has always
+ * resolved a feed path per entry rather than assuming one global feed — so
+ * adding Clone of Perfume, and then AromaPassions, needed a FEED constant each
+ * and nothing else. Do the same for a fourth: add a constant, point its entries
+ * at it, and leave the loop alone. Do NOT fork this file per merchant; the
+ * orphan report at the bottom only works because one script owns the directory.
+ *
+ * FEEDS EXPIRE OFF DISK, AND ONE MISSING FEED MUST NOT STOP THE OTHERS. They
+ * are gitignored, so any of them can be absent on any given day. The loop
+ * therefore checks for an already-downloaded file BEFORE it reads a feed, and
+ * treats an unreadable feed as that merchant's failure rather than the run's.
+ * Until 2026-09-07 it did the opposite and a single expired feed aborted
+ * everything: the Opulensi export was gone, so 24 AromaPassions images could
+ * not be fetched even though their own feed was present and the 53 Opulensi
+ * images the run died on were already on disk.
  *
  * Note that being temporarily OUT OF STOCK does not disqualify an image: the
  * affiliate relationship is what the licence rests on, and that is unaffected
@@ -149,6 +158,40 @@ const SOURCES = {
   "aromapassions-mystical": { feed: AROMAPASSIONS_FEED, productId: "41943775371" },
   "aromapassions-blooming": { feed: AROMAPASSIONS_FEED, productId: "41943775162" },
   "aromapassions-revive": { feed: AROMAPASSIONS_FEED, productId: "41943775220" },
+
+  // The other 24 AromaPassions listings, added 2026-09-07. These were
+  // written into lib/dupes-data.ts after this map was last filled in, so they
+  // rendered the note-signature mark while carrying a real, tracking buy
+  // button — the one combination the header does NOT describe as correct.
+  //
+  // They meet the same two conditions as everything above and were checked
+  // the same way: every id below is the `p=` value of the deep link already in
+  // lib/affiliate-links.ts, all 24 resolve to a row in the current feed, and
+  // all 24 image URLs are distinct — no shared stock photograph among them.
+  "aromapassions-intense": { feed: AROMAPASSIONS_FEED, productId: "41943775238" },
+  "aromapassions-delight": { feed: AROMAPASSIONS_FEED, productId: "41943775340" },
+  "aromapassions-mesmorize": { feed: AROMAPASSIONS_FEED, productId: "41943775362" },
+  "aromapassions-cool": { feed: AROMAPASSIONS_FEED, productId: "41943775218" },
+  "aromapassions-beauty": { feed: AROMAPASSIONS_FEED, productId: "41943775228" },
+  "aromapassions-femininity": { feed: AROMAPASSIONS_FEED, productId: "41943775208" },
+  "aromapassions-harmony": { feed: AROMAPASSIONS_FEED, productId: "41943775232" },
+  "aromapassions-precious": { feed: AROMAPASSIONS_FEED, productId: "41943775301" },
+  "aromapassions-luxurious": { feed: AROMAPASSIONS_FEED, productId: "41943775277" },
+  "aromapassions-fiery": { feed: AROMAPASSIONS_FEED, productId: "41943775246" },
+  "aromapassions-glimmer": { feed: AROMAPASSIONS_FEED, productId: "41943775214" },
+  "aromapassions-adventure": { feed: AROMAPASSIONS_FEED, productId: "41943775325" },
+  "aromapassions-legendary": { feed: AROMAPASSIONS_FEED, productId: "41943775250" },
+  "aromapassions-sweet": { feed: AROMAPASSIONS_FEED, productId: "41943775210" },
+  "aromapassions-charisma": { feed: AROMAPASSIONS_FEED, productId: "41943775328" },
+  "aromapassions-robust": { feed: AROMAPASSIONS_FEED, productId: "41943775204" },
+  "aromapassions-luminous": { feed: AROMAPASSIONS_FEED, productId: "41943775248" },
+  "aromapassions-blossom": { feed: AROMAPASSIONS_FEED, productId: "41943775234" },
+  "aromapassions-nature": { feed: AROMAPASSIONS_FEED, productId: "41943775304" },
+  "aromapassions-bold": { feed: AROMAPASSIONS_FEED, productId: "41943775252" },
+  "aromapassions-clarity": { feed: AROMAPASSIONS_FEED, productId: "41943775316" },
+  "aromapassions-captivate": { feed: AROMAPASSIONS_FEED, productId: "41943775236" },
+  "aromapassions-uplifting": { feed: AROMAPASSIONS_FEED, productId: "41943775164" },
+  "aromapassions-audacious": { feed: AROMAPASSIONS_FEED, productId: "41943775188" },
 };
 
 /* ── feed reading ──────────────────────────────────────────────────────────
@@ -261,19 +304,42 @@ let fetched = 0;
 let skipped = 0;
 
 for (const [slug, { feed, productId }] of Object.entries(SOURCES)) {
-  if (!feeds.has(feed)) feeds.set(feed, loadFeed(feed));
+  // The cheap check FIRST: an image already on disk needs no feed at all.
+  // This ordering is load-bearing rather than tidiness. Feeds are gitignored
+  // and they expire; reading one we did not need meant a single absent feed
+  // aborted the entire run — including the merchants whose images were
+  // already downloaded and whose entries would have been skipped anyway.
+  // That is exactly what happened on 2026-09-07: the Opulensi feed was gone,
+  // so 24 AromaPassions images could not be fetched even though the
+  // AromaPassions feed was sitting right there.
+  const already = EXTS.map((e) => resolve(OUT_DIR, `${slug}${e}`)).find((p) => existsSync(p));
+  if (already && !FORCE) {
+    skipped++;
+    continue;
+  }
+
+  // A missing feed is that merchant's problem, not the whole run's. Report
+  // every slug that needed it and carry on serving the merchants we can.
+  if (!feeds.has(feed)) {
+    try {
+      feeds.set(feed, loadFeed(feed));
+    } catch {
+      feeds.set(feed, null);
+    }
+  }
+  if (!feeds.get(feed)) {
+    failures.push(
+      `${slug}: feed unavailable (${feed}) — re-download it from Awin, see scripts/feeds/README.md`
+    );
+    continue;
+  }
+
   const row = feeds.get(feed).find((r) => r.aw_product_id === productId);
   if (!row) {
     // Loud, not silent: a product id that is no longer in the feed usually
     // means the merchant delisted it, which also means the affiliate link
     // built from that same id is now dead.
     failures.push(`${slug}: product id ${productId} is not in ${feed}`);
-    continue;
-  }
-
-  const already = EXTS.map((e) => resolve(OUT_DIR, `${slug}${e}`)).find((p) => existsSync(p));
-  if (already && !FORCE) {
-    skipped++;
     continue;
   }
 

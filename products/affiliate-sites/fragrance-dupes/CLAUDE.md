@@ -271,7 +271,7 @@ The previously-documented problem of *our own product ranking #1 on Baccarat Rou
 
 **FragranceShop.com** (CJ advertiser **16941446**, our CID **101873278**), `fragranceshop.com`, US/USD. A New Jersey discount retailer of GENUINE designer fragrances, trading since 1998, grey-market/parallel import — which is how the prices are low. **It is NOT `thefragranceshop.com` or `thefragranceshop.co.uk`**, two unrelated companies with near-identical names, one of them a dupe house. Identify a merchant by the domain in its network account record, never a name search.
 
-This is the merchant that finally makes "buy the original" work. Before it, **all 200 references declared `affiliateLinkId: "original-<slug>"` and not one resolved**, so `hasRealAffiliateLink()` suppressed the button site-wide. Now **101 resolve**, and the same feed supplied **101 bottle photographs** from a live programme.
+This is the merchant that finally makes "buy the original" work. Before it, **all 200 references declared `affiliateLinkId: "original-<slug>"` and not one resolved**, so `hasRealAffiliateLink()` suppressed the button site-wide. Now **116 resolve**, and the same feed supplied **116 bottle photographs** from a live programme.
 
 `scripts/ingest-cj-feed.mjs` → `lib/data/cj-offers.generated.ts` + `lib/data/cj-links.generated.ts`; `scripts/fetch-cj-images.mjs` → `public/images/fragrance-cj/` + `lib/data/cj-images.generated.ts`. Matching rules live in `scripts/lib/product-matching.mjs`, shared going forward.
 
@@ -364,6 +364,45 @@ The filename must match the frontmatter `slug`, and bad frontmatter fails the bu
 
 Relatedly, `components/library/library-tabs.tsx` **derives its tabs from what is actually published** rather than from the three schema types. It used to render permanent "Comparisons (0)" and "Reviews (0)" tabs, advertising an empty catalog to every visitor. With one type published it drops the tab strip entirely; the tabs return on their own when a second type lands.
 
+
+### The 24 missing dupe photographs were not a feed problem, 2026-09-07
+
+This file previously said the 24 AromaPassions listings added on 2026-09-05 could not be
+illustrated because `fetch-dupe-images.mjs` "needs all three feeds present". **That diagnosis was
+wrong, and it is the reason the gap sat there for two days.** The script needed exactly one feed —
+`aromapassions.csv` — and that file was on disk the whole time.
+
+What actually blocked it: the loop read a merchant's feed **before** checking whether the image was
+already downloaded. The Opulensi and Clone of Perfume feeds had expired off disk, and `loadFeed()`
+throws, so the run aborted on the very first entry — even though all 53 of those images were already
+present and every one of those entries would have been skipped a line later.
+
+The fix is an ordering change: check the filesystem first, and treat a missing feed as **that
+merchant's** failure rather than the run's. A feed is now only read when something actually needs
+downloading from it, and an absent one is reported per-slug instead of killing the process. Feeds
+are gitignored and expire; a script that services several merchants must degrade to the merchants it
+can still serve.
+
+**All 24 images came from the live-page fallback**, not the feed — every `merchant_image_url` in the
+AromaPassions export 404s, exactly as the first 14 did on 2026-09-04. That rescue path is doing the
+real work for this merchant, not covering an edge case. Verified after the run: 77 files, 77 distinct
+checksums, none under 47 KB, and all 24 slugs present in the built JS bundle.
+
+**Where the remaining gaps genuinely are, and why none of them is fixable here:**
+
+- **2 dupes** (Club de Nuit Sillage, Urban Man) — carried only by the closed My Perfume Shop
+  programme. No live relationship, no licence. Correct as-is.
+- **26 references** — checked against the full 5,802-row CJ feed on 2026-09-07 and **not one is
+  genuinely stocked**. Every apparent hit is the merchant's own dupe oil (`Armani Code Profumo -
+  Type Perfume Oil`), a flanker (`The Most Wanted Intense`), or a brand collision (`Al-Rehab` for
+  Initio Rehab, `Kim Kardashian True Reflection` for Amouage Reflection Man). The houses are the
+  ones FragranceShop does not carry at all: Chanel, Parfums de Marly, By Kilian, Xerjoff, Initio,
+  Roja, Amouage, Jo Malone. **A second originals merchant is the only route**, and Perfumania is a
+  mass-market designer discounter — expect it to cover Chanel poorly and the niche houses not at all.
+- **1 shop product** (Marc Jacobs Oh Lola Sunsheer) — the merchant offered only a shared stock
+  photograph, which `remoteImageUrl: null` records deliberately. Null means "no image", never
+  "use a placeholder".
+
 ## Product imagery — the block lifted for some of the catalog, and the licence rides on the link
 
 Perfume bottles are protected trade dress. There are exactly two lawful sources: imagery supplied by an affiliate programme we've enrolled in, or photography of bottles we own. Generating bottle renders is ruled out by `departments/web-development/CLAUDE.md`'s trademark caution; reusing a retailer's photo is infringement. **That has not changed** — what changed is that we now have feeds.
@@ -371,7 +410,7 @@ Perfume bottles are protected trade dress. There are exactly two lawful sources:
 | | Images | Source |
 |---|---|---|
 | `REFERENCES` (216) | **190** | **116** FragranceShop.com CJ feed → `scripts/fetch-cj-images.mjs` → `lib/data/cj-images.generated.ts`, plus **74** still only in the My Perfume Shop feed → `scripts/fetch-feed-images.mjs` → `lib/data/feed-images.generated.ts`. `lib/data/references.ts` prefers the CJ copy where both exist. Shop-only products have their own directory again (`public/images/originals/`, 58) and their own manifest. **26 references still have no photograph** — mostly houses neither merchant carries (Xerjoff, Initio, By Kilian, Amouage, Roja). |
-| `DUPES` (79) | **53** | Opulensi (30), Clone of Perfume (9) **and** AromaPassions (14) → `scripts/fetch-dupe-images.mjs` → `lib/data/dupe-images.generated.ts`. **The 24 A2 listings of 2026-09-05 have none yet** — the script regenerates the whole manifest and needs all three feeds present; only `aromapassions.csv` was re-downloaded. |
+| `DUPES` (79) | **77** | Opulensi (30), Clone of Perfume (9) **and** AromaPassions (38) → `scripts/fetch-dupe-images.mjs` → `lib/data/dupe-images.generated.ts`. Only the two Armaf listings lack one, and that is correct — see the rule below. |
 
 Both are merged in as `imageUrl` at module load (`lib/data/references.ts`, `lib/dupes-data.ts`) — **`imageUrl` is never hand-set on a data entry**, because a hand-set path leaves nothing in the diff to say where the picture came from.
 
@@ -385,7 +424,7 @@ Both are merged in as `imageUrl` at module load (`lib/data/references.ts`, `lib/
 
 `components/fragrance/fragrance-image.tsx` renders the generated per-fragrance colour mark (`lib/fragrance-visual.ts`) wherever `imageUrl` is absent. Every surface routes through that component — don't bypass it, and pass `imageUrl` through when adding a new call site or that surface silently shows placeholders next to real photos.
 
-**Images are committed.** `public/images/` is **383 files** as of 2026-09-07 — 156 in `fragrance/` (My Perfume Shop), **116 in `fragrance-cj/`** and **58 in `originals/`** (both FragranceShop.com), 53 in `dupe/`. **209 are tracked**; the 174 FragranceShop files are untracked pending review. `scripts/fetch-cj-images.mjs` REPORTS orphans rather than deleting them — a shop product that becomes a reference leaves its old copy behind, which is the usual cause. Re-measure rather than trusting either number:
+**Images are committed.** `public/images/` is **407 files** as of 2026-09-07 — 156 in `fragrance/` (My Perfume Shop), **116 in `fragrance-cj/`** and **58 in `originals/`** (both FragranceShop.com), **77 in `dupe/`**. **209 are tracked**; the 174 FragranceShop files are untracked pending review. `scripts/fetch-cj-images.mjs` REPORTS orphans rather than deleting them — a shop product that becomes a reference leaves its old copy behind, which is the usual cause. Re-measure rather than trusting either number:
 
 ```bash
 find public/images -type f | wc -l          # on disk

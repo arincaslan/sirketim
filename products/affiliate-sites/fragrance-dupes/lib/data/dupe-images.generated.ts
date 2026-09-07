@@ -9,8 +9,8 @@
  * the generated note-signature mark instead. See the script header for why the
  * licence is tied to the link rather than to the picture.
  *
- * Generated: 2026-09-04T09:02:41.840Z
- * Images:    53
+ * Generated: 2026-09-07T17:49:14.247Z
+ * Images:    77
  */
 
 export const DUPE_IMAGES: Record<string, string> = {
@@ -66,5 +66,29 @@ export const DUPE_IMAGES: Record<string, string> = {
   "aromapassions-masculinity": "/images/dupe/aromapassions-masculinity.png",
   "aromapassions-mystical": "/images/dupe/aromapassions-mystical.png",
   "aromapassions-blooming": "/images/dupe/aromapassions-blooming.jpg",
-  "aromapassions-revive": "/images/dupe/aromapassions-revive.jpg"
+  "aromapassions-revive": "/images/dupe/aromapassions-revive.jpg",
+  "aromapassions-intense": "/images/dupe/aromapassions-intense.jpg",
+  "aromapassions-delight": "/images/dupe/aromapassions-delight.png",
+  "aromapassions-mesmorize": "/images/dupe/aromapassions-mesmorize.png",
+  "aromapassions-cool": "/images/dupe/aromapassions-cool.jpg",
+  "aromapassions-beauty": "/images/dupe/aromapassions-beauty.jpg",
+  "aromapassions-femininity": "/images/dupe/aromapassions-femininity.jpg",
+  "aromapassions-harmony": "/images/dupe/aromapassions-harmony.jpg",
+  "aromapassions-precious": "/images/dupe/aromapassions-precious.jpg",
+  "aromapassions-luxurious": "/images/dupe/aromapassions-luxurious.jpg",
+  "aromapassions-fiery": "/images/dupe/aromapassions-fiery.jpg",
+  "aromapassions-glimmer": "/images/dupe/aromapassions-glimmer.jpg",
+  "aromapassions-adventure": "/images/dupe/aromapassions-adventure.png",
+  "aromapassions-legendary": "/images/dupe/aromapassions-legendary.jpg",
+  "aromapassions-sweet": "/images/dupe/aromapassions-sweet.jpg",
+  "aromapassions-charisma": "/images/dupe/aromapassions-charisma.png",
+  "aromapassions-robust": "/images/dupe/aromapassions-robust.jpg",
+  "aromapassions-luminous": "/images/dupe/aromapassions-luminous.jpg",
+  "aromapassions-blossom": "/images/dupe/aromapassions-blossom.jpg",
+  "aromapassions-nature": "/images/dupe/aromapassions-nature.jpg",
+  "aromapassions-bold": "/images/dupe/aromapassions-bold.jpg",
+  "aromapassions-clarity": "/images/dupe/aromapassions-clarity.jpg",
+  "aromapassions-captivate": "/images/dupe/aromapassions-captivate.jpg",
+  "aromapassions-uplifting": "/images/dupe/aromapassions-uplifting.jpg",
+  "aromapassions-audacious": "/images/dupe/aromapassions-audacious.jpg"
 };
