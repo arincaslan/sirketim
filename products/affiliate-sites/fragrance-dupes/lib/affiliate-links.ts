@@ -19,6 +19,8 @@
  * real programme URLs a data change rather than a content rewrite.
  */
 
+import { CJ_ORIGINAL_LINKS } from "@/lib/data/cj-links.generated";
+
 export type AffiliateNetwork = "awin" | "cj" | "placeholder";
 
 /**
@@ -73,13 +75,28 @@ export function affiliateDestination(entry: AffiliateLinkEntry): string {
 }
 
 /**
- * Real, enrolled programme links. Empty until FINALIZATION-GUIDE.md phase 3.
+ * Real, enrolled programme links.
  *
- * When populating this, note the shape has to grow: Awin and CJ both need a
- * network click URL with the destination URL-encoded inside it, so a real
- * entry needs `network` + a merchant id + the deep link, not one bare string.
+ * Two sources, deliberately kept apart:
+ *
+ * - **This literal** holds the hand-written DUPE-side entries. Each one was
+ *   traced end to end before being added (see the comment on the first batch
+ *   below), and nothing regenerates them.
+ * - **`CJ_ORIGINAL_LINKS`** holds the ORIGINALS-side `original-<slug>` entries,
+ *   regenerated from the FragranceShop.com CJ feed by
+ *   `scripts/ingest-cj-feed.mjs` on every refresh. They are spread in below
+ *   rather than pasted in here, because a re-run would otherwise silently
+ *   rewrite hand-written entries sitting in the same literal.
+ *
+ * The spread is FIRST, so a hand-written entry always wins a key collision —
+ * a deliberate correction beats a regenerated default.
+ *
+ * `scripts/generate-redirects.mjs` reads BOTH files as text at build time. If
+ * you add a third source, add it there too, or its links will resolve in the
+ * UI and 404 at the edge.
  */
 export const affiliateLinks: Record<string, AffiliateLinkEntry> = {
+  ...CJ_ORIGINAL_LINKS,
   // FIRST REAL ENTRIES, 2026-09-01 — Opulensi Perfumes, Awin advertiser 123248.
   //
   // Verified working end to end before being added, which matters because the

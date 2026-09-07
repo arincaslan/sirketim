@@ -7,7 +7,13 @@ import { Breadcrumb } from "@/components/kit/Breadcrumb";
 import { FragranceImage } from "@/components/fragrance/fragrance-image";
 import { buttonVariants } from "@/components/ui/button";
 import { REFERENCES } from "@/lib/data/references";
-import { getRankedDupesFor, getPublishedSimilarity, getRelatedOriginals } from "@/lib/catalog";
+import {
+  getRankedDupesFor,
+  getPublishedSimilarity,
+  getRelatedOriginals,
+  getOriginalOffer,
+  getOriginalPricing,
+} from "@/lib/catalog";
 import { getGuidesLinkingTo } from "@/lib/related-guides";
 import { hasRealAffiliateLink } from "@/lib/affiliate-links";
 import { formatPricePerMl } from "@/lib/similarity";
@@ -85,6 +91,8 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
   if (!reference) notFound();
 
   const dupes = getRankedDupesFor(reference);
+  const originalOffer = getOriginalOffer(reference);
+  const pricing = getOriginalPricing(reference);
   const relatedOriginals = getRelatedOriginals(reference);
   const relatedGuides = getGuidesLinkingTo(reference.slug);
   const [minHours, maxHours] = reference.longevityHoursRange;
@@ -116,27 +124,58 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
             {reference.brand}
           </p>
           <h1 className="font-display text-fluid-h1">{reference.name}</h1>
+          {/* ONE price for this bottle, not two. It is the retailer's wherever
+              we have one for a size we know, and our own approximate figure
+              otherwise — and the caption says which, because those are
+              different kinds of claim. Every comparison further down the page
+              runs off this same number via getOriginalPricing(). */}
           <p className="max-w-[58ch] text-lg text-muted-foreground">
             {reference.concentration} in the {reference.family.toLowerCase()} family.{" "}
-            {formatPricePerMl(reference.priceUsd, reference.bottleMl)} at $
-            {reference.priceUsd} for {reference.bottleMl}ml.
+            {formatPricePerMl(pricing.priceUsd, pricing.bottleMl)} at $
+            {pricing.priceUsd} for {pricing.bottleMl}ml.
           </p>
           <p className="max-w-[58ch] text-xs text-muted-foreground">
-            That price is an approximate US retail figure we maintain by hand, not a
-            live feed from a retailer &mdash; it drifts, and the per-ml figure is
-            derived from it. Check the retailer for what it costs today.
+            {pricing.source === "retailer" ? (
+              <>
+                {pricing.merchantName}&rsquo;s listed price for the {pricing.bottleMl}ml
+                bottle. Prices change &mdash; check the shop for what it costs today.
+              </>
+            ) : (
+              <>
+                That price is an approximate US retail figure we maintain by hand, not a
+                live feed from a retailer &mdash; it drifts, and the per-ml figure is
+                derived from it. Check the retailer for what it costs today.
+              </>
+            )}
           </p>
 
           {hasRealAffiliateLink(reference.affiliateLinkId) && (
-            <a
-              href={`/go/${reference.affiliateLinkId}`}
-              rel="sponsored nofollow noopener"
-              target="_blank"
-              className={cn(buttonVariants({ variant: "default" }), "mt-2 w-fit gap-2")}
-            >
-              Buy {reference.name}
-              <ArrowUpRight className="h-4 w-4" aria-hidden />
-            </a>
+            <div className="mt-2 flex flex-col gap-2">
+              <a
+                href={`/go/${reference.affiliateLinkId}`}
+                rel="sponsored nofollow noopener"
+                target="_blank"
+                className={cn(buttonVariants({ variant: "default" }), "w-fit gap-2")}
+              >
+                {/* The retailer's own price, which is also what the heading
+                    above now quotes — a button must never name a price its own
+                    destination contradicts. */}
+                {originalOffer?.priceUsd != null
+                  ? `Buy for $${originalOffer.priceUsd} at ${originalOffer.merchantName}`
+                  : `Buy at ${originalOffer?.merchantName ?? "the retailer"}`}
+                <ArrowUpRight className="h-4 w-4" aria-hidden />
+              </a>
+              {/* Only the no-price case needs saying here; when we do have a
+                  retailer price the caption under the heading already gave it,
+                  and repeating it reads like two different prices. */}
+              {originalOffer && originalOffer.priceUsd == null && (
+                <p className="max-w-[58ch] text-xs text-muted-foreground">
+                  {originalOffer.merchantName} stocks this, but not in a{" "}
+                  {reference.bottleMl}ml bottle we can price against &mdash; so we link
+                  the shop without quoting a figure rather than guess across sizes.
+                </p>
+              )}
+            </div>
           )}
         </div>
       </header>

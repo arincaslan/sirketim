@@ -1,3 +1,7 @@
+import { CJ_IMAGES } from "@/lib/data/cj-images.generated";
+import { CJ_MERCHANT, CJ_OFFERS } from "@/lib/data/cj-offers.generated";
+import { SHOP_IMAGES } from "@/lib/data/cj-shop-images.generated";
+import { SHOP_ORIGINALS, type ShopOriginal } from "@/lib/data/cj-shop.generated";
 import { DUPES, REFERENCES } from "@/lib/dupes-data";
 import { isHouseProducer } from "@/lib/producers";
 import { computeSimilarity, getRelatedReferences } from "@/lib/similarity";
@@ -196,4 +200,143 @@ export function getListingCounts(): Map<string, number> {
 /** References that have at least one listing against them. */
 export function hasListings(referenceSlug: string): boolean {
   return DUPES.some((d) => d.referenceSlug === referenceSlug);
+}
+
+export interface OriginalOffer {
+  /** The retailer, named on screen — never "the merchant". */
+  merchantName: string;
+  /** What THEY charge, for a bottle size we actually know. Null when no
+   *  variant matched our own bottleMl; see below for why that matters. */
+  priceUsd: number | null;
+  priceMl: number | null;
+  /** Their product title, so a wrong match is visible to a reader, not just
+   *  to whoever next reads the generated file. */
+  matchedName: string;
+}
+
+/**
+ * The retailer we can actually send someone to for the ORIGINAL, if any.
+ *
+ * WHY THIS EXISTS RATHER THAN COMPONENTS READING `reference.priceUsd`.
+ * `priceUsd` on a ReferenceFragrance is an approximate US RETAIL figure we
+ * maintain by hand, and the retailer's own price is frequently well below it —
+ * 34 of the 80 prices we can compare are more than 40% apart. So the button
+ * that used to read "Buy the original - $76" would have sent a reader to a
+ * page charging $21.95, which is a false price claim attached to a link we
+ * earn from. Whatever a surface shows next to a buy button has to be the price
+ * at the far end of that button.
+ *
+ * The UI states the retailer's price plainly and does NOT characterise it —
+ * founder's call, 2026-09-07. We are not a price commentator; we show what the
+ * shop charges and let the reader compare.
+ *
+ * `priceUsd` is deliberately NOT overwritten with this. It feeds the "Nx
+ * cheaper per ml" comparison, which is a claim about what the original costs
+ * at retail, not about what one discounter charges this week — and swapping in
+ * a single merchant's price would silently redefine the field the moment a
+ * second originals merchant is added. The two numbers coexist, each labelled
+ * with where it came from.
+ *
+ * A null `priceUsd` here means the retailer stocks it but not in our reference
+ * bottle size, so we can name the shop without quoting a figure. It is never a
+ * guess across sizes: that is exactly what made the earlier Awin prices
+ * unusable (see scripts/ingest-feed.mjs).
+ */
+export interface ShopBrandGroup {
+  brand: string;
+  products: (ShopOriginal & { imageUrl?: string })[];
+}
+
+/**
+ * The buy-link catalogue, grouped by house.
+ *
+ * DELIBERATELY SEPARATE FROM `getReferencesByBrand()`. These are products we
+ * can send a buyer to, not fragrances we have analysed — there is no note
+ * pyramid, facet profile or family behind them, because the merchant feed
+ * carries none. The surface that renders this must not imply otherwise.
+ *
+ * A product whose `referenceSlug` is set IS in our catalogue; the shop surface
+ * links to its comparison page instead of to the shop, so a reader who can get
+ * the full analysis always does.
+ *
+ * `imageUrl` resolves the same way references do: a locally-hosted copy, never
+ * a hotlink to the merchant's CDN, so no visitor request reaches them.
+ */
+export function getShopOriginalsByBrand(): ShopBrandGroup[] {
+  const byBrand = new Map<string, ShopBrandGroup["products"]>();
+  for (const product of SHOP_ORIGINALS) {
+    // A product that is one of our references already has its photograph under
+    // the reference slug; a shop-only one has its own.
+    const image = product.referenceSlug
+      ? CJ_IMAGES[product.referenceSlug]
+      : SHOP_IMAGES[product.slug];
+    const entry = image ? { ...product, imageUrl: image } : product;
+    const existing = byBrand.get(product.brand);
+    if (existing) existing.push(entry);
+    else byBrand.set(product.brand, [entry]);
+  }
+  return [...byBrand.entries()]
+    .map(([brand, products]) => ({
+      brand,
+      products: [...products].sort((a, b) => a.name.localeCompare(b.name)),
+    }))
+    .sort((a, b) => a.brand.localeCompare(b.brand));
+}
+
+/** Every shop product, flat — for counts and structured data. */
+export function getShopOriginals(): ShopOriginal[] {
+  return SHOP_ORIGINALS;
+}
+
+export interface OriginalPricingResolved {
+  priceUsd: number;
+  bottleMl: number;
+  /** "retailer" when this is a real shop price for a known bottle size;
+   *  "editorial" when it is our hand-maintained approximate retail figure. */
+  source: "retailer" | "editorial";
+  /** Set only when source is "retailer". */
+  merchantName?: string;
+}
+
+/**
+ * The price of the ORIGINAL that every comparison on the site runs against.
+ *
+ * Prefers the retailer's own listed price for a bottle whose size we actually
+ * know, and falls back to the hand-maintained editorial figure otherwise.
+ * Founder's call, 2026-09-07: show what the shop charges and compare against
+ * that, rather than carrying two prices for one bottle and explaining the gap.
+ *
+ * The fallback is not a rare edge case — 21 of the 101 stocked references have
+ * no variant matching our own `bottleMl`, and every reference the retailer
+ * does not stock at all (99 of them) has no shop price by definition. Those
+ * keep the editorial figure and are labelled as approximate where shown.
+ *
+ * Some dupes stop being cheaper under this. That is the correct outcome and
+ * `describeValueMultiple()` already says "no cheaper" or "Nx more expensive"
+ * in words; two listings flip today (AromaPassions BLOSSOM against Gucci
+ * Bloom, HARMONY against Terre d'Hermès). Do not compensate for it in the
+ * scoring or by reinstating the higher baseline.
+ */
+export function getOriginalPricing(reference: ReferenceFragrance): OriginalPricingResolved {
+  const offer = CJ_OFFERS[reference.slug];
+  if (offer?.priceUsd != null && offer.priceMl != null) {
+    return {
+      priceUsd: offer.priceUsd,
+      bottleMl: offer.priceMl,
+      source: "retailer",
+      merchantName: CJ_MERCHANT.name,
+    };
+  }
+  return { priceUsd: reference.priceUsd, bottleMl: reference.bottleMl, source: "editorial" };
+}
+
+export function getOriginalOffer(reference: ReferenceFragrance): OriginalOffer | null {
+  const offer = CJ_OFFERS[reference.slug];
+  if (!offer) return null;
+  return {
+    merchantName: CJ_MERCHANT.name,
+    priceUsd: offer.priceUsd,
+    priceMl: offer.priceMl,
+    matchedName: offer.matchedName,
+  };
 }

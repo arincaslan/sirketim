@@ -53,7 +53,7 @@
  * restriction. See departments/communication/reports/amazon-associates-application.md §2.
  */
 
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -73,26 +73,44 @@ const SUB_ID_PARAM = { awin: "clickref", cj: "sid" };
  * than silently emitting an empty redirect table, which would 404 every
  * affiliate link in production while the site looked fine.
  */
-async function readAffiliateLinks() {
-  const src = await import("node:fs").then((fs) =>
-    fs.readFileSync(resolve(here, "..", "lib", "affiliate-links.ts"), "utf8")
-  );
+function readLiteral(relPath, declaration) {
+  const src = readFileSync(resolve(here, "..", ...relPath.split("/")), "utf8");
 
   // Matches both the empty one-line form (`= {};`) and a populated multi-line
   // literal. Anchored on the closing `};` at the start of a line, or `{}`.
   const match = src.match(
-    /export const affiliateLinks\s*:[^=]*=\s*(\{\s*\}|\{[\s\S]*?^\});/m
+    new RegExp(`export const ${declaration}\\s*:[^=]*=\\s*(\\{\\s*\\}|\\{[\\s\\S]*?^\\});`, "m")
   );
   if (!match) {
     throw new Error(
-      "generate-redirects: could not find the `affiliateLinks` literal in " +
-        "lib/affiliate-links.ts. The file's shape changed — update this parser " +
-        "rather than letting the build emit an empty redirect table."
+      `generate-redirects: could not find the \`${declaration}\` literal in ` +
+        `${relPath}. The file's shape changed — update this parser rather than ` +
+        "letting the build emit an incomplete redirect table."
     );
   }
-
   const body = match[1].trim();
-  if (/^\{\s*\}$/.test(body)) return {};
+  return /^\{\s*\}$/.test(body) ? "" : body;
+}
+
+/**
+ * The redirect table is assembled from TWO files, and missing either one ships
+ * buy buttons that resolve in the UI and 404 at the edge:
+ *
+ *   lib/affiliate-links.ts          hand-written dupe-side entries
+ *   lib/data/cj-links.generated.ts  originals-side, regenerated from the CJ feed
+ *
+ * Both are parsed as text with the same entry regex. The generated file is read
+ * FIRST so a hand-written entry overwrites a regenerated one on a key
+ * collision — matching the spread order in lib/affiliate-links.ts, so the edge
+ * and the UI cannot disagree about where an id goes.
+ */
+async function readAffiliateLinks() {
+  const body = [
+    readLiteral("lib/data/cj-links.generated.ts", "CJ_ORIGINAL_LINKS"),
+    readLiteral("lib/affiliate-links.ts", "affiliateLinks"),
+  ].join("\n");
+
+  if (body.trim() === "") return {};
 
   // Only reached once real links land; keep the parse explicit and boring.
   const entries = [...body.matchAll(/["']?([\w-]+)["']?\s*:\s*\{([^}]*)\}/g)];

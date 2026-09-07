@@ -152,6 +152,28 @@ const MERCHANT_NOTES = {
     echoesSubIdInUrl: null,
     note: "Programme CLOSED for tracking — every link lands on awin1.com/closedMerchant.html. No links ship from this merchant.",
   },
+  16941446: {
+    name: "FragranceShop.com",
+    network: "cj",
+    echoesSubIdInUrl: false,
+    /** This merchant's WAF returns 403 to every automated request, with any
+     *  User-Agent, from this environment. Verified 2026-09-07 against the
+     *  product page directly, not only through the click URL. */
+    blocksAutomatedRequests: true,
+    note:
+      "CJ, not Awin — the whole cookie channel above does not apply. Two things are different " +
+      "and both were observed rather than assumed, 2026-09-07:\n" +
+      "      (a) CJ pre-wraps the deep link in the feed and OBFUSCATES the query it forwards, so " +
+      "our sid is not readable from the redirect chain. It is there: the hop to cj.dotomi.com " +
+      "carries `i6wr%3D25wuw1oz__oq48o-rw-uw2`, which is `sid=original__acqua-di-gio` under their " +
+      "substitution. What this script can assert automatically is that CJ issued a `cjevent`, " +
+      "i.e. that the click was tracked. That the SUB-ID is recorded against it must be confirmed " +
+      "once in CJ's own click report — the same founder-side check already done for Awin 117395.\n" +
+      "      (b) fragranceshop.com returns HTTP 403 to any non-browser request, so the destination " +
+      "status and the stock check are BOTH unverifiable from here. They are reported as " +
+      "inconclusive rather than as a pass — a 403 from a WAF and a 403 from a dead product page " +
+      "are indistinguishable, so this must never be read as 'link checked and working'.",
+  },
 };
 
 /** Parse a Set-Cookie header line into { name, value }. */
@@ -223,19 +245,33 @@ function subIdInAwinCookie(cookies, merchantId, subId) {
 /** Parse the affiliate map out of the TS file, same approach as
  *  generate-redirects.mjs — strict, so a shape change fails loudly. */
 function readAffiliateLinks() {
-  const src = readFileSync(resolve(root, "lib", "affiliate-links.ts"), "utf8");
-  const match = src.match(
-    /export const affiliateLinks\s*:[^=]*=\s*(\{\s*\}|\{[\s\S]*?^\});/m
-  );
-  if (!match) {
-    throw new Error(
-      "check-affiliate-links: could not find the `affiliateLinks` literal in " +
-        "lib/affiliate-links.ts. Update this parser rather than letting the check " +
-        "silently pass on zero links."
+  // Two files, exactly as generate-redirects.mjs assembles them: the
+  // hand-written dupe-side literal, and the originals-side one regenerated
+  // from the CJ feed. Checking only the first would silently skip every
+  // original-* link — a hundred of them — while reporting a clean pass.
+  const sources = [
+    ["lib/data/cj-links.generated.ts", "CJ_ORIGINAL_LINKS"],
+    ["lib/affiliate-links.ts", "affiliateLinks"],
+  ];
+
+  const bodies = sources.map(([relPath, declaration]) => {
+    const src = readFileSync(resolve(root, ...relPath.split("/")), "utf8");
+    const match = src.match(
+      new RegExp(`export const ${declaration}\\s*:[^=]*=\\s*(\\{\\s*\\}|\\{[\\s\\S]*?^\\});`, "m")
     );
-  }
-  const body = match[1].trim();
-  if (/^\{\s*\}$/.test(body)) return [];
+    if (!match) {
+      throw new Error(
+        `check-affiliate-links: could not find the \`${declaration}\` literal in ` +
+          `${relPath}. Update this parser rather than letting the check silently ` +
+          "pass on zero links."
+      );
+    }
+    const body = match[1].trim();
+    return /^\{\s*\}$/.test(body) ? "" : body;
+  });
+
+  const body = bodies.join("\n");
+  if (body.trim() === "") return [];
 
   return [...body.matchAll(/["']?([\w-]+)["']?\s*:\s*\{([^}]*)\}/g)].map(([, id, fields]) => ({
     id,
@@ -281,6 +317,16 @@ async function check(entry) {
   // everything else outside 2xx stays a hard failure.
   if (RETRYABLE_STATUS.has(status)) {
     notes.push(`merchant returned HTTP ${status} (throttled or briefly down) — inconclusive, re-run later`);
+  } else if (merchant?.blocksAutomatedRequests && status === 403) {
+    // Deliberately NOT a pass. This merchant's WAF 403s every scripted request,
+    // so the destination cannot be verified from here at all — and a WAF 403
+    // looks exactly like a dead product page. Saying "inconclusive" out loud is
+    // the only honest option; silently treating it as fine would turn this
+    // script into a rubber stamp for a hundred links.
+    notes.push(
+      `destination returned HTTP 403 — ${merchant.name} blocks automated requests, so the ` +
+        "landing page is UNVERIFIED here (not confirmed working). Check one by hand in a browser."
+    );
   } else if (status < 200 || status >= 300) {
     problems.push(`destination returned HTTP ${status}`);
   }
@@ -295,10 +341,35 @@ async function check(entry) {
   if (cookieChannel) channels.push(`Awin click cookie ${cookieChannel}`);
   if (urlChannel) channels.push("destination URL");
 
+  /* CJ is a different network with a different answer to the same question.
+   * It obfuscates the query it forwards, so our sid is genuinely unreadable
+   * from the chain — see MERCHANT_NOTES[16941446]. What IS observable is the
+   * `cjevent` token CJ stamps on the destination, which exists only because CJ
+   * processed and tracked the click. That proves the click is attributed to
+   * us; it does not by itself prove the SUB-ID landed, which is why the note
+   * says where to confirm that. */
+  if (entry.network === "cj") {
+    if (/[?&]cjevent=/.test(final)) {
+      channels.push("CJ cjevent token on the destination");
+      notes.push(
+        "CJ tracked the click (cjevent present). CJ obfuscates the forwarded query, so the " +
+          "sub-ID cannot be read back from the chain — confirm `sid` once in CJ's click report."
+      );
+    } else {
+      problems.push(
+        "no cjevent on the destination — CJ did not register this click, so it cannot be attributed"
+      );
+    }
+  }
+
   if (channels.length === 0) {
     problems.push(
       "sub-ID reached NEITHER the Awin click cookie NOR the destination URL — clicks would be unattributable"
     );
+  } else if (entry.network === "cj") {
+    // Handled above on its own terms. The two branches below are Awin-specific
+    // — a "no awNNNN click cookie" note against a CJ link would be reporting
+    // the absence of something that was never going to be there.
   } else if (!urlChannel && merchant?.echoesSubIdInUrl === false) {
     notes.push("no sub-ID in the destination URL — expected for this merchant, see MERCHANT_NOTES");
   } else if (!cookieChannel) {
@@ -321,6 +392,13 @@ async function check(entry) {
   //    invite someone to go looking for a problem that is not there.
   let inStock = null;
   if (RETRYABLE_STATUS.has(status)) {
+    return { ...entry, final, host, channels, merchantName: merchant?.name, inStock, problems, notes };
+  }
+  if (merchant?.blocksAutomatedRequests && status === 403) {
+    // Re-fetching would only collect a second 403 and then report "stock
+    // unknown", which reads like a data gap rather than what it is: this
+    // merchant does not answer scripts at all.
+    notes.push("stock not checkable — merchant blocks automated requests");
     return { ...entry, final, host, channels, merchantName: merchant?.name, inStock, problems, notes };
   }
   try {

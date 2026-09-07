@@ -21,6 +21,7 @@ import { VALENTINO } from "@/lib/data/houses/valentino";
 import { VERSACE } from "@/lib/data/houses/versace";
 import { XERJOFF } from "@/lib/data/houses/xerjoff";
 import { YSL } from "@/lib/data/houses/ysl";
+import { CJ_IMAGES } from "@/lib/data/cj-images.generated";
 import { FEED_IMAGES } from "@/lib/data/feed-images.generated";
 import type { ReferenceFragrance } from "@/lib/types";
 
@@ -113,8 +114,27 @@ const EDITORIAL: ReferenceFragrance[] = [
  * Re-run `node scripts/ingest-feed.mjs && node scripts/fetch-feed-images.mjs`
  * after a feed refresh.
  */
+/**
+ * TWO IMAGE SOURCES, AND THE ORDER IS A LICENSING DECISION.
+ *
+ * `CJ_IMAGES` (FragranceShop.com, CJ 16941446) wins over `FEED_IMAGES` (My
+ * Perfume Shop, Awin 106089) wherever both have a photograph of the same
+ * bottle — 82 of them do.
+ *
+ * The rule this project works to is that **the licence rides on the affiliate
+ * relationship, not on the picture**. My Perfume Shop's programme went CLOSED
+ * for tracking on 2026-09-01, so its images are hosted on the strength of an
+ * enrolment that no longer earns; FragranceShop's programme is live and every
+ * fragrance below carries a working `original-<slug>` link to it. Preferring
+ * the live one moves 82 images onto firmer ground and is why the swap is worth
+ * the duplicated bytes on disk.
+ *
+ * The remaining 56 FEED_IMAGES entries are fragrances FragranceShop does not
+ * stock (Chanel, Parfums de Marly, Byredo, Le Labo and other houses it does not
+ * carry at all). They stay, still flagged as the open question they were.
+ */
 export const REFERENCES: ReferenceFragrance[] = EDITORIAL.map((ref) => {
-  const image = FEED_IMAGES[ref.slug];
+  const image = CJ_IMAGES[ref.slug] ?? FEED_IMAGES[ref.slug];
   return image ? { ...ref, imageUrl: image } : ref;
 });
 

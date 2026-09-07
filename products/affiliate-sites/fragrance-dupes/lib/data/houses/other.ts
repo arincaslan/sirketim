@@ -861,4 +861,134 @@ export const OTHER_HOUSES: ReferenceFragrance[] = [
     concentration: "Eau de Parfum",
     affiliateLinkId: "original-arabians-tonka",
   },
+
+  /* ── Added 2026-09-07, from the FragranceShop.com (CJ) buy-link scope ──────
+   * Note pyramids were RESEARCHED per fragrance, not written from memory and
+   * not taken from the feed — that feed has no note data whatsoever, its
+   * DESCRIPTION column being byte-identical to TITLE on all 5,802 rows.
+   * Facets remain editorial estimates, the same convention as every entry
+   * above (see lib/data/references.ts).
+   *
+   * `priceUsd`/`bottleMl` are the RETAILER'S listed figures for the bottle
+   * they actually stock, which is why some are unusual sizes (Samsara 30ml,
+   * Himalaya 250ml). That is a departure from the approximate-retail figures
+   * above and is deliberate: these entries exist because we can link them, so
+   * the price that matters is the one at the far end of that link.
+   *
+   * Three researched candidates were DROPPED rather than guessed: J'adore
+   * L'Or (sources give marketing prose, no tiered pyramid), Versace Vanitas
+   * (sources conflate the 2011 EDP with the 2012 EDT) and Creed Royal Water
+   * (sources openly disagree on the heart and base). Sauvage Parfum was
+   * dropped for a different reason worth knowing — this merchant sells every
+   * Sauvage concentration as a SIZE VARIANT of one product page, so it cannot
+   * be told apart from Sauvage EDT by any feed-driven matcher.
+   */
+  {
+    slug: "la-nuit-tresor",
+    name: "La Nuit Tresor",
+    brand: "Lancome",
+    family: "Oriental Vanilla",
+    notes: {
+      top: ["Pear", "Tangerine", "Bergamot"],
+      heart: ["Strawberry", "Vanilla Orchid", "Black Rose", "Passionfruit"],
+      base: ["Praline", "Caramel", "Litchi", "Vanilla", "Patchouli", "Incense", "Coffee", "Licorice", "Coumarin", "Papyrus"],
+    },
+    facets: { freshness: 3, sweetness: 9, warmth: 8, woodyDepth: 4, longevity: 8, sillage: 8 },
+    longevityHoursRange: [8, 10],
+    sillageLabel: "Strong",
+    priceUsd: 100.95,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-la-nuit-tresor",
+  },
+  {
+    slug: "la-panthere",
+    name: "La Panthere",
+    brand: "Cartier",
+    family: "Chypre Floral",
+    notes: {
+      top: ["Dried Fruits", "Rhubarb", "Strawberry", "Anise", "Bergamot"],
+      heart: ["Gardenia", "Rose", "Ylang-Ylang", "Orange Blossom", "Pear"],
+      base: ["Oakmoss", "Musk", "Patchouli", "Leather"],
+    },
+    facets: { freshness: 5, sweetness: 5, warmth: 5, woodyDepth: 5, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 114.95,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-la-panthere",
+  },
+  {
+    slug: "shem",
+    name: "Shem",
+    brand: "Nishane",
+    family: "Leather Floral",
+    notes: {
+      top: ["Turkish Rose", "Geranium", "Cardamom"],
+      heart: ["Cypriol", "Amber", "Osmanthus"],
+      base: ["Leather", "Elemi", "Vetiver"],
+    },
+    facets: { freshness: 3, sweetness: 4, warmth: 7, woodyDepth: 7, longevity: 8, sillage: 7 },
+    longevityHoursRange: [8, 10],
+    sillageLabel: "Strong",
+    priceUsd: 228.95,
+    bottleMl: 50,
+    concentration: "Extrait de Parfum",
+    affiliateLinkId: "original-shem",
+  },
+  {
+    slug: "acqua-di-parma-oud",
+    name: "Oud",
+    brand: "Acqua di Parma",
+    family: "Oriental Woody",
+    notes: {
+      top: ["Orange", "Calabrian Bergamot"],
+      heart: ["Agarwood", "Amyris", "Coriander"],
+      base: ["Leather", "Sandalwood", "Cedar", "Musk", "Patchouli"],
+    },
+    facets: { freshness: 4, sweetness: 3, warmth: 8, woodyDepth: 9, longevity: 8, sillage: 7 },
+    longevityHoursRange: [8, 10],
+    sillageLabel: "Strong",
+    priceUsd: 121.95,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-acqua-di-parma-oud",
+  },
+  {
+    slug: "her-elixir",
+    name: "Her Elixir",
+    brand: "Burberry",
+    family: "Floral Fruity",
+    notes: {
+      top: ["Strawberry", "Blackberry"],
+      heart: ["Jasmine"],
+      base: ["Vanilla", "Amber", "Sandalwood"],
+    },
+    facets: { freshness: 3, sweetness: 9, warmth: 7, woodyDepth: 4, longevity: 7, sillage: 7 },
+    longevityHoursRange: [6, 9],
+    sillageLabel: "Strong",
+    priceUsd: 101.95,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-her-elixir",
+  },
+  {
+    slug: "one-million-elixir",
+    name: "1 Million Elixir",
+    brand: "Paco Rabanne",
+    family: "Oriental Spicy",
+    notes: {
+      top: ["Apple", "Davana"],
+      heart: ["Osmanthus", "Damask Rose", "Cedar"],
+      base: ["Vanilla", "Tonka Bean", "Patchouli"],
+    },
+    facets: { freshness: 3, sweetness: 8, warmth: 8, woodyDepth: 5, longevity: 8, sillage: 8 },
+    longevityHoursRange: [8, 10],
+    sillageLabel: "Strong",
+    priceUsd: 110.95,
+    bottleMl: 200,
+    concentration: "Parfum",
+    affiliateLinkId: "original-one-million-elixir",
+  },
 ];

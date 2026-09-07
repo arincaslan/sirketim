@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { ValueBar } from "@/components/dupe-finder/value-bar";
 import { describeValueMultiple, formatPricePerMl, pricePerMl, valueMultiple } from "@/lib/similarity";
+import { getOriginalPricing } from "@/lib/catalog";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
 
 /**
@@ -22,7 +23,10 @@ export function SpecPanel({
   reference: ReferenceFragrance;
   dupe: DupeCandidate;
 }) {
-  const multiple = valueMultiple(reference, dupe);
+  // Compare against what the shop actually charges, falling back to our own
+  // approximate figure only where no retailer price exists for a known size.
+  const original = getOriginalPricing(reference);
+  const multiple = valueMultiple(reference, dupe, original);
 
   return (
     <div className="flex flex-col gap-8">
@@ -74,8 +78,11 @@ export function SpecPanel({
           Per millilitre, {dupe.name} is{" "}
           <strong className="font-semibold text-foreground">{describeValueMultiple(multiple)}</strong>{" "}
           than {reference.name} (
-          {formatPricePerMl(reference.priceUsd, reference.bottleMl)} vs{" "}
-          {formatPricePerMl(dupe.priceUsd, dupe.bottleMl)}, {dupe.bottleMl}ml bottle).
+          {formatPricePerMl(original.priceUsd, original.bottleMl)} vs{" "}
+          {formatPricePerMl(dupe.priceUsd, dupe.bottleMl)}, {dupe.bottleMl}ml bottle).{" "}
+          {original.source === "retailer"
+            ? `${original.priceUsd} is ${original.merchantName}'s price for the ${original.bottleMl}ml bottle.`
+            : "The original's price is our own approximate retail figure."}
         </p>
       </section>
     </div>

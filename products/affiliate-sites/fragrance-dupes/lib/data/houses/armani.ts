@@ -164,4 +164,44 @@ export const ARMANI: ReferenceFragrance[] = [
     concentration: "Eau de Parfum",
     affiliateLinkId: "original-because-its-you",
   },
+
+  /* ── Added 2026-09-07, from the FragranceShop.com (CJ) buy-link scope ──────
+   * Note pyramids were RESEARCHED per fragrance, not written from memory and
+   * not taken from the feed — that feed has no note data whatsoever, its
+   * DESCRIPTION column being byte-identical to TITLE on all 5,802 rows.
+   * Facets remain editorial estimates, the same convention as every entry
+   * above (see lib/data/references.ts).
+   *
+   * `priceUsd`/`bottleMl` are the RETAILER'S listed figures for the bottle
+   * they actually stock, which is why some are unusual sizes (Samsara 30ml,
+   * Himalaya 250ml). That is a departure from the approximate-retail figures
+   * above and is deliberate: these entries exist because we can link them, so
+   * the price that matters is the one at the far end of that link.
+   *
+   * Three researched candidates were DROPPED rather than guessed: J'adore
+   * L'Or (sources give marketing prose, no tiered pyramid), Versace Vanitas
+   * (sources conflate the 2011 EDP with the 2012 EDT) and Creed Royal Water
+   * (sources openly disagree on the heart and base). Sauvage Parfum was
+   * dropped for a different reason worth knowing — this merchant sells every
+   * Sauvage concentration as a SIZE VARIANT of one product page, so it cannot
+   * be told apart from Sauvage EDT by any feed-driven matcher.
+   */
+  {
+    slug: "acqua-di-gio-profondo",
+    name: "Acqua di Gio Profondo",
+    brand: "Armani",
+    family: "Aquatic Aromatic",
+    notes: {
+      top: ["Marine Notes", "Aquozone", "Bergamot", "Green Mandarin"],
+      heart: ["Rosemary", "Lavender", "Cypress", "Mastic"],
+      base: ["Mineral Notes", "Musk", "Patchouli", "Amber"],
+    },
+    facets: { freshness: 9, sweetness: 1, warmth: 3, woodyDepth: 5, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 9],
+    sillageLabel: "Strong",
+    priceUsd: 128.95,
+    bottleMl: 200,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-acqua-di-gio-profondo",
+  },
 ];

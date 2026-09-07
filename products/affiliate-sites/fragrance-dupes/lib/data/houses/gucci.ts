@@ -146,4 +146,44 @@ export const GUCCI: ReferenceFragrance[] = [
     concentration: "Eau de Parfum",
     affiliateLinkId: "original-gucci-bamboo",
   },
+
+  /* ── Added 2026-09-07, from the FragranceShop.com (CJ) buy-link scope ──────
+   * Note pyramids were RESEARCHED per fragrance, not written from memory and
+   * not taken from the feed — that feed has no note data whatsoever, its
+   * DESCRIPTION column being byte-identical to TITLE on all 5,802 rows.
+   * Facets remain editorial estimates, the same convention as every entry
+   * above (see lib/data/references.ts).
+   *
+   * `priceUsd`/`bottleMl` are the RETAILER'S listed figures for the bottle
+   * they actually stock, which is why some are unusual sizes (Samsara 30ml,
+   * Himalaya 250ml). That is a departure from the approximate-retail figures
+   * above and is deliberate: these entries exist because we can link them, so
+   * the price that matters is the one at the far end of that link.
+   *
+   * Three researched candidates were DROPPED rather than guessed: J'adore
+   * L'Or (sources give marketing prose, no tiered pyramid), Versace Vanitas
+   * (sources conflate the 2011 EDP with the 2012 EDT) and Creed Royal Water
+   * (sources openly disagree on the heart and base). Sauvage Parfum was
+   * dropped for a different reason worth knowing — this merchant sells every
+   * Sauvage concentration as a SIZE VARIANT of one product page, so it cannot
+   * be told apart from Sauvage EDT by any feed-driven matcher.
+   */
+  {
+    slug: "gucci-guilty-oud",
+    name: "Guilty Oud",
+    brand: "Gucci",
+    family: "Oriental Woody",
+    notes: {
+      top: ["Bulgarian Rose", "Blackberry", "Pink Pepper"],
+      heart: ["Patchouli", "Cypriol"],
+      base: ["Agarwood", "Leather", "Amber"],
+    },
+    facets: { freshness: 2, sweetness: 4, warmth: 8, woodyDepth: 9, longevity: 8, sillage: 8 },
+    longevityHoursRange: [8, 10],
+    sillageLabel: "Strong",
+    priceUsd: 194.95,
+    bottleMl: 90,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-gucci-guilty-oud",
+  },
 ];

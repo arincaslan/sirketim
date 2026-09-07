@@ -159,4 +159,62 @@ export const YSL: ReferenceFragrance[] = [
     concentration: "Eau de Parfum",
     affiliateLinkId: "original-tuxedo",
   },
+
+  /* ── Added 2026-09-07, from the FragranceShop.com (CJ) buy-link scope ──────
+   * Note pyramids were RESEARCHED per fragrance, not written from memory and
+   * not taken from the feed — that feed has no note data whatsoever, its
+   * DESCRIPTION column being byte-identical to TITLE on all 5,802 rows.
+   * Facets remain editorial estimates, the same convention as every entry
+   * above (see lib/data/references.ts).
+   *
+   * `priceUsd`/`bottleMl` are the RETAILER'S listed figures for the bottle
+   * they actually stock, which is why some are unusual sizes (Samsara 30ml,
+   * Himalaya 250ml). That is a departure from the approximate-retail figures
+   * above and is deliberate: these entries exist because we can link them, so
+   * the price that matters is the one at the far end of that link.
+   *
+   * Three researched candidates were DROPPED rather than guessed: J'adore
+   * L'Or (sources give marketing prose, no tiered pyramid), Versace Vanitas
+   * (sources conflate the 2011 EDP with the 2012 EDT) and Creed Royal Water
+   * (sources openly disagree on the heart and base). Sauvage Parfum was
+   * dropped for a different reason worth knowing — this merchant sells every
+   * Sauvage concentration as a SIZE VARIANT of one product page, so it cannot
+   * be told apart from Sauvage EDT by any feed-driven matcher.
+   */
+  {
+    slug: "myslf",
+    name: "MYSLF",
+    brand: "Yves Saint Laurent",
+    family: "Floral Woody",
+    notes: {
+      top: ["Calabrian Bergamot", "Bergamot"],
+      heart: ["Orange Blossom"],
+      base: ["Ambrofix", "Patchouli"],
+    },
+    facets: { freshness: 6, sweetness: 3, warmth: 5, woodyDepth: 7, longevity: 7, sillage: 6 },
+    longevityHoursRange: [6, 8],
+    sillageLabel: "Strong",
+    priceUsd: 104.95,
+    bottleMl: 100,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-myslf",
+  },
+  {
+    slug: "libre-intense",
+    name: "Libre Intense",
+    brand: "Yves Saint Laurent",
+    family: "Oriental Fougere",
+    notes: {
+      top: ["Lavender", "Mandarin Orange", "Bergamot"],
+      heart: ["Lavender", "Orange Blossom", "Jasmine Sambac", "Orchid"],
+      base: ["Vanilla", "Tonka Bean", "Ambergris", "Vetiver"],
+    },
+    facets: { freshness: 4, sweetness: 7, warmth: 7, woodyDepth: 4, longevity: 8, sillage: 7 },
+    longevityHoursRange: [8, 10],
+    sillageLabel: "Strong",
+    priceUsd: 102.95,
+    bottleMl: 50,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-libre-intense",
+  },
 ];

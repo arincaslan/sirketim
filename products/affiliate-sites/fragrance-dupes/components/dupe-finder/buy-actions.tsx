@@ -2,7 +2,7 @@ import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { AffiliateLink } from "@/components/kit/AffiliateLink";
 import { buttonVariants } from "@/components/ui/button";
 import { hasRealAffiliateLink } from "@/lib/affiliate-links";
-import { isHouseProduct } from "@/lib/catalog";
+import { getOriginalOffer, isHouseProduct } from "@/lib/catalog";
 import { formatPricePerMl } from "@/lib/similarity";
 import { cn } from "@/lib/utils";
 import type { Currency, DupeCandidate, MerchantOffer, ReferenceFragrance } from "@/lib/types";
@@ -49,6 +49,7 @@ export function BuyActions({
     (o) => hasRealAffiliateLink(o.affiliateLinkId) && o.inStock === false
   );
   const referenceLinked = hasRealAffiliateLink(reference.affiliateLinkId);
+  const originalOffer = getOriginalOffer(reference);
   // Offers are per PRESENTATION, not per retailer, and the two stopped being
   // the same thing on 2026-09-04: AromaPassions sells one product in 50ml and
   // 100ml, so those listings carry two offers from one shop. The header used to
@@ -108,10 +109,18 @@ export function BuyActions({
           id={reference.affiliateLinkId!}
           className={cn(buttonVariants({ variant: "outline" }), "w-fit gap-2")}
         >
-          Buy the original - ${reference.priceUsd}
+          {/* The retailer's own price, not `reference.priceUsd`. That field is
+              an approximate RETAIL figure and this merchant is a discounter —
+              34 of the 80 comparable prices are more than 40% apart — so the
+              old "Buy the original - $76" could send a reader to a $21.95 page.
+              A price beside a buy button has to be the price at its far end. */}
+          {originalOffer?.priceUsd != null
+            ? `Buy the original - $${originalOffer.priceUsd} at ${originalOffer.merchantName}`
+            : `Buy the original at ${originalOffer?.merchantName ?? "the retailer"}`}
           <ArrowUpRight className="h-4 w-4" aria-hidden />
         </AffiliateLink>
       )}
+
 
       {/* The disclosure describes the buttons actually on screen. It previously
           said "Both links are affiliate links ... including the original"

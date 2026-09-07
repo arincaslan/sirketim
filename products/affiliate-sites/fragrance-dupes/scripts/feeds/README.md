@@ -323,6 +323,30 @@ an inconsistency to tidy — but know it before editing those notes.
    `lib/similarity.ts`, which returns "no cheaper" or "Nx more expensive" as warranted. Expect this
    again on any merchant paired against sub-$100 designer bottles.
 
+## `FragranceShop_com_-CJ_Product_Feed-shopping.txt` shape (87 columns, 5,802 rows) — the first CJ feed
+
+Delivered 2026-09-07 as `productlist-shopping-20260907.zip`. **Tab-delimited, not comma** — and that is the right choice rather than a nuisance, because fragrance note lists are dense with commas. Verified across all rows: **zero** fields containing a double-quote and **zero** rows with a field count other than the header's, so a plain `split("\t")` is correct here and a CSV parser would be wrong (an unquoted apostrophe is ordinary data).
+
+**The format sample had 66 columns. The real export has 87.** Read the delivered header.
+
+Columns that matter, against the Awin equivalents:
+
+| CJ | Awin | note |
+|---|---|---|
+| `TITLE` | `product_name` | **carries the bottle size** — "... Spray 3.4 oz" — on 99.4% of rows |
+| `BRAND` | `brand_name` | separate from the title, which often omits it ("Sauvage Elixir Cologne for Men" is filed under Christian Dior) |
+| `LINK` | `aw_deep_link` | **already an affiliate click URL**; CJ pre-wraps it, so there is no link to build. The merchant's own URL is inside it as a `url=` parameter |
+| `PRICE` | `search_price` | one string, `"8.95 USD"` — split it |
+| `IMAGE_LINK` | `merchant_image_url` | see the stock-photo warning below |
+| `AVAILABILITY` | `in_stock` | `in_stock` on all 5,802 rows, so it says nothing |
+
+Four things to know before touching it:
+
+- **1,213 rows (21%) are the merchant's OWN dupe oils**, titled `<Real Fragrance> - Type Perfume Oil 1 oz Roll-on` at $7.95–$13.95. Our originals merchant is also a dupe seller. Never let one match an original.
+- **858 rows share one of four stock photographs** — a generic oil bottle (237 + 224 rows), an "image coming soon" placeholder (208), a generic flacon (189) — spread across Dior, Armani, Gucci and Burberry. `ingest-cj-feed.mjs` rejects them by URL; a `remoteImageUrl: null` means "no image", never "use a placeholder".
+- **`LAST_UPDATED` was 2026-07-29 on a feed delivered 2026-09-07** — six weeks stale on arrival. Same rule as every other feed here: the ids are durable, everything else decays.
+- **The site 403s every automated request** — Node `fetch` with any UA, and `curl` gets 200. It is TLS fingerprinting, not headers or rate limiting. Stock and destination status are therefore **not checkable from here**.
+
 ## `my-perfume-shop.csv` shape (35 columns)
 
 - `aw_deep_link` — form `https://www.awin1.com/pclick.php?p=<pid>&a=3064149&m=106089`. **Dead.**

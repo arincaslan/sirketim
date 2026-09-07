@@ -19,6 +19,13 @@ import { canonicalUrl, siteUrl } from "@/lib/site";
 const STATIC_ROUTES: Array<{ path: string; priority: number }> = [
   { path: "", priority: 1 },
   { path: "/dupe-finder", priority: 0.9 },
+  // The catalog INDEX itself was missing here while all 200 of its children
+  // were listed — an oversight, not a decision; a hub page nothing points a
+  // crawler at is exactly the orphan problem /fragrance was built to fix.
+  { path: "/fragrance", priority: 0.9 },
+  // Buy-link surface. Lower than the catalog on purpose: it carries prices and
+  // links rather than the analysis, so it should not outrank the comparisons.
+  { path: "/originals", priority: 0.6 },
   { path: "/library", priority: 0.8 },
   { path: "/about", priority: 0.7 },
   { path: "/producers", priority: 0.7 },

@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { CaretRight, Star } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import { describeValueMultiple, formatPricePerMl, valueMultiple } from "@/lib/similarity";
-import { getPublishedSimilarity, isHouseProduct } from "@/lib/catalog";
+import { getOriginalPricing, getPublishedSimilarity, isHouseProduct } from "@/lib/catalog";
 import { getReviewSummary } from "@/lib/reviews";
 import { getVerificationBadge } from "@/lib/verification";
 import { HouseBadge } from "@/components/dupe-finder/house-badge";
@@ -28,7 +28,7 @@ export function DupeResultCard({
   onSelect: () => void;
 }) {
   const score = getPublishedSimilarity(reference, dupe);
-  const multiple = valueMultiple(reference, dupe);
+  const multiple = valueMultiple(reference, dupe, getOriginalPricing(reference));
   const house = isHouseProduct(dupe);
   const reviews = getReviewSummary(dupe.slug);
   const verification = getVerificationBadge(reference, dupe);

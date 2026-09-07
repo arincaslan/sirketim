@@ -1,0 +1,70 @@
+/**
+ * GENERATED FILE — do not edit by hand.
+ * Written by scripts/fetch-cj-images.mjs. Maps a SHOP product slug (the
+ * merchant's own product-path id) to the locally-hosted copy of its
+ * photograph. See cj-shop.generated.ts — these are not reference fragrances.
+ *
+ * Generated: 2026-09-07T17:23:58.446Z
+ * Images:    58 of 58
+ */
+
+export const SHOP_IMAGES: Record<string, string> = {
+  "annick-goutal-nuit-etoilee-for-men": "/images/originals/annick-goutal-nuit-etoilee-for-men.jpg",
+  "atkinsons-gold-fair-in-mayfair-cologne-for-men": "/images/originals/atkinsons-gold-fair-in-mayfair-cologne-for-men.jpg",
+  "atkinsons-oud-save-the-queen-for-women": "/images/originals/atkinsons-oud-save-the-queen-for-women.jpg",
+  "astor-place-for-women": "/images/originals/astor-place-for-women.jpg",
+  "bond-no-9-central-park-south-for-women": "/images/originals/bond-no-9-central-park-south-for-women.jpg",
+  "bond-no-9-dubai-citrine-for-men": "/images/originals/bond-no-9-dubai-citrine-for-men.jpg",
+  "bond-no-9-dubai-emerald-for-women": "/images/originals/bond-no-9-dubai-emerald-for-women.jpg",
+  "bond-no-9-the-scent-of-peace-for-men": "/images/originals/bond-no-9-the-scent-of-peace-for-men.jpg",
+  "bond-no-9-bleecker-street-for-unisex": "/images/originals/bond-no-9-bleecker-street-for-unisex.jpg",
+  "bond-no-9-dubai-garnet-for-unisex": "/images/originals/bond-no-9-dubai-garnet-for-unisex.jpg",
+  "bond-no-9-dubai-platinum-for-unisex": "/images/originals/bond-no-9-dubai-platinum-for-unisex.jpg",
+  "bond-no-9-fidi-for-men": "/images/originals/bond-no-9-fidi-for-men.jpg",
+  "bond-no-9-my-new-york-for-unisex": "/images/originals/bond-no-9-my-new-york-for-unisex.jpg",
+  "bond-no-9-new-york-forever-perfume-for-unisex": "/images/originals/bond-no-9-new-york-forever-perfume-for-unisex.jpg",
+  "bond-no-9-new-york-signature-for-unisex": "/images/originals/bond-no-9-new-york-signature-for-unisex.jpg",
+  "bond-no-9-nuits-de-noho-for-women": "/images/originals/bond-no-9-nuits-de-noho-for-women.jpg",
+  "brooklyn-for-men": "/images/originals/brooklyn-for-men.jpg",
+  "riverside-drive-for-men": "/images/originals/riverside-drive-for-men.jpg",
+  "carolina-herrera-good-girl-blush-perfume-for-women": "/images/originals/carolina-herrera-good-girl-blush-perfume-for-women.jpg",
+  "carolina-herrera-good-girl-blush-elixir-perfume-for-women": "/images/originals/carolina-herrera-good-girl-blush-elixir-perfume-for-women.jpg",
+  "carolina-herrera-good-girl-legere-for-women": "/images/originals/carolina-herrera-good-girl-legere-for-women.jpg",
+  "carolina-herrera-la-bomba-perfume-for-women": "/images/originals/carolina-herrera-la-bomba-perfume-for-women.jpg",
+  "jadore-lor-for-women": "/images/originals/jadore-lor-for-women.jpg",
+  "sauvage-eau-forte-cologne-for-men": "/images/originals/sauvage-eau-forte-cologne-for-men.jpg",
+  "creed-acqua-originale-aberdeen-lavender-for-women": "/images/originals/creed-acqua-originale-aberdeen-lavender-for-women.jpg",
+  "creed-acqua-originale-green-neroli-perfume-for-unisex": "/images/originals/creed-acqua-originale-green-neroli-perfume-for-unisex.webp",
+  "creed-fleurs-de-gardenia-for-women": "/images/originals/creed-fleurs-de-gardenia-for-women.jpg",
+  "creed-love-in-black-for-unisex": "/images/originals/creed-love-in-black-for-unisex.jpg",
+  "creed-royal-water-for-unisex": "/images/originals/creed-royal-water-for-unisex.jpg",
+  "creed-viking-cologne-for-men": "/images/originals/creed-viking-cologne-for-men.jpg",
+  "jean-paul-gaultier-le-beau-paradise-garden-cologne-for-men": "/images/originals/jean-paul-gaultier-le-beau-paradise-garden-cologne-for-men.jpg",
+  "jean-paul-gaultier-scandal-le-parfum-cologne-for-men": "/images/originals/jean-paul-gaultier-scandal-le-parfum-cologne-for-men.jpg",
+  "noir-premier-fruits-du-mouvement-for-women": "/images/originals/noir-premier-fruits-du-mouvement-for-women.jpg",
+  "matiere-premiere-bois-debene-cologne-for-men": "/images/originals/matiere-premiere-bois-debene-cologne-for-men.jpg",
+  "matiere-premiere-cologne-cedrat-cologne-for-men": "/images/originals/matiere-premiere-cologne-cedrat-cologne-for-men.jpg",
+  "nishane-hacivat-oud-cologne-for-men": "/images/originals/nishane-hacivat-oud-cologne-for-men.jpg",
+  "prada-paradigme-cologne-for-men": "/images/originals/prada-paradigme-cologne-for-men.jpg",
+  "prada-paradoxe-radical-essence-perfume-for-women": "/images/originals/prada-paradoxe-radical-essence-perfume-for-women.jpg",
+  "prada-paradoxe-virtual-flower-perfume-for-women": "/images/originals/prada-paradoxe-virtual-flower-perfume-for-women.jpg",
+  "riri-for-women": "/images/originals/riri-for-women.jpg",
+  "tiffany-intense-for-women": "/images/originals/tiffany-intense-for-women.jpg",
+  "tiziana-terenzi-kirke-perfume-for-unisex": "/images/originals/tiziana-terenzi-kirke-perfume-for-unisex.jpg",
+  "tiziana-terenzi-leo-perfume-for-unisex": "/images/originals/tiziana-terenzi-leo-perfume-for-unisex.jpg",
+  "tiziana-terenzi-libra-perfume-for-unisex": "/images/originals/tiziana-terenzi-libra-perfume-for-unisex.jpg",
+  "tiziana-terenzi-nero-oudh-perfume-for-unisex": "/images/originals/tiziana-terenzi-nero-oudh-perfume-for-unisex.jpg",
+  "tiziana-terenzi-porpora-perfume-for-unisex": "/images/originals/tiziana-terenzi-porpora-perfume-for-unisex.jpg",
+  "valentino-donna-born-in-roma-green-stravaganza-perfume-for-women": "/images/originals/valentino-donna-born-in-roma-green-stravaganza-perfume-for-women.jpg",
+  "valentino-uomo-born-in-roma-cologne-for-men": "/images/originals/valentino-uomo-born-in-roma-cologne-for-men.jpg",
+  "vanitas-for-women": "/images/originals/vanitas-for-women.jpg",
+  "versace-atelier-cedrat-de-diamante-for-men": "/images/originals/versace-atelier-cedrat-de-diamante-for-men.jpg",
+  "versace-atelier-eclat-de-rose-perfume-for-women": "/images/originals/versace-atelier-eclat-de-rose-perfume-for-women.jpg",
+  "versace-atelier-fleur-de-mate-for-men": "/images/originals/versace-atelier-fleur-de-mate-for-men.jpg",
+  "versace-atelier-jasmine-au-soleil-perfume-for-women": "/images/originals/versace-atelier-jasmine-au-soleil-perfume-for-women.jpg",
+  "versace-atelier-tabac-imperial-for-men": "/images/originals/versace-atelier-tabac-imperial-for-men.jpg",
+  "opium-black-for-women": "/images/originals/opium-black-for-women.jpg",
+  "ysl-libre-flowers-flames-perfume-for-women": "/images/originals/ysl-libre-flowers-flames-perfume-for-women.jpg",
+  "ysl-y-for-men": "/images/originals/ysl-y-for-men.jpg",
+  "ysl-y-intense-cologne-for-men": "/images/originals/ysl-y-intense-cologne-for-men.jpg"
+};

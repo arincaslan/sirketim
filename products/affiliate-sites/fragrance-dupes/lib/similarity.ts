@@ -121,9 +121,32 @@ export function formatPricePerMl(priceUsd: number, bottleMl: number): string {
   return `$${pricePerMl(priceUsd, bottleMl).toFixed(2)}/ml`;
 }
 
-/** How many times cheaper (per ml) the dupe is versus the reference. */
-export function valueMultiple(reference: ReferenceFragrance, dupe: DupeCandidate): number {
-  const refPerMl = pricePerMl(reference.priceUsd, reference.bottleMl);
+/** A price for the original, and the bottle it belongs to. */
+export interface OriginalPricing {
+  priceUsd: number;
+  bottleMl: number;
+}
+
+/**
+ * How many times cheaper (per ml) the dupe is versus the original.
+ *
+ * `original` defaults to the reference's own hand-maintained figures, but call
+ * sites should pass `getOriginalPricing(reference)` from lib/catalog.ts so the
+ * comparison runs against **the retailer's actual price** wherever we have
+ * one. Founder's call, 2026-09-07: the site shows what the shop charges and
+ * compares against that. Two different prices for the same bottle on one page
+ * — a hand-maintained "retail" figure driving the claim while the buy button
+ * showed something lower — was the alternative, and it is worse.
+ *
+ * A `ReferenceFragrance` structurally satisfies OriginalPricing, which is why
+ * the default is just `reference`.
+ */
+export function valueMultiple(
+  reference: ReferenceFragrance,
+  dupe: DupeCandidate,
+  original: OriginalPricing = reference
+): number {
+  const refPerMl = pricePerMl(original.priceUsd, original.bottleMl);
   const dupePerMl = pricePerMl(dupe.priceUsd, dupe.bottleMl);
   return refPerMl / dupePerMl;
 }
