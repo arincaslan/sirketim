@@ -33,7 +33,7 @@ Three merchants were approved and wired in two days, taking listings 25 → 55; 
 
 - **One offer per listing, the 50ml price, one link** (founder's call). A1's second 100ml offer pointed at the *same* affiliate link, so it rendered a duplicate buy button and made `buy-actions.tsx` call one retailer's two bottles "2 retailers". A1 was collapsed too; no price moved.
 - **SPICY (Spicebomb) withheld** — its declared notes are Spicebomb's set exactly (overlap 1.000), so `notesAreVerbatim()` fires. Same call as ILLUMINATE. **Three flankers refused**: Acqua di Gio *Profondo*, Armani Code *Profumo*, Delina *Exclusif*.
-- **The scoring problem got sharper and is still open.** AromaPassions publishes **one flat note list and no pyramid at all**, but our formula weights tiers 20/35/45 — so *we* choose the split and the split moves the score **70–82% on identical merchant data**. Aligning the split to the original's pyramid (what A1 and A2 both do) maximises overlap by construction. Splitting by perfumery convention instead was tried and is worse: it disagrees with **17.1% of our own reference notes**, because tier placement is a per-fragrance fact, not a property of the material. Shipped with the disclosure in every verdict, on the founder's call. **The real fix — compare tier-agnostically when the merchant gives no pyramid — is still unbuilt** and belongs with the `familyBonus` bug in one considered change.
+- **The scoring problem got sharper, and was addressed on 2026-09-08 — see the scoring-pipeline section of `products/affiliate-sites/fragrance-dupes/CLAUDE.md`.** AromaPassions publishes **one flat note list and no pyramid at all**, but our formula weights tiers 20/35/45 — so *we* choose the split and the split moves the score **70–82% on identical merchant data**. Aligning the split to the original's pyramid (what A1 and A2 both do) maximises overlap by construction. Splitting by perfumery convention instead was tried and is worse: it disagrees with **17.1% of our own reference notes**. The founder's call was to keep the tiered formula and **price the uncertainty**: a flat −10 on any listing whose split is ours, a 95 structural ceiling on everything, `familyBonus` fixed, and a 15% ingredient component that stays inert until both sides have a list. Tier-agnostic comparison remains unbuilt and is no longer the plan.
 
 ## Do this first on the other machine — the feeds do not travel
 
@@ -78,17 +78,25 @@ houses not at all. **FragranceX** (CJ advertiser 1024283) is the better fit for 
 already the top-priority application in `FINALIZATION-GUIDE.md` §3.3. Applying to both costs nothing
 extra.
 
-## The open decision that gates everything else
+## The decision that gated everything else — taken 2026-09-08
 
-**The match score can be gamed by a merchant's copywriter, and it is now happening at scale.**
+**The match score can be gamed by a merchant's copywriter, and it was happening at scale.**
 
-Five of the last fourteen listings score 83–87 because the merchant restated the original's note pyramid in their own product description. Our formula reads that as a near-perfect composition match. It is not — it is marketing copy. Two different merchants did this within two days, so it is a pattern.
+Five of the last fourteen listings scored 83–87 because the merchant restated the original's note pyramid in their own product description. Our formula read that as a near-perfect composition match. It is not — it is marketing copy. Two different merchants did this within two days, so it was a pattern.
 
 `isVerbatimCopy()` exists for exactly this but needs notes *and* facets to match; merchants supply only notes and we author the facets, so it rarely fires. One listing (ILLUMINATE / Versace Crystal Noir) was deliberately **not** shipped for this reason, and one (GLAMOROUS / Bright Crystal) ships only because the merchant writes "Ice"/"Lotus" where our catalogue records "Ice Accord"/"Lotus Flower" — there is a comment in `lib/dupes-data.ts` warning that tidying those two strings makes the listing disappear.
 
-Fixing it changes every existing score, so it is its own change, and it belongs beside the known `familyBonus`-hardcoded-to-`1` bug in `lib/similarity.ts`.
+**What shipped**, as one atomic change, ahead of the producer-subscription program that would have made outside producers a second source of the same self-reported data (decision record: `PRODUCER-PROGRAM.md` §7; mechanics: that project's `CLAUDE.md`):
 
-**Decide this before adding more listings.** Growing the catalog further means showing a number we already distrust on more pages.
+- **`familyBonus` fixed** — real family check, no longer hardcoded to `1`. A no-op for all 79 current listings by construction.
+- **Ingredient overlap, 15%** — new 4th component, flat untiered list, **inert until both sides have one** (none do yet), with the other three keeping their original weights meanwhile.
+- **95 structural ceiling on everything**, `verified` listings included: identical declared notes never means identical proportions.
+- **−10 on any listing whose tier split is ours**, not the seller's (47 of 79).
+- **A founder override** as the only way past 95 — human, justified in writing, never on a house product, cannot rescue a flagged copy. Unused so far.
+
+**Measured:** the 32 declared listings moved by exactly zero, 41 of 47 imputed fell exactly 10, six fell less because they were already at the 90 cap. One ranking changed site-wide — the Clone of Perfume listing this file called suspiciously #1 on Aventus is now #3.
+
+**Still open, and worth being precise about:** the penalty prices a *missing pyramid*, not copying. A merchant who copies the reference's pyramid and publishes it as three proper tiers is still scored at face value, and `isVerbatimCopy()` — which needs facets to match too — remains the only defence against that.
 
 ## Work queue, in the order it makes sense
 
@@ -98,7 +106,7 @@ Fixing it changes every existing score, so it is its own change, and it belongs 
    The real blocker was ordering inside `scripts/fetch-dupe-images.mjs`: the loop read a merchant's feed *before* checking whether the image was already downloaded, so the expired Opulensi export made `loadFeed()` throw on the very first entry and killed the run — even though all 53 of those images were already present and every one of those entries would have been skipped a line later. The loop now checks the filesystem first and treats an unreadable feed as **that merchant's** failure, reported per-slug, rather than the run's. **A script serving several merchants must degrade to the ones it can still serve**, because feeds are gitignored and expire.
 
    All 24 images came from the **live-page fallback**, not the feed — every `merchant_image_url` in that export 404s, exactly as the first 14 did on 2026-09-04. That rescue path is doing the primary work for this merchant, not covering an edge case.
-3. **The scoring decision.** Now sharper (see above) and still the thing that gates honest growth.
+3. ~~**The scoring decision.**~~ — **DONE 2026-09-08.** See the section above for what shipped and what it measured. The follow-on that is *not* done: **ingredient/INCI data for the 65 referenced originals and 79 dupes** (~144 lookups with overlap), which is what activates the new 15% component. Source it from each merchant's own product page under the standing rule — attribute or verify against something the seller cannot spin, never invent. AromaPassions already publishes ingredient lists on some products and is the natural first pass.
 4. ~~**Brand-alias mapping**~~ — **done in A2.** The alias cases (`MFK`, `CH`, `DG`, `D.`, `INTIO`, `MRLY`, `GIVNCHY`, `ROJA`) were resolved by matching on the reference *name* with word boundaries and requiring brand confirmation only for short names; `fahrenheit`, `elysium`, `light-blue`, `delina`, `l-homme`, `y`, `poison` and `la-vie-est-belle` all shipped from it.
 5. **~32 missing originals.** Real, famous fragrances with publicly documented pyramids (Noir Extreme, 1 Million, A*Men, Musc Ravageur, Portrait of a Lady, Luna Rossa Ocean, Jubilation XXV, Philosykos, Do Son, Acqua di Gioia, Black Afgano, Grand Soir, MFK 724…). Each unlocks exactly one AromaPassions listing. **Chanel No 5, Coco Mademoiselle and Delina were on this list and should not have been — we hold all three**, and No 5 and Delina now carry listings; Coco Mademoiselle is held, uncovered, and blocked only by the split problem in item 3 (see the project CLAUDE.md on SEDUCTIVE). Re-check the catalogue before adding a name here. **Research them properly — do not create placeholder references.** A reference carries the note pyramid and facets the score is computed from, so a dummy publishes a meaningless percentage about a real company's product on a live, indexed page. Note also that a CJ feed cannot fill this gap: feeds supply names, prices and images, never note pyramids.
    Two claims in that list must never become references: `Designer Brands` (a category label, not a fragrance) and `LAKESIDE MORNING by BBW`.

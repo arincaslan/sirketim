@@ -158,6 +158,22 @@ No formula over self-reported inputs can distinguish "genuinely this close" from
 
 **Still open:** the cap ceiling (90) is a judgement call, and editorial verification does not scale - at volume this needs either customer reviews as the correction mechanism (a listing that overstates gets rated down) or narrowing the score to inputs checkable against a producer's public listing.
 
+### The 2026-09-08 decision: four structural changes plus a founder escape hatch
+
+The producer-subscription program above makes outside producers a second, larger source of exactly the self-reported-data problem described in this section, so the formula needs fixing before that surface opens, not after. Five changes, decided together and shipping as one atomic code change - implementation lives in `lib/similarity.ts`, `lib/verification.ts`, and `lib/types.ts`:
+
+1. **`familyBonus` fixed.** `computeSimilarity()` hardcoded `familyBonus` to `1`; `computeOriginalSimilarity()` elsewhere in the same file already implements the real check (`family === family ? 1.0 : 0.4`). That check now extends to `DupeCandidate` too, which gains a new required `family` field. This is a no-op for all 79 currently-live listings - every one already shares its reference's family - and only starts discriminating for listings added from here.
+
+2. **A fourth scoring component: ingredient/INCI flat-list overlap, weighted 15%.** Weights become notes 40% / facets 30% / family 15% / ingredients 15%, but only when both the reference and the listing carry a new optional `ingredients?: string[]` field, compared as an untiered flat Jaccard set (unlike the tiered note pyramid). When either side lacks ingredient data - true for all 79 current listings at ship time - the formula falls back to the original notes 50% / facets 35% / family 15% weighting, unchanged. Implemented as two separate fixed weight constants rather than a proportional redistribution, specifically so today's published scores don't shift the moment this ships. Backfilling real ingredient data for the existing catalog (65 originals + 79 dupes) is separate, later research work and does not block this change.
+
+3. **A new global structural ceiling: no published score may ever exceed 95%, for any listing, including editorially "verified" ones** (which previously could publish uncapped, up to 100%). Rationale, in the founder's own words: even a dupe declaring the exact same notes as the original never contains them in the same proportions, and no formula built on presence/absence data can certify otherwise - so no displayed number should claim to.
+
+4. **A new penalty: flat -10 points, applied before any ceiling, on any listing whose note-pyramid tier split was invented by us rather than published by the source.** A new required `pyramidSource: "declared" | "imputed"` field carries the distinction. Of the 79 live listings, 47 are imputed (AromaPassions 38 + Clone of Perfume/"the-clone" 9) and 32 are declared (the remaining nine merchant slugs, all Opulensi-sourced).
+
+5. **A new founder-override mechanism**: a new optional field letting the founder personally set a listing's published score directly (with a mandatory written justification note), bypassing the -10 penalty and both the 90%/95% ceilings entirely - the only way a score may exceed 95%. It cannot override the verbatim-copy publish gate (a flagged copy never publishes regardless of override), and it can never be used on the site's own house-brand products, enforced by a build-time guard. It must render as its own distinct badge, "Founder's personal assessment," never conflated with "Editorially verified" (verified means checked against independent sources; founder-override means the founder's own disclosed subjective call). At the time of this decision, zero listings use it - the founder described the mechanism using a hypothetical example, not a real pairing that exists in the catalog today.
+
+All five ship together as one atomic change, not staged separately, because they are mutually dependent and the project's own established convention is to bundle every score-affecting change into one considered release rather than drift through several - this exact bundling, including fixing `familyBonus` in the same pass, was already flagged as the right approach in this repo's HANDOFF.md before this decision was made.
+
 ---
 
 ## 8. What blocks launch

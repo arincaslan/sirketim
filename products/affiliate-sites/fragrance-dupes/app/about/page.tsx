@@ -40,24 +40,33 @@ export default function AboutPage() {
           <h2 className="font-display text-fluid-h2">How we calculate a match score</h2>
           <p className="mt-4 text-muted-foreground">
             The percentage shown on every comparison is not a vibe. It comes
-            from three measured components, weighted and added together.
+            from up to four measured components, weighted and added together.
+            The fourth only counts when both the original and the alternative
+            have a published ingredient list; when either doesn&apos;t, the
+            first three carry their full original weight (50/35/15) rather
+            than the missing list being scored as a mismatch.
           </p>
 
           <div className="mt-8 flex flex-col gap-6">
             <ScoreComponent
-              weight="50%"
+              weight="40%"
               title="Note overlap"
-              body="How much a fragrance's top, heart, and base notes overlap with the reference, weighted 20/35/45 toward the base. Base notes count most because they're the drydown, the part that lasts."
+              body="How much a fragrance's top, heart, and base notes overlap with the reference, weighted 20/35/45 toward the base. Base notes count most because they're the drydown, the part that lasts. Carries 50% where no ingredient comparison is possible."
             />
             <ScoreComponent
-              weight="35%"
+              weight="30%"
               title="Facet closeness"
-              body="The average difference across six rated facets (freshness, sweetness, warmth, woody depth, longevity, sillage), each scored 0 to 10."
+              body="The average difference across six rated facets (freshness, sweetness, warmth, woody depth, longevity, sillage), each scored 0 to 10. Carries 35% where no ingredient comparison is possible."
             />
             <ScoreComponent
               weight="15%"
               title="Family match"
-              body="Whether both fragrances share the same olfactive family (for example, Amber Woody or Chypre Floral)."
+              body="Whether both fragrances share the same olfactive family (for example, Amber Woody or Chypre Floral). Full credit when they match, partial credit when they don't — a cross-family alternative is still a comparison worth making, it just isn't the same kind of scent."
+            />
+            <ScoreComponent
+              weight="15%"
+              title="Ingredient overlap"
+              body="Published ingredient (INCI) lists, compared as one flat list rather than split into top, heart and base — an ingredient list isn't ordered by when you smell it. Inactive unless both sides publish one, and today no listing does, so it currently affects no published score."
             />
           </div>
 
@@ -65,6 +74,21 @@ export default function AboutPage() {
             Facet ratings are an editorial judgment, not a lab measurement. We
             say so explicitly rather than dressing up an estimate as
             instrument data.
+          </p>
+
+          <p className="mt-4 text-sm text-muted-foreground">
+            <strong className="font-semibold text-foreground/85">
+              No score can publish above 95%, whatever the calculation returns.
+            </strong>{" "}
+            Two fragrances can share every declared note and still not contain
+            those materials in the same proportions — a note list says what
+            went in, never how much — so a formula built on declared notes
+            cannot certify that two bottles smell identical, and our number
+            should not pretend otherwise. Separately, where a seller publishes
+            only a flat note list and we had to decide ourselves which notes
+            are top, heart and base, 10 points are subtracted before that
+            ceiling applies: our own split can be arranged to flatter a score
+            in a way a seller&apos;s own published pyramid cannot.
           </p>
 
           <h3 className="mt-12 font-display text-2xl">Where the data comes from</h3>
@@ -80,17 +104,22 @@ export default function AboutPage() {
             <ScoreComponent
               weight="Declared"
               title="Producer declared"
-              body="The notes and facet ratings came from the producer and we have not checked them independently yet. These listings show a 'producer declared' badge, and their match score is capped, however high the raw calculation runs."
+              body="The notes and facet ratings came from the producer and we have not checked them independently yet. These listings show a 'producer declared' badge, and their match score is capped at 90%, however high the raw calculation runs."
             />
             <ScoreComponent
               weight="Verified"
               title="Editorially verified"
-              body="We have checked the declared data against independent sources. Only a verified listing can publish a score above the cap. Verification is never granted by paying us."
+              body="We have checked the declared data against independent sources. That lifts the 90% cap, but not the 95% ceiling above — verification tells you the declared data is real, not that two formulations are identical. Verification is never granted by paying us."
             />
             <ScoreComponent
               weight="Held"
               title="Flagged, not published"
               body="If a submission's notes and facet ratings are simply the original's own, restated, we hold it for manual review and it does not appear in comparisons at all. Copying the reference is not evidence of a close match, and our formula on its own cannot tell the two apart."
+            />
+            <ScoreComponent
+              weight="Founder"
+              title="Founder's personal assessment"
+              body="The one exception to the 95% ceiling: our founder has worn both and states a figure personally, with the reason written on the listing. It is a named human opinion, not an independent check and not a measurement — which is exactly why it carries its own badge instead of borrowing the 'verified' one. It can never be applied to our own fragrance line, and it cannot rescue a listing flagged above. No listing currently uses it."
             />
           </div>
 

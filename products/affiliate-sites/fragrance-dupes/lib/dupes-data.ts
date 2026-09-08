@@ -1,5 +1,6 @@
 import { REFERENCES } from "@/lib/data/references";
 import { DUPE_IMAGES } from "@/lib/data/dupe-images.generated";
+import { validateFounderOverride } from "@/lib/verification";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
 
 export { REFERENCES };
@@ -168,6 +169,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Club de Nuit Intense Man",
     brand: "Armaf",
     producerSlug: "armaf",
+    family: "Fruity Chypre",
+    pyramidSource: "declared",
     notes: {
       top: ["Pineapple", "Blackcurrant", "Apple", "Lemon", "Bergamot"],
       heart: ["Birch", "Jasmine", "Rose"],
@@ -223,6 +226,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Asad",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Fruity Chypre",
+    pyramidSource: "declared",
     notes: {
       top: ["Pineapple", "Blackcurrant", "Bergamot"],
       heart: ["Patchouli", "Violet Leaf", "Jasmine"],
@@ -257,6 +262,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Khamrah",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Woody Oriental",
+    pyramidSource: "declared",
     notes: {
       top: ["Cinnamon", "Nutmeg", "Bergamot"],
       heart: ["Dates", "Praline", "Tuberose", "Mahonial"],
@@ -291,6 +298,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Club de Nuit Sillage",
     brand: "Armaf",
     producerSlug: "armaf",
+    family: "Fresh Woody",
+    pyramidSource: "declared",
     notes: {
       top: ["Bergamot", "Green Notes", "Pineapple"],
       heart: ["Blackcurrant", "Tea", "Jasmine"],
@@ -322,6 +331,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Club de Nuit Urban Man",
     brand: "Armaf",
     producerSlug: "armaf",
+    family: "Fresh Woody",
+    pyramidSource: "declared",
     notes: {
       top: ["Bergamot", "Lemon", "Sea Notes"],
       heart: ["Iris", "Jasmine"],
@@ -377,6 +388,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Bade'e Al Oud Oud For Glory",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Oriental Woody",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: "inspired by initio oud for greatness",
@@ -415,6 +428,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Barakkat Rouge 540",
     brand: "Fragrance World",
     producerSlug: "fragrance-world",
+    family: "Amber Woody",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: "Inspired by the iconic Baccarat Rouge 540, it offers an irresistible alternative",
@@ -453,6 +468,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Ana Abiyedh Rouge",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Amber Woody",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: "inspired by Rouge 540, with a unique twist of additional musk and saffron",
@@ -491,6 +508,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Bint Hooran",
     brand: "Ard Al Zaafaran",
     producerSlug: "ard-al-zaafaran",
+    family: "Amber Floral",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: 'Inspired by "Good Girl" ... The notes of this perfume are similar to those of Good Girl',
@@ -533,6 +552,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Léonie",
     brand: "Maison Alhambra",
     producerSlug: "maison-alhambra",
+    family: "Aromatic Floral",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: 'formerly known as Libbra and inspired by "Libre for women"',
@@ -605,6 +626,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Khamrah Qahwa",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Woody Oriental",
+    pyramidSource: "declared",
     notes: {
       top: ["Ginger", "Cinnamon", "Cardamom"],
       heart: ["Praline", "Candied Fruits", "White Flowers"],
@@ -637,6 +660,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Maitre De Blue",
     brand: "Maison Alhambra",
     producerSlug: "maison-alhambra",
+    family: "Woody Aromatic",
+    pyramidSource: "declared",
     notes: {
       top: ["Grapefruit", "Lemon", "Mint", "Pink Pepper"],
       heart: ["Ginger", "Nutmeg", "Jasmine", "Melon"],
@@ -670,6 +695,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Velvet Oud",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Leather Floral",
+    pyramidSource: "declared",
     notes: {
       top: ["Cardamom", "Bergamot"],
       heart: ["Violet Leaf", "Patchouli"],
@@ -702,6 +729,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Qaed Al Fursan Unlimited",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Fruity Chypre",
+    pyramidSource: "declared",
     notes: {
       top: ["Bergamot", "Berries", "Apple", "Black Birch"],
       heart: ["Woody Notes", "Jasmine", "Patchouli"],
@@ -735,6 +764,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Mayar Cherry Intense",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Gourmand Oriental",
+    pyramidSource: "declared",
     notes: {
       top: ["Strawberry", "Bergamot"],
       heart: ["Cherry Jam", "Cacao"],
@@ -794,6 +825,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Jean Lowe Matiere",
     brand: "Maison Alhambra",
     producerSlug: "maison-alhambra",
+    family: "Woody",
+    pyramidSource: "declared",
     notes: {
       top: ["Blackcurrant", "Watery Notes"],
       heart: ["Rose", "Cyclamen", "Narcissus", "Jasmine Sambac"],
@@ -827,6 +860,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Maahir Black Edition",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Oriental Floral",
+    pyramidSource: "declared",
     notes: {
       top: ["Bergamot", "Pink Pepper", "Black Pepper", "Saffron"],
       heart: ["Cade", "Labdanum", "Gurjum Balsam", "Vanilla", "Frankincense", "Amber"],
@@ -879,6 +914,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Embassy Royal Extrait",
     brand: "Afnan",
     producerSlug: "afnan",
+    family: "Woody Spicy",
+    pyramidSource: "declared",
     notes: {
       top: ["Nutmeg", "Cinnamon", "Cardamom", "Grapefruit"],
       heart: ["Lavender"],
@@ -912,6 +949,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Royal Blend Extrait",
     brand: "French Avenue",
     producerSlug: "french-avenue",
+    family: "Woody Oriental",
+    pyramidSource: "declared",
     notes: {
       top: ["Cognac", "Cinnamon", "Plum"],
       heart: ["Iris", "Myrrh"],
@@ -944,6 +983,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Mocha Wood",
     brand: "Fragrance World",
     producerSlug: "fragrance-world",
+    family: "Oriental Floral",
+    pyramidSource: "declared",
     notes: {
       top: ["Bergamot", "Hazelnut", "Saffron", "Ylang-Ylang", "Rhubarb"],
       heart: ["Coffee", "Rose", "Mocha", "Tobacco", "Tonka Bean"],
@@ -976,6 +1017,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Al Areeq Gold",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Leather",
+    pyramidSource: "declared",
     notes: {
       top: ["Saffron", "Black Tea"],
       heart: ["Incense", "Suede"],
@@ -1009,6 +1052,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Sceptre Amazonite",
     brand: "Maison Alhambra",
     producerSlug: "maison-alhambra",
+    family: "Oriental Spicy",
+    pyramidSource: "declared",
     notes: {
       top: ["Nutmeg", "Cinnamon"],
       heart: ["Cypriol", "Olibanum"],
@@ -1041,6 +1086,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Velvet Rose",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Woody Floral",
+    pyramidSource: "declared",
     notes: {
       top: ["Rose", "Patchouli"],
       heart: ["Labdanum", "Musk"],
@@ -1074,6 +1121,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Hawas Black",
     brand: "Rasasi",
     producerSlug: "rasasi",
+    family: "Fruity Chypre",
+    pyramidSource: "declared",
     notes: {
       top: ["Bergamot", "Pineapple", "Grapefruit"],
       heart: ["Patchouli", "Cedarwood", "Jasmine"],
@@ -1106,6 +1155,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Supremacy Not Only Intense",
     brand: "Afnan",
     producerSlug: "afnan",
+    family: "Fruity Chypre",
+    pyramidSource: "declared",
     notes: {
       top: ["Bergamot", "Apple", "Black Currant"],
       heart: ["Lavender", "Patchouli", "Oakmoss"],
@@ -1170,6 +1221,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Neroli Riviera",
     brand: "Fragrance World",
     producerSlug: "fragrance-world",
+    family: "Citrus Aromatic",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: "Inspired by the freshness of Neroli Portofino",
@@ -1210,6 +1263,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Oud Orchid",
     brand: "Ard Al Zaafaran",
     producerSlug: "ard-al-zaafaran",
+    family: "Oriental Woody",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: "inspired by tom ford black orchid",
@@ -1250,6 +1305,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Qaa'ed",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Woody",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: "inspired by tf oud wood",
@@ -1294,6 +1351,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Mohra",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Woody",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: "reminiscent of Tom Ford's Oud Wood",
@@ -1345,6 +1404,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Vanille En Tobacco",
     brand: "Fragrance World",
     producerSlug: "fragrance-world",
+    family: "Oriental Spicy",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: "Inspired by Tobacco Vanilla",
@@ -1385,6 +1446,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Ameer Al Oudh Intense Oud",
     brand: "Lattafa",
     producerSlug: "lattafa",
+    family: "Gourmand Woody",
+    pyramidSource: "declared",
     pairingBasis: {
       source: "Opulensi product listing",
       quote: "An aroma of sweet smoky woody notes makes you feel a cozy vibe of being By The Fireplace",
@@ -1431,6 +1494,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Oud Is Great",
     brand: "Zimaya",
     producerSlug: "zimaya",
+    family: "Oriental Woody",
+    pyramidSource: "declared",
     // No "inspired by"/"alternative to" phrasing anywhere in the retailer's
     // copy, but the feed's full product description - longer than what a
     // first read of the CSV shows - does name Initio directly, once you read
@@ -1576,6 +1641,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Rouge Veil No. 13",
     brand: "The CLONE",
     producerSlug: "the-clone",
+    family: "Amber Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "Clone of Perfume product listing",
       quote:
@@ -1622,6 +1689,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Thunderstorm No. 93",
     brand: "The CLONE",
     producerSlug: "the-clone",
+    family: "Fruity Chypre",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "Clone of Perfume product listing",
       quote:
@@ -1661,6 +1730,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Ultimatum No. 53",
     brand: "The CLONE",
     producerSlug: "the-clone",
+    family: "Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "Clone of Perfume product listing",
       quote: "The CLONE No. 53 - Ultimatum (Inspired by Tom Ford Oud Wood)",
@@ -1698,6 +1769,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Naked Cherry No. 33",
     brand: "The CLONE",
     producerSlug: "the-clone",
+    family: "Gourmand Oriental",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "Clone of Perfume product listing",
       quote: "The CLONE No. 33 - Naked Cherry (Inspired by Lost Cherry)",
@@ -1741,6 +1814,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Whisper No. 43",
     brand: "The CLONE",
     producerSlug: "the-clone",
+    family: "Woody Aromatic",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "Clone of Perfume product listing",
       quote: "The CLONE No. 43 - Whisper, inspired by the iconic Sauvage",
@@ -1779,6 +1854,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Lady on Fire No. 23",
     brand: "The CLONE",
     producerSlug: "the-clone",
+    family: "Gourmand Oriental",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "Clone of Perfume product listing",
       quote: "The CLONE No. 23 Lady on Fire (Inspired by Black Opium)",
@@ -1817,6 +1894,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Pleasure Noir No. 63",
     brand: "The CLONE",
     producerSlug: "the-clone",
+    family: "Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "Clone of Perfume product listing",
       quote:
@@ -1858,6 +1937,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Brave in Love No. 37",
     brand: "The CLONE",
     producerSlug: "the-clone",
+    family: "Oriental Vanilla",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "Clone of Perfume product listing",
       quote:
@@ -1901,6 +1982,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Brutal Story No. 73",
     brand: "The CLONE",
     producerSlug: "the-clone",
+    family: "Leather Spicy",
+    pyramidSource: "imputed",
     // The feed description only manages "If you love the vibe of Fabulous Tom
     // Ford but want a more accessible option" - the original's name mangled,
     // and weaker than the URL slug (".../brutal-story-fabulous-tom-ford")
@@ -2059,6 +2142,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Spark",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Woody Aromatic",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "SPARK | Inspired by CHANEL ALLURE HOMME SPORT",
@@ -2101,6 +2186,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Heavenly",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Gourmand Oriental",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "HEAVENLY | Inspired by MUGLER ANGEL",
@@ -2142,6 +2229,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Freedom",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Woody Amber",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "FREEDOM | Inspired by LE LABO ANOTHER 13",
@@ -2182,6 +2271,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Virility",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Leather Chypre",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "VIRILITY | Inspired by CHANEL ANTAEUS",
@@ -2223,6 +2314,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Bittersweet",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Gourmand Oriental",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "BITTERSWEET | Inspired by TOM FORD BITTER PEACH",
@@ -2264,6 +2357,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Glamorous",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Floral Fruity",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "GLAMOROUS | Inspired by VERSACE BRIGHT CRYSTAL",
@@ -2317,6 +2412,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Sparkle",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Citrus Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "SPARKLE | Inspired by MANCERA CEDRAT BOISE",
@@ -2360,6 +2457,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Admire",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Floral Fruity",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "ADMIRE | Inspired by CHANEL CHANCE EAU TENDRE",
@@ -2402,6 +2501,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Sensual",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Woody Aromatic",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "SENSUAL | Inspired by Tom Ford COSTA AZZURRA",
@@ -2445,6 +2546,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Erotic",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Aromatic Fougere",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "EROTIC | Inspired by VERSACE EROS",
@@ -2486,6 +2589,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Masculinity",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Oriental Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "MASCULINITY | Inspired by VERSACE EROS FLAME",
@@ -2533,6 +2638,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Mystical",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Floral Fruity",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "MYSTICAL | Inspired by GUCCI FLORA GORGEOUS GARDENIA",
@@ -2575,6 +2682,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Blooming",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "White Floral",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "BLOOMING | Inspired by VIKTOR ROLF FLOWERBOMB",
@@ -2617,6 +2726,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Revive",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Fougere",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "REVIVE | Inspired by CREED GREEN IRISH TWEED",
@@ -2725,6 +2836,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Intense",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Gourmand Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "INTENSE | Inspired by PARFUMS DE MARLY PEGASUS",
@@ -2762,6 +2875,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Delight",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Amber Floral",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "DELIGHT | Inspired by LANCÔME LA VIE EST BELLE",
@@ -2799,6 +2914,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Mesmorize",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Oriental Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "MESMORIZE | Inspired by GIORGIO ARMANI CODE",
@@ -2836,6 +2953,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Cool",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Woody Aromatic",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "COOL | Inspired by YVES SAINT LRNT YSL Y EDP",
@@ -2873,6 +2992,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Beauty",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Floral Fruity",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "BEAUTY | Inspired by PARFUMS DE MRLY DELINA",
@@ -2910,6 +3031,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Femininity",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Floral Aldehyde",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "FEMININITY | Inspired by CHANEL NO 5 EDP",
@@ -2947,6 +3070,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Harmony",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Fresh Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "HARMONY | Inspired by HERMES TERRE D'HERMES",
@@ -2984,6 +3109,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Precious",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Floral",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "PRECIOUS | Inspired by CHLOE EAU DE PARFUM",
@@ -3021,6 +3148,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Luxurious",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Oriental Spicy",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "LUXURIOUS | Inspired by PARFUMS DE MARLY HEROD",
@@ -3058,6 +3187,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Fiery",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Leather Floral",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "FIERY | Inspired by D. FAHRENHEIT",
@@ -3095,6 +3226,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Glimmer",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Oriental Floral",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "GLIMMER | Inspired by TOM FORD VELVET ORCHID",
@@ -3132,6 +3265,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Adventure",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Citrus Tropical",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "ADVENTURE | Inspired by CREED VIRGIN ISLAND WATER",
@@ -3169,6 +3304,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Legendary",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Aromatic Fougere",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "LEGENDARY | Inspired by MONTBLANC LEGEND",
@@ -3206,6 +3343,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Sweet",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Floral Fruity",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "SWEET | Inspired by BURBERRY HER",
@@ -3243,6 +3382,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Charisma",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Aromatic Fresh",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "CHARISMA | Inspired by YVES SAINT LAURENT YSL L'HOMME",
@@ -3280,6 +3421,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Robust",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Oriental Spicy",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "ROBUST | Inspired by MANCERA RED TOBACCO",
@@ -3317,6 +3460,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Luminous",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Woody Aromatic",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "LUMINOUS | Inspired by MFK AMYRIS HOMME",
@@ -3354,6 +3499,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Blossom",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "White Floral",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "BLOSSOM | Inspired by GUCCI BLOOM",
@@ -3391,6 +3538,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Nature",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Aromatic",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "NATURE | Inspired by JO MALONE LONDON WOOD SAGE & SEA SALT",
@@ -3428,6 +3577,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Bold",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Aromatic Fougere",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "BOLD | Inspired by PARFUMS DE MARLY PERCIVAL",
@@ -3465,6 +3616,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Clarity",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Citrus Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "CLARITY | Inspired by ROJA ELYSIUM PARFUM COLOGNE",
@@ -3502,6 +3655,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Captivate",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Oriental Spicy",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "CAPTIVATE | Inspired by D. POISON",
@@ -3539,6 +3694,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Uplifting",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Citrus Aromatic",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "UPLIFTING | Inspired by DG LIGHT BLUE",
@@ -3576,6 +3733,8 @@ const LISTINGS: DupeCandidate[] = [
     name: "Audacious",
     brand: "AromaPassions",
     producerSlug: "aromapassions",
+    family: "Floral Woody",
+    pyramidSource: "imputed",
     pairingBasis: {
       source: "AromaPassions product title",
       quote: "AUDACIOUS | Inspired by GIVNCHY LINTERDIT",
@@ -3628,6 +3787,14 @@ export const DUPES: DupeCandidate[] = LISTINGS.map((dupe) => {
   const image = DUPE_IMAGES[dupe.slug];
   return image ? { ...dupe, imageUrl: image } : dupe;
 });
+
+// Fails the build loudly if a founderOverride is ever added incorrectly,
+// mirroring the duplicate-slug guard in lib/data/references.ts. A no-op today
+// (no listing carries one) - it exists so the one mechanism allowed to publish
+// above the structural ceiling cannot land unjustified, or on our own product.
+for (const dupe of DUPES) {
+  validateFounderOverride(dupe);
+}
 
 export function getReference(slug: string): ReferenceFragrance | undefined {
   return REFERENCES.find((r) => r.slug === slug);

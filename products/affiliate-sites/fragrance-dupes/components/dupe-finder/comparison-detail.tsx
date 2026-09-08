@@ -40,6 +40,10 @@ export function ComparisonDetail({
   const score = getPublishedSimilarity(reference, dupe);
   const house = isHouseProduct(dupe);
   const verification = getVerificationBadge(reference, dupe);
+  // Mirrors the condition in lib/similarity.ts: the ingredient component only
+  // counts when both sides publish a list, so the heading must not claim it
+  // otherwise.
+  const bothHaveIngredients = !!reference.ingredients?.length && !!dupe.ingredients?.length;
 
   return (
     <div className="flex flex-col gap-10 rounded-frame border border-border bg-card p-6 sm:p-8">
@@ -64,7 +68,9 @@ export function ComparisonDetail({
           <p className="text-sm text-muted-foreground">
             {reference.name} <span className="text-foreground/40">vs</span> {dupe.name} by {dupe.brand}
           </p>
-          <p className="mt-1 font-display text-2xl">{score}% note and facet match</p>
+          <p className="mt-1 font-display text-2xl">
+            {score}% note, facet{bothHaveIngredients ? ", ingredient" : ""} and family match
+          </p>
           <span className="mt-3 flex flex-wrap items-center gap-2">
             <VerificationBadge info={verification} />
             {house && <HouseBadge />}

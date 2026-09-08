@@ -139,6 +139,18 @@ enum VerificationStatus {
   FLAGGED
 }
 
+/// Mirrors lib/types.ts's `DupeCandidate.pyramidSource`. DECLARED is the
+/// correct default for a producer submission - filling in three separate
+/// top/heart/base fields IS declaring your own split. IMPUTED is only ever set
+/// later by an editor, for a listing whose merchant published a flat, untiered
+/// note list that we had to split ourselves; those carry a 10-point penalty in
+/// lib/verification.ts, because our own split can be tuned to flatter a score
+/// in a way a seller's published tiering cannot.
+enum PyramidSource {
+  DECLARED
+  IMPUTED
+}
+
 /// One producer's listing against one reference fragrance. Mirrors
 /// `DupeCandidate` in lib/types.ts, plus the workflow state a static fixture
 /// has no need for.
@@ -164,6 +176,16 @@ model Submission {
   notesTop   String[]
   notesHeart String[]
   notesBase  String[]
+
+  /// Flat, UNTIERED ingredient/INCI declaration - mirrors
+  /// DupeCandidate.ingredients. Empty is meaningful and safe: an absent list
+  /// is never scored as a mismatch, the formula in lib/similarity.ts simply
+  /// falls back to its three-component weighting until both sides of a
+  /// comparison have one.
+  ingredients String[] @default([])
+
+  /// Whether the tier split above is the producer's own or ours. See the enum.
+  pyramidSource PyramidSource @default(DECLARED)
 
   /// Producer's own 0-10 facet self-assessment. The integrity problem in
   /// PRODUCER-PROGRAM.md §7 lives here: these feed the similarity score and
@@ -193,6 +215,17 @@ model Submission {
   rejectionReason    String?
   reviewedAt         DateTime?
   reviewedBy         String?
+
+  /// Editorial-only escape hatch, mirroring DupeCandidate.founderOverride -
+  /// the ONLY way a published score exceeds the 95% structural ceiling in
+  /// lib/verification.ts. NEVER set by a producer submission: an editor sets
+  /// it, the same workflow as rejectionReason/reviewedBy above. All three
+  /// null, or all three non-null - an override without its written
+  /// justification is exactly the unexplained backdoor the mechanism is
+  /// disclosed on /about#methodology to avoid being.
+  founderOverrideScore Int?
+  founderOverrideNote  String?
+  founderOverrideDate  DateTime?
 
   /// Prices go stale and a stale price is a misleading "Nx cheaper" claim on
   /// a live comparison - see PRODUCER-PROGRAM.md §4 step 6.

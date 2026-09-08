@@ -74,6 +74,7 @@ export function SubmissionForm() {
   const [top, setTop] = useState("");
   const [heart, setHeart] = useState("");
   const [base, setBase] = useState("");
+  const [ingredients, setIngredients] = useState("");
   const [differences, setDifferences] = useState("");
   const [affiliateUrl, setAffiliateUrl] = useState("");
   const [facets, setFacets] = useState<FacetScores>({
@@ -181,6 +182,17 @@ export function SubmissionForm() {
             </p>
           </div>
         )}
+
+        <Field
+          label="Ingredients / INCI list (optional)"
+          hint="One flat, comma-separated list - no top/heart/base split needed. Leave it blank if you don't publish one: an absent list is never scored as a mismatch, it simply doesn't count either way until both sides of a comparison have one."
+        >
+          <TextInput
+            value={ingredients}
+            onChange={setIngredients}
+            placeholder="Alcohol Denat., Aqua, Parfum, Linalool, Coumarin"
+          />
+        </Field>
       </div>
 
       <div className="flex flex-col gap-4">

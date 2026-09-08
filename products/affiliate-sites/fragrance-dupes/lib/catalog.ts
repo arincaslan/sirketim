@@ -5,7 +5,7 @@ import { SHOP_ORIGINALS, type ShopOriginal } from "@/lib/data/cj-shop.generated"
 import { DUPES, REFERENCES } from "@/lib/dupes-data";
 import { isHouseProducer } from "@/lib/producers";
 import { computeSimilarity, getRelatedReferences } from "@/lib/similarity";
-import { getPublishedScore, isVerbatimCopy } from "@/lib/verification";
+import { getPreCeilingScore, getPublishedScore, isVerbatimCopy } from "@/lib/verification";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
 
 /**
@@ -93,18 +93,26 @@ export function searchReferences(
  * all - that is the specific abuse pattern the anti-copy-cheat standard
  * exists to catch, and it is a publish gate, not a rank penalty.
  *
- * Ranking sorts on the PUBLISHED score first and the raw score second. The
- * published key stops the list ever showing a higher-ranked listing at a lower
- * percentage than the one beneath it; the raw key keeps order meaningful among
- * the listings that display the same capped number.
+ * Ranking sorts on the PUBLISHED score first and the pre-ceiling score second.
+ * The published key stops the list ever showing a higher-ranked listing at a
+ * lower percentage than the one beneath it; the second key keeps order
+ * meaningful among the listings that display the same capped number.
+ *
+ * That second key is getPreCeilingScore, NOT the bare formula output: it
+ * carries the imputed-pyramid penalty, so a listing whose tier split we
+ * invented cannot break a tie against an honestly-tiered one purely because
+ * our own split happened to maximise its overlap. See lib/verification.ts.
  */
 export function getRankedDupesFor(reference: ReferenceFragrance): DupeCandidate[] {
   return DUPES.filter((d) => d.referenceSlug === reference.slug && !isVerbatimCopy(reference, d))
-    .map((dupe) => ({
-      dupe,
-      published: getPublishedScore(computeSimilarity(reference, dupe), dupe),
-      raw: computeSimilarity(reference, dupe),
-    }))
+    .map((dupe) => {
+      const rawScore = computeSimilarity(reference, dupe);
+      return {
+        dupe,
+        published: getPublishedScore(rawScore, dupe),
+        raw: getPreCeilingScore(rawScore, dupe),
+      };
+    })
     .sort((a, b) => {
       // Published score first, so the list can never show #1 at a LOWER
       // percentage than #2. That inversion is reachable: two listings can have

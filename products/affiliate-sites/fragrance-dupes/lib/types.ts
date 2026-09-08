@@ -30,6 +30,13 @@ export interface ReferenceFragrance {
   priceUsd: number;
   bottleMl: number;
   concentration: string;
+  /** Flat, UNTIERED ingredient/INCI list, when sourced - unlike `notes`, this
+   *  has no top/heart/base split. Compared to DupeCandidate.ingredients as
+   *  plain Jaccard overlap in lib/similarity.ts. Optional and, as of
+   *  2026-09-08, unset on every reference; see that file for how its absence
+   *  degrades (the formula falls back to its pre-ingredient weighting rather
+   *  than scoring a missing list as zero overlap). */
+  ingredients?: string[];
   /** Buy-the-original link. Added for the marketplace pivot (MARKETPLACE-PLAN.md
    *  §1): COUNTERSCENT earns on originals too, not just dupes, so every reference
    *  needs its own outbound link. Optional - a reference with no enrolled
@@ -150,6 +157,58 @@ export interface DupeCandidate {
   producerSlug: string;
   notes: FragranceNotes;
   facets: FacetScores;
+  /**
+   * The dupe's OWN olfactive family. Required, not optional: before this
+   * field existed, computeSimilarity's familyBonus was hardcoded to 1
+   * because there was nowhere on this type to compare against
+   * reference.family at all - see lib/similarity.ts. For every one of the
+   * 79 fixture listings this equals the paired reference's own family, which
+   * is exactly the assumption the old hardcoded bonus relied on ("dataset
+   * only pairs same-family candidates today") - it now lives here as data
+   * instead of as an assumption baked into the formula. A future listing
+   * whose composition genuinely sits in a different family than its
+   * reference should say so here and take the partial credit in
+   * CROSS_FAMILY_CREDIT rather than the full 15%.
+   */
+  family: string;
+  /** Flat, UNTIERED ingredient/INCI list, mirroring
+   *  ReferenceFragrance.ingredients. Sourced the same way every other claim
+   *  on a listing is - the merchant's own page or the producer's own
+   *  submission, never invented. */
+  ingredients?: string[];
+  /**
+   * Whether this listing's top/heart/base split came from the merchant's or
+   * producer's own published pyramid ("declared"), or was invented by us
+   * from an untiered flat list ("imputed") - see the project CLAUDE.md's
+   * "THE SPLIT IS OURS" sections and the AromaPassions/Clone of Perfume
+   * batch headers in lib/dupes-data.ts. Required, not optional: the -10
+   * imputed-pyramid penalty in lib/verification.ts needs every listing to
+   * make an explicit claim, and letting it silently default in either
+   * direction would undermine exactly the honesty that penalty exists for.
+   * New producer submissions should default to "declared" - filling in
+   * three separate tier fields is declaring your own split, not having one
+   * imputed for you.
+   */
+  pyramidSource: "declared" | "imputed";
+  /**
+   * A rare, human, editorial override of the published score - the ONLY way
+   * a listing can publish above the 95% structural ceiling in
+   * lib/verification.ts. `note` must be non-empty (mirrors the required
+   * "what's genuinely different" prose already on the submission form) and
+   * is shown on the page, because an unexplained number above the site's
+   * own stated ceiling is exactly the backdoor /about#methodology exists to
+   * rule out. Bypasses the -10 imputed-pyramid penalty and both the 90%/95%
+   * ceilings entirely - but never the isVerbatimCopy publish gate, which
+   * runs in getRankedDupesFor before a score is ever computed, and never a
+   * house-producer listing (enforced by the module-load guard in
+   * lib/dupes-data.ts) - self-certifying our own product past the ceiling
+   * is exactly the hole getPublishedScore already closes for `verified`.
+   */
+  founderOverride?: {
+    score: number;
+    note: string;
+    date: string;
+  };
   longevityHoursRange: [number, number];
   sillageLabel: SillageLabel;
   priceUsd: number;

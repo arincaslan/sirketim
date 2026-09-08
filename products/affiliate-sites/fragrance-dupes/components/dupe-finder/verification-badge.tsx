@@ -1,4 +1,4 @@
-import { Certificate, Warning, WarningOctagon } from "@phosphor-icons/react/dist/ssr";
+import { Certificate, Signature, Warning, WarningOctagon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import type { VerificationBadgeInfo } from "@/lib/verification";
 
@@ -22,7 +22,19 @@ export function VerificationBadge({
   compact?: boolean;
   className?: string;
 }) {
-  const Icon = info.status === "verified" ? Certificate : info.status === "flagged" ? WarningOctagon : Warning;
+  const Icon =
+    info.status === "verified"
+      ? Certificate
+      : info.status === "flagged"
+        ? WarningOctagon
+        : info.status === "founder-override"
+          ? Signature
+          : Warning;
+
+  // Deliberately NOT styled like "verified": a founder override is one
+  // person's disclosed opinion, not an independent check, and the two must
+  // not read as the same kind of assurance at a glance.
+  const compactLabel = info.status === "founder-override" ? "Founder" : info.status[0].toUpperCase() + info.status.slice(1);
 
   return (
     <span
@@ -32,6 +44,7 @@ export function VerificationBadge({
         info.status === "verified" && "border-primary/40 bg-secondary/60 text-foreground/80",
         info.status === "declared" && "border-border bg-card text-muted-foreground",
         info.status === "flagged" && "border-destructive/50 bg-destructive/10 text-destructive",
+        info.status === "founder-override" && "border-accent/50 bg-accent/10 text-foreground/80",
         className
       )}
     >
@@ -40,7 +53,7 @@ export function VerificationBadge({
         className={cn("h-3 w-3", info.status === "verified" ? "text-primary" : "")}
         aria-hidden
       />
-      {compact ? info.status[0].toUpperCase() + info.status.slice(1) : info.label}
+      {compact ? compactLabel : info.label}
     </span>
   );
 }
