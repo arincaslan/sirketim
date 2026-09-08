@@ -1,4 +1,4 @@
-# Handoff — 2026-09-05, updated 2026-09-07 (end of session)
+# Handoff — 2026-09-05, updated 2026-09-08 (end of session)
 
 **Perishable.** This is where a working session stopped, not a permanent document. When its open items are done, delete it rather than letting it rot into a false account of the project. Durable lessons belong in the relevant `CLAUDE.md`; the ordered roadmap belongs in `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`.
 
@@ -6,7 +6,9 @@ Machine setup is `SETUP.md`. This file is only about *what state the work is in*
 
 ## Where things stand
 
-`counterscent.com` is live and **everything below is shipped, pushed and verified in production**. Three deploys on 2026-09-07, each confirmed against the live site rather than assumed: the originals side (`6002fdd`, landed 145s), and the AromaPassions photographs (`7fb29b5`, landed 167s — all 38 images return 200, `/originals/` and `/fragrance/noir-extreme/` still 200, both redirect kinds still 302). Working tree clean, nothing unpushed.
+`counterscent.com` is live and **everything below is shipped, pushed and verified in production**. Deploys on 2026-09-07, each confirmed against the live site rather than assumed: the originals side (`6002fdd`, landed 145s), and the AromaPassions photographs (`7fb29b5`, landed 167s — all 38 images return 200, `/originals/` and `/fragrance/noir-extreme/` still 200, both redirect kinds still 302). Then on 2026-09-08 the **score reform** (`0873b20`, landed 14:45:11, ~3 min) and the docs/dashboard pass (`967ce0b`). Working tree clean, nothing unpushed.
+
+**Live-verified after `0873b20`, not assumed:** `/fragrance/chance-eau-tendre/` renders **75** for AromaPassions Admire (was 85), Aventus reads **80 / 79 / 79**, and `/about` carries every new number (40%, 30%, 15%, 90%, 95%, "Ingredient overlap", "Founder's personal assessment"). One process note worth keeping: **the first two live checks after a push will show the old content and that is not a deploy failure** — Cloudflare has taken 145–167s on every deploy here and I twice read "not deployed" from a check made too early. Wait ~3 minutes before concluding anything, and force-resolve rather than trusting the local resolver.
 
 **You are picking this up on the other machine.** Everything in the repo travels; four things do not, and three of them will look like breakage:
 
@@ -98,9 +100,20 @@ Five of the last fourteen listings scored 83–87 because the merchant restated 
 
 **Still open, and worth being precise about:** the penalty prices a *missing pyramid*, not copying. A merchant who copies the reference's pyramid and publishes it as three proper tiers is still scored at face value, and `isVerbatimCopy()` — which needs facets to match too — remains the only defence against that.
 
+## Two published artifacts live outside the repo — one is a pass behind
+
+These are account-scoped, not machine-scoped: they travel with the founder's Claude login, so **nothing needs re-publishing just because you switched machines.** Both URLs are here because a republish must target the existing URL — publishing without one silently creates a *duplicate* artifact and the founder's bookmark keeps pointing at the stale one.
+
+| Artifact | URL | State |
+|---|---|---|
+| **Counterscent Finalization** | `https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96` | **Current** — republished 2026-09-08 as the eighth pass, completed tasks ticked, real counts in, Perfumania recorded as waiting-on-feed. Mirrors `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`. |
+| **Sirketim Dashboard** | `https://claude.ai/code/artifact/e2e47262-d56d-4ca9-8e6f-cdb07955e025` | **One pass behind.** `internal/dashboard/design/sirketim-dashboard.html` and `Main.dc.html` both carry task 185 and the "Sep 8" labels in the repo, but the *published* page still shows the previous snapshot. Not urgent: the dashboard's Finalization Guide link URL did not change, so clicking it from the stale dashboard still opens the current report. |
+
+**The reason it is a pass behind, which will bite the next session too:** republishing an artifact this conversation did not itself publish is refused until you have `Read` **every line** of the live copy the tool hands you. The dashboard is ~786 lines and ~140 KB, most of it very long task-note strings, so that read is a real context cost for a file the repo already holds a newer copy of. Budget for it deliberately — do the read early in a session, or accept the artifact lagging until a session has room. Do not work around it by publishing without the `url`.
+
 ## Work queue, in the order it makes sense
 
-1. **Commit and deploy A2.** It is verified in the working tree but unpushed: `tsc` and `lint` clean, `npm run build` succeeds, all 77 links traced with attribution intact, 84 redirect rules generated, all 38 AromaPassions listings confirmed visible via `getRankedDupesFor()` and 0 flagged verbatim.
+1. ~~**Commit and deploy A2.**~~ — **DONE, shipped as `e106c89`.** It is live: 77 links traced with attribution intact, 84 redirect rules generated, all 38 AromaPassions listings visible via `getRankedDupesFor()`, 0 flagged verbatim.
 2. ~~**Images for the 24 new listings.**~~ — **DONE 2026-09-07, and the diagnosis that used to sit here was wrong.** This item claimed the script "regenerates the whole manifest, so it needs `opulensi.csv` and `clone-of-perfume.csv` present too". It does not. It needed exactly one feed — `aromapassions.csv` — and that file was on disk the whole time, which is why the gap sat for two days behind a wrong explanation.
 
    The real blocker was ordering inside `scripts/fetch-dupe-images.mjs`: the loop read a merchant's feed *before* checking whether the image was already downloaded, so the expired Opulensi export made `loadFeed()` throw on the very first entry and killed the run — even though all 53 of those images were already present and every one of those entries would have been skipped a line later. The loop now checks the filesystem first and treats an unreadable feed as **that merchant's** failure, reported per-slug, rather than the run's. **A script serving several merchants must degrade to the ones it can still serve**, because feeds are gitignored and expire.
@@ -126,8 +139,13 @@ Five of the last fourteen listings scored 83–87 because the merchant restated 
 
 ## Founder actions still open
 
+No agent can do any of these. The numbered list in `FINALIZATION-GUIDE.md` is the canonical copy; this is the short form.
+
+- **Chase Perfumania for the feed** — approved on CJ, unwired, and the only missing piece is the export from their side. **Apply to FragranceX (CJ 1024283) in the same pass**: it is the better fit for the 26 references FragranceShop does not stock, and costs nothing extra.
+- **Confirm the CJ `sid` once in CJ's click report.** CJ obfuscates the forwarded query, so only the `cjevent` token is checkable from here — the same one-off check already done for Awin 117395.
 - **`parfumoza.com` still needs removing** from the Cloudflare account and the Worker's Domains & Routes. Dead since the 27 Aug rename, auto-renew off.
 - **9 affiliate applications were pending** and are not tracked anywhere in the repo. Worth recording which, so the next session does not re-apply or re-research them.
+- **Supply the Hostinger receipt** (amount, currency, auto-renew state). `hostinger-billing` is deliberately not configured, so the ledger records nothing about this project until you provide it.
 
 ## Two traps this session paid for
 

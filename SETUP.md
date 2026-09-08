@@ -35,7 +35,19 @@ The repo is **public** (deliberate — see the "Git remote" bullet in [CLAUDE.md
 
 ## 4. MCP connectors
 
-`.mcp.json` already configures `openart` (OAuth, no API key needed) — it travels with the repo. But connector *approval* is scoped per session/process, not global: a brand-new PC (or even a new session on a known PC) can show `⏸ Pending approval` the first time even though it's approved elsewhere. Run `/mcp` in that session to approve it there. Check `claude mcp list` before assuming a connector is live or broken.
+`.mcp.json` already configures `openart` (OAuth, no API key needed) — it travels with the repo. But connector *approval* is scoped per session/process, not global: a brand-new PC (or even a new session on a known PC) can show `⏸ Pending approval` the first time even though it's approved elsewhere. Run `/mcp` in that session to approve it there.
+
+**Two servers need a per-machine environment variable**, which is never committed (the repo is public):
+
+| Variable | Used by | Get it from |
+|---|---|---|
+| `HOSTINGER_API_TOKEN` | the four `hostinger-*` servers | Hostinger panel → API tokens |
+| `TWENTY_FIRST_API_KEY` | `21st` (web-dev UI components) | 21st.dev account |
+
+Without them those servers fail to connect, which looks identical to a broken server. Two more diagnosis rules, both learned the hard way and both contradicting the obvious move:
+
+- **Do not trust `claude mcp list`** — it has reported a server pending while that same server's own tool worked fine. If a connector matters, call one of its actual tools (or `ToolSearch`) instead.
+- **A `CONNECT_TIMEOUT` or `CONNECTION_CLOSED` at session start means "start a fresh session", not "the server is broken"** — confirmed while the same servers worked from another terminal at the same moment. Background subagents are hit hardest, since they do not inherit a fresh session's connections.
 
 ## 5. Per-project installs
 
@@ -62,3 +74,4 @@ Which feeds are mined out, and the per-feed gotchas, are in [HANDOFF.md](HANDOFF
 
 - **Scheduled reports** (`Sirketim Weekly Accounting Report`, `Sirketim Weekly Control/Audit Report`) run server-side on claude.ai against `main`, not tied to any local PC. They keep running regardless of which machine you're working from — don't reconfigure them.
 - **Ledger, client registry, board charter** (`departments/accounting/ledger.md`, `shared/clients.md`, `shared/board.md`) are plain files in the repo — cloning brings the current state automatically.
+- **The two published Artifacts** — the Sirketim Dashboard and the Counterscent Finalization report — are attached to the founder's Claude account, not to a machine, so switching PCs changes nothing about them. URLs and current state: [HANDOFF.md](HANDOFF.md). Two rules when you do update one: pass the existing `url` (publishing without it creates a duplicate and the founder's bookmark keeps opening the stale page), and expect the tool to **refuse** until you have read the live copy in full — which for the ~140 KB dashboard is a real context cost to plan for, not a step to skip.
