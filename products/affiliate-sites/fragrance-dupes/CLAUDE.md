@@ -364,6 +364,28 @@ An empty page under throttling is not the end of the catalogue, so the crawl ret
 
 `getOriginalOffers()` in `lib/catalog.ts` is what puts them back together for display. **Retailers are deliberately unranked and nothing is labelled cheapest**: a price is only comparable when both quote the same bottle, and 24 of the 91 pairs do not. `scripts/generate-redirects.mjs` reads all three link files - **add a fourth source there too or its buttons resolve in the UI and 404 at the edge.**
 
+#### CJ's `am.js` deep-link automation: it ANSWERED the permission question, and we still do not install it
+
+CJ generates an include at `anrdoezrs.net/am/<websiteId>/include/joined/impressions/page/am.js`. Ours resolves to a real 8 KB script whose first line is the answer to a question that cost a session of research:
+
+```js
+var domains = ['perfumania.com','www.perfumania.com'];
+var websiteId = 101873278;
+var generateLinkOnLoad = false;
+var sid = undefined;
+```
+
+**That settles deep-link permission for 17335854.** CJ built this for our publisher id, under a path segment reading `joined`, scoped to exactly one advertiser - so Perfumania is enrolled AND supports deep link automation. It also reassures on link shape: the script's own format is `tracking-ams5.cj.com/links/<websiteId>/type/am/sid/<sid>/<dest>`, which is NOT what we build, but what we build (`dpbolvw.net/click-<PID>-<AID>?url=`) is the format CJ itself delivered in that merchant's feed. Note FragranceShop is absent from `domains` - either 16941446 does not support automation or it is not enabled. Neither affects us.
+
+**Do not add the script to the site.** Four reasons, and the first one is not a preference:
+
+1. **It would force a consent banner.** Its actual job here is page-wide impression tracking: a `withCredentials = true` POST to `tracking-ams5.cj.com/pageImpression` carrying **every `<a href>` on the page**, whose response is a list of third-party pixels it then injects into the DOM. That is cross-site tracking with cookies. `components/kit/Analytics.tsx` is deliberately cookieless (`client_storage: 'none'`) and **that is the stated reason this site carries no KVKK/ePrivacy consent banner.** Installing this revokes that reasoning; the banner would follow.
+2. **It does not even link.** `generateLinkOnLoad = false` in the config CJ generated for us.
+3. **`sid = undefined`.** It carries no sub-ID, so we would lose the `pm__<slug>` / `pmshop__<slug>` split that tells us which page earned a click.
+4. **We have no plain merchant URLs to rewrite.** Deep link automation exists for sites that link out with bare URLs. Every link here is built at ingest time and routed through `/go/`, already tracked and already sub-ID'd.
+
+Use the include as evidence. Read its first line whenever the "does this advertiser allow deep links" question comes up for a new CJ merchant - it is cheaper than any dashboard hunt.
+
 #### THE MERCHANT'S NOTE TAGS LOOK LIKE A GOLDMINE AND ARE NOT - THIS IS MEASURED
 
 1,829 of the 4,380 storefront products carry `topnote_ / middlenote_ / basenote_` tags: a real three-tier pyramid, machine-readable, on 276 brands. It reads like a solution to the missing-originals backlog. **It is not, and the numbers are on disk rather than a hunch:**
