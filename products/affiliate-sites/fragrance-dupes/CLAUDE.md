@@ -336,6 +336,56 @@ Because that tag contains the word **"Cologne"**, `cologne` sits in the shared `
 
 `productNameOf()` in `scripts/ingest-cj-feed.mjs` now strips the gender tag and the format tail BEFORE matching, and passes a reduced noise set (`opts.noiseWords`) plus an empty concentration set (`opts.concentrationWords`) so that a surviving "cologne" or "parfum" is read as what it then is: part of the name, and proof of a different product. **Both overrides are load-bearing — dropping either re-opens the hole.** One consequence to expect: stripping the tail also hides "TESTER" and "Unboxed" from the leftover rule, so `NOT_RETAIL_BOTTLE` guards those explicitly on the full title.
 
+### The fifth merchant, 2026-09-09 - Perfumania, read off the STOREFRONT because its feed was the wrong catalogue
+
+Perfumania.com, CJ advertiser **17335854**, publisher 101873278, our second originals-side merchant.
+
+**Its CJ feed is useless and that is the headline.** The delivered export ("Like product feed", 66 rows) is Perfumania's own in-house dupe line - nine private-label brands, **zero designer stock**. The storefront carries **4,380 products across 480 vendors**. The feed is 1.5% of the shop and none of the part we need, so `scripts/ingest-perfumania.mjs` reads the shop directly and no feed is involved. **Do not judge a merchant by the feed it happens to send.**
+
+Three Shopify endpoints behave differently and the crawl depends on picking the right one:
+
+| endpoint | behaviour |
+|---|---|
+| `/products.json` | caps at 250 and **silently ignores `since_id`** - paginating returns the same 250 rows forever while looking like it works |
+| `/collections/all/products.json?page=N` | paginates correctly. 18 pages, 4,380 products, matching `sitemap_products_*.xml` exactly. **Use this one.** |
+| `/search/suggest.json` | **fuzzy and unstable** - it returned Armani Code Profumo for a query about YSL Tuxedo, then omitted it from a query for its own name. Never conclude "not stocked" from it. |
+
+An empty page under throttling is not the end of the catalogue, so the crawl retries before believing one. The result caches to `scripts/feeds/perfumania-storefront.json`, which is gitignored like every feed and **does not travel** - re-run with `--refresh` on another machine.
+
+**Deep links are BUILT here, not delivered.** CJ pre-wraps links inside a feed; this merchant's usable catalogue is not in its feed at all, so the click URL is assembled as `dpbolvw.net/click-101873278-17335854?url=<encoded product URL>`. Verified against a product deliberately chosen from OUTSIDE the feed: the hop lands carrying `AID`, `PID`, our `SID` and a `cjevent` token. **That the click is stamped is proven; that the programme pays on deep links is a dashboard question and stays a founder check**, exactly as for 16941446.
+
+#### Two retailers per bottle, and the key collision that nearly ate one
+
+91 references are stocked by both merchants. `affiliateLinks` is one flat map, so the two link sets **must not share a key prefix** - they briefly both used `original-<slug>` and collided on 91 of 123 keys, where the spread order silently decided which retailer survived and the other's links vanished with no error anywhere. The namespaces now are:
+
+- `original-<slug>` FragranceShop reference links
+- `pm-<slug>` Perfumania reference links
+- `pmshop-<handle>` Perfumania `/originals` shop products
+
+`getOriginalOffers()` in `lib/catalog.ts` is what puts them back together for display. **Retailers are deliberately unranked and nothing is labelled cheapest**: a price is only comparable when both quote the same bottle, and 24 of the 91 pairs do not. `scripts/generate-redirects.mjs` reads all three link files - **add a fourth source there too or its buttons resolve in the UI and 404 at the edge.**
+
+#### THE MERCHANT'S NOTE TAGS LOOK LIKE A GOLDMINE AND ARE NOT - THIS IS MEASURED
+
+1,829 of the 4,380 storefront products carry `topnote_ / middlenote_ / basenote_` tags: a real three-tier pyramid, machine-readable, on 276 brands. It reads like a solution to the missing-originals backlog. **It is not, and the numbers are on disk rather than a hunch:**
+
+- Against the **90** fragrances where we hold a researched pyramid AND they publish one, the two agree on only **0.57** of the materials named - before you even ask which tier they sit in. Only **5 of 90** match exactly, **19** fall below 0.4, and one shares **nothing at all**.
+- Separately, **59% of the merchant's own duplicate SKUs contradict themselves.** Paco Rabanne 1 Million carries **four different pyramids across four SKUs**; three are wrong, one of them describing an aquatic that is not 1 Million.
+
+So `pm-offers.generated.ts` captures `declaredNotes` for research, and **nothing writes it into a reference's pyramid.** A fragrance that earns a note pyramid earns a hand-authored place in `lib/data/houses/`. Publishing these would put false note data about real, named products on indexed pages - the exact failure the placeholder-reference rule exists to prevent.
+
+#### The shop scope is narrower than FragranceShop's, and the extra rule is about honesty not tidiness
+
+Same founder rule (EDP or Parfum, over $100, no testers or sets) plus two exclusions:
+
+- **The merchant's own private-label brands** - the nine names in its "Like product feed". That feed IS the house dupe line, so each is proven in-house **by the merchant's own data**, not by our judgement.
+- **Houses our reference catalogue does not already cover.** 413 products clear price and concentration; **193 come from a house we have researched**. The rest include names we cannot distinguish from a retailer's private label without research we have not done (Michael Malul, Daniel Josier, Camille Rochelle, NOTEZ, Patek Maison, Thauy, 93 Mil), and `/originals` calls its contents "genuine designer fragrances". Declaring a real company a house brand without proof is its own false claim, so the rule avoids per-brand judgement entirely: **we list other bottles from houses we already vouch for.**
+
+The price test is the **cheapest** variant, not the cheapest one above $100. Those differ - a bottle sold at $80 and $120 passes the looser test and is then shown at $120, quoting a higher price than the shop's own entry price for the same fragrance.
+
+#### Images: the Accept header is load-bearing
+
+Several masters are 2000x2000 PNGs of ~1.9 MB against an existing corpus averaging 33 KB. **Shopify's documented format parameters are all ignored on this endpoint** - `?format=jpg`, `?fm=jpg`, `_900x` in the path, and swapping the extension 404s. Content negotiation is the only lever that works: `Accept: image/webp` turns 1,953 KB into 145 KB. Both fetch scripts send it. `wood-sage-sea-salt` has a genuine 250x383 master, far below this merchant's usual 1200-2048px and not upscalable; it ships because a small real photograph beats none, and it is the first to replace if another live programme carries Jo Malone.
+
 ## Content: `comparison` and `review` just became writable, but their routes are still deleted
 
 `content/schema.ts` defines three types, and the difference between them is a hard gate, not a formality:

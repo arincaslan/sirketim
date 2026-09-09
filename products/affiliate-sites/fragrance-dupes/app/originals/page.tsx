@@ -4,6 +4,7 @@ import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { JsonLd } from "@/components/kit/JsonLd";
 import { getShopOriginals, getShopOriginalsByBrand } from "@/lib/catalog";
 import { CJ_MERCHANT } from "@/lib/data/cj-offers.generated";
+import { PM_MERCHANT } from "@/lib/data/pm-offers.generated";
 import { hasRealAffiliateLink } from "@/lib/affiliate-links";
 import { itemListSchema } from "@/lib/jsonld";
 import { formatPricePerMl } from "@/lib/similarity";
@@ -34,9 +35,19 @@ import { buttonVariants } from "@/components/ui/button";
  * instead of straight out to the shop, so a reader who can get the full
  * analysis always gets it.
  *
- * Scope is the founder's, 2026-09-07: EDP and Parfum only — never EDT or EDC —
- * and over $100. Testers, gift sets and the merchant's own "type" dupe oils are
- * excluded upstream in scripts/ingest-cj-feed.mjs.
+ * Scope is the founder's, 2026-09-07: EDP and Parfum only - never EDT or EDC -
+ * and over $100. Testers, gift sets and each merchant's own private-label line
+ * are excluded upstream, in scripts/ingest-cj-feed.mjs and
+ * scripts/ingest-perfumania.mjs respectively.
+ *
+ * TWO RETAILERS SUPPLY THIS PAGE since 2026-09-09, so every card names its own
+ * shop. Perfumania is additionally restricted to houses our reference catalogue
+ * already covers: its catalogue runs to 4,380 products and includes obscure
+ * private-label brands we cannot tell from small real perfumers without
+ * research we have not done, and this page calls its contents genuine designer
+ * fragrances. That merchant DOES publish note tags, and they are deliberately
+ * unused - against the 90 fragrances where we hold a researched pyramid and it
+ * publishes one, the two agree on only 0.57 of the materials named.
  */
 
 function slugifyBrand(brand: string): string {
@@ -76,9 +87,9 @@ export default function OriginalsPage() {
       <div className="mb-10 flex flex-col gap-4">
         <h1 className="font-display text-fluid-h1">Where to Buy the Originals</h1>
         <p className="max-w-[62ch] text-lg text-muted-foreground">
-          {products.length} genuine designer fragrances stocked at {CJ_MERCHANT.name} &mdash;
-          eau de parfum and parfum only, over $100 &mdash; with that shop&rsquo;s own listed
-          price for each.{" "}
+          {products.length} genuine designer fragrances stocked at {CJ_MERCHANT.name} and{" "}
+          {PM_MERCHANT.name} &mdash; eau de parfum and parfum only, over $100 &mdash; each
+          with its own shop&rsquo;s listed price.{" "}
           <strong className="font-semibold text-foreground">
             {withComparison} of them also have a full comparison here
           </strong>
@@ -125,7 +136,7 @@ export default function OriginalsPage() {
                 const linked = hasRealAffiliateLink(product.affiliateLinkId);
                 return (
                   <li
-                    key={product.slug}
+                    key={`${product.merchantName}-${product.slug}`}
                     className="flex flex-col gap-3 rounded-frame border border-border bg-card p-4"
                   >
                     <div className="flex items-start gap-3">
@@ -185,7 +196,7 @@ export default function OriginalsPage() {
                             "w-fit gap-1.5"
                           )}
                         >
-                          Buy at {CJ_MERCHANT.name}
+                          Buy at {product.merchantName}
                           <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
                         </a>
                       )}

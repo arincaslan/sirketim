@@ -93,11 +93,17 @@ function readLiteral(relPath, declaration) {
 }
 
 /**
- * The redirect table is assembled from TWO files, and missing either one ships
- * buy buttons that resolve in the UI and 404 at the edge:
+ * The redirect table is assembled from THREE files, and missing any one of them
+ * ships buy buttons that resolve in the UI and 404 at the edge:
  *
  *   lib/affiliate-links.ts          hand-written dupe-side entries
- *   lib/data/cj-links.generated.ts  originals-side, regenerated from the CJ feed
+ *   lib/data/cj-links.generated.ts  originals-side, FragranceShop.com (CJ 16941446)
+ *   lib/data/pm-links.generated.ts  originals-side, Perfumania.com (CJ 17335854)
+ *   lib/data/pm-shop-links.generated.ts  Perfumania shop surface (/originals)
+ *
+ * The two originals files do NOT collide by design: FragranceShop owns
+ *   `original-<slug>`, Perfumania owns `pm-<slug>`, because 91 references are
+ *   stocked by both and a shared key would silently drop one retailer.
  *
  * Both are parsed as text with the same entry regex. The generated file is read
  * FIRST so a hand-written entry overwrites a regenerated one on a key
@@ -107,6 +113,8 @@ function readLiteral(relPath, declaration) {
 async function readAffiliateLinks() {
   const body = [
     readLiteral("lib/data/cj-links.generated.ts", "CJ_ORIGINAL_LINKS"),
+    readLiteral("lib/data/pm-links.generated.ts", "PM_ORIGINAL_LINKS"),
+    readLiteral("lib/data/pm-shop-links.generated.ts", "PM_SHOP_LINKS"),
     readLiteral("lib/affiliate-links.ts", "affiliateLinks"),
   ].join("\n");
 

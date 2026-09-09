@@ -1,8 +1,13 @@
 import { CJ_IMAGES } from "@/lib/data/cj-images.generated";
 import { CJ_MERCHANT, CJ_OFFERS } from "@/lib/data/cj-offers.generated";
+import { PM_MERCHANT, PM_OFFERS } from "@/lib/data/pm-offers.generated";
+import { PM_SHOP_ORIGINALS } from "@/lib/data/pm-shop.generated";
+import { PM_IMAGES } from "@/lib/data/pm-images.generated";
+import { PM_SHOP_IMAGES } from "@/lib/data/pm-shop-images.generated";
 import { SHOP_IMAGES } from "@/lib/data/cj-shop-images.generated";
 import { SHOP_ORIGINALS, type ShopOriginal } from "@/lib/data/cj-shop.generated";
 import { DUPES, REFERENCES } from "@/lib/dupes-data";
+import { hasRealAffiliateLink } from "@/lib/affiliate-links";
 import { isHouseProducer } from "@/lib/producers";
 import { computeSimilarity, getRelatedReferences } from "@/lib/similarity";
 import { getPreCeilingScore, getPublishedScore, isVerbatimCopy } from "@/lib/verification";
@@ -211,6 +216,10 @@ export function hasListings(referenceSlug: string): boolean {
 }
 
 export interface OriginalOffer {
+  /** The affiliate id to link this retailer through, or null when we hold no
+   *  working link for it. A row with no id still renders - knowing who stocks
+   *  a bottle is true information whether or not we earn from it. */
+  affiliateLinkId: string | null;
   /** The retailer, named on screen — never "the merchant". */
   merchantName: string;
   /** What THEY charge, for a bottle size we actually know. Null when no
@@ -252,7 +261,7 @@ export interface OriginalOffer {
  */
 export interface ShopBrandGroup {
   brand: string;
-  products: (ShopOriginal & { imageUrl?: string })[];
+  products: ShopListing[];
 }
 
 /**
@@ -272,13 +281,8 @@ export interface ShopBrandGroup {
  */
 export function getShopOriginalsByBrand(): ShopBrandGroup[] {
   const byBrand = new Map<string, ShopBrandGroup["products"]>();
-  for (const product of SHOP_ORIGINALS) {
-    // A product that is one of our references already has its photograph under
-    // the reference slug; a shop-only one has its own.
-    const image = product.referenceSlug
-      ? CJ_IMAGES[product.referenceSlug]
-      : SHOP_IMAGES[product.slug];
-    const entry = image ? { ...product, imageUrl: image } : product;
+  for (const { product, merchantName, image } of allShopListings()) {
+    const entry = { ...product, merchantName, ...(image ? { imageUrl: image } : {}) };
     const existing = byBrand.get(product.brand);
     if (existing) existing.push(entry);
     else byBrand.set(product.brand, [entry]);
@@ -292,8 +296,60 @@ export function getShopOriginalsByBrand(): ShopBrandGroup[] {
 }
 
 /** Every shop product, flat — for counts and structured data. */
-export function getShopOriginals(): ShopOriginal[] {
-  return SHOP_ORIGINALS;
+export function getShopOriginals(): ShopListing[] {
+  return allShopListings().map(({ product, merchantName }) => ({ ...product, merchantName }));
+}
+
+/** A shop product plus the retailer it is stocked at. Two merchants supply this
+ *  surface now, so a card that does not name its own shop is a card whose price
+ *  belongs to nobody. */
+export type ShopListing = ShopOriginal & { merchantName: string; imageUrl?: string };
+
+/**
+ * Both merchants' shop stock, in one list.
+ *
+ * FragranceShop first, then Perfumania, and NOT interleaved by price - the same
+ * rule as getOriginalOffers(). They are separate retailers quoting separate
+ * bottle sizes; ordering them against each other would imply a comparison the
+ * data does not support.
+ *
+ * A product that is one of our references already has its photograph under the
+ * reference slug; a shop-only one has its own.
+ */
+/**
+ * Merchant brand strings that are simply misspelt, mapped to the spelling the
+ * rest of the catalogue uses. Without this the page grows a second heading for
+ * the same house - FragranceShop files two products under "Maison Francis
+ * Kurkdijan" and one under the correct "Maison Francis Kurkdjian", so the brand
+ * index listed both, three products split across two sections of one perfumer.
+ *
+ * Keep this to provable typos of a house we already carry. It is NOT a synonym
+ * table: merging two brands that are actually different companies is the
+ * fragranceshop.com / thefragranceshop.com mistake in another costume.
+ */
+const BRAND_TYPOS: Record<string, string> = {
+  "Maison Francis Kurkdijan": "Maison Francis Kurkdjian",
+};
+
+function allShopListings(): { product: ShopOriginal; merchantName: string; image?: string }[] {
+  const out: { product: ShopOriginal; merchantName: string; image?: string }[] = [];
+  for (const raw of SHOP_ORIGINALS) {
+    const product = BRAND_TYPOS[raw.brand] ? { ...raw, brand: BRAND_TYPOS[raw.brand] } : raw;
+    out.push({
+      product,
+      merchantName: CJ_MERCHANT.name,
+      image: product.referenceSlug ? CJ_IMAGES[product.referenceSlug] : SHOP_IMAGES[product.slug],
+    });
+  }
+  for (const raw of PM_SHOP_ORIGINALS) {
+    const product = BRAND_TYPOS[raw.brand] ? { ...raw, brand: BRAND_TYPOS[raw.brand] } : raw;
+    out.push({
+      product,
+      merchantName: PM_MERCHANT.name,
+      image: product.referenceSlug ? PM_IMAGES[product.referenceSlug] : PM_SHOP_IMAGES[product.slug],
+    });
+  }
+  return out;
 }
 
 export interface OriginalPricingResolved {
@@ -343,8 +399,58 @@ export function getOriginalOffer(reference: ReferenceFragrance): OriginalOffer |
   if (!offer) return null;
   return {
     merchantName: CJ_MERCHANT.name,
+    affiliateLinkId: `original-${reference.slug}`,
     priceUsd: offer.priceUsd,
     priceMl: offer.priceMl,
     matchedName: offer.matchedName,
   };
+}
+
+/**
+ * EVERY retailer we can send someone to for the original, not just the first.
+ *
+ * Two merchants now stock most of this catalogue - FragranceShop.com (CJ
+ * 16941446) and Perfumania.com (CJ 17335854) - and 91 references are carried by
+ * both. Picking one for the reader would be picking their price for them, so
+ * both are returned and the buy surface lists them side by side.
+ *
+ * NOT SORTED BY PRICE, and that is deliberate rather than an omission. A price
+ * is only comparable when both retailers quote the SAME bottle, and they often
+ * do not: `priceUsd` is null wherever no variant matched our `bottleMl`.
+ * Ordering a $98 bottle against a null ranks on nothing, and ordering the
+ * spread figures would compare a 30ml against a 100ml. Retailers render in a
+ * fixed order and nothing is labelled cheapest - the same rule the dupe-side
+ * offers already follow, for the same reason. See BuyActions.
+ */
+export function getOriginalOffers(reference: ReferenceFragrance): OriginalOffer[] {
+  const offers: OriginalOffer[] = [];
+
+  const cj = CJ_OFFERS[reference.slug];
+  if (cj) {
+    offers.push({
+      merchantName: CJ_MERCHANT.name,
+      affiliateLinkId: `original-${reference.slug}`,
+      priceUsd: cj.priceUsd,
+      priceMl: cj.priceMl,
+      matchedName: cj.matchedName,
+    });
+  }
+
+  const pm = PM_OFFERS[reference.slug];
+  if (pm) {
+    offers.push({
+      merchantName: PM_MERCHANT.name,
+      affiliateLinkId: `pm-${reference.slug}`,
+      priceUsd: pm.priceUsd,
+      priceMl: pm.priceMl,
+      // Their title verbatim, so a wrong match is visible to a reader rather
+      // than only to whoever next opens the generated file. This merchant's
+      // grammar puts a gender tag where a format looks like it should be
+      // ("Percival Cologne" is an EDP), which is exactly the kind of thing a
+      // reader should be able to catch us on.
+      matchedName: pm.title,
+    });
+  }
+
+  return offers.filter((o) => hasRealAffiliateLink(o.affiliateLinkId ?? undefined));
 }

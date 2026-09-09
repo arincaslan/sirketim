@@ -22,6 +22,7 @@ import { VERSACE } from "@/lib/data/houses/versace";
 import { XERJOFF } from "@/lib/data/houses/xerjoff";
 import { YSL } from "@/lib/data/houses/ysl";
 import { CJ_IMAGES } from "@/lib/data/cj-images.generated";
+import { PM_IMAGES } from "@/lib/data/pm-images.generated";
 import { FEED_IMAGES } from "@/lib/data/feed-images.generated";
 import type { ReferenceFragrance } from "@/lib/types";
 
@@ -115,26 +116,40 @@ const EDITORIAL: ReferenceFragrance[] = [
  * after a feed refresh.
  */
 /**
- * TWO IMAGE SOURCES, AND THE ORDER IS A LICENSING DECISION.
- *
- * `CJ_IMAGES` (FragranceShop.com, CJ 16941446) wins over `FEED_IMAGES` (My
- * Perfume Shop, Awin 106089) wherever both have a photograph of the same
- * bottle — 82 of them do.
+ * THREE IMAGE SOURCES, AND THE ORDER IS A LICENSING DECISION.
  *
  * The rule this project works to is that **the licence rides on the affiliate
- * relationship, not on the picture**. My Perfume Shop's programme went CLOSED
- * for tracking on 2026-09-01, so its images are hosted on the strength of an
- * enrolment that no longer earns; FragranceShop's programme is live and every
- * fragrance below carries a working `original-<slug>` link to it. Preferring
- * the live one moves 82 images onto firmer ground and is why the swap is worth
- * the duplicated bytes on disk.
+ * relationship, not on the picture**. So the order is by how live the
+ * relationship is, not by which picture is nicer:
  *
- * The remaining 56 FEED_IMAGES entries are fragrances FragranceShop does not
- * stock (Chanel, Parfums de Marly, Byredo, Le Labo and other houses it does not
- * carry at all). They stay, still flagged as the open question they were.
+ *   1. `CJ_IMAGES`   FragranceShop.com, CJ 16941446 — live, and every
+ *                    fragrance it covers carries a working `original-<slug>`
+ *                    link to it.
+ *   2. `PM_IMAGES`   Perfumania.com, CJ 17335854 — live (approved), added
+ *                    2026-09-09. Six photographs, and every one of them is a
+ *                    house FragranceShop does not carry at all: Giorgio Armani
+ *                    Code Profumo, Parfums de Marly Percival, Kilian Angels'
+ *                    Share, Xerjoff Naxos, Jo Malone Wood Sage & Sea Salt,
+ *                    Amouage Interlude Man. It ranks below CJ_IMAGES only
+ *                    because that merchant is already ingested and confirmed;
+ *                    both programmes are live, so nothing overlaps in practice.
+ *   3. `FEED_IMAGES` My Perfume Shop, Awin 106089 — programme went CLOSED for
+ *                    tracking on 2026-09-01, so these are hosted on the
+ *                    strength of an enrolment that no longer earns. Last
+ *                    resort, still flagged as the open question they were.
+ *
+ * CJ_IMAGES beats FEED_IMAGES on 82 bottles both cover, which is why that swap
+ * was worth the duplicated bytes on disk. PM_IMAGES duplicates nothing — it
+ * fills gaps neither of the others can, which is why fetch-pm-images.mjs
+ * downloads only the gaps by default.
+ *
+ * `wood-sage-sea-salt` is a 250x383 master, well below this merchant's usual
+ * 1200-2048px. It cannot be upscaled. It ships because a small real photograph
+ * of the right bottle beats no photograph, but it is the one to replace first
+ * if another live programme carries Jo Malone.
  */
 export const REFERENCES: ReferenceFragrance[] = EDITORIAL.map((ref) => {
-  const image = CJ_IMAGES[ref.slug] ?? FEED_IMAGES[ref.slug];
+  const image = CJ_IMAGES[ref.slug] ?? PM_IMAGES[ref.slug] ?? FEED_IMAGES[ref.slug];
   return image ? { ...ref, imageUrl: image } : ref;
 });
 

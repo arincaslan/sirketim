@@ -11,7 +11,7 @@ import {
   getRankedDupesFor,
   getPublishedSimilarity,
   getRelatedOriginals,
-  getOriginalOffer,
+  getOriginalOffers,
   getOriginalPricing,
 } from "@/lib/catalog";
 import { getGuidesLinkingTo } from "@/lib/related-guides";
@@ -91,7 +91,7 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
   if (!reference) notFound();
 
   const dupes = getRankedDupesFor(reference);
-  const originalOffer = getOriginalOffer(reference);
+  const originalOffers = getOriginalOffers(reference);
   const pricing = getOriginalPricing(reference);
   const relatedOriginals = getRelatedOriginals(reference);
   const relatedGuides = getGuidesLinkingTo(reference.slug);
@@ -149,28 +149,48 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
             )}
           </p>
 
-          {hasRealAffiliateLink(reference.affiliateLinkId) && (
+          {originalOffers.length > 0 && (
             <div className="mt-2 flex flex-col gap-2">
-              <a
-                href={`/go/${reference.affiliateLinkId}`}
-                rel="sponsored nofollow noopener"
-                target="_blank"
-                className={cn(buttonVariants({ variant: "default" }), "w-fit gap-2")}
-              >
-                {/* The retailer's own price, which is also what the heading
-                    above now quotes — a button must never name a price its own
-                    destination contradicts. */}
-                {originalOffer?.priceUsd != null
-                  ? `Buy for $${originalOffer.priceUsd} at ${originalOffer.merchantName}`
-                  : `Buy at ${originalOffer?.merchantName ?? "the retailer"}`}
-                <ArrowUpRight className="h-4 w-4" aria-hidden />
-              </a>
-              {/* Only the no-price case needs saying here; when we do have a
-                  retailer price the caption under the heading already gave it,
-                  and repeating it reads like two different prices. */}
-              {originalOffer && originalOffer.priceUsd == null && (
+              <div className="flex flex-wrap gap-2">
+                {originalOffers.map((offer, i) => (
+                  <a
+                    key={offer.affiliateLinkId!}
+                    href={`/go/${offer.affiliateLinkId}`}
+                    rel="sponsored nofollow noopener"
+                    target="_blank"
+                    className={cn(
+                      /* The first retailer carries the primary button and the rest
+                         are outlines. That is visual order, not a recommendation -
+                         the retailers are unranked (see getOriginalOffers) and the
+                         caption below says so wherever there is more than one. */
+                      buttonVariants({ variant: i === 0 ? "default" : "outline" }),
+                      "w-fit gap-2"
+                    )}
+                  >
+                    {/* The retailer's own price, which is also what the heading
+                        above quotes - a button must never name a price its own
+                        destination contradicts. */}
+                    {offer.priceUsd != null
+                      ? `Buy for $${offer.priceUsd} at ${offer.merchantName}`
+                      : `Buy at ${offer.merchantName}`}
+                    <ArrowUpRight className="h-4 w-4" aria-hidden />
+                  </a>
+                ))}
+              </div>
+              {originalOffers.length > 1 && (
                 <p className="max-w-[58ch] text-xs text-muted-foreground">
-                  {originalOffer.merchantName} stocks this, but not in a{" "}
+                  Two retailers stock this and we are enrolled with both, so both are
+                  here with their own prices. They are not ranked: a price is only
+                  comparable when both quote the same bottle size, and they do not
+                  always.
+                </p>
+              )}
+              {/* Only the no-price case needs saying; when we do have a retailer
+                  price the caption under the heading already gave it, and repeating
+                  it reads like two different prices. */}
+              {originalOffers.some((o) => o.priceUsd == null) && (
+                <p className="max-w-[58ch] text-xs text-muted-foreground">
+                  Where no price is shown, that retailer stocks this but not in a{" "}
                   {reference.bottleMl}ml bottle we can price against &mdash; so we link
                   the shop without quoting a figure rather than guess across sizes.
                 </p>

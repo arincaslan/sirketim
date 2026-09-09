@@ -13,6 +13,7 @@ Machine setup is `SETUP.md`. This file is only about *what state the work is in*
 **You are picking this up on the other machine.** Everything in the repo travels; four things do not, and three of them will look like breakage:
 
 1. **`scripts/feeds/` is empty on a fresh clone** — licensed merchant data, gitignored on purpose. Every ingest script fails with "feed not found" until you re-download. **The site still builds and deploys fine without any of them**, because the generated `lib/data/*.generated.ts` files and all 407 images are committed. You only need a feed to ingest *new* products or fetch *new* images. See the table below.
+   **New on 2026-09-09:** that directory now also holds `perfumania-storefront.json`, a crawl cache rather than a download. Same rule — gitignored, does not travel, regenerate with `node scripts/ingest-perfumania.mjs --refresh`. The site still builds and deploys without it, because `pm-*.generated.ts` and all 198 new images are committed.
 2. **`.agents/` skills** — re-run the `npx skills@latest add` commands in `SETUP.md`. Their installer writes Windows directory junctions holding this machine's absolute profile path, which is why they cannot be committed.
 3. **`HOSTINGER_API_TOKEN` and `TWENTY_FIRST_API_KEY`** env vars, plus `gh auth login` and Claude Code's own login — all per-machine.
 4. `node_modules`/`.next`/`out` — `npm install` inside whichever project you are working on.
@@ -27,7 +28,7 @@ Run `git fetch origin` before trusting local state or briefing the board: two sc
 | Merchants we can earn from | **4** — Opulensi (Awin 123248), Clone of Perfume (117395), AromaPassions (34989), FragranceShop.com (CJ 16941446) |
 | Images | **407 committed**, all of them. Dupes 77/79, references 190/216, shop originals 102/103 — the gaps are licence-bound, not TODOs. See "image coverage is finished" below |
 
-Three merchants were approved and wired in two days, taking listings 25 → 55; A2 on 2026-09-05 took it to **79 listings on 65 originals**. Two more approvals exist and are **not wired**: **The Fragrance Shop** and **Perfumania**, both on CJ.
+Three merchants were approved and wired in two days, taking listings 25 → 55; A2 on 2026-09-05 took it to **79 listings on 65 originals**. Two more approvals exist and are **not wired**: **The Fragrance Shop** and **Perfumania**, both on CJ. **Perfumania's feed arrived 2026-09-08 and is the wrong catalogue** — see below; it is still not wired and should not be.
 
 **Coverage is now inside the estimated 50–70 ceiling, so treat AromaPassions as spent.** Its remaining unlisted products all need a *new researched original* first — the cheap matches are gone.
 
@@ -50,6 +51,7 @@ Re-download from Awin (Toolbox → Create-a-Feed), publisher **3064149**, and sa
 | `aromapassions.csv` | 34989 | 230 rows, 103 distinct products. **Mined out as of A2** — what is left needs a new researched original first. |
 | `FragranceShop_com_-CJ_Product_Feed-shopping.txt` | CJ 16941446, not Awin | **Delivered 7 Sep and fully ingested.** 5,802 rows, **87 columns, TAB-delimited**, no quoting — a different network with a different schema, so do not expect the Awin columns. Re-download only to refresh prices or pick up new stock; nothing currently needs it. Schema table in `scripts/feeds/README.md`. |
 | `my-perfume-shop.csv` | 106089 | Originals-side, programme closed for tracking. Kept for reference imagery only. |
+| `perfumania-storefront.json` | **not a feed** — CJ 17335854 | **Not downloaded, crawled.** `node scripts/ingest-perfumania.mjs --refresh` rebuilds it from the live shop (18 pages, ~1 min). Perfumania's actual CJ feed is its in-house dupe line and is useless to us; the storefront is the source. Nothing needs this unless you are re-ingesting or fetching new images. |
 
 Take **all** columns, not the default preset — the default is ~11 columns and drops `description`, which is where every "Inspired by" citation and note pyramid lives. The Opulensi export is 86 columns; match that.
 
@@ -73,12 +75,23 @@ was checked on 2026-09-07 and each has a reason:
 - **1 shop product** (Marc Jacobs Oh Lola Sunsheer) — the merchant offered only a shared stock
   photograph, recorded as `remoteImageUrl: null`. **Null means "no image", never "use a placeholder".**
 
-**A second originals merchant is the only route to those 26**, which is what makes Perfumania the next
-piece of work rather than a nice-to-have. Temper the expectation before spending a session on it:
-Perfumania is a mass-market designer discounter, so expect it to cover Chanel poorly and the niche
-houses not at all. **FragranceX** (CJ advertiser 1024283) is the better fit for that specific gap and is
-already the top-priority application in `FINALIZATION-GUIDE.md` §3.3. Applying to both costs nothing
-extra.
+**A second originals merchant is the only route to those 26, and Perfumania is a real but partial
+one** — worth being precise, because judging it by its CJ feed gets the answer backwards.
+
+The feed delivered 2026-09-08 is Perfumania's in-house dupe line: 66 rows, nine house brands, no
+designer stock. **The storefront is 4,380 products across 480 vendors** (enumerated in full
+2026-09-09 — the feed is 1.5% of the store), and it does stock Giorgio Armani, YSL, Paco Rabanne,
+Azzaro, Jo Malone, Parfums de Marly, Xerjoff, Kilian, Amouage and MFK.
+
+**Against the 26 it covers 6**: `armani-code-profumo` ($98.95), `percival` ($229.95), `angels-share`
+($244.95), `naxos` ($219.95), `wood-sage-sea-salt` ($126.99), `interlude-man` ($299.95). **Chanel,
+Initio and Roja are carried at zero SKUs**, so 9 of the 26 are permanently out of reach there. A 7th
+apparent hit, `the-most-wanted`, is a **flanker trap** — only *Intense* and *Parfum*, never the base
+EDP. Detail and the two ingest traps: `scripts/feeds/README.md`.
+
+**FragranceX** (CJ advertiser 1024283) therefore stays the top-priority application in
+`FINALIZATION-GUIDE.md` §3.3 — it is the better fit for the niche houses — but Perfumania is no
+longer a dead end for this gap, provided we get the right feed.
 
 ## The decision that gated everything else — taken 2026-09-08
 
@@ -107,6 +120,7 @@ These are account-scoped, not machine-scoped: they travel with the founder's Cla
 | Artifact | URL | State |
 |---|---|---|
 | **Counterscent Finalization** | `https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96` | **Current** — republished 2026-09-08 as the eighth pass, completed tasks ticked, real counts in, Perfumania recorded as waiting-on-feed. Mirrors `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`. |
+| **Perfumania Coverage** | `https://claude.ai/code/artifact/6f979f92-1253-46ca-87f8-1f6ccc46566b` | **Current** — published 2026-09-09. The 123 references Perfumania stocks, which 32 are new coverage, the 6 image gaps closed, the 6 concentration disagreements, and the 20 it cannot reach. |
 | **Sirketim Dashboard** | `https://claude.ai/code/artifact/e2e47262-d56d-4ca9-8e6f-cdb07955e025` | **One pass behind.** `internal/dashboard/design/sirketim-dashboard.html` and `Main.dc.html` both carry task 185 and the "Sep 8" labels in the repo, but the *published* page still shows the previous snapshot. Not urgent: the dashboard's Finalization Guide link URL did not change, so clicking it from the stale dashboard still opens the current report. |
 
 **The reason it is a pass behind, which will bite the next session too:** republishing an artifact this conversation did not itself publish is refused until you have `Read` **every line** of the live copy the tool hands you. The dashboard is ~786 lines and ~140 KB, most of it very long task-note strings, so that read is a real context cost for a file the repo already holds a newer copy of. Budget for it deliberately — do the read early in a session, or accept the artifact lagging until a session has room. Do not work around it by publishing without the `url`.
@@ -132,16 +146,102 @@ These are account-scoped, not machine-scoped: they travel with the founder's Cla
    **What is left:**
 
    - **Confirm `sid` once in CJ's click report.** CJ obfuscates the forwarded query, so only the `cjevent` token is checkable from here. Same one-off founder check already done for Awin 117395.
-   - **Perfumania** — the second CJ approval, still unwired. A second originals merchant would cover part of the 100 references FragranceShop does not stock (no Chanel, Parfums de Marly, Byredo, Le Labo, Xerjoff, Initio, By Kilian, Amouage, Roja, Jo Malone or Louis Vuitton at all).
+   - **Perfumania** — the second CJ approval. **Feed delivered 2026-09-08 and NOT the catalogue we need**, so this item did not advance: the export is Perfumania's own house dupe line (66 rows, no third-party brand), not its designer stock, and it covers none of the ~100 references FragranceShop does not stock (no Chanel, Parfums de Marly, Byredo, Le Labo, Xerjoff, Initio, By Kilian, Amouage, Roja, Jo Malone or Louis Vuitton anywhere). Full analysis and four ingest traps in `scripts/feeds/README.md`. **Nothing is wired from it and nothing should be** — no row declares an inspiration, so its products cannot become dupe listings without inventing the mapping.
    - **59 shop-only products have no comparison page.** Adding one means hand-authoring a note pyramid; the feed cannot supply it. `node scripts/ingest-cj-feed.mjs --candidates` prints the shortlist.
 
 7. ~~**Root `CLAUDE.md` edits**~~ — **done 2026-09-07.** The stale line 58 was fixed, and eight cross-department lessons were promoted into the root file's bullet list (repo root not gitignored; identify a vendor by domain not name; CRLF diffs and the `package-lock` side effect; assert against shipped code via esbuild; marketing copy is not product fact; attribution can live in the click cookie; feed image URLs decay; a subagent refusing a brief is a success mode). Kept to one line each — task 179 records that this file is a real per-session context cost.
+
+## Two retailers per bottle, shipped 2026-09-09
+
+`getOriginalOffers()` in `lib/catalog.ts` replaces the old single-retailer
+`getOriginalOffer()` on the buy surfaces. **91 references now show both
+FragranceShop.com and Perfumania.com with their own prices**, 67 of them with both
+retailers quoting the exact bottle our reference records. 57 show one retailer, 68
+none. `/go/` resolves **375** ids, up from 252.
+
+Three things that are easy to undo by accident:
+
+- **The key prefixes must stay different.** FragranceShop owns `original-<slug>`,
+  Perfumania owns `pm-<slug>`. They were briefly both `original-<slug>`, which
+  collided on **91 of 123 keys** - `affiliateLinks` is one flat map, so the spread
+  order silently decided which retailer survived and the other's links vanished with
+  no error anywhere. Two retailers per bottle is the whole point; one key cannot hold
+  both.
+- **`scripts/generate-redirects.mjs` now reads THREE files.** A fourth link source
+  must be added there too or its buttons resolve in the UI and 404 at the edge.
+- **Retailers are deliberately NOT ranked and nothing says "cheapest".** A price is
+  only comparable when both retailers quote the same bottle, and 24 of the 91 pairs
+  do not. The page says so in words rather than sorting on a figure that is sometimes
+  null and sometimes a different size.
+
+Verified live, not assumed: `/go/pm-sauvage` lands on Perfumania's Dior Sauvage page
+carrying `SID=pm__sauvage`, `AID`, `PID` and a `cjevent` token.
+
+**What did NOT happen, and why - the "90 pyramids" is a false lead.** Perfumania's
+storefront tags carry a full three-tier pyramid on 90 of the 123 matched references,
+which reads like 90 fragrances to add. **All 90 already have our own researched
+pyramid** - the merchant data is redundant there, not new. The genuinely new pool is
+the **1,707** pyramid-bearing storefront products that are not in our catalogue, and
+that pool should not be bulk-imported: **59% of this merchant's own duplicate SKUs
+disagree with themselves about the pyramid.** Paco Rabanne 1 Million has four SKUs
+carrying four different pyramids, three of which are wrong. Importing them would
+publish false note data about real products on indexed pages - the exact failure the
+placeholder-reference rule exists to prevent. Use them as a research starting point a
+human verifies, never as a source.
+
+## The Perfumania shop surface, shipped 2026-09-09
+
+`/originals` is now a TWO-MERCHANT page: **348 products across 50 houses**, 103 from
+FragranceShop.com and **245 from Perfumania.com**, every card naming its own shop.
+96 of them link to a full comparison here; the rest are price-and-availability only,
+which the page says in words. `/go/` resolves **620** ids.
+
+Verified live: `/go/pmshop-creed-aventus-cologne-mens-eau-de-parfum` lands on
+Perfumania's Creed Aventus page carrying `SID=pmshop__...`, `AID`, `PID` and a
+`cjevent` token.
+
+**Perfumania's scope is narrower than FragranceShop's, on purpose.** Same founder
+rule (EDP or Parfum, over $100, no testers/sets), plus two exclusions that merchant
+needs and the other did not:
+
+- **Its own private-label brands**, the nine names in its "Like product feed" - that
+  feed IS the house dupe line, so each is proven in-house by the merchant's own data
+  rather than by our guess.
+- **Houses our reference catalogue does not already cover.** 413 products clear price
+  and concentration; **193 come from a house we have researched**. The remainder
+  include names we cannot tell from a retailer's private label without research we
+  have not done - Michael Malul, Daniel Josier, Camille Rochelle, NOTEZ, Patek
+  Maison, Thauy, 93 Mil - and the page calls its contents "genuine designer
+  fragrances". Widening this later is a decision with evidence behind it; taking it
+  by default is not.
+
+One thing worth knowing about the price rule: the scope test is the **cheapest**
+variant, not the cheapest one above $100. A bottle sold at $80 and $120 passes the
+looser test and would then be shown at $120 - quoting a higher price than the shop's
+own entry price for the same fragrance.
+
+A pre-existing defect surfaced and was fixed: FragranceShop files two products under
+"Maison Francis **Kurkdijan**" and one under the correct spelling, so the brand index
+grew two headings for one perfumer. `BRAND_TYPOS` in `lib/catalog.ts` normalises it.
+That map is for provable typos only - merging two brands that are actually different
+companies is the `fragranceshop.com` / `thefragranceshop.com` mistake in a new
+costume.
+
+**The merchant's note tags stay unused, and this is now measured rather than
+suspected.** Against the 90 fragrances where we hold a researched pyramid AND
+Perfumania publishes one, the two agree on only **0.57** of the materials named -
+before asking which tier they sit in. Only 5 of 90 match exactly; 19 fall below 0.4;
+one shares nothing at all. Separately, **59% of the merchant's own duplicate SKUs
+contradict themselves** (Paco Rabanne 1 Million carries four different pyramids
+across four SKUs). Neither number supports publishing their notes as fact about a
+real product.
 
 ## Founder actions still open
 
 No agent can do any of these. The numbered list in `FINALIZATION-GUIDE.md` is the canonical copy; this is the short form.
 
-- **Chase Perfumania for the feed** — approved on CJ, unwired, and the only missing piece is the export from their side. **Apply to FragranceX (CJ 1024283) in the same pass**: it is the better fit for the 26 references FragranceShop does not stock, and costs nothing extra.
+- **Confirm in CJ's dashboard that advertiser 17335854 pays on deep links.** This is now the only thing gating 123 Perfumania buy links, because the storefront ingest made the feed unnecessary — `scripts/ingest-perfumania.mjs` reads the shop directly. The click is provably *stamped* (AID/PID/SID + `cjevent`, traced 2026-09-09); whether it *pays* is a report question, and it is the same check still open for 16941446. Asking Perfumania for a full designer feed is now optional, not blocking.
+- **Apply to FragranceX (CJ 1024283).** Still the better fit for the niche houses Perfumania carries at zero SKUs — Chanel, Initio and Roja account for 9 of the 20 references still without a photograph.
 - **Confirm the CJ `sid` once in CJ's click report.** CJ obfuscates the forwarded query, so only the `cjevent` token is checkable from here — the same one-off check already done for Awin 117395.
 - **`parfumoza.com` still needs removing** from the Cloudflare account and the Worker's Domains & Routes. Dead since the 27 Aug rename, auto-renew off.
 - **9 affiliate applications were pending** and are not tracked anywhere in the repo. Worth recording which, so the next session does not re-apply or re-research them.

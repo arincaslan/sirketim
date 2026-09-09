@@ -2,7 +2,7 @@ import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { AffiliateLink } from "@/components/kit/AffiliateLink";
 import { buttonVariants } from "@/components/ui/button";
 import { hasRealAffiliateLink } from "@/lib/affiliate-links";
-import { getOriginalOffer, isHouseProduct } from "@/lib/catalog";
+import { getOriginalOffers, isHouseProduct } from "@/lib/catalog";
 import { formatPricePerMl } from "@/lib/similarity";
 import { cn } from "@/lib/utils";
 import type { Currency, DupeCandidate, MerchantOffer, ReferenceFragrance } from "@/lib/types";
@@ -48,8 +48,10 @@ export function BuyActions({
   const soldOut = offers.filter(
     (o) => hasRealAffiliateLink(o.affiliateLinkId) && o.inStock === false
   );
-  const referenceLinked = hasRealAffiliateLink(reference.affiliateLinkId);
-  const originalOffer = getOriginalOffer(reference);
+  // Every retailer that stocks the ORIGINAL, not just the first one found.
+  // 91 references are carried by both FragranceShop and Perfumania, and which
+  // of them a reader should use is their call, not ours.
+  const originalOffers = getOriginalOffers(reference);
   // Offers are per PRESENTATION, not per retailer, and the two stopped being
   // the same thing on 2026-09-04: AromaPassions sells one product in 50ml and
   // 100ml, so those listings carry two offers from one shop. The header used to
@@ -104,21 +106,45 @@ export function BuyActions({
         </p>
       )}
 
-      {referenceLinked && (
-        <AffiliateLink
-          id={reference.affiliateLinkId!}
-          className={cn(buttonVariants({ variant: "outline" }), "w-fit gap-2")}
-        >
-          {/* The retailer's own price, not `reference.priceUsd`. That field is
-              an approximate RETAIL figure and this merchant is a discounter —
-              34 of the 80 comparable prices are more than 40% apart — so the
-              old "Buy the original - $76" could send a reader to a $21.95 page.
-              A price beside a buy button has to be the price at its far end. */}
-          {originalOffer?.priceUsd != null
-            ? `Buy the original - $${originalOffer.priceUsd} at ${originalOffer.merchantName}`
-            : `Buy the original at ${originalOffer?.merchantName ?? "the retailer"}`}
-          <ArrowUpRight className="h-4 w-4" aria-hidden />
-        </AffiliateLink>
+      {originalOffers.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {originalOffers.length > 1 && (
+            <span className="text-xs text-muted-foreground">
+              The original at {originalOffers.length} retailers - pick whichever you prefer.
+              Nothing here is ranked; see below on why.
+            </span>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {originalOffers.map((offer) => (
+              <AffiliateLink
+                key={offer.affiliateLinkId!}
+                id={offer.affiliateLinkId!}
+                className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
+              >
+                {/* The retailer's own price, not `reference.priceUsd`. That field is
+                    an approximate RETAIL figure and both these merchants are
+                    discounters - 34 of the 80 comparable prices are more than 40%
+                    apart - so "Buy the original - $76" could send a reader to a
+                    $21.95 page. A price beside a buy button has to be the price at
+                    its far end, or no price at all. */}
+                {offer.priceUsd != null
+                  ? `${offer.merchantName} - $${offer.priceUsd}`
+                  : `${offer.merchantName}`}
+                <ArrowUpRight className="h-4 w-4" aria-hidden />
+              </AffiliateLink>
+            ))}
+          </div>
+          {/* A retailer with no price quoted is one that stocks the fragrance but
+              not in the bottle size this page compares. Saying so beats both
+              guessing across sizes and hiding a retailer that genuinely has it. */}
+          {originalOffers.some((o) => o.priceUsd == null) && (
+            <p className="max-w-[58ch] text-xs text-muted-foreground">
+              Where no price is shown, that retailer stocks it but not in a{" "}
+              {reference.bottleMl}ml bottle we can price against - so we link the shop
+              without quoting a figure rather than guess across sizes.
+            </p>
+          )}
+        </div>
       )}
 
 
@@ -129,7 +155,7 @@ export function BuyActions({
           here. Overstating what we earn from is a false statement about our own
           incentives, so the count drives the wording. */}
       <p className="text-xs leading-relaxed text-muted-foreground">
-        {buyable.length + Number(referenceLinked) === 0 ? (
+        {buyable.length + originalOffers.length === 0 ? (
           <>
             Nothing here is an affiliate link, so we earn nothing whichever retailer you use. We
             list them because knowing where a bottle is stocked is useful either way.

@@ -17,6 +17,7 @@ found", re-download from Awin rather than assuming it is broken.
 | `clone-of-perfume.csv[.gz]` | Awin advertiser **Clone of Perfume** (Awin ID **117395**), publisher 3064149. Approved 2026-09-03 | **11 rows**, all `currency=USD`. 86 columns. A **dupe house selling direct** — the brand ("The CLONE") and the shop are one company, so unlike Opulensi there is no reseller in between. **Tracking works.** 9 of the 11 rows became listings. |
 | `aromapassions.csv[.gz]` | Awin advertiser **AromaPassions** (Awin ID **34989**), publisher 3064149. Approved 2026-09-03 | **230 rows**, all `currency=USD`. 86 columns. A **dupe house selling direct**, like Clone of Perfume. **Tracking works** (verified 2026-09-04). Every product names its own inspiration in `product_name`. **14 listings shipped 2026-09-04**, all on originals that had no alternative. **The stalest feed here — its prices, its stock, its sizes AND its image URLs are all wrong; see below.** |
 | `my-perfume-shop.csv[.gz]` | Awin advertiser **My Perfume Shop** (Awin ID **106089**), publisher 3064149, delivered via `sftp://datafeeds.shareasale.com/Awin/161226/feed.zip` | ~9,844 rows, all `currency=USD`. 35 columns. Genuine designer fragrances — **originals-side**, not a dupe house. **Programme is CLOSED for tracking — do not ship buy links from this feed.** |
+| `Perfumania_com-Like_product_feed_Aug_2026-shopping.txt` + `feedparfumania-shopping-20260908.zip` | CJ advertiser **Perfumania.com** (CJ ID **17335854**), publisher 101873278. Approved on CJ, feed delivered 2026-09-08 | **66 rows**, all `currency=USD`. 87 columns, TAB-delimited. **Perfumania's own house dupe line, not its designer catalogue** — zero third-party brands, so it unblocks none of the 26 missing references it was queued for. **Nothing is wired from it and nothing should be** until the traps below are answered: the real price is in `SALE_PRICE` (`PRICE` is 0.00 on 53 rows), no row declares an inspiration, and prices run $65–$206 for a dupe. See its section below. |
 
 ## Which feed backs what
 
@@ -346,6 +347,133 @@ Four things to know before touching it:
 - **858 rows share one of four stock photographs** — a generic oil bottle (237 + 224 rows), an "image coming soon" placeholder (208), a generic flacon (189) — spread across Dior, Armani, Gucci and Burberry. `ingest-cj-feed.mjs` rejects them by URL; a `remoteImageUrl: null` means "no image", never "use a placeholder".
 - **`LAST_UPDATED` was 2026-07-29 on a feed delivered 2026-09-07** — six weeks stale on arrival. Same rule as every other feed here: the ids are durable, everything else decays.
 - **The site 403s every automated request** — Node `fetch` with any UA, and `curl` gets 200. It is TLS fingerprinting, not headers or rate limiting. Stock and destination status are therefore **not checkable from here**.
+
+## `Perfumania_com-Like_product_feed_Aug_2026-shopping.txt` shape (87 columns, 66 rows) — the second CJ feed, and NOT what was asked for
+
+Delivered 2026-09-08 as `feedparfumania-shopping-20260908.zip`. CJ advertiser **17335854**, publisher
+**101873278** (ours — the same publisher id the FragranceShop links carry, so tracking is genuinely
+ours). Destination domain is `perfumania.com`, which matches the CJ approval **by domain**, so this
+is the right merchant. Same 87-column TAB-delimited CJ schema as FragranceShop.
+
+**It is the wrong catalogue.** "Like product feed" does not mean "similar products" — it is
+Perfumania's own **house dupe line**, and it contains **zero designer stock**. All 66 rows are
+in-house brands: Dylan Jeffries 16, Luka Milano 11, Bon Vivant 9, Mi Vida 7, Marc Olivetti 7,
+Adrian Costa 5, Emotions Elixir 4, Desiree Celeste 4, Gia Lucca 3. No Chanel, no Dior, no Creed —
+no third-party brand at all.
+
+This matters because Perfumania was queued as a **second originals merchant**, the only route to the
+26 references FragranceShop does not stock. This feed covers **none** of them. Read the delivered
+`BRAND` column before planning work on a feed's assumed contents.
+
+Four traps specific to this export:
+
+- **`PRICE` is `0.00 USD` or empty on 53 of 66 rows; the real price is in `SALE_PRICE`.**
+  `ingest-cj-feed.mjs` reads `parsePrice(r.PRICE)` — pointing it here prices 80% of the catalogue at
+  **$0.00**, and Counterscent computes "Nx cheaper" from price. Use `SALE_PRICE`, falling back to
+  `PRICE`, never the reverse.
+- **No product declares an inspiration.** Grepping for "inspired by" / "impression of" /
+  "reminiscent of" returns five hits and **all five are false positives** ("Inspired by the romance
+  of Rome", "a lasting impression of understated elegance"). Every other dupe merchant here names its
+  original in the product data; this one never does. A dupe listing needs that citation, so these
+  rows cannot become listings without inventing the mapping — which is the one thing we do not do.
+- **8 rows are two-bottle BUNDLES, not comparisons.** Titles read `Roman Prestige by Marc Olivetti
+  and Eros Flame by Versace`, which looks like a dupe→original mapping and is not: the description
+  says "we have bundled together two of our best-selling fragrances". It is a *merchandising* pairing
+  and at most a hint, never a citation. 5 further rows are gift sets. Both kinds have an empty `SIZE`
+  and a title ending `- Default Title`.
+- **The prices defeat the premise.** `SALE_PRICE` runs **$65.00–$205.95**, most of it $100+, for a
+  house dupe. Our existing dupes undercut the original several-fold; a $164.99 dupe of a ~$120
+  designer bottle is *more expensive than the original*, so it would publish a negative saving.
+
+Unlike FragranceShop (where `DESCRIPTION` is byte-identical to `TITLE` on every row), **every row
+here carries a real description with a full three-tier note pyramid.** That is the seller's own copy
+about the seller's own product, so it is attributable — but it is also exactly the input the
+2026-09-08 score reform exists to distrust. Note also that `GTIN` is empty on all 66 rows, so there
+is no external identifier to cross-check anything against.
+
+### The storefront is a different animal — measured 2026-09-09, do not judge the merchant by this feed
+
+**perfumania.com carries 4,380 products across 480 vendors.** This feed is **66 rows — 1.5% of it.**
+Verified by full enumeration, not sampling: `/collections/all/products.json?limit=250&page=N`
+paginates cleanly to 18 pages, and the total matches `sitemap_products_*.xml` exactly (4,380). Note
+that the bare `/products.json` caps at 250 and silently ignores `since_id`, and the
+`/search/suggest.json` endpoint is **fuzzy and unstable** — it returned Armani Code Profumo for a
+query about YSL Tuxedo and then omitted it from a query for its own name. Enumerate; do not sample.
+
+So the earlier line here — "zero third-party brands" — is true **of this export only**. The store
+itself stocks Giorgio Armani (49 SKUs), YSL (54), Paco Rabanne (49), Azzaro (31), Jo Malone (21),
+Parfums de Marly (8), Xerjoff (4), Kilian (3), Amouage (2), Maison Francis Kurkdjian (2) and ~470
+other vendors of genuine designer stock.
+
+**Against the 26 references FragranceShop does not stock, Perfumania covers 6:**
+
+| Reference | Perfumania listing | Price |
+|---|---|---|
+| `armani-code-profumo` | Giorgio Armani — Armani Code Profumo Cologne (EDP, `GENDER_Men`) | $98.95 |
+| `percival` | Parfums de Marly — Percival Cologne (EDP) | $229.95 |
+| `angels-share` | Kilian — Angels' Share Unisex Fragrance (EDP) | $244.95 |
+| `naxos` | Xerjoff — Naxos Perfume (EDP) | $219.95 |
+| `wood-sage-sea-salt` | Jo Malone — Wood Sage & Sea Salt (Cologne) | $126.99 |
+| `interlude-man` | Amouage — Interlude Cologne (EDP, `GENDER_Men` — the tag is what confirms it is the Man, not the Woman) | $299.95 |
+
+**Three houses are carried at zero and always will be here**: Chanel (0 SKUs), Initio (0), Roja (0).
+That is 9 of the 26 (`egoiste`, `sycomore`, `antaeus`, the four Initio, both Roja) permanently out of
+reach from this merchant. The other 11 are houses Perfumania stocks but not that product.
+
+**One flanker trap, caught in the checking:** `the-most-wanted` looks like a 7th hit and is not.
+Perfumania stocks *The Most Wanted **Intense*** (EDP Intense and EDT) and *The Most Wanted **Parfum***
+— never the base EDP our reference records. Stripping format words from the title to compare, which
+is what the ingest does, turns "The Most Wanted Parfum Cologne" into "the most wanted" and matches it
+to the wrong concentration. **This is the Viking/Aventus/Eternity Cologne mis-link in a new costume**:
+a format word inside a product NAME. Whatever matches this merchant must compare concentration too.
+
+### The storefront tags carry a full note pyramid — a source the feed does not have
+
+**1,829 of the 4,380 products (41%), across 276 brands, carry `topnote_*`, `middlenote_*` and
+`basenote_*` tags** in their storefront JSON — a structured three-tier pyramid, not prose. Example,
+`armani-code-profumo-eau-de-parfum-spray-for-men-by-giorgio-armani`:
+
+```
+topnote_ Cardamom, topnote_ Green Apple, topnote_Green Mandarin
+middlenote_ Lavender, middlenote_ Nutmeg, middlenote_Orange Blossom
+basenote_ Amber, basenote_ Leather, basenote_Tonka Bean
+```
+
+This matters because the standing claim — "a CJ feed cannot fill this gap: feeds supply names, prices
+and images, never note pyramids" — is about the **feed**, and stays true: the CJ export has no note
+columns. The **storefront** is a different source and does carry them. A *declared* pyramid also
+avoids the −10 imputed-split penalty from the 2026-09-08 score reform.
+
+Two cautions before anyone builds on it. It is still **the seller's own data** about a product the
+seller did not make, so it is attributable but not verified — the standing rule applies unchanged.
+And the tags are dirty: leading spaces are inconsistent (`topnote_ Sea` vs `topnote_Bergamot`), so
+trim before comparing.
+
+### What was built from this, 2026-09-09 — the feed is no longer needed
+
+`scripts/ingest-perfumania.mjs` reads the **storefront**, not this feed, and writes
+`lib/data/pm-links.generated.ts` (123 deep links) and `lib/data/pm-offers.generated.ts` (price,
+concentration, image URL, declared notes). `scripts/fetch-pm-images.mjs` then downloads only the
+photographs we lack — 6 of them — into `public/images/fragrance-pm/`, and
+`lib/data/references.ts` resolves `CJ_IMAGES ?? PM_IMAGES ?? FEED_IMAGES`. Reference image coverage
+went **190 → 196 of 216**.
+
+The crawl caches to `scripts/feeds/perfumania-storefront.json`, which is gitignored like everything
+else here. `--refresh` re-crawls.
+
+Two things that script encodes and this file should not be read without:
+
+- **The image fetch sends `Accept: image/webp`, and that header is load-bearing.** Several masters
+  are 2000×2000 PNGs of ~1.9 MB against an existing corpus averaging 33 KB. Shopify's documented
+  format parameters (`?format=jpg`, `?fm=jpg`, `_900x` in the path) are all **ignored** on this
+  endpoint; content negotiation is the only lever, and it takes 1,953 KB → 145 KB.
+- **`wood-sage-sea-salt` has a 250×383 master** — real, but far below this merchant's usual
+  1200–2048px, and not upscalable. It ships because a small real photograph beats none; replace it
+  first if another live programme carries Jo Malone.
+
+**Asking Perfumania for the full/designer catalogue feed is now optional rather than blocking.** It
+would still be worth having — a feed is cheaper to refresh than a 4,380-product crawl, and carries
+stock state the storefront JSON does not. CJ advertiser **17335854**.
 
 ## `my-perfume-shop.csv` shape (35 columns)
 
