@@ -236,6 +236,46 @@ contradict themselves** (Paco Rabanne 1 Million carries four different pyramids
 across four SKUs). Neither number supports publishing their notes as fact about a
 real product.
 
+## The retailer band, and the disclosure page that was lying, 2026-09-09
+
+The home page now carries a slow band naming the five retailers we earn from:
+Opulensi, Clone of Perfume, AromaPassions, FragranceShop.com, Perfumania.com. Three
+things about it are load-bearing and none of them is cosmetic.
+
+**It is a disclosure, not a logo wall.** The heading reads "We earn a commission from
+these retailers" and the band carries NAMES, not brand marks. It must never become
+"Partners", "Sponsors" or "As featured in": none of these companies has reviewed
+anything here, several of them sell products this site rates against each other, and
+an affiliate agreement grants no logo rights. `shared/clients.md` records that
+Sirketim has no third-party clients at all, so there is nobody whose logo could
+legitimately appear. Framed honestly the band strengthens the independence claim;
+reframed as a partner strip it would assert an association we do not have.
+
+**The list is derived, never typed.** `lib/merchants.ts` reads the shipped link map
+and a merchant appears only while at least one of its links actually resolves. My
+Perfume Shop (Awin 106089) is the reason that matters: still enrolled, still feeding
+data, every link dead. A hand-typed list would keep advertising it, which is the
+direction that flatters us. An id in the link map with no registry entry throws at
+build time rather than quietly under-reporting who pays us.
+
+**`/disclosure` was asserting the opposite of the truth, live.** It said Counterscent
+had joined no affiliate programme and that there were no affiliate links on the site
+at all, while 5 retailers and 620 redirects were shipping. It now renders the same
+derived list, so the two cannot drift apart again. Worth auditing any other page that
+states a fact about the BUSINESS rather than about a fragrance - that was the only
+one checked.
+
+**Reduced motion needed its own rule, and a screenshot caught the second bug.**
+`app/globals.css` sets `animation-iteration-count: 1` globally under
+`prefers-reduced-motion`, which for a looping marquee means it completes instantly
+and parks the track at -50%: half the names shoved off-screen with no motion to
+explain why. `.marquee-track` therefore kills the animation AND resets the transform,
+and the track wraps instead. That fix exposed a second one visible only in a rendered
+screenshot: the duplicate run that makes the loop seamless was still painting once
+wrapped, printing every retailer twice. Hence `.marquee-dup { display: none }` under
+the same query. Verified on the live site at 1280, 390 and under reducedMotion:
+10 visible names while animating, 5 when not.
+
 ## Founder actions still open
 
 No agent can do any of these. The numbered list in `FINALIZATION-GUIDE.md` is the canonical copy; this is the short form.
