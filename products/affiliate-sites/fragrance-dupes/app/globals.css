@@ -128,3 +128,50 @@ body {
   opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+
+/* Retailer band (components/home/retailer-band.tsx).
+   The track holds the retailer list twice, so translating it by exactly -50%
+   lands run two where run one began and the loop is seamless. The duration is
+   deliberately slow: this is disclosure copy, and a reader has to be able to
+   finish reading a name before it leaves. */
+.marquee-track {
+  animation: marquee 38s linear infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Fade both ends so a name enters and leaves rather than being clipped
+   mid-letter against the container edge. */
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+}
+
+/* The global reduced-motion reset near the top of this file sets
+   animation-iteration-count: 1 and a ~0ms duration. For a LOOPING marquee that
+   is worse than no rule at all: it runs to completion instantly and parks the
+   track at -50%, hiding half the names with no motion to explain why. So stop
+   the animation outright, drop the transform, and let the band wrap into a
+   static list. */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
+    flex-wrap: wrap;
+    width: 100%;
+    row-gap: 0.5rem;
+    padding-inline: 1.5rem;
+  }
+  /* The duplicate run only exists to make the loop seamless. With the loop
+     gone it is just every retailer printed a second time. */
+  .marquee-dup {
+    display: none;
+  }
+  .marquee-mask {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}

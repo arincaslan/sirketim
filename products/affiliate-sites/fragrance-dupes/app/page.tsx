@@ -6,6 +6,7 @@ import { ChapterFormula } from "@/components/home/chapter-formula";
 import { ChapterTryIt } from "@/components/home/chapter-try-it";
 import { ChapterStandards } from "@/components/home/chapter-standards";
 import { LibraryProof } from "@/components/home/library-proof";
+import { RetailerBand } from "@/components/home/retailer-band";
 import { ProducerCta } from "@/components/home/producer-cta";
 
 /**
@@ -44,6 +45,7 @@ export default function HomePage() {
       <ChapterTryIt />
       <ChapterStandards />
       <LibraryProof pieces={latest} />
+      <RetailerBand />
       <ProducerCta />
     </>
   );

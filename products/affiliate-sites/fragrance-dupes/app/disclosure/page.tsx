@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getLiveMerchants } from "@/lib/merchants";
 
 export const metadata: Metadata = {
   title: "Affiliate Disclosure",
@@ -6,6 +7,8 @@ export const metadata: Metadata = {
 };
 
 export default function DisclosurePage() {
+  const merchants = getLiveMerchants();
+
   return (
     <div className="container max-w-2xl py-14 sm:py-16">
       <h1 className="font-display text-fluid-h1">Affiliate disclosure</h1>
@@ -44,15 +47,36 @@ export default function DisclosurePage() {
           which they are, and a producer that simply copies an
           original&apos;s specification back to us is not published at all.
         </p>
-        <h2>No active program yet</h2>
+        <h2>Who we earn from</h2>
         <p>
-          As of this build, Counterscent has not enrolled in any affiliate
-          program, and there are <strong>no affiliate links on this site at
-          all</strong> &mdash; not even placeholder ones. A buy button does
-          not render unless its link resolves to a real, enrolled merchant,
-          so nothing on any page currently earns us anything. This page
-          describes the policy that will govern real links once a program
-          exists.
+          We are enrolled with the retailers below and may earn a commission on a
+          purchase made through a link on this site. They are retailers, not
+          partners or sponsors: none of them has reviewed, approved or endorsed
+          anything here, and we do not act on their behalf.
+        </p>
+        <ul>
+          {merchants.map((m) => (
+            <li key={m.id}>
+              <strong>{m.name}</strong> &mdash;{" "}
+              {m.side === "dupe"
+                ? "sells alternatives, linked from listings"
+                : "sells the original designer bottles"}{" "}
+              ({m.network === "cj" ? "CJ" : "Awin"} advertiser {m.id})
+            </li>
+          ))}
+        </ul>
+        <p>
+          That list is generated from the links this build actually ships, not
+          maintained by hand, so a programme we are enrolled with but cannot earn
+          from does not appear on it. A buy button does not render at all unless
+          its link resolves to a real, enrolled merchant &mdash; there are no
+          placeholder affiliate links anywhere on this site.
+        </p>
+        <p>
+          We link both sides of the same comparison and earn from both, which is
+          the arrangement most likely to look like a conflict, so it is worth
+          stating plainly: the retailer is chosen after the ranking, never before
+          it. Nothing about who pays us enters the similarity formula.
         </p>
       </div>
     </div>
