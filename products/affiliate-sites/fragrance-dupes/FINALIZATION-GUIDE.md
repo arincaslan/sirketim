@@ -301,7 +301,7 @@ Nothing below can be done by an agent. Everything downstream waits on them.
 10. ~~**Apply to CJ.**~~ ✅ **Submitted 31 Aug, approved, and FragranceShop.com fully wired 7 Sep** — see §3.3.
 11. **Confirm the CJ `sid` once, in CJ's own click report.** CJ obfuscates the query it forwards, so the sub-ID is unreadable from the redirect chain here — only the `cjevent` token is checkable. Same one-off check already done for Awin 117395. **Open.**
 12. **Chase Perfumania for the feed.** Approved on CJ, unwired, and the only thing missing is the export from their side. A second originals merchant is also the only route to the 26 references FragranceShop does not stock. **Worth applying to FragranceX (CJ 1024283) in the same pass** — it is the better fit for the niche houses and costs nothing extra. **Open as of 8 Sep.**
-13. **Remove `parfumoza.com`** from the Cloudflare account and the Worker's Domains & Routes. Dead since the 27 Aug rename, auto-renew off. **Open.**
+13. ~~**Remove `parfumoza.com`**~~ from the Cloudflare account and the Worker's Domains & Routes. **DONE 2026-09-10** — verified from outside: no A/AAAA record and nothing answers on either protocol. Remaining loose end: the registrar's NS delegation still points at Cloudflare, so the zone still answers SOA. Tidy at the registrar when convenient; nothing is served either way.
 14. **Record which 9 affiliate applications are pending.** They are tracked nowhere in the repo, so the next session cannot tell what has already been applied for and risks re-applying or re-researching. **Open.**
 
 ---
