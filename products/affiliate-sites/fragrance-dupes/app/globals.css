@@ -175,3 +175,32 @@ body {
     mask-image: none;
   }
 }
+
+/* A retailer's own mark, painted in the surrounding TEXT colour through a mask
+   rather than drawn as an image. Every one of these marks is monochrome black
+   on transparent, which would be invisible on the dark theme; masking paints
+   the shape in `currentColor` instead, so it reads on either ground without
+   being inverted, tinted or set on a white plate - none of which we may do to
+   somebody else's trademark. --retailer-mark is set inline per merchant from
+   lib/merchants.ts.
+
+   Guarded by @supports so that a browser without mask-image renders nothing
+   here instead of a solid coloured rectangle where the logo should be. */
+.retailer-mark {
+  display: block;
+  flex: none;
+}
+
+@supports (mask-image: url("")) or (-webkit-mask-image: url("")) {
+  .retailer-mark {
+    background-color: currentColor;
+    -webkit-mask-image: var(--retailer-mark);
+    mask-image: var(--retailer-mark);
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+}

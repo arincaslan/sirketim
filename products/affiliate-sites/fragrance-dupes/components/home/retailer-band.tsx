@@ -10,8 +10,21 @@ import { getLiveMerchants } from "@/lib/merchants";
  * of them sell products this site rates against each other. A band under a word
  * like "Partners" would assert an association we do not have, so the heading
  * says exactly what the relationship is - we send them traffic, they pay a
- * commission - and the band carries NAMES rather than brand marks, because a
- * logo implies an association an affiliate agreement does not grant.
+ * commission.
+ *
+ * THE NAME STAYS ABOVE THE MARK, and that ordering is not decoration. This
+ * section's job is to DISCLOSE who pays us, which a logo alone does not do -
+ * AromaPassions' mark is a lowercase "a" in a circle and names nobody. So the
+ * name is the disclosure and the mark is recognition, in that order. Four of
+ * the five marks are wordmarks, so the name does appear twice for those; that
+ * redundancy is the accepted cost of the mark never being the only thing
+ * carrying the disclosure. Dropping the names to fix it would break the point
+ * of the section.
+ *
+ * Marks are painted in the surrounding text colour through a CSS mask, so they
+ * read on both themes without being inverted or set on a white plate. Where
+ * they came from, and why they are self-hosted rather than hot-linked from the
+ * networks' impression-tracking creative URLs: lib/merchants.ts.
  *
  * Framed that way it is not decoration but disclosure, which is what lets it
  * sit on the home page of a site that brands itself independent: the strongest
@@ -91,11 +104,24 @@ function RetailerRun({
       {...rest}
     >
       {merchants.map((m) => (
-        <li
-          key={m.id}
-          className="shrink-0 whitespace-nowrap font-display text-xl text-foreground/70 sm:text-2xl"
-        >
-          {m.name}
+        <li key={m.id} className="flex shrink-0 flex-col items-center gap-2.5 text-foreground/70">
+          <span className="whitespace-nowrap font-display text-xl leading-none sm:text-2xl">
+            {m.name}
+          </span>
+          {/* Decorative: the name above already says who this is, so the mark
+              is hidden from the accessibility tree rather than announced a
+              second time. */}
+          <span
+            aria-hidden
+            className="retailer-mark"
+            style={
+              {
+                width: m.logo.w,
+                height: m.logo.h,
+                "--retailer-mark": `url("${m.logo.src}")`,
+              } as React.CSSProperties
+            }
+          />
         </li>
       ))}
     </ul>

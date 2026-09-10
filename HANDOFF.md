@@ -243,13 +243,30 @@ Opulensi, Clone of Perfume, AromaPassions, FragranceShop.com, Perfumania.com. Th
 things about it are load-bearing and none of them is cosmetic.
 
 **It is a disclosure, not a logo wall.** The heading reads "We earn a commission from
-these retailers" and the band carries NAMES, not brand marks. It must never become
-"Partners", "Sponsors" or "As featured in": none of these companies has reviewed
-anything here, several of them sell products this site rates against each other, and
-an affiliate agreement grants no logo rights. `shared/clients.md` records that
-Sirketim has no third-party clients at all, so there is nobody whose logo could
-legitimately appear. Framed honestly the band strengthens the independence claim;
-reframed as a partner strip it would assert an association we do not have.
+these retailers", and each retailer's name carries its own mark below it. It must
+never become "Partners", "Sponsors" or "As featured in": none of these companies has
+reviewed anything here, and several of them sell products this site rates against
+each other. `shared/clients.md` records that Sirketim has no third-party clients at
+all, so there is nobody whose logo could legitimately appear under a partner heading.
+Framed honestly the band strengthens the independence claim; reframed as a partner
+strip it would assert an association we do not have.
+
+**The marks arrived 2026-09-10 and three rules keep them defensible.** The NAME stays
+above the mark, because a mark alone discloses nothing - AromaPassions' is a bare
+lowercase "a". No mark is restyled beyond being painted one colour through a CSS
+mask, which is also how they stay legible on the dark theme without being inverted or
+plated. And they are self-hosted, not hot-linked: the networks' creative URLs
+(`cshow.php`, `image-<pid>-<aid>`) are impression trackers, and embedding one would
+put a third-party request carrying every visitor's IP on the home page of a site that
+is deliberately cookieless. We are paid on sales, not impressions.
+
+Provenance per mark is in `lib/merchants.ts`. Two things worth knowing before
+touching them: a network "creative" is often a promo banner rather than a logo
+(Opulensi's Awin creative is product photos), and `fragranceshop.com` is behind a bot
+challenge that 403s every path including `robots.txt` - its mark came from the CJ
+creative and there is no other route that does not involve working around that
+challenge, which we do not do. **Never AI-generate or retouch a mark**: an altered
+logo misrepresents a real company and an invented one is worse.
 
 **The list is derived, never typed.** `lib/merchants.ts` reads the shipped link map
 and a merchant appears only while at least one of its links actually resolves. My
