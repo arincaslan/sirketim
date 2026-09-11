@@ -157,9 +157,14 @@ export default function AboutPage() {
             <AccordionItem value="updates">
               <AccordionTrigger>What happens when a formula changes?</AccordionTrigger>
               <AccordionContent>
-                Fragrance houses reformulate without announcing it. When we
-                notice a meaningful shift, we update the rating and note the
-                change rather than leaving a stale score in place.
+                Fragrance houses reformulate without announcing it, and we do
+                not currently track reformulations — there is no batch-level
+                re-check behind this site, and we would rather say so than
+                imply one. A rating reflects the notes published for a
+                fragrance at the time we researched it. What does protect you
+                is the cap: a score we have not checked against the bottle
+                itself cannot publish above 90, and the listing says it is
+                unverified.
               </AccordionContent>
             </AccordionItem>
           </Accordion>

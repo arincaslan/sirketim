@@ -1,4 +1,4 @@
-// PARFUMOZA marketplace schema.
+// COUNTERSCENT marketplace schema.
 //
 // STATUS: not migrated, not connected. No database is provisioned - see
 // MARKETPLACE-PLAN.md §4 and PRODUCER-PROGRAM.md §8. `npx prisma validate`
@@ -24,7 +24,7 @@ datasource db {
 // Producers and billing
 // ---------------------------------------------------------------------------
 
-/// A seller listing dupes on PARFUMOZA. Mirrors the `Producer` interface in
+/// A seller listing dupes on COUNTERSCENT. Mirrors the `Producer` interface in
 /// lib/types.ts. `createdAt` is the "date of subscriber" the founder asked
 /// for - when they joined, as distinct from when their current billing period
 /// started (that lives on Subscription, and resets every renewal).
@@ -33,7 +33,7 @@ model Producer {
   slug      String   @unique
   name      String
   blurb     String   @default("")
-  /// PARFUMOZA's own line. Skips subscription and approval entirely.
+  /// COUNTERSCENT's own line. Skips subscription and approval entirely.
   isHouse   Boolean  @default(false)
   contactEmail String?
   createdAt DateTime @default(now())
@@ -51,12 +51,21 @@ enum BillingInterval {
   YEARLY
 }
 
-/// Mirrors Stripe's own Subscription object rather than inventing a parallel
-/// billing state machine. Stripe is the source of truth; these rows are a
-/// local projection kept current by the webhook at
-/// app/api/webhooks/stripe/route.ts. Never mutate status here directly from
-/// application code - let the webhook do it, or the two drift and a cancelled
-/// customer keeps their listings live.
+/// A local projection of the payment provider's own subscription object,
+/// rather than a parallel billing state machine of our own. The provider is
+/// the source of truth and a webhook keeps these rows current.
+///
+/// THE PROVIDER IS NOT STRIPE. This comment named Stripe and pointed at
+/// app/api/webhooks/stripe/route.ts, which was deleted 2026-08-27 - Stripe
+/// does not serve a Turkey-based business, and `output: "export"` means this
+/// project has no API routes at all. The board's recommendation is Paddle
+/// (merchant of record), NOT iyzico, whose shape is wrong for a subscription
+/// billed to US producers; see
+/// departments/accounting/reports/payment-rails-investigation.md. The webhook
+/// will live on the producer origin, not in this project.
+///
+/// Never mutate status here directly from application code - let the webhook
+/// do it, or the two drift and a cancelled customer keeps their listings live.
 enum SubscriptionStatus {
   TRIALING
   ACTIVE

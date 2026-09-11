@@ -72,10 +72,19 @@ export async function getProducerSession(): Promise<ProducerSession | null> {
 }
 
 /** Active in the sense that matters for listing: currently paid, or in a
- *  trial. `past_due` deliberately still counts - Stripe's dunning retries a
- *  failed card for days, and pulling a producer's access on the first failed
- *  charge is a bad outcome for a recoverable card problem
- *  (see the webhook's matching note in app/api/webhooks/stripe/route.ts). */
+ *  trial. `past_due` deliberately still counts - a provider's dunning retries
+ *  a failed card for days, and pulling a producer's access on the first failed
+ *  charge is a bad outcome for a recoverable card problem.
+ *
+ *  The reverse case needs deciding when billing lands and is NOT handled here:
+ *  a producer who CANCELS must not have their listings vanish mid-comparison,
+ *  which reads as retaliation and implies we sell continued presence.
+ *  Cancellation should end submission rights and let approved listings run to
+ *  the end of the paid period.
+ *
+ *  This used to cite app/api/webhooks/stripe/route.ts. That route was deleted
+ *  2026-08-27 and this project has no API routes at all; the provider will be
+ *  Paddle, on the producer origin. */
 export function isSubscriptionActive(subscription: ProducerSubscription | null): boolean {
   if (!subscription) return false;
   return (

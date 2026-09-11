@@ -78,6 +78,8 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { readAllLinkLiterals } from "./lib/affiliate-link-sources.mjs";
+
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 
@@ -102,6 +104,25 @@ const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
  * minute of added wall time and this is not a build step.
  */
 const DELAY_MS = 700;
+
+/**
+ * How many links per merchant a default run actually requests.
+ *
+ * EVERY CHECK IS A REAL AFFILIATE CLICK. The script follows the live chain, so
+ * the network records a click for each one. Before 2026-09-10 this script only
+ * knew about 252 links; fixing that (see readAffiliateLinks) took the true
+ * total to 620, and requesting all of them on every run means ~15 minutes and
+ * 620 sequential clicks from one IP — a pattern an affiliate network can
+ * reasonably read as click fraud, and the penalty for that is account
+ * termination, not a warning.
+ *
+ * So a default run samples, and `--all` opts into full coverage for a release
+ * check. Either way the summary prints how many links EXIST versus how many
+ * were requested, because the failure this whole change exists to fix was a
+ * checker quietly covering a subset while reporting a clean pass.
+ */
+const DEFAULT_SAMPLE_PER_MERCHANT = 12;
+const CHECK_ALL = process.argv.includes("--all");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
@@ -174,6 +195,24 @@ const MERCHANT_NOTES = {
       "inconclusive rather than as a pass — a 403 from a WAF and a 403 from a dead product page " +
       "are indistinguishable, so this must never be read as 'link checked and working'.",
   },
+  17335854: {
+    name: "Perfumania.com",
+    network: "cj",
+    echoesSubIdInUrl: false,
+    note:
+      "CJ, same mechanics as 16941446 — the Awin cookie channel does not apply, and what this " +
+      "script can assert is that CJ issued a `cjevent`, not that the sub-ID was recorded against " +
+      "it. That remains a founder-side check in CJ's own click report.\n" +
+      "      Two differences from the other CJ merchant, both observed rather than assumed:\n" +
+      "      (a) perfumania.com does NOT block automated requests, so unlike FragranceShop the " +
+      "destination status and the stock check are genuinely verifiable here. Do not copy " +
+      "`blocksAutomatedRequests` across from 16941446.\n" +
+      "      (b) it owns TWO key namespaces, not one: `pm-<slug>` for the 123 references it " +
+      "stocks (91 of which FragranceShop also stocks, which is why the prefixes must stay " +
+      "separate) and `pmshop-<handle>` for the 245 shop-surface products behind /originals. " +
+      "Together they are 368 links — every one of which shipped UNCHECKED until 2026-09-10, " +
+      "because this file's source list had fallen two files behind generate-redirects.mjs.",
+  },
 };
 
 /** Parse a Set-Cookie header line into { name, value }. */
@@ -242,35 +281,20 @@ function subIdInAwinCookie(cookies, merchantId, subId) {
   return value.split("|").some((f) => f === subId) ? hit.name : null;
 }
 
-/** Parse the affiliate map out of the TS file, same approach as
- *  generate-redirects.mjs — strict, so a shape change fails loudly. */
+/**
+ * Parse the affiliate map out of the TS files.
+ *
+ * The source list comes from `scripts/lib/affiliate-link-sources.mjs`, the
+ * same module `generate-redirects.mjs` uses, and that sharing is the point.
+ * This function used to carry its own copy of the list, which fell two sources
+ * behind the generator: 368 of 620 shipped links — every Perfumania link —
+ * were never checked, while this script reported a clean pass. A checker
+ * silently covering a subset is worse than no checker, because it turns "we
+ * have not looked" into "we looked and it was fine". Never reintroduce a local
+ * list here; add the source to the shared module instead.
+ */
 function readAffiliateLinks() {
-  // Two files, exactly as generate-redirects.mjs assembles them: the
-  // hand-written dupe-side literal, and the originals-side one regenerated
-  // from the CJ feed. Checking only the first would silently skip every
-  // original-* link — a hundred of them — while reporting a clean pass.
-  const sources = [
-    ["lib/data/cj-links.generated.ts", "CJ_ORIGINAL_LINKS"],
-    ["lib/affiliate-links.ts", "affiliateLinks"],
-  ];
-
-  const bodies = sources.map(([relPath, declaration]) => {
-    const src = readFileSync(resolve(root, ...relPath.split("/")), "utf8");
-    const match = src.match(
-      new RegExp(`export const ${declaration}\\s*:[^=]*=\\s*(\\{\\s*\\}|\\{[\\s\\S]*?^\\});`, "m")
-    );
-    if (!match) {
-      throw new Error(
-        `check-affiliate-links: could not find the \`${declaration}\` literal in ` +
-          `${relPath}. Update this parser rather than letting the check silently ` +
-          "pass on zero links."
-      );
-    }
-    const body = match[1].trim();
-    return /^\{\s*\}$/.test(body) ? "" : body;
-  });
-
-  const body = bodies.join("\n");
+  const body = readAllLinkLiterals(root, "check-affiliate-links");
   if (body.trim() === "") return [];
 
   return [...body.matchAll(/["']?([\w-]+)["']?\s*:\s*\{([^}]*)\}/g)].map(([, id, fields]) => ({
@@ -434,11 +458,39 @@ const byMerchant = entries.reduce((acc, e) => {
   return acc;
 }, {});
 
-console.log(`check-affiliate-links: checking ${entries.length} link(s) across ${Object.keys(byMerchant).length} merchant(s)`);
+// Sample per merchant rather than globally, so a merchant with 245 links
+// cannot crowd out one with 9 — the small merchant is exactly where a silent
+// breakage hides.
+const selected = [];
+for (const list of Object.values(byMerchant)) {
+  selected.push(...(CHECK_ALL ? list : list.slice(0, DEFAULT_SAMPLE_PER_MERCHANT)));
+}
+
+console.log(
+  `check-affiliate-links: ${entries.length} link(s) across ` +
+    `${Object.keys(byMerchant).length} merchant(s); requesting ${selected.length}` +
+    (CHECK_ALL ? " (--all)" : ` (sample of ${DEFAULT_SAMPLE_PER_MERCHANT}/merchant — pass --all for every link)`)
+);
 for (const [mid, list] of Object.entries(byMerchant)) {
   const m = MERCHANT_NOTES[mid];
-  console.log(`  ${mid}  ${m?.name ?? "(unknown advertiser — add it to MERCHANT_NOTES)"}  ${list.length} link(s)`);
-  if (m?.echoesSubIdInUrl === false) console.log(`        sub-ID is verified via the Awin click cookie, not the URL`);
+  const n = CHECK_ALL ? list.length : Math.min(list.length, DEFAULT_SAMPLE_PER_MERCHANT);
+  const skipped = list.length - n;
+  console.log(
+    `  ${mid}  ${m?.name ?? "(unknown advertiser — add it to MERCHANT_NOTES)"}  ` +
+      `${list.length} link(s), checking ${n}${skipped ? ` (${skipped} NOT checked)` : ""}`
+  );
+  // Branch on the network. This line used to say "Awin click cookie" for every
+  // merchant that does not echo the sub-ID, including the two CJ ones — whose
+  // own notes directly below say "CJ, not Awin: the whole cookie channel does
+  // not apply". A summary that contradicts the data under it is worse than no
+  // summary, because the summary is the part people read.
+  if (m?.echoesSubIdInUrl === false) {
+    console.log(
+      m.network === "cj"
+        ? `        CJ obfuscates the forwarded query — this script asserts a cjevent was issued, not that the sub-ID was recorded`
+        : `        sub-ID is verified via the Awin click cookie, not the URL`
+    );
+  }
 }
 console.log();
 
@@ -446,7 +498,7 @@ let failed = 0;
 const outOfStock = [];
 const inconclusive = [];
 let first = true;
-for (const entry of entries) {
+for (const entry of selected) {
   if (!first) await sleep(DELAY_MS);
   first = false;
   const r = await check(entry);

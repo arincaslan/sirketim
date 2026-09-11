@@ -39,6 +39,22 @@ export default function ProducersPage() {
         </div>
       </div>
 
+      {/* This page describes the programme in the present tense and promises a
+          producer page that has no route yet. Every sibling page under
+          /producers carries a not-live notice; this one did not, and it is the
+          page a real producer lands on first. The root CLAUDE.md rule is that a
+          feature whose backing service does not exist must say so AT THE POINT
+          OF USE - so the notice sits above the promises, not below them. */}
+      <div className="mb-14 max-w-[68ch] rounded-frame border border-dashed border-border p-6">
+        <h2 className="font-display text-lg">Not open yet</h2>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          The producer program has not launched. There are no producer accounts, no billing
+          connected to this site, and nothing on this page can be signed up for today. What
+          follows is how it is designed to work, written down in advance so the standards are
+          public before the first listing exists — not a description of something running.
+        </p>
+      </div>
+
       <div className="mb-14 grid gap-6 sm:grid-cols-2">
         <div className="flex flex-col gap-4 rounded-frame border border-border bg-card p-6">
           <h2 className="font-display text-xl">What a listing buys</h2>
@@ -121,7 +137,7 @@ export default function ProducersPage() {
             Submit a listing
           </Link>
           <span className="text-xs text-muted-foreground">
-            Requires a producer account. The free tier covers two listings.
+            Requires a producer account. The free tier covers one listing.
           </span>
         </div>
       </div>

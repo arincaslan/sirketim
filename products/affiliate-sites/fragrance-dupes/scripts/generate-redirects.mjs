@@ -57,6 +57,8 @@ import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { readAllLinkLiterals } from "./lib/affiliate-link-sources.mjs";
+
 const here = dirname(fileURLToPath(import.meta.url));
 const outFile = resolve(here, "..", "public", "_redirects");
 
@@ -73,50 +75,19 @@ const SUB_ID_PARAM = { awin: "clickref", cj: "sid" };
  * than silently emitting an empty redirect table, which would 404 every
  * affiliate link in production while the site looked fine.
  */
-function readLiteral(relPath, declaration) {
-  const src = readFileSync(resolve(here, "..", ...relPath.split("/")), "utf8");
-
-  // Matches both the empty one-line form (`= {};`) and a populated multi-line
-  // literal. Anchored on the closing `};` at the start of a line, or `{}`.
-  const match = src.match(
-    new RegExp(`export const ${declaration}\\s*:[^=]*=\\s*(\\{\\s*\\}|\\{[\\s\\S]*?^\\});`, "m")
-  );
-  if (!match) {
-    throw new Error(
-      `generate-redirects: could not find the \`${declaration}\` literal in ` +
-        `${relPath}. The file's shape changed — update this parser rather than ` +
-        "letting the build emit an incomplete redirect table."
-    );
-  }
-  const body = match[1].trim();
-  return /^\{\s*\}$/.test(body) ? "" : body;
-}
-
 /**
- * The redirect table is assembled from THREE files, and missing any one of them
- * ships buy buttons that resolve in the UI and 404 at the edge:
+ * The redirect table is assembled from every file listed in
+ * `scripts/lib/affiliate-link-sources.mjs`, and missing any one of them ships
+ * buy buttons that resolve in the UI and 404 at the edge.
  *
- *   lib/affiliate-links.ts          hand-written dupe-side entries
- *   lib/data/cj-links.generated.ts  originals-side, FragranceShop.com (CJ 16941446)
- *   lib/data/pm-links.generated.ts  originals-side, Perfumania.com (CJ 17335854)
- *   lib/data/pm-shop-links.generated.ts  Perfumania shop surface (/originals)
- *
- * The two originals files do NOT collide by design: FragranceShop owns
- *   `original-<slug>`, Perfumania owns `pm-<slug>`, because 91 references are
- *   stocked by both and a shared key would silently drop one retailer.
- *
- * Both are parsed as text with the same entry regex. The generated file is read
- * FIRST so a hand-written entry overwrites a regenerated one on a key
- * collision — matching the spread order in lib/affiliate-links.ts, so the edge
- * and the UI cannot disagree about where an id goes.
+ * That list is deliberately NOT repeated here. It used to be, and
+ * `check-affiliate-links.mjs` kept a second copy that fell two sources behind —
+ * so 368 Perfumania links shipped unchecked while the checker reported a clean
+ * pass. One list, imported by both, is what stops that recurring. Read that
+ * file for which source owns which key prefix and why the order matters.
  */
 async function readAffiliateLinks() {
-  const body = [
-    readLiteral("lib/data/cj-links.generated.ts", "CJ_ORIGINAL_LINKS"),
-    readLiteral("lib/data/pm-links.generated.ts", "PM_ORIGINAL_LINKS"),
-    readLiteral("lib/data/pm-shop-links.generated.ts", "PM_SHOP_LINKS"),
-    readLiteral("lib/affiliate-links.ts", "affiliateLinks"),
-  ].join("\n");
+  const body = readAllLinkLiterals(resolve(here, ".."), "generate-redirects");
 
   if (body.trim() === "") return {};
 

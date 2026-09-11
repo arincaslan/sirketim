@@ -44,6 +44,20 @@ Three ways to de-risk it, in rough order of how much they protect the launch:
 
 This is a founder decision, not a technical one. The build does not change much either way; only the gate on `Subscription.tier` moves.
 
+### DECIDED 2026-09-10, after a board round
+
+**Free tier of ONE listing, paid upgrade above it, and no commission on any paid tier.** The founder accepted the recommendation with two changes, and the second one is not a detail:
+
+- **One free listing, not two.** The free tier is a taste of the channel, enough to see real click data on a real comparison. It is not enough to cover a range, which is what the upgrade is for.
+- **Paid tiers are priced lower** than the placeholder table below (19/49 rather than 29/79 — still placeholders, see `lib/plans.ts`).
+- **We take no commission from subscribers.** A paying producer's sales earn us nothing; the free tier is commission-only.
+
+That last change was the founder's, against the board's "commission on all tiers", and it is strictly better for the thing this document spends §7 defending. It is the third option from the list above — subscription *instead of* commission — applied to the paid tiers only, and it buys exactly what that option was credited with: **once we earn nothing per click or per sale from a subscriber, we have no financial interest in where their listing ranks or how much traffic it gets.** A marketplace that charges a fee *and* takes a cut has to keep explaining why the fee does not buy position. This one does not have to.
+
+It also removes the double-dip risk this section was written about, which was the reason the board hesitated.
+
+The consequence for the build, recorded here because it is easy to miss: a subscriber's listing does not carry an affiliate link at all. It carries a direct store link. `lib/plans.ts` exposes `takesCommission` per tier and `tiersWithoutCommission()` so the publish path can tell which kind of link to emit — and note that a direct link has no `/go/` sub-ID, so subscriber click data has to come from our own logging rather than from a network's reporting.
+
 ---
 
 ## 3. Tier shape (illustrative, not priced)
@@ -178,16 +192,16 @@ All five ship together as one atomic change, not staged separately, because they
 
 ## 8. What blocks launch
 
-In dependency order:
+In dependency order. **Updated 2026-09-10 after a board round — items 1 and 9 are closed, and item 4 no longer says what it used to.**
 
-1. **Revenue model decision** (§2) - everything else is shaped by it.
-2. **Postgres provisioned** - Neon or Supabase, neither exists yet.
-3. **Auth.js producer accounts.**
-4. **Payment processor** - Stripe is the obvious default, nothing is configured, and this needs a real business entity, tax details, and payout setup that is founder-side work, not code.
+1. ~~**Revenue model decision**~~ — **DECIDED 2026-09-10.** Free tier of one listing, paid upgrade, no commission on paid tiers. See the decision block in §2. This had gated every other item here.
+2. **Postgres provisioned** — Neon or Supabase, neither exists yet. Founder-side account work; nothing downstream moves without it. Note the schema's `String[]` columns rule out Cloudflare D1 without a change.
+3. **Producer accounts and auth**, on the producer origin.
+4. **Payment processor** — **NOT Stripe.** This item used to read "Stripe is the obvious default"; that was false, and `lib/stripe.ts` was deleted 2026-08-27 because Stripe does not serve a Turkey-based business. The board's recommendation is **Paddle** (merchant of record, so it owes US state sales tax and EU/UK VAT rather than Sirketim, and our counterparty becomes one company with one document per payout), confirmed 2026-08-26 to onboard Turkish sellers. **Not iyzico either** — it can do recurring billing, but subscribers here are US businesses, and a Turkish PSP means FX friction on their side plus every tax and invoicing obligation landing on us. iyzico stays right for Turkish direct-invoice clients. Still founder-side: real business entity, tax details, payout setup. See `departments/accounting/reports/payment-rails-investigation.md`.
 5. **Submission form + validation.**
-6. **Approval queue.**
-7. **Click logging and per-listing sub-ID attribution** (§6) - must exist before the first real click, not after.
-8. **Written approval criteria and a published SLA** (§5).
-9. **At least one real affiliate program enrolled** - without this the whole thing is a demo. See Communication's Amazon Associates preparation work.
+6. **Approval queue.** A subagent may do the mechanical first pass; **approval is always a human decision.** Confirmed by the founder 2026-09-10: automation may take something down or weaken a claim, never put something up.
+7. **Click logging and per-listing sub-ID attribution** (§6) — must exist before the first real click, not after. Note this became MORE important with the no-commission decision: a subscriber's direct store link has no network reporting behind it, so our own log is the only click data they get.
+8. **Written approval criteria and a published SLA** (§5). Two numbers, not one — a review SLA and a separate publish cadence, because the catalogue is a static build and "approved" is not "live".
+9. ~~**At least one real affiliate program enrolled**~~ — **DONE.** Five retailers are live: Awin 123248 / 117395 / 34989 and CJ 16941446 / 17335854, with 620 `/go/` ids resolving in production. This item said the whole thing was a demo without it. It is no longer a demo.
 
-Items 1, 4, and 9 are founder decisions or founder-side applications. Nothing in 2-8 is worth building until 1 is settled.
+Items 2 and 4 are founder-side applications. **The real gate is now none of the above:** the company's registered *faaliyet konusu* is construction and mining, and the mali müşavir memo of 2026-08-29 calls settling that the most important open question before any payment arrives. A SaaS subscription sold to US businesses sits further from that scope than affiliate commission does. That question is open and unanswered.

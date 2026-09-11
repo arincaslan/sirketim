@@ -16,38 +16,33 @@ import type { BillingInterval } from "@/lib/plans";
  * price id, so a later price change cannot silently reinterpret existing
  * rows.
  *
- * Checkout is wired to POST /api/subscribe, which currently answers 503
- * because no Stripe account is connected. The button surfaces that response
- * verbatim rather than failing silently or pretending to redirect.
+ * THERE IS NO CHECKOUT, AND THIS DOES NOT PRETEND OTHERWISE. Until 2026-09-10
+ * this comment said checkout "is wired to POST /api/subscribe, which currently
+ * answers 503 because no Stripe account is connected", and the button really
+ * did POST there. Both halves were false: `app/api/` does not exist at all - it
+ * went with the static-export migration - so that request 404'd to an HTML
+ * error page rather than answering 503, and Stripe cannot serve a Turkey-based
+ * business, which is why lib/stripe.ts was deleted in the first place.
+ *
+ * So the button now states the position without making a request. A fetch to a
+ * route that cannot exist is not a graceful degradation, it is a round trip
+ * whose only possible outcome is the message we could have shown immediately.
+ *
+ * When billing does land it will be Paddle, not Stripe, and not iyzico - see
+ * departments/accounting/reports/payment-rails-investigation.md for why a
+ * Turkish PSP is the wrong shape for a subscription billed to US producers.
+ * Wiring it means a real endpoint on the producer origin, not here.
  */
 export function PricingTable() {
   const [interval, setInterval] = useState<BillingInterval>("monthly");
-  const [pending, setPending] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  async function startCheckout(planId: string) {
-    setPending(planId);
-    setNotice(null);
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: planId, interval, producerId: "pending-signup" }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.url) {
-        window.location.href = data.url as string;
-        return;
-      }
-      setNotice(
-        data.message ??
-          "Checkout could not be started. Subscription billing is not connected to this site yet."
-      );
-    } catch {
-      setNotice("Checkout could not be reached. Subscription billing is not connected yet.");
-    } finally {
-      setPending(null);
-    }
+  function startCheckout(planId: string) {
+    const plan = PLANS.find((p) => p.id === planId);
+    setNotice(
+      `Subscription billing is not connected to this site yet, so nothing was charged and no ` +
+        `account was created. ${plan ? `${plan.name} is ` : "This tier is "}not open for signup.`
+    );
   }
 
   return (
@@ -151,10 +146,9 @@ export function PricingTable() {
                 <Button
                   variant={plan.highlighted ? "default" : "outline"}
                   className="w-full"
-                  disabled={pending !== null}
                   onClick={() => startCheckout(plan.id)}
                 >
-                  {pending === plan.id ? "Starting checkout..." : `Choose ${plan.name}`}
+                  {`Choose ${plan.name}`}
                 </Button>
               )}
             </div>

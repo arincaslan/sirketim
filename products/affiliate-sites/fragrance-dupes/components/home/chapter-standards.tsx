@@ -20,9 +20,20 @@ const PRINCIPLES = [
     body: "Similarity scores come from a disclosed formula, not an unexplained number.",
   },
   {
+    // REPLACED 2026-09-10. This used to read "Rechecked over time / Formulas
+    // change. We note when a rating was last verified against the current
+    // batch." No such note exists anywhere on the site: `lastVerifiedAt` is a
+    // column in a Prisma schema with no database behind it, and nothing renders
+    // a verification date. It was a promise about a mechanism, printed on the
+    // home page of a site whose argument is that it does not overclaim.
+    //
+    // What replaces it is the part that IS shipped and checkable:
+    // UNVERIFIED_SCORE_CAP in lib/verification.ts, surfaced by
+    // components/dupe-finder/verification-badge.tsx. If the re-check mechanism
+    // is ever built, say so then - not before.
     icon: ArrowClockwise,
-    title: "Rechecked over time",
-    body: "Formulas change. We note when a rating was last verified against the current batch.",
+    title: "Unverified ratings are capped",
+    body: "A score we have not checked against the bottle itself cannot publish above 90, and the listing says so.",
   },
 ];
 
