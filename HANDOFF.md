@@ -472,24 +472,42 @@ annual prices give away 16.7%. The single highest-leverage unverified number is
 whether Paddle's payout fee and the bank's confirmed 10-30 inbound SWIFT charge
 **stack**; if they do, the sub-7% crossover moves from ~32 producers to ~63.
 
-### What actually gates this, and it is not code
+### The faaliyet konusu question: ANSWERED 2026-09-11, and it moves the work rather than removing it
 
-**The company's registered faaliyet konusu is construction and mining.** The
-mali musavir memo of 2026-08-29 calls settling that the most important question
-and says it must be clear before the first payment arrives. A SaaS subscription
-sold to US businesses sits further from that scope than affiliate commission
-does, so the producer programme makes this question bigger, not smaller. **Open
-and unanswered for fifteen days.** If the answer is "add an e-commerce or
-digital marketing activity code," that is a general-assembly resolution, a trade
-registry filing and a Gazette publication - real cost, real lead time.
+The founder put this to the mali musavir. The answer: **carry out the
+transactions, issue and record the invoices, keep the tracking clean. If the
+activity code becomes an issue the tax office will raise it, and the code they
+ask for gets added then. As long as everything is recorded, there is no
+problem.**
 
-Also founder-side, in order: confirm the mali musavir's answer covers
-subscription income specifically and not just affiliate; get the KDV /
-hizmet ihracati treatment of a US-billed subscription (it decides whether a
-listed price is inclusive or exclusive, so it precedes pricing); **send the
-Paddle acceptable-use email now** - Counterscent is literally a marketplace and
-Paddle is reportedly restrictive toward them, it is free, it blocks nothing, and
-it is slow to answer; then set real prices; then open Paddle.
+That closes the item. It had been open since 2026-08-29 and was recorded in
+three places as the largest gate in front of the producer programme; it is not
+one. **Do not reopen it or re-derive it** - a qualified professional was asked
+the question directly and answered it, and this repo has no standing to
+second-guess Turkish tax practice.
+
+**What it does do is move the load onto bookkeeping, which was the weaker half
+all along.** The answer is conditional on records being clean, and as of the
+day it was given the ledger held **no income row of any type**, there was **no
+income category for subscription revenue**, and the payout table still said
+Awin was "not enrolled" eleven days after approval while two live CJ
+advertisers had no row at all. Those were closed the same day in
+`departments/accounting/CLAUDE.md`:
+
+- A fifth income category, `Subscription revenue — <Product name>`, with the
+  hazard spelled out next to it: the `Type` column already uses `Subscription`
+  to mean **an expense we pay**, so revenue filed that way lands in the cost
+  table and the weekly report **subtracts it from the balance** while looking
+  correct to a skim-read.
+- The Awin row corrected to enrolled and live with its three shipping
+  advertisers, a **CJ row added** (publisher 101873278, advertisers 16941446
+  and 17335854, 543 of the 620 live ids), and a producer-subscription row
+  carrying the Paddle position.
+
+**The practical rule that follows: the first real affiliate commission needs a
+ledger row when it arrives, not retroactively.** That is the nearer revenue -
+five retailers are already live - and it is now the first test of whether the
+mali musavir's condition is actually being met.
 
 ### Before the first producer pays: /disclosure becomes untrue
 
@@ -540,17 +558,26 @@ suggested fix is to accept a producer pyramid as `declared` **only if the same
 pyramid is publicly published on their own product page**, fetched and
 snapshotted - which turns "what they told us" into "what they tell every buyer".
 
-`departments/accounting/CLAUDE.md` has no income category for subscription
-revenue, and its `Type` column already uses `Subscription` to mean *an expense
-we pay* - so a mis-filed revenue row would **subtract** from the balance. Close
-that before the first charge. Its payout table is also stale: the Awin row still
-says "not enrolled", and there is no CJ row despite two live advertisers.
+~~`departments/accounting/CLAUDE.md` has no income category for subscription revenue~~ -
+**CLOSED 2026-09-11**, because the mali musavir's answer made clean records the
+condition rather than the activity code. A fifth category,
+`Subscription revenue - <Product name>`, now exists with the collision spelled out
+beside it: the `Type` column already uses `Subscription` for an expense we PAY, so
+revenue filed there lands in the cost table and the weekly report subtracts it from
+the balance while looking correct to a skim-read. The payout table was corrected in
+the same pass - Awin marked enrolled and live (it had said "not enrolled" for eleven
+days after approval), a CJ row added for the two live advertisers, and a
+producer-subscription row added carrying the Paddle position.
+
+**Still open there:** the ledger holds no income row of any type, and the first real
+affiliate commission needs one when it arrives rather than retroactively. That is now
+the first test of whether the condition the answer rested on is actually being met.
 
 ## Founder actions still open
 
 No agent can do any of these. The numbered list in `FINALIZATION-GUIDE.md` is the canonical copy; this is the short form.
 
-- **THE BIGGEST ONE, and it is not about code: settle the company's faaliyet konusu.** The registered scope is construction and mining; the mali musavir memo of 2026-08-29 calls this the most important open question and says it must be clear before the first payment arrives. It has been open fifteen days. The producer subscription makes it larger, not smaller - SaaS sold to US businesses sits further from that scope than affiliate commission does. Nothing about billing should be built until this is answered, and the answer may involve a general-assembly resolution, a trade registry filing and a Gazette publication.
+- ~~**Settle the company's faaliyet konusu**~~ — **ANSWERED 2026-09-11.** The mali musavir's position: do the transactions, record the invoices, keep the tracking clean; if the activity code becomes an issue the tax office raises it and the code gets added then. Not a blocker. It shifts the weight onto bookkeeping instead — see the subscription section, and note that the accounting gaps that condition depended on were closed the same day.
 - **Send the Paddle acceptable-use email.** Free, blocks nothing today, slow to answer, and it is the only thing that could invalidate the whole rail recommendation - Counterscent is literally a marketplace and Paddle is reportedly restrictive toward marketplaces. Ask three things while you are there: whether they self-bill Turkish tax residents (Awin explicitly does not), which legal entity contracts with a Turkish seller, and whether payouts can be batched quarterly.
 - **Provision a Postgres database** (Neon or Supabase) when you want the producer console built. Founder-side account work; nothing in build steps 3-8 of the subscription section moves without it.
 - **Ask the mali musavir two more questions** while the first is open: does the answer cover subscription income specifically and not just affiliate, and what is the KDV / hizmet ihracati treatment of a subscription sold to a US business. The second decides whether a listed price is inclusive or exclusive, so it precedes setting real prices.
