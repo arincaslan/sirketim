@@ -377,6 +377,10 @@ cannot classify. And namespace producer link keys (`producer-<slug>-<listing>`);
 this repo already lost 91 links to a shared key prefix.
 
 ### Build order
+**Progress report for the founder: `products/affiliate-sites/fragrance-dupes/SUBSCRIPTION-PROGRESS.md`.**
+Steps 1, 3 and 4 below are DONE as of 2026-09-11 - they are the three that need
+no database. Everything from 5 on is blocked on step 2, which is founder-side.
+
 
 1. **Remove the six facet sliders from `components/producers/submission-form.tsx`.**
    Not cosmetic. `isVerbatimCopy()` in `lib/verification.ts` requires notes AND

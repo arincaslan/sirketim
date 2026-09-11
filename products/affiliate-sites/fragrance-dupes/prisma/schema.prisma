@@ -76,22 +76,30 @@ enum SubscriptionStatus {
 
 /// Which payment processor a subscription is billed through.
 ///
-/// Exists because Stripe is NOT usable here: Sirketim is Turkey-based and
-/// Stripe does not support Turkish accounts (documented in
-/// departments/accounting/CLAUDE.md since 2026-08-24, re-confirmed by
-/// departments/accounting/reports/payment-rails-investigation.md). The
-/// integration code in lib/stripe.ts was written against Stripe before that
-/// was checked and is expected to be replaced - most likely by a
-/// merchant-of-record (Paddle) or a Turkish processor (iyzico).
+/// STRIPE WAS REMOVED FROM THIS ENUM 2026-09-11. It was never usable - Sirketim
+/// is Turkey-based and Stripe does not support Turkish accounts - and lib/stripe.ts
+/// was deleted 2026-08-27 for that reason. Leaving an impossible value in an enum
+/// invites someone to pick it. Removing it costs nothing today and would be a data
+/// migration once real rows exist.
 ///
-/// The columns below are therefore deliberately provider-agnostic. Renaming
-/// them now, while no database exists and no migration has run, costs
-/// nothing; renaming them after real subscriber rows exist would be a data
-/// migration.
+/// PADDLE is the board's recommendation (2026-09-10) and the expected value here:
+/// a merchant of record, so it owes US state sales tax and EU/UK VAT rather than
+/// Sirketim, and our counterparty becomes one company with one document per payout
+/// instead of one invoice per subscriber per period.
+///
+/// The two Turkish gateways are kept because they are the right answer for a
+/// DIFFERENT product - collecting from Turkish cardholders in TRY on direct
+/// invoicing - not for this one. Billing a US producer through either means FX
+/// friction on their side and leaves us the seller of record. PAYTR is here
+/// alongside IYZICO because the two are not interchangeable: PayTR is materially
+/// cheaper (~2.19% next-day vs ~4.29% with weekly cycles), which earlier docs
+/// treated as a wash.
+///
+/// See departments/accounting/reports/payment-rails-investigation.md.
 enum PaymentProvider {
-  STRIPE
   PADDLE
   IYZICO
+  PAYTR
 }
 
 model Subscription {
@@ -130,11 +138,62 @@ model Subscription {
 // Submissions
 // ---------------------------------------------------------------------------
 
+/// The EDITORIAL decision on a listing. Deliberately separate from PublishState
+/// below, and conflating the two is what made "remove" and "edit" unrepresentable
+/// in the first version of this schema.
+///
+/// Note CHANGES_REQUESTED points one way only: it is US asking the producer for
+/// something. A producer asking US for a change is a SubmissionRevision, not a
+/// status on the listing they are asking about.
 enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
   CHANGES_REQUESTED
+}
+
+/// Where a listing actually IS, as distinct from what we decided about it.
+///
+/// WHY THIS EXISTS, AND WHY A REMOVAL IS NEVER A ROW DELETE. The founder asked
+/// for producers to be able to remove their own listings. Deleting the row would
+/// destroy three things we need: ClickEvent history (clicks already made may still
+/// pay out for weeks inside a network cookie window), the record of a listing
+/// pulled after a complaint, and any published comparison/review piece that cites
+/// it - `affiliateLinkId` is mandatory in content/schema.ts, so a delete can break
+/// live content.
+///
+/// It also hides the one pattern most worth being able to see: REMOVAL AFTER A BAD
+/// SCORE, which is review suppression wearing a different hat. With history
+/// retained you can ask whether removals cluster at the bottom of the catalogue,
+/// how long a listing survived publication, and whether a producer withdrew at 62%
+/// and resubmitted the same pairing with a friendlier pyramid at 88%. That last one
+/// is automatically detectable, because (producerId, referenceSlug) is unique.
+///
+/// LIVE means "in the last build", not "approved". Those are different moments and
+/// the producer UI has to say so - the catalogue is a static export, so an approved
+/// listing is not a live listing until the next rebuild.
+enum PublishState {
+  /// Producer is still editing; never exported.
+  DRAFT
+  /// Submitted, awaiting an editorial decision.
+  PENDING
+  /// Approved AND emitted by the last export. The only state the build reads.
+  LIVE
+  /// The producer took it down themselves. Their right, no queue, no reason required.
+  WITHDRAWN_BY_PRODUCER
+  /// We took it down - complaint, dead link, failed re-check, policy. Reason required.
+  REMOVED_BY_EDITOR
+}
+
+/// Who or what performed a recorded action. A script that re-checks a price is an
+/// actor and must appear as one, or a reader months later cannot tell machine edits
+/// from human ones - which is the difference between "the price moved" and
+/// "somebody moved the price".
+enum ActorType {
+  PRODUCER
+  STAFF
+  FOUNDER
+  AUTOMATION
 }
 
 /// Mirrors lib/types.ts's `VerificationStatus`. FLAGGED is set by the
@@ -166,7 +225,13 @@ enum PyramidSource {
 model Submission {
   id         String   @id @default(cuid())
   producerId String
-  producer   Producer @relation(fields: [producerId], references: [id], onDelete: Cascade)
+  /// RESTRICT, not Cascade. Deleting a producer must not delete the listings they
+  /// ever had: ClickEvent history would be orphaned (it is SetNull, so the clicks
+  /// survive but stop pointing anywhere), published content citing the listing
+  /// would break, and the record of anything withdrawn after a complaint would go
+  /// with it. Close a producer account by state, the same way a listing is removed
+  /// by state rather than deleted.
+  producer   Producer @relation(fields: [producerId], references: [id], onDelete: Restrict)
 
   /// Slug of the reference this alternates. Not a foreign key: the reference
   /// catalog still lives in lib/data/houses/*.ts as curated editorial data,
@@ -175,11 +240,27 @@ model Submission {
   /// "Baccarat Rouge" appearing).
   referenceSlug String
 
-  slug          String @unique
+  /// NOT globally unique - see @@unique([producerId, slug]) at the bottom. A global
+  /// unique meant two producers could not both sell something called "Noir", which
+  /// is a constraint on their naming rather than on our data.
+  slug          String
   name          String
+  /// The producer's own brand name as it appears on the bottle. Required by
+  /// DupeCandidate and absent from this schema until 2026-09-11.
+  brand         String
   concentration String
   priceUsd      Float
   bottleMl      Int
+
+  /// The listing's OWN olfactive family. Required by DupeCandidate since the
+  /// 2026-09-08 score reform, and absent here until 2026-09-11 - an export would
+  /// have had nothing to put in it.
+  ///
+  /// EDITORIAL, not producer-supplied: same-family versus cross-family is a ~9-point
+  /// swing (familyBonus, CROSS_FAMILY_CREDIT 0.4) on a judgement call, which makes
+  /// it a scoring input and therefore ours. See the facet note below - this is the
+  /// same rule.
+  family        String
 
   /// Note pyramid, structured. Stored as string arrays to match FragranceNotes.
   notesTop   String[]
@@ -196,9 +277,22 @@ model Submission {
   /// Whether the tier split above is the producer's own or ours. See the enum.
   pyramidSource PyramidSource @default(DECLARED)
 
-  /// Producer's own 0-10 facet self-assessment. The integrity problem in
-  /// PRODUCER-PROGRAM.md §7 lives here: these feed the similarity score and
-  /// nobody but the producer has measured them.
+  /// 0-10 facet scores. **EDITORIAL - WE AUTHOR THESE. A PRODUCER MUST NEVER SET
+  /// THEM**, and the submission form stopped collecting them on 2026-09-11.
+  ///
+  /// This is not caution, it is the thing that makes the copy gate work.
+  /// isVerbatimCopy() in lib/verification.ts flags a copy only when the notes AND
+  /// the facets both match the reference (FACET_EPSILON = 0.5). That test has a
+  /// second, independent input precisely because facets are ours. Hand the same
+  /// party both and it is defeated by construction: copy the reference's notes
+  /// verbatim, nudge one facet by 0.6, and nothing fires while the note score sits
+  /// at 1.0. Every producer could then reliably reach the 90 cap and rank first on
+  /// their own reference - rank purchasable in substance while remaining
+  /// unpurchasable in letter, with /producers promising the public the opposite.
+  ///
+  /// Derive them the way they were derived for the three listed merchants: from the
+  /// declared notes, the concentration, and the producer's own difference prose -
+  /// never tuned against the flag threshold.
   facetFreshness Float
   facetSweetness Float
   facetWarmth    Float
@@ -216,14 +310,62 @@ model Submission {
   /// paste a note list.
   declaredDifferences String
 
-  affiliateUrl String
+  /// OUR assessment, in our voice - distinct from declaredDifferences above, which
+  /// is theirs. Authored at approval, never by a producer: it appears on the page as
+  /// what Counterscent says about the pairing, and a producer writing it would be
+  /// authoring our editorial about another company's product. Absent from this
+  /// schema until 2026-09-11, so approval had nowhere to put it.
+  verdict String?
+
+  /// Who claims this alternative matches this original, in their words, with a URL
+  /// a reader can check. Mirrors DupeCandidate.pairingBasis. When the producer's own
+  /// storefront says "inspired by X" we record it here; when it does not, the page
+  /// says the pairing is our own judgement, and that string is ours. A producer
+  /// editing this is editing evidence, so it goes through review.
+  pairingSource String?
+  pairingQuote  String?
+  pairingUrl    String?
+
+  /// The producer's own product page. ALWAYS recorded, because it is what a buyer
+  /// and a reviewer can check the price and the claims against.
+  storeUrl String
+
+  /// Key into `affiliateLinks`, set ONLY when we take commission on this listing.
+  ///
+  /// This is where the 2026-09-10 revenue decision lands in the data. Paid tiers pay
+  /// a fee and we take nothing on their sales (see `takesCommission` in
+  /// lib/plans.ts), so a subscriber's listing links DIRECTLY to storeUrl and this
+  /// stays null. Only free-tier listings carry an affiliate link. The consequence
+  /// worth knowing: a direct link has no /go/ sub-ID, so a subscriber's click data
+  /// can only come from our own logging, never from a network's reporting.
+  affiliateLinkId String?
+
+  /// Whether it was in stock at the last automated re-check. False suppresses the
+  /// buy button; the listing still renders, saying so. Machine-writable - this is
+  /// the "down direction", which automation is always allowed to take.
+  inStock Boolean @default(true)
+
   imageUrl     String?
 
   approvalStatus     ApprovalStatus     @default(PENDING)
+  publishState       PublishState       @default(DRAFT)
   verificationStatus VerificationStatus @default(DECLARED)
   rejectionReason    String?
   reviewedAt         DateTime?
   reviewedBy         String?
+
+  /// Set when publishState becomes WITHDRAWN_BY_PRODUCER or REMOVED_BY_EDITOR. The
+  /// reason is required for an editor removal and optional for a producer's own -
+  /// they do not owe us one. Both are also written to AuditEvent; these columns are
+  /// the fast path for "is this listing down and why", not the record.
+  removedAt     DateTime?
+  removedReason String?
+
+  /// The published score AT REMOVAL, frozen. Cheap to store and it is the only way
+  /// to answer the question that matters about withdrawals: do they cluster at the
+  /// bottom of the catalogue? A producer curating their own ratings by withdrawing
+  /// the bad ones is invisible without this, and no single removal looks wrong.
+  scoreAtRemoval Int?
 
   /// Editorial-only escape hatch, mirroring DupeCandidate.founderOverride -
   /// the ONLY way a published score exceeds the 95% structural ceiling in
@@ -242,11 +384,130 @@ model Submission {
 
   submittedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  /// When it last entered a build. Distinct from reviewedAt: approval and
+  /// publication are different moments on a statically-exported site, and the
+  /// producer's status page has to be able to say "approved, publishes at the next
+  /// build" rather than implying they are the same.
+  lastPublishedAt DateTime?
 
-  clicks ClickEvent[]
+  clicks      ClickEvent[]
+  revisions   SubmissionRevision[]
+  auditEvents AuditEvent[]
 
+  /// Slugs are unique PER PRODUCER, not globally.
+  @@unique([producerId, slug])
+  /// One listing per producer per original. Was a prose rule in
+  /// PRODUCER-PROGRAM.md §6a.2 with nothing enforcing it. Enforcing it in the
+  /// database is also what makes the withdraw-and-resubmit pattern detectable:
+  /// a producer cannot quietly hold two attempts at the same pairing, so a second
+  /// one is necessarily a re-use of this row with its history attached.
+  @@unique([producerId, referenceSlug])
   @@index([producerId, approvalStatus])
   @@index([referenceSlug, approvalStatus])
+  @@index([publishState])
+}
+
+/// A change a PRODUCER is asking us to make to a listing that is already live.
+///
+/// THE VERB THAT HAD NOWHERE TO LIVE. The founder's brief was "producers must be
+/// able to send us edit requests", and nothing in the first version of this schema
+/// could represent one. ApprovalStatus.CHANGES_REQUESTED points the other way - it
+/// is us asking them. With one row per listing, an edit was an in-place mutation of
+/// the row currently rendering, and both possible behaviours were wrong: either the
+/// edited data republishes without review, or the listing flips to PENDING and
+/// vanishes from the live site until someone looks at it.
+///
+/// So a revision is a PROPOSED payload held beside the live row. The live listing
+/// keeps serving while the request is reviewed, and the change applies on approval.
+///
+/// `payload` is Json rather than a mirror of every Submission column on purpose: it
+/// holds only the fields being changed, and mirroring would mean this model drifts
+/// behind Submission the way Submission drifted behind DupeCandidate.
+///
+/// **A revision touching notes, family, or the facet fields changes the published
+/// score and can never be auto-applied.** Price and stock are the only fields that
+/// may move without a human, and only because an automated re-check can confirm
+/// them against the producer's own storefront.
+model SubmissionRevision {
+  id           String     @id @default(cuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Restrict)
+
+  /// Only the fields the producer wants changed, as {field: newValue}.
+  payload Json
+  /// Their words on why. Not required, but it is what a reviewer reads first.
+  message String?
+
+  status          ApprovalStatus @default(PENDING)
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  rejectionReason String?
+
+  requestedAt DateTime @default(now())
+  appliedAt   DateTime?
+
+  @@index([submissionId, status])
+  @@index([status, requestedAt])
+}
+
+/// Append-only record of everything that happened to a listing. Never updated,
+/// never deleted.
+///
+/// WHY A SEPARATE TABLE. Submission carries one rejectionReason, one reviewedBy,
+/// one reviewedAt and an updatedAt that overwrites, so a
+/// CHANGES_REQUESTED -> resubmit -> APPROVED cycle collapsed into a single row
+/// showing only the last reviewer. A producer asking what happened to their edit
+/// three weeks ago had no answer, and neither did we.
+///
+/// It matters most for the founder override. That mechanism publishes above the
+/// site's own stated 95 ceiling and /about#methodology discloses that it exists -
+/// an override with no immutable record IS the unexplained backdoor that disclosure
+/// claims it is not.
+///
+/// LIVES IN THE DATABASE, NEVER IN GIT. The repo is public and these rows carry
+/// producer contact and billing identifiers.
+model AuditEvent {
+  id           String     @id @default(cuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Restrict)
+  producerId   String
+
+  /// e.g. "submitted", "approved", "revision_requested", "withdrawn",
+  /// "price_rechecked", "override_set". Free text rather than an enum so a new kind
+  /// of event never requires a migration to be recordable.
+  action    String
+  actorType ActorType
+  /// User id, script name, or the founder. Whoever or whatever did it.
+  actorId   String
+  /// How it arrived: "console", "email", "import", "script".
+  channel   String?
+
+  /// Full field-level before/after, not a summary. A summary cannot answer a
+  /// question you did not know you would be asked.
+  before Json?
+  after  Json?
+  reason String?
+
+  /// The subscription tier and status AT THIS MOMENT. Without it there is no way to
+  /// ever answer "do we approve payers differently", which is the whole of the
+  /// conflict this programme creates.
+  tierAtEvent   String?
+  statusAtEvent String?
+
+  /// What a visitor would have seen. Scores move when constants move - the
+  /// 2026-09-08 reform shifted 47 of 79 listings - so without these there is no
+  /// record of what was actually displayed on a given day, and substantiation is
+  /// about what you displayed, not what you display now. `codeVersion` is the git
+  /// SHA the score was computed under.
+  rawScore       Int?
+  publishedScore Int?
+  codeVersion    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([submissionId, createdAt])
+  @@index([producerId, createdAt])
+  @@index([action, createdAt])
 }
 
 /// Every outbound click through /go/[slug]. Powers both producer-facing
@@ -262,16 +523,33 @@ model ClickEvent {
   submissionId String?
   submission   Submission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
 
+  /// DENORMALISED, on purpose. `submissionId` goes null if the listing row ever
+  /// disappears, and a click that no longer knows what it was a click on cannot be
+  /// reconciled against a payout that arrives weeks later. These two columns are
+  /// copied at write time and never follow the relation, so the click history
+  /// survives independently of the row it points at.
+  producerIdAtClick   String?
+  submissionSlugAtClick String?
+
   /// Set for buy-the-original clicks, which have no Submission behind them.
   referenceSlug String?
   linkId        String
-  subId         String
+  /// The per-listing sub-ID sent to the affiliate network.
+  ///
+  /// NULL IS A REAL AND EXPECTED VALUE NOW. Paid tiers take no commission
+  /// (lib/plans.ts `takesCommission`), so a subscriber's listing links directly to
+  /// their store with no network in the middle and no sub-ID to send. For those
+  /// listings this table is the ONLY source of click data - there is no network
+  /// report to fall back on - which makes logging a product feature rather than
+  /// only a reconciliation tool.
+  subId         String?
 
   referrer  String?
   createdAt DateTime @default(now())
 
   @@index([submissionId, createdAt])
   @@index([subId])
+  @@index([producerIdAtClick, createdAt])
 }
 
 // ---------------------------------------------------------------------------

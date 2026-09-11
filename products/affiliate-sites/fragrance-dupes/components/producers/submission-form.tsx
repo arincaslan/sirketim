@@ -14,7 +14,6 @@ import {
 import { getReferencesByBrand } from "@/lib/catalog";
 import { REFERENCES } from "@/lib/dupes-data";
 import { cn } from "@/lib/utils";
-import type { FacetScores } from "@/lib/types";
 
 /**
  * Producer listing submission (PRODUCER-PROGRAM.md §4).
@@ -38,15 +37,6 @@ import type { FacetScores } from "@/lib/types";
  * and no producer accounts, so it says so on submit rather than showing a
  * success state for something that went nowhere.
  */
-
-const FACET_LABELS: { key: keyof FacetScores; label: string }[] = [
-  { key: "freshness", label: "Freshness" },
-  { key: "sweetness", label: "Sweetness" },
-  { key: "warmth", label: "Warmth" },
-  { key: "woodyDepth", label: "Woody depth" },
-  { key: "longevity", label: "Longevity" },
-  { key: "sillage", label: "Sillage" },
-];
 
 function parseNotes(value: string): string[] {
   return value
@@ -77,14 +67,6 @@ export function SubmissionForm() {
   const [ingredients, setIngredients] = useState("");
   const [differences, setDifferences] = useState("");
   const [affiliateUrl, setAffiliateUrl] = useState("");
-  const [facets, setFacets] = useState<FacetScores>({
-    freshness: 5,
-    sweetness: 5,
-    warmth: 5,
-    woodyDepth: 5,
-    longevity: 5,
-    sillage: 5,
-  });
   const [attempted, setAttempted] = useState(false);
 
   const reference = REFERENCES.find((r) => r.slug === referenceSlug);
@@ -195,30 +177,32 @@ export function SubmissionForm() {
         </Field>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="text-sm font-semibold">How it wears, 0 to 10</span>
-          <span className="text-xs text-muted-foreground">
-            Your own assessment. Shown as &quot;producer declared&quot; until we verify it.
-          </span>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {FACET_LABELS.map(({ key, label }) => (
-            <label key={key} className="flex items-center gap-3 text-sm">
-              <span className="w-28 shrink-0 text-muted-foreground">{label}</span>
-              <input
-                type="range"
-                min={0}
-                max={10}
-                step={1}
-                value={facets[key]}
-                onChange={(e) => setFacets((f) => ({ ...f, [key]: Number(e.target.value) }))}
-                className="h-1 flex-1 cursor-pointer accent-[hsl(var(--primary))]"
-              />
-              <span className="w-6 shrink-0 text-right font-semibold tabular-nums">{facets[key]}</span>
-            </label>
-          ))}
-        </div>
+      {/* THE SIX FACET SLIDERS WERE REMOVED HERE ON 2026-09-11, and they must not
+          come back. They collected the producer's own 0-10 score on freshness,
+          sweetness, warmth, woody depth, longevity and sillage.
+
+          They looked like honest self-reporting. The problem is what they did to
+          the copy gate: isVerbatimCopy() flags a submission only when the notes AND
+          the facets both match the reference, and that second test is independent
+          only because the facets are ours. Collecting both from the same party
+          defeated it by construction - copy the reference's note pyramid verbatim,
+          move one slider by a single step, and nothing fires while the note score
+          sits at 1.0. Every producer could then reach the 90 cap reliably and rank
+          first on their own reference, which makes rank purchasable in substance
+          while our own /producers page promises the public it is not purchasable at
+          all.
+
+          We derive facets instead, from the declared notes, the concentration and
+          the difference prose below - the same way they were derived for the three
+          merchants already listed, and never tuned against the flag threshold. */}
+      <div className="rounded-frame border border-dashed border-border p-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          <span className="font-semibold text-foreground">We score how it wears, you don&apos;t.</span>{" "}
+          Freshness, sweetness, warmth, woody depth, longevity and sillage are rated by us
+          from what you declare above. That is not a comment on your honesty — it is what
+          keeps the comparison independent, and it is the same reason no plan at any price
+          buys a better score.
+        </p>
       </div>
 
       <Field
