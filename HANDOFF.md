@@ -293,10 +293,267 @@ wrapped, printing every retailer twice. Hence `.marquee-dup { display: none }` u
 the same query. Verified on the live site at 1280, 390 and under reducedMotion:
 10 visible names while animating, 5 when not.
 
+## The producer subscription programme: decided 2026-09-10, not yet built
+
+The founder asked the board what to do about subscriptions, gave the brief
+"producers add and remove their own listings, send us edit requests, we respond
+and publish," and then made the decisions. All three board members reported.
+This section is the plan; read it before touching anything under
+`app/producers/`, `lib/plans.ts` or `prisma/schema.prisma`.
+
+### What was decided
+
+- **Revenue model: free tier of ONE listing, paid upgrade, NO COMMISSION on any
+  paid tier.** Shipped in `lib/plans.ts` (`takesCommission` per tier, prices
+  19/49). This closed `PRODUCER-PROGRAM.md` section 8 item 1, which had gated
+  everything else in that list.
+- **The no-commission part was the founder's own change** to the board's
+  "commission on all tiers", and it is the stronger position. It is section 2's
+  third option - subscription *instead of* commission - applied to paid tiers
+  only, and it buys what that option was credited with: **we have no financial
+  interest in a subscriber's rank or traffic.** Do not quietly reintroduce
+  commission on a paid tier to lift revenue; it costs the one claim that makes
+  the rest of section 7 believable.
+- **"Listeners" means automated checks plus a HUMAN approval decision**, the
+  founder confirmed. The control floor: **automation may always take something
+  down or make a claim weaker; it may never put something up or make a claim
+  stronger.** Auto-approval is the single change that could publish a copied
+  answer key about a real named company on an indexed page.
+
+### The architecture answer: do not touch the static site
+
+Everything the founder described needs a server and a database. This project
+has neither and is committed to not having them - `output: "export"`, zero route
+handlers, `/go/` as a generated `_redirects` file.
+
+**Build a second application on its own origin: `producers.counterscent.com`,
+its own Cloudflare Workers project, its own deploy.** The public catalogue stays
+static, stays free, stays fast, and its build stays hermetic.
+
+Two options were rejected with reasons worth keeping:
+
+- **A `main` Worker on the root `wrangler.jsonc`** would risk 620 live affiliate
+  redirects to ship a login page with no users - `_redirects` rules are not
+  applied to requests served by Worker code, so that whole mapping would have to
+  migrate first. Keep it in the drawer for the day per-request click logging or
+  same-minute takedown is a real requirement.
+- **Converting the site off `output: "export"`** costs a Next upgrade or a paid
+  host (`next` is pinned at 14.2.35 and `@opennextjs/cloudflare` dropped Next
+  14) and buys nothing the second origin cannot have. It also turns ~240
+  edge-cached pages into server renders.
+
+Inside that: the producer app can be a static React UI plus a hand-written
+Worker for auth and API, or a fresh Next app on a current version with an
+adapter. **The board leans the first** - the Next-14 pin stops mattering
+entirely if auth lives in the Worker. Neither adapter's current state was
+verifiable from disk; check before committing.
+
+`/producers` and `/producers/pricing` stay on the marketing site; `login` and
+`submit` move to the new origin, which gets `noindex` plus a robots disallow.
+
+### The publish path is the crux, not auth
+
+With the catalogue static, **an approved listing is not a live listing until a
+rebuild.** Chain: approve in the producer app, an export script writes generated
+TypeScript into `lib/data/`, commit, push, Cloudflare builds, live. That is the
+existing shape - six ingest scripts already write there.
+
+**Run the export as a commit, not inside CI.** If the public build read
+`DATABASE_URL`, a paused free-tier database would fail the whole site's deploy
+and a DB credential would live in Cloudflare's build environment. Committing
+keeps the build reading only repo files, puts every published listing in a
+reviewable diff, and makes `git revert` a working takedown.
+
+**The UI must say "approved" and "live" are different states** ("approved -
+publishes at the next site build"). Anything else is the class of lie the
+existing shells were written to avoid. Same for the SLA: publish a review number
+AND a separate publish cadence, or the first producer catches us in a promise we
+did not mean to make.
+
+Hazards on that path: a producer's pasted link can fail the whole public build
+(`generate-redirects.mjs` throws on a missing `deepLink`/`subId` or an unknown
+network) - validate at submit time AND have the exporter refuse to emit what it
+cannot classify. And namespace producer link keys (`producer-<slug>-<listing>`);
+this repo already lost 91 links to a shared key prefix.
+
+### Build order
+
+1. **Remove the six facet sliders from `components/producers/submission-form.tsx`.**
+   Not cosmetic. `isVerbatimCopy()` in `lib/verification.ts` requires notes AND
+   facets to match (`FACET_EPSILON = 0.5`), and that gate only works because
+   facets are ours. Hand the same party both inputs and it is defeated by
+   construction: copy the reference's notes, nudge one facet by 0.6, no flag
+   fires. Every producer could then reliably reach the 90 cap and rank first on
+   their reference - rank purchasable in substance while unpurchasable in
+   letter, with `/producers` promising the public the opposite. Facets get
+   derived by us from declared notes, concentration and the difference prose,
+   exactly as they were for the three merchants already listed.
+2. **Provision a database.** Founder-side. Nothing downstream moves. Note the
+   schema's `String[]` columns rule out D1 without a change.
+3. **Schema catch-up in one pass, before any migration runs.** It has drifted
+   behind the TypeScript it mirrors: `family` (required since the 2026-09-08
+   score reform), `verdict` (our voice, distinct from `declaredDifferences`),
+   `offers`/`MerchantOffer` (currently a single `affiliateUrl` scalar - the
+   shape the site abandoned on 2026-09-01), `pairingBasis`, `brand`. Plus
+   `Submission.slug` is globally `@unique`, so two producers cannot both sell a
+   "Noir" - make it `@@unique([producerId, slug])` - and add
+   `@@unique([producerId, referenceSlug])`, currently only a prose rule in
+   section 6a.
+4. **Add the three missing concepts** in the same pass: a `publishState` separate
+   from `approvalStatus` (`DRAFT | PENDING | LIVE | WITHDRAWN_BY_PRODUCER |
+   REMOVED_BY_EDITOR`), a **revision model** (verb 3 is entirely unmodelled -
+   `CHANGES_REQUESTED` points the wrong way, it is us asking them), and an
+   **append-only audit event table**. Change `Submission.producer` from
+   `onDelete: Cascade` to `Restrict`, and give `ClickEvent` a denormalised
+   listing key so click history survives a removal.
+5. Auth on the new origin (magic link, per the commitment in `login-form.tsx`).
+6. Producer console v1: submit, list, unpublish, request an edit, see status.
+7. Admin queue v1: review, approve, reject with reason, author the verdict.
+8. Export + publish path, including the exporter's refuse-to-emit guard.
+9. **Then** billing.
+
+### What must NOT be built
+
+Billing or any checkout. A `main` Worker on the root config. Converting the site
+off `output: "export"`. **Implementing `auth()` inside `lib/producer-session.ts`**
+- its `TODO(auth)` invites exactly this and doing it breaks the export at deploy
+time, not review time; narrow that file's copy to "there is never a session on
+this origin" instead. Producer image upload (needs object storage, a rights
+declaration and a commit path). **A public producer directory** -
+`lib/producers.ts` is fixture data naming eighteen real operating companies,
+none of which signed up, so a browse-by-producer surface would assert a
+commercial relationship that does not exist. Any auto-approval or auto-publish.
+
+### Removal is not a delete
+
+A removal is a state transition with the prior record retained. The `/go/` id
+stops resolving automatically (`generate-redirects.mjs` only emits ids in the
+map) and there is no orphaned indexed page, because listings render inside
+`/fragrance/<reference>/` - there is no per-listing URL and no `noindex`
+mechanism anywhere in the project, so the only lever is whether it enters the
+build. **Never recycle a removed id** - reassigning it misattributes old clicks
+still inside a network cookie window. And a producer removal can invalidate a
+published `comparison`/`review` piece, because `affiliateLinkId` is mandatory in
+`content/schema.ts` - make that a build-time assertion.
+
+**The pattern worth being able to see: removal after a bad score.** It is review
+suppression wearing a different hat. Track score at removal against the
+catalogue average, time from publication to removal, and resubmission against a
+reference the producer previously withdrew from - withdraw at 62%, resubmit with
+a friendlier pyramid, publish at 88%. With unique `(producer, reference)` pairs
+and retained history that last one can be flagged automatically with the prior
+data shown side by side.
+
+### The payment rail: Paddle, and NOT iyzico
+
+The founder named iyzico. `departments/accounting/reports/payment-rails-investigation.md`
+had already settled this, and the founder's later clarification - **the market
+is mostly America** - strengthens it rather than changing it.
+
+iyzico is excellent at collecting from Turkish cardholders in TRY and does
+support recurring billing ("Abonelik"). It is the wrong shape here because the
+subscriber is a US business: foreign-card acceptance prices on a separate higher
+schedule, a TRY charge means the producer's own issuer takes the conversion (a
+49 dollar subscription costs them 50-52, we collect none of it, and the figure
+moves every month), and **we remain the seller of record** - Turkish KDV, US
+state sales tax, EU VAT the moment one EU producer signs, and one e-fatura per
+subscriber per period. Under Paddle, a merchant of record, all of that is
+Paddle's and our counterparty is one company with **one document per payout**.
+
+**Keep iyzico for Turkish direct-invoice clients.** That onboarding is real,
+useful and unstarted.
+
+Arithmetic worth not re-deriving: Paddle is ~5% plus 0.50 per transaction, plus
+a flat ~15 payout fee, so all-in is **~11% at six producers**, floor 6%, and
+sub-7% needs roughly 32 producers. **Batching payouts quarterly takes 11.1% to
+7.7% at zero implementation cost** - the highest-leverage lever available.
+Annual billing is NOT justified by fees: it saves ~1% while the placeholder
+annual prices give away 16.7%. The single highest-leverage unverified number is
+whether Paddle's payout fee and the bank's confirmed 10-30 inbound SWIFT charge
+**stack**; if they do, the sub-7% crossover moves from ~32 producers to ~63.
+
+### What actually gates this, and it is not code
+
+**The company's registered faaliyet konusu is construction and mining.** The
+mali musavir memo of 2026-08-29 calls settling that the most important question
+and says it must be clear before the first payment arrives. A SaaS subscription
+sold to US businesses sits further from that scope than affiliate commission
+does, so the producer programme makes this question bigger, not smaller. **Open
+and unanswered for fifteen days.** If the answer is "add an e-commerce or
+digital marketing activity code," that is a general-assembly resolution, a trade
+registry filing and a Gazette publication - real cost, real lead time.
+
+Also founder-side, in order: confirm the mali musavir's answer covers
+subscription income specifically and not just affiliate; get the KDV /
+hizmet ihracati treatment of a US-billed subscription (it decides whether a
+listed price is inclusive or exclusive, so it precedes pricing); **send the
+Paddle acceptable-use email now** - Counterscent is literally a marketplace and
+Paddle is reportedly restrictive toward them, it is free, it blocks nothing, and
+it is slow to answer; then set real prices; then open Paddle.
+
+### Before the first producer pays: /disclosure becomes untrue
+
+`app/disclosure/page.tsx:40` says "We do not accept free product, payment, or
+placement from brands in exchange for a rating or a rank, and we never will."
+The home page carries the same claim in a panel titled **"No paid placement"**
+(`components/home/chapter-standards.tsx`). The rating and rank half survives if
+the controls above hold. **"Placement" does not** - a subscription buys presence
+in the catalogue - and "we never will" is a forward commitment.
+`app/about/page.tsx` also answers "how does Counterscent make money?" with
+affiliate commissions alone, which is incomplete on day one.
+
+**Not urgent today** - every producer page now says the programme is not open,
+so nothing is currently false. It is a hard blocker on opening. The wording is a
+founder decision, not an agent's.
+
+What disclosure has to look like when it does open: a **"Subscriber listing"**
+badge at the point of use (the precedent is `HouseBadge`, which discloses "our
+own product" right where the product appears); a `/disclosure` section derived
+the way `lib/merchants.ts` derives the retailer list, so it cannot go stale in
+the flattering direction; a separate home-page line, **not** folded into the
+retailer band, whose heading is load-bearing and describes a different
+relationship; and one added sentence on `/about#methodology`, whose existing
+copy about producers declaring their own data survives intact.
+
+### Two more controls worth building as controls, not intentions
+
+- **Make "no tier is an input to scoring" mechanically true**: assert that
+  `lib/similarity.ts` and `lib/catalog.ts` import nothing from `lib/plans.ts` or
+  any subscription state, and fail the build if they do. An import-graph
+  assertion is a control; a promise in a doc is not.
+- **Bar the founder override on a paying producer's listing**, the same way it
+  is already barred on house products, and for the same reason - a direct
+  financial interest. And it must never be created *in response to* a producer's
+  request: the queue says no, the producer escalates, the override says yes, and
+  within a year the override is the routine remedy for a paying complaint.
+  Answer a score complaint with re-verification (which legitimately lifts 90 to
+  95) or with rejection.
+
+### Also flagged, not yet done
+
+The -10 imputed-pyramid penalty systematically favours paying producers:
+`schema.prisma` says `DECLARED` is the correct default for a producer
+submission, so every self-service listing escapes a penalty that 47 of our 79
+current merchant listings carry. A paying producer's listing would start up to
+10 points ahead for reasons that have nothing to do with the fragrance. The
+suggested fix is to accept a producer pyramid as `declared` **only if the same
+pyramid is publicly published on their own product page**, fetched and
+snapshotted - which turns "what they told us" into "what they tell every buyer".
+
+`departments/accounting/CLAUDE.md` has no income category for subscription
+revenue, and its `Type` column already uses `Subscription` to mean *an expense
+we pay* - so a mis-filed revenue row would **subtract** from the balance. Close
+that before the first charge. Its payout table is also stale: the Awin row still
+says "not enrolled", and there is no CJ row despite two live advertisers.
+
 ## Founder actions still open
 
 No agent can do any of these. The numbered list in `FINALIZATION-GUIDE.md` is the canonical copy; this is the short form.
 
+- **THE BIGGEST ONE, and it is not about code: settle the company's faaliyet konusu.** The registered scope is construction and mining; the mali musavir memo of 2026-08-29 calls this the most important open question and says it must be clear before the first payment arrives. It has been open fifteen days. The producer subscription makes it larger, not smaller - SaaS sold to US businesses sits further from that scope than affiliate commission does. Nothing about billing should be built until this is answered, and the answer may involve a general-assembly resolution, a trade registry filing and a Gazette publication.
+- **Send the Paddle acceptable-use email.** Free, blocks nothing today, slow to answer, and it is the only thing that could invalidate the whole rail recommendation - Counterscent is literally a marketplace and Paddle is reportedly restrictive toward marketplaces. Ask three things while you are there: whether they self-bill Turkish tax residents (Awin explicitly does not), which legal entity contracts with a Turkish seller, and whether payouts can be batched quarterly.
+- **Provision a Postgres database** (Neon or Supabase) when you want the producer console built. Founder-side account work; nothing in build steps 3-8 of the subscription section moves without it.
+- **Ask the mali musavir two more questions** while the first is open: does the answer cover subscription income specifically and not just affiliate, and what is the KDV / hizmet ihracati treatment of a subscription sold to a US business. The second decides whether a listed price is inclusive or exclusive, so it precedes setting real prices.
 - **Deep linking on Perfumania is SETTLED - only a real sale is still outstanding.** Resolved 2026-09-09 from CJ's own artifact rather than by reasoning: the `anrdoezrs.net/am/101873278/include/joined/impressions/page/am.js` include CJ generates for our publisher id is scoped `domains=['perfumania.com','www.perfumania.com']`, and the `joined` path segment means CJ built it for an advertiser we are enrolled with that supports deep link automation. So **17335854 permits deep linking.** Our URL shape is also not an invention - `dpbolvw.net/click-101873278-17335854?url=...` is the exact format CJ delivered in that merchant's own feed. **Clicks show in CJ's dashboard graphs** (founder confirmed 2026-09-09); the SID *breakdown* appears against transactions, so the last unknown - does a purchase through one of these links actually pay - **cannot be answered without a sale**, and no amount of further checking will change that. Stop spending sessions on it. Asking Perfumania for a full designer feed remains optional, not blocking.
 - **Apply to FragranceX (CJ 1024283).** Still the better fit for the niche houses Perfumania carries at zero SKUs — Chanel, Initio and Roja account for 9 of the 20 references still without a photograph.
 - **Confirm the CJ `sid` for 16941446 on the first real transaction, not in a click report.** The click report shows clicks but the SID breakdown lands against transactions, so this is not a check that can be done ahead of a sale - the earlier wording here implied it could be, and that sent a session looking for a report that does not exist. `cjevent` is already verified end to end for both advertisers.
