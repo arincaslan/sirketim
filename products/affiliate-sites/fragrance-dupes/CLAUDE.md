@@ -55,7 +55,9 @@ npm run build        # runs prebuild (generate-redirects) then `next build` -> o
 npm run preview      # build + wrangler on :8788 — the only way to click a buy link locally
 npm run lint
 npm run check:links  # follows every affiliate link to the merchant; needs network
-npx prisma validate  # needs DATABASE_URL set to anything well-formed, even offline
+npx prisma validate  # needs DATABASE_URL *and* DATABASE_URL_UNPOOLED in .env
+npx prisma migrate status   # against the live Neon database
+neon link --project-id holy-sunset-91521586 --branch production -y  # rewrites both
 ```
 
 **`npm run build` produces a fully static site in `out/`, not a server bundle.** `next.config.mjs` sets `output: "export"` (see "Deployment" below). A `prebuild` step runs `scripts/generate-redirects.mjs` first, which writes `public/_redirects`; the export then copies it into `out/`. `public/_redirects` is generated and gitignored — never edit it by hand.
@@ -116,7 +118,7 @@ lib/data/houses/*.ts   (one file per fragrance house — the reference catalog)
 
 `lib/catalog.ts` is deliberately shaped like a query layer over static arrays so the eventual swap to real database reads is a change of *implementation*, not of call sites. Add new query helpers there rather than filtering `DUPES`/`REFERENCES` inline in a component.
 
-`prisma/schema.prisma` mirrors the TypeScript types on purpose (`Producer`, `Submission` ≈ `DupeCandidate`, `VerificationStatus`). **It is not migrated and no database exists** — fixtures remain the live data source. Keep the two shapes in step when either changes, or the eventual migration stops being mechanical.
+`prisma/schema.prisma` mirrors the TypeScript types on purpose (`Producer`, `Submission` ≈ `DupeCandidate`, `VerificationStatus`). **It IS migrated as of 2026-09-14** — a Neon Postgres project (`holy-sunset-91521586`, `aws-us-east-2`, branch `production`) holds all ten tables and eight enums. **But the site still reads fixtures, not the database, and must keep doing so**: `output: "export"` gives the public build no server, and `HANDOFF.md` ("Run the export as a commit, not inside CI") settles that a paused or rotated database must never be able to fail the catalogue's deploy. Nothing but the Prisma CLI connects today. Keep the two shapes in step when either changes — the migration path is now real, so drift costs a migration rather than a rewrite. Connection strings come from `neon link`, never typed by hand; `.env` is gitignored via `.env*` and this repo is public. A keepalive that pings to stop Neon sleeping is a MISTAKE, not an omission — see SUBSCRIPTION-PROGRESS.md for the arithmetic.
 
 Adding fragrances: append to the relevant `lib/data/houses/<house>.ts`. Adding a house: new file + one line in `references.ts`. Note the reference catalog is curated editorial data — producers must never be able to create originals (that's what stops forty spellings of "Baccarat Rouge").
 

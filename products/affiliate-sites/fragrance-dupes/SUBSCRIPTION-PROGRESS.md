@@ -440,3 +440,76 @@ matching its policy, with Postgres as the only service in use.
 
 Step 5, sign-in on the producer origin. The open question there is Auth.js
 versus Neon Auth, which I deliberately did not decide today.
+
+---
+
+# Note, 2026-09-14: about keeping the database awake
+
+You asked for something that writes a little dummy data on a timer, so the
+database never closes for want of being poked. I did not build it, and the
+reason is not that it is hard.
+
+## The 7-day pause is Supabase's problem, not ours
+
+That is the exact thing we avoided by choosing Neon. Supabase's free tier pauses
+a project after 7 days idle, needs a human to press restore, and deletes projects
+left paused long enough. **Neon does none of that.**
+
+What Neon does is suspend the *compute* after 5 minutes of no queries. The
+project, the data and the connection strings are untouched. The next query wakes
+it automatically, in under a second, with nothing to press and nobody to notify.
+Neon's own plan documentation describes no inactivity-based deletion for projects
+at all.
+
+So the outage you are insuring against does not exist on this provider. If it
+did, Neon would have been the wrong choice and Supabase the cheaper one.
+
+## The insurance would cause the outage
+
+This is the part worth reading twice. The free plan gives **100 CU-hours per
+month**, and exceeding any monthly limit **suspends compute until the next
+billing month**. A suspended compute costs nothing; an awake one bills.
+
+A timer firing often enough to stop the 5-minute sleep means the compute is awake
+every hour of every day:
+
+> 730 hours × 0.25 CU (Neon's *smallest* compute) = **182.5 CU-hours** — 182% of
+> the monthly budget, exhausted in **about 17 days**.
+
+Then compute is suspended for the rest of the month. Not a five-minute sleep that
+ends on the next query — a hard stop lasting until the billing period rolls over,
+every single month, and it starts the day the first producer signs up and stops
+the day after. The keepalive would manufacture, permanently, the exact failure it
+was written to prevent. Always-on only fits the budget below 0.137 CU, which is
+smaller than anything Neon sells.
+
+## If you want belt and braces anyway
+
+Reasonable, and cheap — because the honest limit of my checking is that Neon's
+docs say nothing either way about very long-term retention of an untouched free
+project. Absence of a stated policy is not a promise.
+
+A **weekly** ping costs 0.08% of the monthly budget: four wakes, five minutes
+each. A **daily** one costs 0.62%. Both are free in every sense that matters. It
+is only the "often enough to prevent sleeping" frequency that is ruinous, and
+that frequency buys nothing, because waking is automatic.
+
+Two conditions if we do it:
+
+**It must be a read, not a write.** `SELECT 1` proves the database answers.
+Inserting dummy rows would put fabricated records into tables that exist to be
+trustworthy — `AuditEvent` is deliberately append-only so that "who changed this
+listing, and when" has one honest answer, and `Submission` rows are what a
+producer's livelihood hangs on. Seeding either with synthetic keepalive traffic
+to solve a scheduling problem contaminates the record to fix something the record
+has nothing to do with. It also contradicts this repo's own rule that fixture
+data must be labelled as fixture data.
+
+**It has to run somewhere that is not the public site's build.** The catalogue
+build must never read `DATABASE_URL` — that is settled in `HANDOFF.md`, and it is
+why the export runs as a commit rather than inside CI. A GitHub Actions schedule
+is the obvious home; the producer Worker is another once it exists.
+
+My recommendation: **do nothing until the producer console is live.** Once it is,
+real sign-ins are the keepalive, and any timer we added becomes a cost with no
+job. If you want the insurance before then, weekly and read-only.

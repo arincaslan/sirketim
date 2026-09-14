@@ -378,8 +378,12 @@ this repo already lost 91 links to a shared key prefix.
 
 ### Build order
 **Progress report for the founder: `products/affiliate-sites/fragrance-dupes/SUBSCRIPTION-PROGRESS.md`.**
-Steps 1, 3 and 4 below are DONE as of 2026-09-11 - they are the three that need
-no database. Everything from 5 on is blocked on step 2, which is founder-side.
+Steps 1, 2, 3 and 4 below are DONE. 1, 3 and 4 landed 2026-09-11 (the three
+that needed no database); **step 2, the database itself, landed 2026-09-14** -
+a Neon Postgres project in aws-us-east-2, ten tables and eight enums applied
+from prisma/migrations/ and read back out of information_schema to confirm.
+**Steps 5, 6 and 7 are therefore unblocked and not started.** Step 8's safety
+layer is done; the rest of it needs step 6.
 
 
 1. **Remove the six facet sliders from `components/producers/submission-form.tsx`.**
@@ -392,8 +396,22 @@ no database. Everything from 5 on is blocked on step 2, which is founder-side.
    letter, with `/producers` promising the public the opposite. Facets get
    derived by us from declared notes, concentration and the difference prose,
    exactly as they were for the three merchants already listed.
-2. **Provision a database.** Founder-side. Nothing downstream moves. Note the
-   schema's `String[]` columns rule out D1 without a change.
+2. ~~**Provision a database.**~~ **DONE 2026-09-14.** Neon, free plan,
+   `aws-us-east-2` (Ohio), branch `production`. The schema's `String[]` columns
+   ruled out D1, as noted - they exist in the live database now and were read
+   back to prove it. Neon over Supabase for two reasons: Supabase's free tier
+   pauses a project after 7 days idle and needs a manual restore, and a console
+   that sits idle between sign-ups would live paused; and the console will be a
+   Cloudflare Worker, which cannot open an ordinary Postgres connection, while
+   Neon's driver is HTTP with a first-party Prisma adapter.
+   **Connection strings come from `neon link`, never typed by hand** - see
+   `.env.example`. Only Postgres is switched on; `neon.ts` declares
+   `auth: false` so step 5 is a decision rather than an accident.
+   **Do NOT add a keepalive that pings to prevent sleeping.** Neon wakes on the
+   next query by itself, and a timer frequent enough to stop the 5-minute sleep
+   burns 182%% of the 100 CU-hour monthly budget - compute then suspends until
+   the next billing month, manufacturing the outage it was meant to prevent.
+   Full arithmetic in SUBSCRIPTION-PROGRESS.md.
 3. **Schema catch-up in one pass, before any migration runs.** It has drifted
    behind the TypeScript it mirrors: `family` (required since the 2026-09-08
    score reform), `verdict` (our voice, distinct from `declaredDifferences`),
