@@ -2,8 +2,10 @@ node_modules/
 .next/
 dist/
 build/
-.env
-.env.local
+# .env* not .env/.env.local: this repo is PUBLIC. .env.production was
+# exposed by the narrower pattern.
+.env*
+!.env.example
 *.log
 .DS_Store
 Thumbs.db

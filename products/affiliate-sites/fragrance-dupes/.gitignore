@@ -18,7 +18,11 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+# Deliberately .env* and not .env*.local: this repo is PUBLIC, and
+# .env.production is a real file Next.js reads. The narrower pattern left
+# it exposed, which would have published DATABASE_URL the day one exists.
+.env*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -35,3 +39,4 @@ next-env.d.ts
 # stays out. The README stays tracked. See scripts/feeds/README.md.
 /scripts/feeds/*
 !/scripts/feeds/README.md
+.neon

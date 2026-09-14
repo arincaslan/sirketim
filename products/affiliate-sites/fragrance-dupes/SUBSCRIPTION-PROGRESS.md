@@ -9,19 +9,19 @@ programme"; the rules it obeys are in `PRODUCER-PROGRAM.md`.
 
 ## The short version
 
-Three of the nine build steps are done. They are the three that do not need a
-database, which is the thing only you can provide.
+Four of the nine build steps are done, and **the thing that was blocking three
+more is now gone**: the database exists.
 
 | # | Step | State |
 |---|---|---|
 | 1 | Producers stop scoring themselves | **Done** |
-| 2 | Provision a database | **Yours.** Blocks 5-8 |
+| 2 | Provision a database | **Done** 2026-09-14 |
 | 3 | Schema catch-up | **Done** |
 | 4 | Publish state, revisions, audit trail | **Done** |
-| 5 | Auth on the producer origin | Blocked on 2 |
-| 6 | Producer console | Blocked on 2 |
-| 7 | Admin approval queue | Blocked on 2 |
-| 8 | Export and publish path | **Safety layer done** (2026-09-14); rest blocked on 2 |
+| 5 | Auth on the producer origin | **Unblocked** — not started |
+| 6 | Producer console | **Unblocked** — not started |
+| 7 | Admin approval queue | **Unblocked** — not started |
+| 8 | Export and publish path | **Safety layer done**; rest needs 6 |
 | 9 | Billing | Deliberately last |
 
 Plus one control that was not on the list and should have been.
@@ -173,9 +173,8 @@ object. A failing build does.
 
 ## What I need from you, in order
 
-1. **A database.** Neon or Supabase, free tier. Nothing in steps 5-8 can start
-   without it. Note the schema needs real Postgres, not Cloudflare D1 — it uses
-   array columns D1 does not have.
+1. ~~**A database.**~~ **DONE 2026-09-14**, with you, in this session. Steps 5,
+   6 and 7 are unblocked. Details in the section at the end of this file.
 2. **Send the Paddle email.** Ask whether they accept a marketplace, whether they
    self-bill Turkish tax residents, which legal entity contracts with us, and
    whether payouts can be batched quarterly. Free, blocks nothing today, slow to
@@ -296,10 +295,148 @@ remembering to teach two scripts about a new file.
 
 ## Still the same one thing standing in the way
 
-**A database.** Steps 5, 6 and 7 — sign-in, the producer console, the approval
-queue — cannot start without one. Neon or Supabase, free tier, real Postgres
-(not Cloudflare D1; the schema uses array columns D1 does not have).
+**A database.** — RESOLVED the same day this was written. Kept here because the
+reasoning still holds and explains the choice: Neon, free tier, real Postgres,
+not Cloudflare D1, because the schema uses array columns D1 does not have.
+See the final section.
 
 Verification for this pass: 18/18 link cases pass against the shipped module,
 typecheck clean, lint clean, build clean, redirect table still exactly 620, and
 the scoring-isolation control still passes.
+
+---
+
+# Update, 2026-09-14 (later): the database exists
+
+Step 2 is done. It was the only thing standing between us and steps 5, 6 and 7,
+and it was the only step I could not do without you.
+
+## What is actually there
+
+A Neon Postgres project called **counterscent**, in **AWS US East (Ohio)**, on a
+branch called `production`. Inside it: **10 tables and 8 enums**, created from
+`prisma/migrations/`.
+
+I did not report this on the strength of the migration command exiting quietly.
+I queried the database's own catalogue afterwards and read back the table names,
+the enum value counts, and the four array columns — the columns that were the
+entire reason Cloudflare D1 was ruled out. They are there. That reason is no
+longer an argument in a document; it is a fact about a running database.
+
+The payment provider enum came back with three values, which is the small
+confirmation that Stripe is really gone rather than gone from the parts we
+looked at.
+
+## The decisions inside the decision
+
+**Ohio, not Virginia.** Region cannot be changed on a Neon project — a different
+region means deleting and recreating. Two reasons for this one: our subscribers
+will be US businesses, and Ohio is one of only two regions where Neon's object
+storage works at all. That second one was luck rather than planning, but it
+means that if producer image upload is ever wanted, the door is open. Virginia
+would have closed it.
+
+**Neon, not Supabase.** Supabase's free tier pauses a project after 7 days of
+inactivity and needs a manual restore, and a project left paused long enough is
+deleted. Our producer console will sit idle for weeks between sign-ups, so
+"nobody touched it recently" is its normal state — it would have spent most of
+its life paused, and the first producer to try signing in would have found it
+dead. Neon suspends after five minutes and wakes on the next query.
+
+The second reason is architectural: the producer console will be a Cloudflare
+Worker, and a Worker cannot open an ordinary Postgres connection. Neon's driver
+works over HTTP and has a first-party Prisma adapter. This was not a preference
+between two equivalent products.
+
+**No Neon Auth, no Functions, no AI Gateway, no Object Storage.** Only Postgres
+is switched on, and `neon.ts` now says so in code rather than leaving it to a
+default. Neon Auth matters most: our schema already carries the Auth.js tables,
+so turning it on would put a second answer to "who is this producer" in the same
+database with neither side aware of the other. That choice belongs to step 5,
+made deliberately — not made by accident today. It can be switched on later.
+
+## Two things I changed about how secrets are handled
+
+**A gap in `.gitignore`.** It covered `.env`, `.env.local` and `.env*.local` —
+but not `.env.production`, which is a real file name Next.js reads. This repo is
+public, and we were about to put a database password in it. Both levels now
+ignore `.env*` and keep only `.env.example` tracked. I checked six filename
+variants one at a time rather than trusting the pattern.
+
+**The connection strings never passed through our conversation.** I pulled them
+with the Neon CLI straight into `.env` and printed only masked versions. You
+never had to paste a password into a chat window, and there is no copy of it in
+the session transcript.
+
+Two further notes on where credentials ended up, both outside the repository:
+your Neon login sits in `C:\Users\win10\.config\neon\credentials.json`, and the
+MCP server's API key in `C:\Users\win10\.claude.json`. I scanned everything git
+would commit for the real database host and for key-shaped strings before
+committing. Nothing.
+
+## Where I deviated from the setup steps Neon gave you
+
+Three places, each for a reason:
+
+**Not in the repo root.** `neon config init` installs two npm packages, and the
+root `package.json` is a Cloudflare deploy shim that deliberately has zero
+dependencies — Cloudflare runs `npm install` there on every deploy of the live
+site. Running it at the root would have put Neon's tooling into the catalogue's
+production build path for no benefit. Everything ran inside
+`products/affiliate-sites/fragrance-dupes` instead, where the Prisma schema
+already lives. I also moved the two packages to devDependencies afterwards,
+because they are build tooling and not something the site runs on.
+
+**The MCP server is scoped and read-only.** The default (`neon mcp -y`) mints an
+account-wide API key with write tools on. Ours is pinned to this one project and
+adds `?readonly=true`. The reason for read-only is not caution for its own sake:
+everything that writes to this database should go through a Prisma migration,
+which is versioned and reviewable. A write-capable MCP tool is an unversioned
+side door into the same database — the same shape as every "two sources of
+truth" failure this project has already paid for.
+
+Be aware of the limit of that, though: `readonly` hides the write tools, it does
+not weaken the key. Neon's own message said it plainly — the key "can still
+change and delete everything inside that project." If it ever leaks, revoke it:
+`neon api-keys revoke 3336116 --org-id org-blue-salad-00794114`.
+
+**`neon.ts` says more than the snippet did.** The suggested file was an empty
+`defineConfig({})`. Empty means "no opinion"; we have an opinion, so the file
+declares `auth: false` and explains why, where the next person will see it.
+
+## One thing worth your attention that is not about the database
+
+`npm audit` in this project reports **7 vulnerabilities, 6 high and 1 critical**,
+and the critical one is in `next` itself. None of them came from anything
+installed today — I checked, and every one traces to `next`, `postcss`,
+`eslint-config-next`, `next-mdx-remote`, `js-yaml` or `glob`. They were already
+there.
+
+I have not touched them, because `next` is pinned at 14.2.35 on purpose and
+moving it is its own piece of work with its own risk to a live site. But a
+critical advisory sitting unread on the framework of a public, indexed site is
+not something to leave unmentioned in a report about something else.
+
+## What I did not do
+
+I installed the Neon skills as you asked, and three of the seven document
+services we just deliberately switched off — Functions, AI Gateway, Object
+Storage. `neon-functions` is the awkward one: it teaches an agent to put server
+code inside Neon, which directly contradicts the recorded decision that server
+code lives in a Cloudflare Worker. Nothing shadows a built-in skill, so I left
+all seven in place rather than quietly deleting documentation you asked for.
+Say the word and I will drop the three, or put the constraint in the project's
+CLAUDE.md so it is read before the skill is.
+
+## Verification for this pass
+
+Tables and enums read back out of the live database; `prisma migrate status`
+reports the schema in sync; typecheck clean with `neon.ts` inside the
+TypeScript project; lint clean; build clean at **243 pages**; the redirect table
+still exactly **620**; and `neon config plan` reports the project already
+matching its policy, with Postgres as the only service in use.
+
+## Next, and it is no longer blocked by you
+
+Step 5, sign-in on the producer origin. The open question there is Auth.js
+versus Neon Auth, which I deliberately did not decide today.

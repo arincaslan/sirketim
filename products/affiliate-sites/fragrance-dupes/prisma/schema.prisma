@@ -1,9 +1,19 @@
 // COUNTERSCENT marketplace schema.
 //
-// STATUS: not migrated, not connected. No database is provisioned - see
-// MARKETPLACE-PLAN.md §4 and PRODUCER-PROGRAM.md §8. `npx prisma validate`
-// passes against this file without a live connection; `prisma migrate` will
-// not until DATABASE_URL points at a real Postgres instance.
+// STATUS: MIGRATED AND CONNECTED as of 2026-09-14. A Neon Postgres project
+// (aws-us-east-2, branch `production`) holds all ten tables and eight enums,
+// applied from prisma/migrations/ and verified by querying
+// information_schema rather than by trusting the migration's exit code.
+//
+// WHAT IS STILL NOT TRUE: no running code connects to it. The producer
+// console does not exist (build steps 5-7), and the PUBLIC SITE MUST NEVER
+// READ THIS DATABASE - `output: "export"` gives it no server, and a paused
+// or rotated database would otherwise fail the whole catalogue's deploy.
+// See HANDOFF.md, "Run the export as a commit, not inside CI".
+//
+// Connection strings come from `neon link`, never typed by hand - see
+// .env.example. MARKETPLACE-PLAN.md §4 and PRODUCER-PROGRAM.md §8 carry the
+// surrounding plan.
 //
 // This models the producer side that lib/producers.ts and lib/dupes-data.ts
 // currently fake with static arrays. The fixtures stay as the site's data
@@ -17,7 +27,22 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // POOLED connection - what application code uses. Neon puts a pooler
+  // (PgBouncer) in front of Postgres so many short-lived serverless
+  // invocations do not each open a real backend connection and exhaust the
+  // instance. Hostname carries "-pooler".
+  url       = env("DATABASE_URL")
+  // DIRECT connection - migrations only. `prisma migrate` takes an advisory
+  // lock and creates a shadow database; neither survives a pooler running in
+  // transaction mode, so a migration through the pooled URL hangs or fails
+  // with an error that does not name the real cause. Same database, same
+  // credentials, hostname without "-pooler".
+  //
+  // The name is Neon's, not Prisma's convention (which would be DIRECT_URL),
+  // because `neon link` writes and refreshes DATABASE_URL_UNPOOLED itself. A
+  // hand-maintained DIRECT_URL alongside it would be a second name for one
+  // value, and the hand-maintained one is the one that goes stale.
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // ---------------------------------------------------------------------------
