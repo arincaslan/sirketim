@@ -10,6 +10,7 @@ import { DUPES, REFERENCES } from "@/lib/dupes-data";
 import { hasRealAffiliateLink } from "@/lib/affiliate-links";
 import { isHouseProducer } from "@/lib/producers";
 import { computeSimilarity, getRelatedReferences } from "@/lib/similarity";
+import { datedCount, listingFirstLive } from "@/lib/listing-dates";
 import { getPreCeilingScore, getPublishedScore, isVerbatimCopy } from "@/lib/verification";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
 
@@ -213,6 +214,211 @@ export function getListingCounts(): Map<string, number> {
 /** References that have at least one listing against them. */
 export function hasListings(referenceSlug: string): boolean {
   return DUPES.some((d) => d.referenceSlug === referenceSlug);
+}
+
+/** One listing paired with the reference it alternates and the day it went live. */
+export interface DatedListing {
+  dupe: DupeCandidate;
+  reference: ReferenceFragrance;
+  /** ISO YYYY-MM-DD. See lib/listing-dates.ts for which moment this is. */
+  firstLive: string;
+}
+
+/**
+ * Listings that went live most recently, newest first.
+ *
+ * UNDATED LISTINGS ARE EXCLUDED, NOT GUESSED. lib/data/listing-dates.generated.ts
+ * is committed rather than regenerated at build time, so a listing added
+ * without re-running the generator is simply absent here. That is the correct
+ * direction to fail: the surface under-reports rather than printing a date
+ * nobody derived. Callers should render `datedCount` alongside so a partial
+ * list never reads as the whole catalogue.
+ *
+ * Ties inside a day break on the reference name and then the listing slug,
+ * never on score. Ranking "new" by quality would quietly turn a freshness
+ * surface into a second, unexplained leaderboard - the site already has
+ * exactly one ranked list and it publishes its formula.
+ *
+ * A listing whose reference is missing is dropped rather than rendered
+ * bare: every surface here states what a listing is an alternative TO, and a
+ * card that cannot say so is not a card we can publish.
+ */
+export function getRecentlyAddedListings(limit = 12): DatedListing[] {
+  const bySlug = new Map(REFERENCES.map((r) => [r.slug, r]));
+
+  return DUPES.map((dupe) => {
+    const firstLive = listingFirstLive(dupe.slug);
+    const reference = bySlug.get(dupe.referenceSlug);
+    if (!firstLive || !reference) return null;
+    if (isVerbatimCopy(reference, dupe)) return null;
+    return { dupe, reference, firstLive };
+  })
+    .filter((entry): entry is DatedListing => entry !== null)
+    .sort((a, b) => {
+      if (a.firstLive !== b.firstLive) return b.firstLive.localeCompare(a.firstLive);
+      const byRef = a.reference.name.localeCompare(b.reference.name);
+      return byRef !== 0 ? byRef : a.dupe.slug.localeCompare(b.dupe.slug);
+    })
+    .slice(0, limit);
+}
+
+/** Everything that went live on one day. */
+export interface ListingDay {
+  /** ISO YYYY-MM-DD. */
+  date: string;
+  listings: DatedListing[];
+}
+
+/**
+ * The most recent days on which anything went live, newest first.
+ *
+ * WHOLE DAYS ONLY, AND THAT IS THE POINT. A flat "most recent 24" cuts through
+ * the middle of a day, and a heading that then reports how many it is showing
+ * ("16 added") states a false fact about that day - the site published 23.
+ * Taking whole days makes every count on the page a real count. It is exactly
+ * the failure mode of a partial data source stated as a total, in miniature.
+ *
+ * The catalogue arrived in four large batches, so a flat cap either shows one
+ * day or nearly everything. Once producers submit one at a time, days get
+ * small, and a soft target on listings with a hard cap on days keeps the page
+ * a sensible length under both shapes without a second tuning pass.
+ */
+export function getRecentlyAddedDays(targetListings = 24, maxDays = 8): ListingDay[] {
+  const all = getRecentlyAddedListings(Number.MAX_SAFE_INTEGER);
+
+  const byDate: ListingDay[] = [];
+  for (const entry of all) {
+    const last = byDate[byDate.length - 1];
+    if (last && last.date === entry.firstLive) last.listings.push(entry);
+    else byDate.push({ date: entry.firstLive, listings: [entry] });
+  }
+
+  const taken: ListingDay[] = [];
+  let count = 0;
+  for (const day of byDate) {
+    // Always take the first day whatever its size, or a single large batch
+    // would render an empty page.
+    if (taken.length > 0 && (count >= targetListings || taken.length >= maxDays)) break;
+    taken.push(day);
+    count += day.listings.length;
+  }
+  return taken;
+}
+
+/**
+ * Every day anything went live, with its full count, newest first.
+ *
+ * The spine of the changelog. Rendering only the newest few days as cards
+ * would leave the page with no history at all on a catalogue that arrived in
+ * four large batches - this is the cheap, honest remainder: real dates, real
+ * totals, no cards.
+ */
+export function getListingDayCounts(): { date: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const entry of getRecentlyAddedListings(Number.MAX_SAFE_INTEGER)) {
+    counts.set(entry.firstLive, (counts.get(entry.firstLive) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/** How many listings the "recently added" surface is able to date at all. */
+export function datedListingCount(): number {
+  return datedCount(DUPES.map((d) => d.slug));
+}
+
+/** One reference and how many alternatives are listed against it. */
+export interface CoverageEntry {
+  reference: ReferenceFragrance;
+  listingCount: number;
+}
+
+/**
+ * How the catalogue divides into covered and uncovered originals.
+ *
+ * This is the single most useful fact the site holds and has never rendered.
+ * It answers a buyer's real question ("has anyone made one of these?"),
+ * including when the answer is no - which is most of the time, and is a
+ * finding rather than a hole, because dupe houses clone bestsellers and
+ * roughly half this catalogue is outside that target list (see the project
+ * CLAUDE.md, "COVERAGE IS CAPPED BY WHAT THE DUPE INDUSTRY MAKES").
+ *
+ * It is also the only popularity-shaped signal on this site that cannot be
+ * bought or clicked into existence. The only way a producer moves their
+ * reference up `mostCovered` is by publishing a real listing that passed
+ * review, which is precisely the behaviour the programme is for.
+ */
+export interface CatalogCoverage {
+  total: number;
+  covered: number;
+  uncovered: number;
+  /** Covered by exactly one listing, so nothing to compare against. */
+  singleListing: number;
+  /**
+   * References with MORE THAN ONE alternative, most first, then A-Z.
+   *
+   * The threshold is two, not one, and it is load-bearing rather than a
+   * display preference. 59 of the 65 covered references currently have
+   * exactly one listing, so a plain "top N by listing count" spends most of
+   * its rows on an alphabetical tie-break among 59 equals - an arbitrary
+   * order rendered as a ranking, which is the same failure as a top-5 built
+   * from click counts too small to separate anything. Cutting at two means
+   * every row on the list is genuinely ahead of every row that is not.
+   */
+  mostCovered: CoverageEntry[];
+}
+
+export function getCatalogCoverage(limit = 8): CatalogCoverage {
+  const counts = getListingCounts();
+  const covered: CoverageEntry[] = [];
+
+  for (const reference of REFERENCES) {
+    const listingCount = counts.get(reference.slug) ?? 0;
+    if (listingCount > 0) covered.push({ reference, listingCount });
+  }
+
+  const mostCovered = covered
+    .filter((entry) => entry.listingCount > 1)
+    .sort((a, b) =>
+      b.listingCount !== a.listingCount
+        ? b.listingCount - a.listingCount
+        : a.reference.name.localeCompare(b.reference.name)
+    )
+    .slice(0, limit);
+
+  return {
+    total: REFERENCES.length,
+    covered: covered.length,
+    uncovered: REFERENCES.length - covered.length,
+    singleListing: covered.filter((entry) => entry.listingCount === 1).length,
+    mostCovered,
+  };
+}
+
+/**
+ * The nearest original to `reference` that actually HAS an alternative listed.
+ *
+ * Most of the catalogue is uncovered, so most /fragrance/<slug> pages end on
+ * an honest empty state and then a "Related originals" list whose entries are
+ * mostly uncovered too - a dead end two clicks deep. This finds the closest
+ * neighbour a reader can actually use.
+ *
+ * It reuses getRelatedOriginals, so the notion of "closest" is the same one
+ * that page already publishes, rather than a second similarity idea invented
+ * for this module. Widen rather than deepen: the limit is raised until a
+ * covered neighbour turns up or the catalogue runs out, because in a sparse
+ * family the nearest covered original can sit well down the list.
+ *
+ * Returns null when nothing in the catalogue is both related and covered.
+ * That is a real outcome and the caller must render the empty state, not a
+ * consolation link to something unrelated.
+ */
+export function getNearestCoveredOriginal(
+  reference: ReferenceFragrance
+): (ReferenceFragrance & { similarity: number }) | null {
+  const related = getRelatedOriginals(reference, REFERENCES.length);
+  return related.find((candidate) => hasListings(candidate.slug)) ?? null;
 }
 
 export interface OriginalOffer {

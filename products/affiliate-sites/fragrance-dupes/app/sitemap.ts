@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllContent } from "@/content/loader";
 import { buildContentSitemapEntries } from "@/lib/sitemap-builder";
 import { REFERENCES } from "@/lib/data/references";
+import { catalogLastUpdated } from "@/lib/listing-dates";
 import { canonicalUrl, siteUrl } from "@/lib/site";
 
 /**
@@ -23,6 +24,12 @@ const STATIC_ROUTES: Array<{ path: string; priority: number }> = [
   // were listed — an oversight, not a decision; a hub page nothing points a
   // crawler at is exactly the orphan problem /fragrance was built to fix.
   { path: "/fragrance", priority: 0.9 },
+  // The freshness surface. Listed with a real lastModified below rather than
+  // the build date the other static routes share - it is the one static page
+  // whose content genuinely changes only when the catalogue does, and telling
+  // a crawler otherwise is the kind of contradictory signal the note above
+  // about /producers/login is already guarding against.
+  { path: "/new", priority: 0.7 },
   // Buy-link surface. Lower than the catalog on purpose: it carries prices and
   // links rather than the analysis, so it should not outrank the comparisons.
   { path: "/originals", priority: 0.6 },
@@ -42,10 +49,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // build date. Content pieces carry their own real updatedAt from frontmatter.
   const builtAt = new Date();
 
+  // /new changes when a listing goes live, which is a date we actually hold.
+  // Falls back to the build date when nothing is dated yet.
+  const catalogChangedAt = catalogLastUpdated();
+  const newLastModified = catalogChangedAt ? new Date(`${catalogChangedAt}T00:00:00Z`) : builtAt;
+
   return [
     ...STATIC_ROUTES.map(({ path, priority }) => ({
       url: canonicalUrl(path || "/"),
-      lastModified: builtAt,
+      lastModified: path === "/new" ? newLastModified : builtAt,
       changeFrequency: "weekly" as const,
       priority,
     })),

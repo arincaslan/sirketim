@@ -10,6 +10,7 @@ import { REFERENCES } from "@/lib/data/references";
 import {
   getRankedDupesFor,
   getPublishedSimilarity,
+  getNearestCoveredOriginal,
   getRelatedOriginals,
   getOriginalOffers,
   getOriginalPricing,
@@ -91,6 +92,12 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
   if (!reference) notFound();
 
   const dupes = getRankedDupesFor(reference);
+  // Most of the catalogue has nothing listed against it, so most of these
+  // pages ended on an honest empty state and then a "Related originals" list
+  // that is mostly uncovered too - a dead end two clicks deep. This is the
+  // closest original a reader can actually use, by the same similarity measure
+  // that page already publishes. Null when the catalogue holds none.
+  const nearestCovered = dupes.length === 0 ? getNearestCoveredOriginal(reference) : null;
   const originalOffers = getOriginalOffers(reference);
   const pricing = getOriginalPricing(reference);
   const relatedOriginals = getRelatedOriginals(reference);
@@ -271,6 +278,24 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
               formula as everything else on this site &mdash; so this space stays empty rather
               than filled with guesses.
             </p>
+            {nearestCovered && (
+              <p className="mt-4 max-w-[60ch] text-muted-foreground">
+                The closest fragrance in our catalogue that does have one is{" "}
+                <Link
+                  href={`/dupe-finder?ref=${nearestCovered.slug}`}
+                  className="font-semibold text-primary underline underline-offset-4"
+                >
+                  {nearestCovered.name}
+                </Link>{" "}
+                {/* Parenthesised rather than "by <brand>": several houses here
+                    are named "By Kilian", and "by By Kilian" reads as a typo. */}
+                ({nearestCovered.brand}), at {nearestCovered.similarity}% on the
+                original-to-original measure used in &ldquo;Related originals&rdquo; below.
+                That is a different calculation from a dupe match score and a weaker
+                claim: it says these two originals resemble each other, not that one
+                replaces the other.
+              </p>
+            )}
             <p className="mt-4 text-sm text-muted-foreground">
               Make a fragrance you think belongs here?{" "}
               <Link href="/producers" className="text-primary underline underline-offset-4">
