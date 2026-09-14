@@ -593,16 +593,30 @@ Note the **trailing slash** — `trailingSlash: true` means `/about` and `/about
 
 Two known-good expectations for that smoke test: `/go/<an-unmapped-slug>` returns **404** while a mapped one redirects to `awin1.com` (note `npx serve` cannot show you the second half — only the wrangler preview reads `_redirects`), and a fragrance page's canonical reads `https://counterscent.com/...`, never a placeholder or `localhost`.
 
-## The producer surface, and the gate that isn't open
+## The producer surface — TWO of its four routes moved to another origin, 2026-09-14
 
-Four routes: `/producers` and `/producers/pricing` (public), `/producers/login`, and `/producers/submit` (**gated**). `lib/plans.ts` holds the tiers — its prices are **labelled placeholders** pending a founder decision — plus `NEVER_INCLUDED`, which encodes that no tier may buy rank, score, placement, or review removal. That constraint is the independence posture above, expressed in code; don't weaken it for a pricing experiment.
+**The console is not on this site and is not going to be.** Accounts, submissions, listing states and the review queue live at **`producers.counterscent.com`**, a hand-written Cloudflare Worker in `products/affiliate-sites/counterscent-producers/`, with its own deploy. This project stays a static export with no server, which is the whole reason for the split (HANDOFF.md, "The architecture answer").
 
-`lib/producer-session.ts` gates access. Two things to know before planning around it:
+What that leaves here:
 
-- **`isPreviewMode()` requires `NODE_ENV === "development"` *in addition to* `PRODUCER_PREVIEW=1`.** That is deliberate: the bundler inlines `NODE_ENV` at build time, so the preview bypass **cannot** be switched on in a production build. An env-var-only flag would be a real auth-bypass hole the day this deploys. Don't "simplify" it to one check.
-- **The consequence is that `/producers/submit` is currently unreachable in production for everyone**, since no real auth exists yet. It is deliberately closed, not broken — but every free-tier discussion is downstream of ungating it (`FINALIZATION-GUIDE.md` phase 5.1).
+| Route | What it is now |
+|---|---|
+| `/producers` | Marketing. Stays. Its sign-in and submit buttons are plain `<a>` to the other origin. |
+| `/producers/pricing` | Marketing. Stays. |
+| `/producers/login` | **A hand-off page.** Was a live email `<input>` that discarded what you typed. |
+| `/producers/submit` | **A hand-off page.** Was `gateProducerAccess()` in front of the submission form. |
 
-`past_due` counts as an active subscription on purpose, so dunning on a temporarily declined card doesn't instantly delist a paying producer.
+The two hand-offs keep the URLs alive rather than 404ing a footer link and any bookmark; `public/_redirects` is generated from the affiliate link map by `scripts/generate-redirects.mjs`, so a real redirect would be a change to that generator. The origin constant lives in `app/producers/console-origin.ts` and **belongs in `lib/site.ts` next to `siteUrl()`** — it is colocated only because `lib/` was owned by another session the day this landed.
+
+**Two modules are now unreferenced and neither was deleted**: `components/producers/login-form.tsx` and `components/producers/submission-form.tsx` are the specification the Worker's screens get built from, including the facet sliders deliberately removed from the second one. `components/producers/pricing-table.tsx` is still live on the pricing page.
+
+`lib/plans.ts` holds the tiers — its prices are **labelled placeholders** pending a founder decision — plus `NEVER_INCLUDED`, which encodes that no tier may buy rank, score, placement, or review removal. That constraint is the independence posture above, expressed in code; don't weaken it for a pricing experiment. **The free tier is ONE listing** (founder decision, 2026-09-10); three pages said "two" until 2026-09-14, which is the kind of number that gets quoted back at you.
+
+`lib/producer-session.ts` still exists and is worth knowing about even though nothing imports it any more:
+
+- **`isPreviewMode()` requires `NODE_ENV === "development"` *in addition to* `PRODUCER_PREVIEW=1`.** That is deliberate: the bundler inlines `NODE_ENV` at build time, so the preview bypass **cannot** be switched on in a production build. An env-var-only flag would be a real auth-bypass hole the day this deploys. Don't "simplify" it to one check. With `/producers/submit` now a hand-off, `PRODUCER_PREVIEW=1` has nothing left to preview.
+- **Its `TODO(auth)` is an invitation to break the deploy.** HANDOFF.md lists implementing `auth()` there under "What must NOT be built" — it breaks `output: "export"` at deploy time rather than at review time. An unreferenced module carrying that invitation should be narrowed to "there is never a session on this origin" or removed outright; flagged 2026-09-14, not yet done.
+- `past_due` counts as an active subscription on purpose, so dunning on a temporarily declined card doesn't instantly delist a paying producer. That logic moves to the console when billing does.
 
 ## Planning docs
 

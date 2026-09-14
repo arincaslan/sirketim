@@ -1,33 +1,56 @@
 # Subscriber work: what is done, what is next
 
-**Written 2026-09-11.** A progress report for the founder, kept in the repo so it
-arrives with a `git pull`. It covers the producer subscription programme only.
-The plan it executes is in `HANDOFF.md`, section "The producer subscription
-programme"; the rules it obeys are in `PRODUCER-PROGRAM.md`.
+**Written 2026-09-11, updated 2026-09-14 (evening).** A progress report for the
+founder, kept in the repo so it arrives with a `git pull`. It covers the
+producer subscription programme only. The plan it executes is in `HANDOFF.md`,
+section "The producer subscription programme"; the rules it obeys are in
+`PRODUCER-PROGRAM.md`.
 
 ---
 
 ## The short version
 
-Four of the nine build steps are done, and **the thing that was blocking three
-more is now gone**: the database exists.
+Four of the nine build steps are done. **What changed on 14 September is that
+the road between a producer's submission and the live site now exists and is
+guarded** — and `producers.counterscent.com` is up.
 
 | # | Step | State |
 |---|---|---|
-| 1 | Producers stop scoring themselves | **Done** |
+| 1 | Producers stop scoring themselves | **Done**, and now completed — we derive the six scores ourselves (new 14 Sep) |
 | 2 | Provision a database | **Done** 2026-09-14 |
 | 3 | Schema catch-up | **Done** |
 | 4 | Publish state, revisions, audit trail | **Done** |
-| 5 | Auth on the producer origin | **Unblocked** — not started |
-| 6 | Producer console | **Unblocked** — not started |
-| 7 | Admin approval queue | **Unblocked** — not started |
-| 8 | Export and publish path | **Safety layer done**; rest needs 6 |
+| 5 | Auth on the producer origin | Not started — **the origin now exists** (new 14 Sep) |
+| 6 | Producer console | Not started |
+| 7 | Admin approval queue | Not started |
+| 8 | Export and publish path | **The route is complete and guarded** (new 14 Sep); the exporter itself needs 6 |
 | 9 | Billing | Deliberately last |
 
-Plus one control that was not on the list and should have been.
+Three pieces of work landed on 14 September that were not numbered steps, and
+each of them was a hole somebody would otherwise have fallen into:
 
-Nothing here is visible on the live site. The producer pages still say the
-programme is not open, because it is not.
+- **A listing had nowhere to go.** The buy link had been wired the day before,
+  but nothing carried the *listing*. Approving a producer would have produced a
+  working redirect pointing at a comparison card that existed nowhere.
+- **A paying producer would have started up to 10 points ahead**, by filling in
+  a form field that 47 of our 79 merchant listings are penalised for not having
+  published.
+- **A producer listing could have been filed under Dossier's name.**
+
+## What a reader of the site sees differently
+
+Two things, and they are the only visible changes:
+
+- **`/new`** — the complete record of what was added and when.
+- **A slider on the home page**, five newest alternatives, at most two per
+  producer. This is the surface a subscriber gets value from, and the rule is
+  recency rather than payment. Read the note in
+  `components/home/new-arrivals.tsx` before changing how it sorts: re-ordering
+  it to favour paying producers turns it into bought placement, and
+  `/disclosure` currently promises the opposite in those words.
+
+Everything else remains invisible. The producer pages still say the programme is
+not open, because it is not, and both producer data files ship empty.
 
 ---
 

@@ -1,8 +1,227 @@
-# Handoff — 2026-09-05, updated 2026-09-08 (end of session)
+# Handoff — started 2026-09-05, last updated 2026-09-14 (end of session)
 
 **Perishable.** This is where a working session stopped, not a permanent document. When its open items are done, delete it rather than letting it rot into a false account of the project. Durable lessons belong in the relevant `CLAUDE.md`; the ordered roadmap belongs in `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`.
 
 Machine setup is `SETUP.md`. This file is only about *what state the work is in*.
+
+---
+
+# 2026-09-14 — the producer programme got its plumbing, and a second origin
+
+Read this section first; everything below it predates the day and some of it is
+superseded here. The short version: **a listing submitted by a producer now has
+a route onto the live site, four guards stop it arriving dishonestly, and
+`producers.counterscent.com` exists.** No producer exists yet, nothing on the
+public site changed for a reader except two new surfaces, and no score moved.
+
+## What now runs end to end (empty, on purpose)
+
+`lib/data/producer-listings.generated.ts` and
+`lib/data/producer-registry.generated.ts` are both committed empty and both are
+spread into the live data — listings into `DUPES`, producers into `PRODUCERS`.
+That was the missing half: `producer-links.generated.ts` had wired the outbound
+buy link the day before, but **a link is not a listing.** Approving a producer
+would have produced a redirect that resolved and a comparison card that existed
+nowhere.
+
+Four build-failing guards sit on that path, each tested by writing a bad row and
+watching the build refuse it:
+
+| Guard | Refuses |
+|---|---|
+| Slug namespace | a producer listing whose slug is not `producer-<producer>-<listing>` |
+| Duplicate slug | the same slug twice, across both sources |
+| Pyramid evidence | `pyramidSource: "declared"` with no `pyramidBasis`, or a non-https citation |
+| Enrolled producer | a listing filed under a company that has not signed up |
+
+The identity guard is the one worth understanding. `lib/producers.ts` names
+eighteen real fragrance companies we merely link to; **none of them signed up.**
+Without the guard an exported row could claim `producerSlug: "dossier"` and
+render under Dossier's name — a false statement about a real business on an
+indexed page, arriving through a generated file nobody reads. Subscribers now
+live in their own generated file, so "is this company a subscriber?" is
+**derived, not typed**, the same rule `lib/merchants.ts` uses for the retailer
+band.
+
+## The pyramid penalty no longer favours whoever pays
+
+`lib/types.ts` used to say a producer submission "should default to declared".
+That would have let every self-service listing skip the 10-point penalty 47 of
+our 79 merchant listings carry — a paying subscriber starting up to 10 points
+ahead for a reason unrelated to the fragrance.
+
+A producer now reaches "declared" only by carrying `pyramidBasis`: source,
+quote, https url and the date a human checked it, recording that the **same
+pyramid is published where their own buyers see it.** Same shape as
+`pairingBasis`, which 59 of 79 listings already carry. A human records it, never
+the exporter — lifting a penalty makes a claim *stronger*, and the control floor
+for this programme is that automation may weaken a claim and never strengthen
+one.
+
+## Facet derivation exists, and it must not be published raw
+
+`lib/facet-derivation.ts` turns a declared note list plus concentration into the
+six profile scores. It had to exist: the self-rating sliders were removed on
+2026-09-11 because `isVerbatimCopy()` cross-references notes *against* facets and
+only works while we author one side — which left producer listings with no
+facets at all, and facets are 30-35% of the score.
+
+341 distinct notes map to 16 olfactive families (100% coverage). Only the 16
+family vectors are editorial; note-to-family is largely settled classification.
+
+**The finding that matters, measured in `scripts/calibrate-facets.ts` against the
+real shipped function:**
+
+| | mean facet gap, reference vs its listing |
+|---|---|
+| both sides hand-written (today) | 0.66 |
+| both sides derived | 0.62 |
+| listing derived, reference hand-written | 1.35 |
+
+| published score across the 79 | mean | vs today |
+|---|---|---|
+| A. both hand-written | 62.23 | — |
+| B. derived listing vs hand reference | 59.85 | **−2.38**, 69 of 79 fall |
+| C. derived on both sides | 62.35 | +0.13, 31 up / 24 down |
+
+The derivation reproduces the reference-to-listing *relationship* at least as
+tightly as the hand-written pairs do. The 2.4 points are lost purely to mixing
+two authoring methods across one subtraction — the hand-written pairs were
+written by one person looking at both sides, so they sit artificially close.
+**Regime B would hand every paying producer a systematic handicap.** So the
+output is a proposal a human reviewer edits, not a published value.
+
+**Regime C is the better answer at volume and costs nothing in aggregate, but it
+recomputes all 216 references' radar profiles and moves 55 of 79 published
+scores — a founder decision the size of the 2026-09-08 reform, not a refactor.**
+Watch for the reviewer accepting every proposal unchanged; that is regime B
+wearing a human's clothes, and the honest response is to adopt C.
+
+Two things fell out of the calibration worth keeping:
+
+- **A declared concentration is a seller's claim, not a fact.** An extrait
+  longevity bonus of +1.5 overshot the hand-written listings by 1.36 points, and
+  more to the point it would let a producer buy longevity by typing "Extrait de
+  Parfum" into a form. Cut to +0.5. Note also that 51 of the 52 extraits in the
+  catalogue are dupe listings, so "extrait" and "is a dupe" are almost perfectly
+  confounded and the data cannot settle the magnitude either way.
+- Two concentrations in the reference catalogue (`Elixir`, `Cologne`) were absent
+  from the shift table and silently took a zero. Added.
+
+`lib/facet-derivation.ts` is registered in `scripts/check-scoring-isolation.mjs`,
+which runs in `prebuild`. Honest limit of that guard: it walks module *imports*,
+and `lib/producers.ts` is already imported by scoring code for `isHouseProducer`,
+so it cannot catch a scoring module reading `isSubscriberProducer`. That one is
+on review.
+
+## producers.counterscent.com is live
+
+A second, self-contained application at
+`products/affiliate-sites/counterscent-producers/` — own `package.json`, own
+`wrangler.jsonc`, a hand-written Worker, no shared dependencies with the
+catalogue. Deployed, valid TLS, serving `/`, `/health`, `/robots.txt` and 404 for
+everything else, with `X-Robots-Tag: noindex, nofollow` on every response. The
+page says the programme is not open, because it is not.
+
+Four things learned getting it there, all of which will come up again:
+
+1. **The dashboard's "Add Custom Domain" refused with "No zones match".** Don't
+   fight it — the domain is declared in the app's own `wrangler.jsonc` with
+   `custom_domain: true` and `wrangler deploy` creates the DNS record and
+   certificate. Same philosophy as the root config: depend on no dashboard
+   setting.
+2. **`custom_domain: true` is load-bearing.** A *route* covering
+   `counterscent.com` would put this Worker in front of the catalogue, and
+   `_redirects` rules are not applied to requests served by Worker code — every
+   one of the 620 affiliate links would die.
+3. **`workers.dev` is blocked wholesale on the founder's network.** Every
+   `*.workers.dev` host fails TLS with "wrong version number" while
+   `cloudflare.com` and `counterscent.com` are fine. This produced a false "the
+   Worker is broken" reading; it opened first try on mobile data. Verify this
+   origin at `producers.counterscent.com` or a local `wrangler dev`, never the
+   preview URL.
+4. **This zone has Cloudflare's managed robots.txt on**, which prepends its own
+   `User-agent: * / Allow: /` to whatever the origin returns — on
+   `counterscent.com` too. The Worker therefore serves `Allow: /` rather than
+   `Disallow: /`: a Disallow would both contradict the injected block and stop a
+   crawler ever reading the `noindex` header that actually removes the page.
+
+## Two new public surfaces
+
+`/new` — the complete changelog, whole days only. A flat "most recent 24" cuts
+through the middle of a day and then reports a false count for it.
+
+A **newest-alternatives slider on the home page**, five cards. The founder's
+reason is that a subscriber should see value for the subscription, and they will:
+a new listing is new whoever filed it. **The rule stays recency, capped at two
+per producer.** Both halves matter — without the cap, today's newest five are
+five AromaPassions listings, which reads as a brand feature on the home page no
+matter what the heading says, and once producers submit individually one
+subscriber filing ten fragrances would own the strip. If this is ever re-sorted
+to put paying producers first, that is bought placement and `/disclosure` plus
+the home page's "No paid placement" panel have to be rewritten in the same
+change.
+
+**Listing dates are derived from git**, not a field on `DupeCandidate` — 79
+back-filled guesses avoided, and the party being measured cannot nudge it. An
+undated listing ranks and sells normally, it is only absent from the new list.
+
+**The gap that follows, and it lands on the exporter:** a producer listing is
+undated until it is *in a commit*, so the sequence is commit the listing → run
+`scripts/generate-listing-dates.mjs` → commit again. Between those two commits the
+subscriber's fragrance is live but missing from the slider — exactly the
+visibility they are paying for. Step 8 has to make the export and the date
+regeneration one operation.
+
+## Decided today, so nobody re-opens it
+
+**No click-based "most popular" top 5.** It would be a second ranking beside one
+we promise cannot be bought, and this one is purchasable by a producer clicking
+their own listing or buying $20 of traffic. Beyond that it cannot work yet: a
+no-commission subscriber's link carries no sub-ID so it is invisible to every
+affiliate network by construction, GA4 captures zero affiliate clicks, and there
+is no per-listing URL for page analytics to attribute to. At current volume the
+numbers separate nothing — 59 of the 65 covered references are tied at exactly
+one listing. What shipped instead ranks originals by *number of listings*, which
+is a fact about our own catalogue and cannot be clicked into existence.
+
+**The `/go/` Worker migration: yes, but between build steps 6 and 8.** Today it
+would risk 620 live buy links to fill a table nobody reads. The moment a paid
+listing is live we owe that producer click data, because no network report
+exists behind a direct link. Two things to carry into it: `generate-redirects.mjs`
+must emit `_redirects` and the Worker's link map from **one** computation, and
+**do not write to Neon synchronously from the Worker** — spread-thin clicks cost
+more than clustered ones, and roughly 4,800 isolated clicks a month exhausts the
+free compute budget and suspends it until the next billing period. Buffer at the
+edge, reconcile from the console. The rehearsal is cheap and already proven:
+`npm run preview`, fetch all 620 ids with `redirect: "manual"`, assert 302 and a
+byte-identical `Location`. Zero affiliate clicks fired.
+
+## Open, and needing the founder
+
+- **`PRODUCER-TERMS.md` — 16 clauses, drafted today, not reviewed by a lawyer and
+  not in force.** Two clauses need a professional and an agent's opinion is not a
+  substitute: **§15 governing law** (a Türkiye-based A.Ş. contracting with mostly
+  US businesses — Turkish law and Istanbul courts is assumed, and a US business
+  may reasonably decline it) and **§13 data protection**. Three clauses describe
+  mechanisms that do not exist yet and are written in the future tense; before
+  this is published anywhere a producer can accept it, either the mechanism
+  exists or the clause comes out.
+- **The Paddle acceptable-use email is drafted and unsent** —
+  `departments/communication/reports/paddle-acceptable-use-enquiry.md`. Still the
+  only thing that could invalidate the whole rail recommendation.
+- **A mandatory product photograph is now the decision** (founder, today), which
+  needs storage, a rights declaration in the terms (§6, written) and a commit
+  path — plus a human looking at every image before it publishes, because a
+  required upload is a moderation surface.
+- **A pre-existing accessibility defect on the live site**: the comment on
+  `--series-dupe` in `app/globals.css` claims it clears 4.5:1; it measures
+  **4.03:1 in dark mode**, and four shipped components use it as small text
+  (`pros-cons.tsx`, `value-bar.tsx`, `data-table-fallback.tsx`, `spec-panel.tsx`).
+  Fix is a dark-mode `--series-dupe-text` step mirroring the
+  `--series-reference-text` pattern the same comment block already established.
+
+---
 
 ## Where things stand
 
