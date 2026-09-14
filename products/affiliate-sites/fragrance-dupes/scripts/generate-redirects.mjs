@@ -63,8 +63,13 @@ const here = dirname(fileURLToPath(import.meta.url));
 const outFile = resolve(here, "..", "public", "_redirects");
 
 /** Must match SUB_ID_PARAM in lib/affiliate-links.ts. Duplicated because this
- *  script deliberately reads the TS file as text rather than importing it. */
-const SUB_ID_PARAM = { awin: "clickref", cj: "sid" };
+ *  script deliberately reads the TS file as text rather than importing it.
+ *
+ *  `direct` is null, not missing: a producer listing on a no-commission tier
+ *  links straight to the seller, so there is no network to carry a sub-ID and we
+ *  do not append our own ids to their URL. Null and absent mean different things
+ *  below - absent is an unknown network and throws. */
+const SUB_ID_PARAM = { awin: "clickref", cj: "sid", direct: null };
 
 /**
  * Read the affiliate map without pulling in the TypeScript toolchain.
@@ -104,20 +109,35 @@ async function readAffiliateLinks() {
     // the assertion below rather than by hope: this file cannot import the TS
     // module, and a silent divergence here would strip attribution from every
     // affiliate click while the links still appeared to work.
-    if (!deepLink || !subId) {
-      throw new Error(
-        `generate-redirects: affiliate link "${id}" is missing deepLink or subId. ` +
-          "Every real entry needs both — a link without a sub-ID is unattributable " +
-          "forever, and there is no way to recover which listing earned a commission."
-      );
-    }
-    const param = SUB_ID_PARAM[network];
-    if (!param) {
+    // `in`, not truthiness: `direct` maps to null, and null is a known network
+    // with nothing to append, not an unknown one.
+    if (!(network in SUB_ID_PARAM)) {
       throw new Error(
         `generate-redirects: unknown network "${network}" on affiliate link "${id}". ` +
           `Add its sub-ID parameter to SUB_ID_PARAM in both this file and lib/affiliate-links.ts.`
       );
     }
+    const param = SUB_ID_PARAM[network];
+
+    // A direct seller link still needs its deepLink, but a sub-ID would have
+    // nowhere to go: nobody is tracking the click, which is the point of the
+    // no-commission tier. Requiring one here would make every producer listing
+    // unpublishable.
+    if (!deepLink || (param !== null && !subId)) {
+      throw new Error(
+        `generate-redirects: affiliate link "${id}" is missing deepLink or subId. ` +
+          "Every network entry needs both — a link without a sub-ID is unattributable " +
+          "forever, and there is no way to recover which listing earned a commission."
+      );
+    }
+
+    if (param === null) {
+      // Mirrors affiliateDestination(): the destination is exactly what the
+      // seller gave us, byte for byte.
+      out[id] = deepLink;
+      continue;
+    }
+
     const joiner = deepLink.includes("?") ? "&" : "?";
     out[id] = `${deepLink}${joiner}${param}=${encodeURIComponent(subId)}`;
   }

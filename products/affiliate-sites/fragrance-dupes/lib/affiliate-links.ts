@@ -23,16 +23,46 @@ import { CJ_ORIGINAL_LINKS } from "@/lib/data/cj-links.generated";
 import { PM_ORIGINAL_LINKS } from "@/lib/data/pm-links.generated";
 import { PM_SHOP_LINKS } from "@/lib/data/pm-shop-links.generated";
 
-export type AffiliateNetwork = "awin" | "cj" | "placeholder";
+/**
+ * `direct` is not an affiliate network. It means the link goes straight to the
+ * seller and NOBODY pays us for the click.
+ *
+ * It exists because of the 2026-09-10 revenue decision: a paid producer tier
+ * takes no commission (see `takesCommission` in lib/plans.ts), so a subscriber's
+ * listing links to their own store with no network in the middle.
+ *
+ * WHY IT STILL GOES THROUGH `/go/` WHEN THERE IS NOTHING TO TRACK. The
+ * chokepoint is the point. Every outbound link on this site resolves through one
+ * id-keyed table, so the day we can log a click — a Worker on /go/*, or an
+ * outbound event — that is one change in one place rather than an edit to every
+ * listing. It also keeps the disclosure right by construction:
+ * components/kit/AffiliateLink.tsx applies `rel="sponsored nofollow noopener"` to
+ * every `/go/` link unconditionally, without inspecting the entry, so a
+ * subscriber's link is marked as paid placement automatically — which it is, even
+ * though the payment is a subscription rather than a commission.
+ *
+ * NOTE THE GAP THAT LEAVES. Four call sites hand-roll the anchor instead of using
+ * the kit, so they do not get that rel for free. They are correct today, but a
+ * producer listing rendered through one of them would need it added by hand. A
+ * missing `sponsored` on a paid link is a Google paid-link violation against our
+ * domain, not the producer's.
+ */
+export type AffiliateNetwork = "awin" | "cj" | "direct" | "placeholder";
 
 /**
  * The query parameter each network reads our sub-ID from. Getting this wrong
  * is silent: the click still works, the commission still pays, and the report
  * simply has no idea which page earned it.
+ *
+ * `direct` is deliberately `null`: there is no network to tell, and appending our
+ * internal slug to somebody else's product URL would leak our ids into their
+ * analytics and risk a store that rejects unknown query parameters. The
+ * destination for a direct link is the seller's URL, byte for byte.
  */
-export const SUB_ID_PARAM: Record<AffiliateNetwork, string> = {
+export const SUB_ID_PARAM: Record<AffiliateNetwork, string | null> = {
   awin: "clickref",
   cj: "sid",
+  direct: null,
   placeholder: "subid",
 };
 
@@ -72,6 +102,9 @@ export interface AffiliateLinkEntry {
  */
 export function affiliateDestination(entry: AffiliateLinkEntry): string {
   const param = SUB_ID_PARAM[entry.network];
+  // A direct seller link has no network to carry a sub-ID, and we do not append
+  // ours to somebody else's URL. The destination is exactly what they gave us.
+  if (param === null) return entry.deepLink;
   const joiner = entry.deepLink.includes("?") ? "&" : "?";
   return `${entry.deepLink}${joiner}${param}=${encodeURIComponent(entry.subId)}`;
 }

@@ -21,7 +21,7 @@ database, which is the thing only you can provide.
 | 5 | Auth on the producer origin | Blocked on 2 |
 | 6 | Producer console | Blocked on 2 |
 | 7 | Admin approval queue | Blocked on 2 |
-| 8 | Export and publish path | Blocked on 2 |
+| 8 | Export and publish path | **Safety layer done** (2026-09-14); rest blocked on 2 |
 | 9 | Billing | Deliberately last |
 
 Plus one control that was not on the list and should have been.
@@ -204,3 +204,102 @@ thing that makes the site worth listing on.
 Typecheck clean, lint clean, `prisma validate` passes, build produces 247 pages,
 the redirect table is still 620 entries, and the scoring-isolation check passes
 and was proven to fail when it should.
+
+---
+
+# Update, 2026-09-14: the publish path's safety layer
+
+Still no database, so steps 5, 6 and 7 have not moved. What has moved is the part
+of **step 8** that never needed one — and it is the part with the sharpest edge.
+
+## Why this, and why now
+
+The board called the publish path the crux, not the login page. Here is the
+specific danger, in plain terms:
+
+`generate-redirects.mjs` builds the table of every outbound link on the site, and
+it runs during the **public site's** build. It deliberately crashes rather than
+quietly skip a link it cannot understand, because a buy button that silently
+disappears is worse than a build that stops.
+
+Put those two facts together and a single malformed link pasted by one producer
+takes down the deploy of the whole catalogue — 620 working affiliate redirects and
+243 pages — and the person who pasted it is not watching. So the export step has
+to refuse to publish a link it cannot vouch for, and leave that one listing
+unpublished, rather than hand the problem to a build step whose only move is to
+abort everything.
+
+That refusal logic is now written and checked.
+
+## What a producer's link has to survive
+
+`lib/producer-link.ts`. Both the console (at submit time, so they find out
+immediately) and the export step (again, because rows get edited and imported)
+will call it.
+
+- Must be a real, complete **https** address.
+- No username or password buried in it.
+- **Must be on the store domain recorded on their account.** This is what stops
+  the oldest trick in marketplaces: approved pointing at one product, quietly
+  re-pointed at another — or at another site — once nobody is looking. A producer
+  who genuinely moves domains asks us, which is a conversation rather than a
+  silent redirect.
+- **Must not be a tracking or shortened link.** This one matters more than it
+  sounds. If a producer pastes their own affiliate link, we send our readers
+  through somebody else's attribution, earn nothing, and publish a destination we
+  do not control and that can be changed after approval. The shorteners are
+  refused for exactly the same reason — a link whose destination can change after
+  we approved it is not a link we can publish.
+- Tracking parameters they pasted along with it (utm, fbclid and friends) get
+  stripped, so we do not republish somebody else's campaign ids.
+
+Checked against 18 cases by running the real module, not a copy of it. Two are
+worth naming because a naive version fails them:
+
+- `opulensi.com.evil.com` — the real domain sitting as a *prefix* of a hostile
+  host. Anything doing a "contains the domain" check waves this through.
+- An affiliate network host has to lose **even when it matches the store domain**,
+  or the rule could be walked around by whoever owns that domain.
+
+The check lives at `scripts/verify-producer-link.ts` and can be re-run any time;
+the command is in its header.
+
+## Your no-commission decision now exists in the link layer
+
+A subscriber's listing links straight to their store, so there is no affiliate
+network in the middle. That is now a real link type (`direct`) rather than a
+special case someone has to remember:
+
+- The destination is **the seller's URL, byte for byte**. We do not append our
+  internal ids to another company's product page.
+- It still goes through `/go/` even though there is nothing to track. The single
+  chokepoint is the point: the day we can log a click, that is one change in one
+  place instead of an edit to every listing.
+- It is still marked as paid placement in the page markup. A subscription is
+  payment, so the link is sponsored even though no commission moves. I checked all
+  four places that build such a link by hand — all four are correct.
+
+Proven end to end by putting a fake producer listing through the generator and
+reading the rule it produced: the seller's URL, unmodified, nothing appended. Then
+reverted.
+
+## The fifth link source is wired while it is empty
+
+`lib/data/producer-links.generated.ts` exists and is empty, and both the redirect
+generator and the link checker already read it.
+
+This is deliberate. The last time a link source was added and only one of those
+two scripts learned about it, **368 live links shipped unchecked for two days**
+while the checker reported a clean pass. Wiring it now — harmless while empty —
+means the day a producer is approved, publishing is an export, not an export plus
+remembering to teach two scripts about a new file.
+
+## Still the same one thing standing in the way
+
+**A database.** Steps 5, 6 and 7 — sign-in, the producer console, the approval
+queue — cannot start without one. Neon or Supabase, free tier, real Postgres
+(not Cloudflare D1; the schema uses array columns D1 does not have).
+
+Verification for this pass: 18/18 link cases pass against the shipped module,
+typecheck clean, lint clean, build clean, redirect table still exactly 620, and
+the scoring-isolation control still passes.

@@ -51,6 +51,11 @@ export const AFFILIATE_LINK_SOURCES = [
     owns: "pmshop-<handle> — Perfumania's shop surface behind /originals",
   },
   {
+    relPath: "lib/data/producer-links.generated.ts",
+    declaration: "PRODUCER_LINKS",
+    owns: "producer-<producerSlug>-<listingSlug> — approved producer listings, network `direct`",
+  },
+  {
     relPath: "lib/affiliate-links.ts",
     declaration: "affiliateLinks",
     owns: "dupe-<slug> — hand-written dupe-side entries, three Awin merchants",
