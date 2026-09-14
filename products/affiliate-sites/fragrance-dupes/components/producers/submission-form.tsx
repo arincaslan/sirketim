@@ -234,8 +234,16 @@ export function SubmissionForm() {
         <Button type="submit" disabled={!canSubmit}>
           Submit for review
         </Button>
+        {/* NOT a review-time promise. This said "Reviewed within 3 business
+            days", which was invented - no submission has ever been reviewed,
+            so there is no figure to publish, and PRODUCER-TERMS §5 commits us
+            to publishing one only once there is. This component renders
+            nowhere today, but it is the spec the console's submit screen gets
+            built from, so a made-up number here would travel into the real
+            thing. What replaces it is the fact that actually needs to survive
+            the port: approved and live are different states. */}
         <span className="text-xs text-muted-foreground">
-          Reviewed within 3 business days.
+          Reviewed by a person. Once approved, it publishes at the next site build.
         </span>
       </div>
 

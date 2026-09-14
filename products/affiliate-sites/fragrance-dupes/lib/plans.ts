@@ -97,7 +97,16 @@ export const PLANS: Plan[] = [
     features: [
       "Appears in ranked comparisons",
       "Total click count",
-      "Reviewed within 3 business days",
+      // NOT a review-time promise. This said "Reviewed within 3 business
+      // days", which nobody measured - no submission has ever been reviewed,
+      // so there is no figure, and PRODUCER-TERMS §5 commits us to publishing
+      // a review time only once real ones exist. It was live on
+      // /producers/pricing, which is where a producer reads it before paying.
+      //
+      // What replaces it is the fact that actually matters and is true today:
+      // a person decides, and nothing is auto-approved. That is the control
+      // floor of the whole programme, not a service level.
+      "Reviewed by a person, never auto-approved",
     ],
     // The free tier is how the site earns from a non-subscriber: their listing
     // carries our affiliate link and we take commission on sales.
@@ -110,12 +119,31 @@ export const PLANS: Plan[] = [
     priceMonthly: 19,
     priceYearly: 190,
     listings: "25 listings",
+    // TWO FEATURES WERE REMOVED HERE, and both were being SOLD on a live
+    // pricing page for things the repo has decided not to build.
+    //
+    // "Your own producer page" is a public producer directory, which is on
+    // HANDOFF's do-not-build list for a specific reason: lib/producers.ts is
+    // fixture data naming eighteen real, operating companies, none of which
+    // signed up. A browse-by-producer surface would assert a commercial
+    // relationship with every one of them.
+    //
+    // "Reply to customer reviews" promised a review system that does not
+    // exist and was deliberately dismantled. lib/reviews.ts is empty because
+    // it once carried six invented reviews about real named companies, which
+    // is FTC Fake Reviews Rule and trade-libel territory rather than a
+    // tidiness problem. Selling replies to reviews we do not have would be
+    // the first step back toward inventing them.
+    //
+    // What replaces them are two things the schema already models and the
+    // terms already commit to: SubmissionRevision (PRODUCER-TERMS §4) and
+    // publishState WITHDRAWN_BY_PRODUCER (§10).
     features: [
       "Everything in Free",
       "We take no commission on your sales",
-      "Your own producer page",
       "Per-listing and per-original click data",
-      "Reply to customer reviews",
+      "Request an edit to a published listing",
+      "Withdraw a listing yourself, any time",
     ],
     highlighted: true,
     takesCommission: false,
@@ -172,5 +200,14 @@ export const NEVER_INCLUDED = [
   "A better match score",
   "A higher rank, at any tier",
   "A premium or featured slot in results",
-  "Removal of a customer review",
+  // Was "Removal of a customer review", which quietly implied this site has
+  // customer reviews. It does not - lib/reviews.ts is empty on purpose. A
+  // "you cannot buy this" list has to name things that exist, or the reader
+  // learns the wrong thing about the product from the disclaimer.
+  //
+  // What stands here instead is the strongest of the four and the one a
+  // paying producer is most likely to ask for: the verdict is written in our
+  // voice, it will say where their fragrance falls short, and they do not get
+  // approval over it. PRODUCER-TERMS §4.
+  "Approval over the verdict we write",
 ];
