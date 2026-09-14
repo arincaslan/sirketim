@@ -1,9 +1,10 @@
+import { SUBSCRIBER_PRODUCERS } from "@/lib/data/producer-registry.generated";
 import type { Producer } from "@/lib/types";
 
 /**
- * Producer registry. Added for the marketplace pivot (MARKETPLACE-PLAN.md §3),
- * which makes sellers first-class rather than a bare `brand` string on each
- * dupe.
+ * Producers we LIST but who hold no account with us. Added for the marketplace
+ * pivot (MARKETPLACE-PLAN.md §3), which makes sellers first-class rather than a
+ * bare `brand` string on each dupe.
  *
  * FIXTURE DATA. These are real, currently-operating "inspired by" retailers
  * found in departments/sales/affiliate-program-signup-checklist.md's own
@@ -13,10 +14,17 @@ import type { Producer } from "@/lib/types";
  * MARKETPLACE-PLAN.md §4). Treat every entry as illustrative until a real
  * producer actually enrolls.
  *
+ * ENROLLED PRODUCERS DO NOT GO IN THIS ARRAY. They arrive in
+ * lib/data/producer-registry.generated.ts, written by the console's export
+ * step, and are merged into PRODUCERS below. The split is what makes
+ * "is this company a subscriber?" a derived fact rather than a typed one -
+ * see that file's header, and lib/merchants.ts for the same rule applied to
+ * the retailer disclosure band.
+ *
  * COUNTERSCENT's own line (`isHouse`) is the exception: it is ours, so it carries
  * no subscription and skips the approval queue entirely.
  */
-export const PRODUCERS: Producer[] = [
+const LISTED_PRODUCERS: Producer[] = [
   {
     slug: "counterscent-atelier",
     name: "Counterscent Atelier",
@@ -177,6 +185,62 @@ export const PRODUCERS: Producer[] = [
       "US dupe house selling direct, with a range named for a feeling rather than for the original it interprets — though every product title states that original outright. Bottles are 50ml and 100ml, and the seller states a 20% concentration it labels Extrait de Parfum, which we have not verified.",
   },
 ];
+
+/** Every producer the site can name: the companies we list, plus whoever has
+ *  actually enrolled. Subscribers come last so the collision guard below is
+ *  the thing that resolves a clash, rather than spread order deciding it
+ *  silently - this repo lost 91 affiliate links to exactly that. */
+export const PRODUCERS: Producer[] = [...LISTED_PRODUCERS, ...SUBSCRIBER_PRODUCERS];
+
+/**
+ * A subscriber must not be able to occupy a listed company's identity.
+ *
+ * Without this, an exported row claiming `producerSlug: "dossier"` would
+ * render its listing under Dossier's name and blurb, telling every reader that
+ * Dossier had signed up. Dossier has not. That is a false statement about a
+ * real company on an indexed page, and it would arrive through a generated
+ * file nobody reads rather than through anything a reviewer would notice.
+ */
+const listedSlugs = new Set(LISTED_PRODUCERS.map((p) => p.slug));
+for (const producer of SUBSCRIBER_PRODUCERS) {
+  if (listedSlugs.has(producer.slug)) {
+    throw new Error(
+      `Subscriber producer "${producer.slug}" collides with a listed producer of ` +
+        `the same slug. A subscriber cannot take over the identity of a company ` +
+        `we merely list - issue a different slug.`
+    );
+  }
+  if (producer.isHouse) {
+    throw new Error(
+      `Subscriber producer "${producer.slug}" is marked isHouse. The house flag ` +
+        `means "Counterscent's own line", which exempts a listing from the ` +
+        `approval queue and constrains its score - it can never belong to a ` +
+        `third party who signed up.`
+    );
+  }
+}
+
+/**
+ * Whether this producer holds an account with us, as opposed to being a
+ * company whose products we list through an affiliate relationship.
+ *
+ * DERIVED FROM THE GENERATED REGISTRY, never from a field anyone can set. This
+ * is the fact a "Subscriber listing" disclosure badge hangs on, and the whole
+ * point of deriving it is that we cannot drift into under-disclosing: a
+ * subscriber is exactly someone the export wrote, and nothing else can become
+ * one by being edited.
+ *
+ * SCORING MUST NOT READ THIS. It is a disclosure fact, not a scoring input,
+ * and "no tier buys rank" is the claim the programme rests on. Note the honest
+ * limit of the guard: scripts/check-scoring-isolation.mjs walks module
+ * IMPORTS, and lib/producers.ts is already imported by lib/catalog.ts and
+ * lib/verification.ts for isHouseProducer - so the script cannot catch a
+ * scoring module reading this particular function. That one is on review.
+ */
+const subscriberSlugs = new Set(SUBSCRIBER_PRODUCERS.map((p) => p.slug));
+export function isSubscriberProducer(producerSlug: string): boolean {
+  return subscriberSlugs.has(producerSlug);
+}
 
 export function getProducer(slug: string): Producer | undefined {
   return PRODUCERS.find((p) => p.slug === slug);

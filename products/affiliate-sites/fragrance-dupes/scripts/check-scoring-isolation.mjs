@@ -34,6 +34,12 @@ const ENTRY_POINTS = [
   "lib/similarity.ts",
   "lib/verification.ts",
   "lib/catalog.ts",
+  // Produces the six facets, which are 30-35% of the similarity score. It is
+  // reachable from no other entry point today because nothing imports it yet -
+  // the producer console and the admin queue will - so it has to be listed in
+  // its own right or the one module that turns a submission into score inputs
+  // would be the one module nobody checks.
+  "lib/facet-derivation.ts",
 ];
 
 /**

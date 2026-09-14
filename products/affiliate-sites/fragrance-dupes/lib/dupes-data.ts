@@ -1,5 +1,7 @@
 import { REFERENCES } from "@/lib/data/references";
 import { DUPE_IMAGES } from "@/lib/data/dupe-images.generated";
+import { PRODUCER_LISTINGS } from "@/lib/data/producer-listings.generated";
+import { isSubscriberProducer } from "@/lib/producers";
 import { validateFounderOverride } from "@/lib/verification";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
 
@@ -3783,15 +3785,121 @@ const LISTINGS: DupeCandidate[] = [
  * renders the generated note-signature mark, which is the correct outcome for
  * anything we cannot license an image for.
  */
-export const DUPES: DupeCandidate[] = LISTINGS.map((dupe) => {
+const MERCHANT_LISTINGS: DupeCandidate[] = LISTINGS.map((dupe) => {
   const image = DUPE_IMAGES[dupe.slug];
   return image ? { ...dupe, imageUrl: image } : dupe;
 });
+
+/**
+ * Every listing the site ranks: the hand-authored merchant set above, plus
+ * whatever the producer console has exported and had approved.
+ *
+ * A producer listing is deliberately indistinguishable from a merchant one from
+ * here down - same card, same formula, same ranking, in the Dupe Finder and on
+ * /fragrance/<reference>/ alike. That is the product being sold, and it is why
+ * the two guards below fail the build rather than warning.
+ *
+ * PRODUCER LISTINGS SKIP THE IMAGE MERGE, and not as an oversight. DUPE_IMAGES
+ * is keyed by slug and written by scripts/fetch-dupe-images.mjs, which only
+ * takes a photograph for a listing whose merchant programme actually tracks -
+ * the licence rides on the affiliate relationship, not on the picture. A
+ * producer has no part in those relationships, so there is no key here that
+ * could legitimately match one of their listings, and running them through the
+ * map would only create a way for a licensed merchant photograph to land on a
+ * subscriber's bottle. Producer imagery is a separate, unbuilt problem (object
+ * storage, a rights declaration, a commit path) - see the do-not-build list in
+ * HANDOFF.md.
+ */
+export const DUPES: DupeCandidate[] = [...MERCHANT_LISTINGS, ...PRODUCER_LISTINGS];
+
+/**
+ * Producer listing slugs must carry their namespace, matching producerLinkId()
+ * in lib/producer-link.ts.
+ *
+ * Listing slugs are unique only PER PRODUCER (@@unique([producerId, slug]) in
+ * prisma/schema.prisma), so two subscribers can both sell a "noir" and either
+ * could collide with one of the 79 hand-authored slugs. Checked here rather
+ * than trusted from the exporter because this is the file that decides what the
+ * site renders, and a generated file can be written by an older version of a
+ * script than the one currently on disk.
+ */
+for (const dupe of PRODUCER_LISTINGS) {
+  if (!dupe.slug.startsWith(`producer-${dupe.producerSlug}-`)) {
+    throw new Error(
+      `Producer listing slug "${dupe.slug}" is not namespaced. Expected ` +
+        `producer-${dupe.producerSlug}-<listingSlug>, from producerLinkId().`
+    );
+  }
+
+  // A producer listing may only claim "declared" - and so skip the 10-point
+  // imputed-pyramid penalty that 47 of the 79 merchant listings carry - if the
+  // same pyramid is published where that producer's own buyers can see it. See
+  // DupeCandidate.pyramidBasis in lib/types.ts for why filling in three tier
+  // fields on our form is not the same act as a merchant publishing one.
+  //
+  // This is a backstop, not the place the rule should be enforced. The
+  // exporter has to refuse to emit a row that cannot satisfy it, because by
+  // the time the public build runs, the only move left is to abort - and
+  // aborting takes 620 working affiliate redirects and every page down with
+  // it. Same reasoning as validateProducerLink() in lib/producer-link.ts.
+  if (dupe.pyramidSource === "declared" && !dupe.pyramidBasis) {
+    throw new Error(
+      `Producer listing "${dupe.slug}" claims pyramidSource "declared" with no ` +
+        `pyramidBasis. Either record where the producer publishes that pyramid ` +
+        `(source, quote, url, checkedOn) or set pyramidSource to "imputed".`
+    );
+  }
+
+  if (dupe.pyramidBasis && !dupe.pyramidBasis.url.startsWith("https://")) {
+    throw new Error(
+      `Producer listing "${dupe.slug}" has a pyramidBasis with no https url. ` +
+        `An unverifiable citation is not evidence, and this one lifts a penalty.`
+    );
+  }
+
+  // The listing has to belong to somebody who actually enrolled. An exported
+  // row naming one of the twenty companies we merely LIST - Dossier, Lattafa,
+  // ALT. Fragrances - would render under that company's name and blurb and
+  // tell every reader they had signed up, which is a false statement about a
+  // real business on an indexed page. lib/producers.ts guards the same
+  // boundary from the registry side; this guards it from the listing side,
+  // because a row can name a slug that exists in neither file.
+  if (!isSubscriberProducer(dupe.producerSlug)) {
+    throw new Error(
+      `Producer listing "${dupe.slug}" names producerSlug "${dupe.producerSlug}", ` +
+        `which is not an enrolled producer. A producer listing must belong to a ` +
+        `subscriber in lib/data/producer-registry.generated.ts - it can never be ` +
+        `filed under a company we only list.`
+    );
+  }
+}
+
+/**
+ * One slug, one listing, across both sources.
+ *
+ * getDupe() is a find() and DUPE_IMAGES is a plain keyed map, so a duplicate is
+ * silent and resolves three ways, all wrong: the ranked list carries the same
+ * bottle twice, the content embed in components/content/embedded-comparison.tsx
+ * renders whichever came first, and an image intended for one product attaches
+ * to another. Mirrors the guard in lib/data/references.ts, and exists for the
+ * same reason the affiliate link map now namespaces per source - 91 links once
+ * vanished with no error anywhere because spread order silently picked a winner.
+ */
+const seenDupeSlugs = new Set<string>();
+for (const dupe of DUPES) {
+  if (seenDupeSlugs.has(dupe.slug)) {
+    throw new Error(`Duplicate dupe slug in catalog: "${dupe.slug}"`);
+  }
+  seenDupeSlugs.add(dupe.slug);
+}
 
 // Fails the build loudly if a founderOverride is ever added incorrectly,
 // mirroring the duplicate-slug guard in lib/data/references.ts. A no-op today
 // (no listing carries one) - it exists so the one mechanism allowed to publish
 // above the structural ceiling cannot land unjustified, or on our own product.
+// Runs over DUPES rather than LISTINGS so an exported producer row is held to
+// the same rule: the override is barred on a house product for the direct
+// financial interest, and a paying subscriber's listing is the same conflict.
 for (const dupe of DUPES) {
   validateFounderOverride(dupe);
 }

@@ -185,11 +185,60 @@ export interface DupeCandidate {
    * imputed-pyramid penalty in lib/verification.ts needs every listing to
    * make an explicit claim, and letting it silently default in either
    * direction would undermine exactly the honesty that penalty exists for.
-   * New producer submissions should default to "declared" - filling in
-   * three separate tier fields is declaring your own split, not having one
-   * imputed for you.
+   *
+   * A PRODUCER SUBMISSION DOES NOT DEFAULT TO "declared", and the earlier
+   * wording here said it did. Filling in three tier fields on our private form
+   * is not the same act as a merchant publishing a pyramid on their own
+   * product page, even though both produce three tiers. The merchant's is
+   * public, was written for buyers rather than for our formula, and can be
+   * checked by anyone; the producer's is unverifiable, written by someone who
+   * knows how we score, and costs nothing to shade. Treating them alike would
+   * have let every self-service listing skip a 10-point penalty that 47 of our
+   * 79 merchant listings carry - a paying subscriber starting up to 10 points
+   * ahead for a reason that has nothing to do with the fragrance. See
+   * `pyramidBasis` below for what a producer listing must carry instead.
    */
   pyramidSource: "declared" | "imputed";
+  /**
+   * Evidence that a "declared" split is genuinely the seller's own published
+   * one, in the same shape and for the same reason as `pairingBasis` above:
+   * record who claims what, in their words, and where a reader can check it.
+   *
+   * REQUIRED ON A PRODUCER LISTING THAT CLAIMS "declared" - enforced by a
+   * build-time guard in lib/dupes-data.ts. The bar it encodes is that the same
+   * pyramid is published where the producer's own buyers see it, which turns
+   * "what they told us" into "what they tell everyone". A producer is free to
+   * publish a flattering pyramid; they are not free to publish one privately
+   * to us and a different one to the people buying the bottle.
+   *
+   * NOT required on the 79 merchant listings, and that is not favouritism: we
+   * only ever learned those pyramids BY reading a public page or feed, so the
+   * evidence is what produced the classification rather than a check added
+   * after it. Recording it retroactively for the 32 declared merchant listings
+   * is owed work, not a blocker - until then the asymmetry is that ours are
+   * evidenced by provenance and theirs by citation.
+   *
+   * A HUMAN RECORDS THIS, NEVER THE EXPORTER. Marking a listing "declared"
+   * lifts a 10-point penalty, which makes a claim STRONGER, and the control
+   * floor for this programme is that automation may always take something down
+   * or weaken a claim and may never put one up or strengthen it. A fetcher
+   * that decided this by pattern-matching a Shopify page would be exactly that
+   * - and would fail silently the first time a store sits behind a bot
+   * challenge, which is already true of one merchant here.
+   */
+  pyramidBasis?: {
+    /** Who publishes it, e.g. "Producer's own product page". */
+    source: string;
+    /** Their words, short enough to quote - the tier labels and notes as the
+     *  page states them, so a reader can compare without following the link. */
+    quote: string;
+    /** Where a reader can check it. Required here, unlike on pairingBasis:
+     *  an unverifiable citation is not evidence, and this one lifts a penalty. */
+    url: string;
+    /** ISO date the reviewer looked. A page can change after approval, so the
+     *  claim is "this was published on this date", never "this is published". */
+    checkedOn: string;
+  };
   /**
    * A rare, human, editorial override of the published score - the ONLY way
    * a listing can publish above the 95% structural ceiling in
