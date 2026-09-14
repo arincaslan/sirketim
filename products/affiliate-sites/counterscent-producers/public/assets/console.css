@@ -1,0 +1,828 @@
+/* =========================================================================
+   Counterscent producer console.
+
+   THE TOKENS BELOW ARE A COPY, AND THE COPY IS THE RISK TO WATCH.
+   Source of truth:
+     products/affiliate-sites/fragrance-dupes/app/globals.css   (:root / .dark)
+     products/affiliate-sites/fragrance-dupes/tailwind.config.ts (radii, curve)
+     products/affiliate-sites/fragrance-dupes/DESIGN.md section 3 (the why,
+       and the computed WCAG pairs: ink/paper 16.35:1, muted/paper 5.91:1,
+       white/green 7.69:1, green/paper 6.78:1 in light; 15.83 / 8.99 / 7.00 /
+       6.58 in dark)
+
+   This origin is a separate Cloudflare Worker with a separate deploy and no
+   build step, so it cannot import from the Next project. If a token changes
+   over there and not here, the two surfaces drift apart and the console
+   starts looking like a different company again, which is the exact problem
+   this file was written to fix.
+
+   SHAPE RULE, from DESIGN.md section 3, followed everywhere in this file:
+     frames / cards / tables / inputs   2px
+     buttons                            8px
+     tags / chips / badges              full pill
+   No other radius value appears below.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   Fonts. Self-hosted rather than linked from Google, for the same reason the
+   catalogue uses next/font: a third-party request on every page load, and on
+   a console that knows who is signed in, a third-party request that can see
+   when they are working. Both files are the latin subset of the variable
+   font, 37 KB and 26 KB, from the Google Fonts CDN. Both families are OFL.
+   ------------------------------------------------------------------------- */
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/assets/fonts/cormorant-garamond-latin-var.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/assets/fonts/public-sans-latin-var.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --background: 60 18% 93%;
+  --foreground: 84 14% 7%;
+  --card: 0 0% 100%;
+  --secondary: 54 17% 89%;
+  --muted-foreground: 71 6% 34%;
+  --border: 55 14% 82%;
+  --primary: 157 55% 24%;
+  --primary-foreground: 0 0% 100%;
+  --destructive: 3 71% 41%;
+  --ring: 157 55% 24%;
+
+  --radius-frame: 2px;
+  --radius-button: 8px;
+  --radius-pill: 999px;
+
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* The catalogue's own curve, from tailwind.config.ts. Overriding the
+     built-in ease-out key there means every transition on that site uses it;
+     here it is one variable used the same way. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  --shell: 72rem;
+  --measure: 68ch;
+}
+
+html[data-theme="dark"] {
+  --background: 77 19% 7%;
+  --foreground: 49 28% 92%;
+  --card: 82 19% 12%;
+  --secondary: 82 14% 16%;
+  --muted-foreground: 60 9% 69%;
+  --border: 82 12% 20%;
+  --primary: 155 47% 46%;
+  --primary-foreground: 96 22% 5%;
+  --destructive: 3 65% 55%;
+  --ring: 155 47% 46%;
+}
+
+/* -------------------------------------------------------------------------
+   Reset and base
+   ------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+
+  /* The header is sticky, so an in-page jump (the skip link, or a future
+     anchor) would land the target underneath it. WCAG 2.2 AA 2.4.11 treats
+     that as keyboard focus being obscured by author content, and the fix is
+     exactly this: reserve the header's height at the top of every scroll.
+     Keep this in step with .header-inner's min-height. */
+  scroll-padding-top: 5rem;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The catalogue's paper grain, copied from globals.css. Fixed and
+   pointer-events:none so it never repaints on scroll. Intentionally almost
+   invisible; it is what makes the two surfaces feel like one printed
+   document rather than two web pages. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background-color: hsl(var(--primary) / 0.18);
+}
+
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+a {
+  color: hsl(var(--primary));
+  text-underline-offset: 3px;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+p {
+  margin: 0 0 1rem;
+  max-width: var(--measure);
+}
+
+.muted {
+  color: hsl(var(--muted-foreground));
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 80;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-button);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* -------------------------------------------------------------------------
+   Header. One line, 68px tall, matching the catalogue's own chrome.
+   ------------------------------------------------------------------------- */
+.site-header {
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--background) / 0.9);
+  backdrop-filter: saturate(140%) blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 68px;
+}
+
+.lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mark {
+  height: 1.75rem;
+  width: 1.75rem;
+  flex: none;
+  color: hsl(var(--primary));
+}
+
+.lockup-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.lockup-sub {
+  margin-top: 0.25rem;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: hsl(var(--muted-foreground));
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quiet-link {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+}
+.quiet-link:hover {
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+}
+
+.icon-button {
+  font: inherit;
+  font-size: 0.8125rem;
+  min-width: 4.5rem;
+  padding: 0.3125rem 0.625rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-button);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease-out), color 0.15s var(--ease-out),
+    transform 0.15s var(--ease-out);
+}
+.icon-button:hover {
+  background: hsl(var(--secondary));
+  color: hsl(var(--foreground));
+}
+.icon-button:active {
+  transform: scale(0.97);
+}
+
+/* -------------------------------------------------------------------------
+   Main column
+   ------------------------------------------------------------------------- */
+main {
+  flex: 1 0 auto;
+  padding-block: 2.5rem 5rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.75rem;
+  font-size: 0.875rem;
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.125rem, 1.5rem + 2.4vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  margin: 0 0 1rem;
+  max-width: 22ch;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem);
+  line-height: 1.2;
+  margin: 0 0 0.75rem;
+}
+
+h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.standfirst {
+  font-size: 1.125rem;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 2rem;
+}
+
+.lede {
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 1.5rem;
+}
+
+.band {
+  padding-block: 2.25rem;
+  border-top: 1px solid hsl(var(--border));
+}
+.band:first-of-type {
+  border-top: 0;
+  padding-top: 0.5rem;
+}
+
+.card {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--card));
+  padding: 1.5rem;
+}
+.card > :last-child {
+  margin-bottom: 0;
+}
+
+.grid-2 {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 48rem) {
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Vertical rhythm inside a section body. Blocks were butting into each other
+   (a dashed notice sharing an edge with a solid card reads as one broken
+   element), and the fix was drifting towards inline margin styles on
+   individual elements. One owned rule instead. */
+.stack > * + * {
+  margin-top: 1.5rem;
+}
+
+/* -------------------------------------------------------------------------
+   Status strip and notices. These carry the "not open" message, so they are
+   the most load-bearing components on the origin and they read first.
+   ------------------------------------------------------------------------- */
+.status-strip {
+  display: flex;
+  flex-direction: column;
+  /* Not `stretch`, which is the flex default and which made the pill span the
+     whole strip on a narrow viewport. A pill that fills the line stops
+     reading as a pill. */
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--secondary) / 0.55);
+}
+.status-strip p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: hsl(var(--muted-foreground));
+  max-width: var(--measure);
+}
+@media (min-width: 40rem) {
+  .status-strip {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 1rem;
+  }
+}
+
+.notice {
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius-frame);
+  padding: 1.125rem 1.25rem;
+  background: hsl(var(--secondary) / 0.45);
+}
+.notice > :last-child {
+  margin-bottom: 0;
+}
+.notice-title {
+  font-weight: 600;
+  margin-bottom: 0.375rem;
+}
+.notice p:not(.notice-title) {
+  font-size: 0.9375rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* -------------------------------------------------------------------------
+   Pills and listing state.
+
+   Solid fill = published. Outline = not published. That is the Counterscent
+   mark's own geometry used as a status language. Colour is never the only
+   channel: each pill states its meaning in words, and "approved, not yet
+   live" carries a dashed edge so it reads as provisional in greyscale too.
+   ------------------------------------------------------------------------- */
+.pill {
+  display: inline-block;
+  border-radius: var(--radius-pill);
+  padding: 0.1875rem 0.6875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.pill-alert {
+  border-color: hsl(var(--primary) / 0.45);
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+}
+
+.state-live {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+.state-approved {
+  background: transparent;
+  color: hsl(var(--primary));
+  border: 1px dashed hsl(var(--primary));
+}
+.state-in-review,
+.state-draft {
+  background: hsl(var(--secondary));
+  color: hsl(var(--muted-foreground));
+  border-color: hsl(var(--border));
+}
+.state-changes-requested {
+  background: transparent;
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--foreground) / 0.35);
+}
+.state-rejected,
+.state-removed {
+  background: transparent;
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.5);
+}
+.state-withdrawn {
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border-color: hsl(var(--border));
+}
+
+.state-row {
+  display: grid;
+  gap: 0.25rem 1.25rem;
+  grid-template-columns: 1fr;
+  padding: 0.875rem 0;
+  border-top: 1px solid hsl(var(--border));
+}
+.state-list {
+  margin-top: 0.75rem;
+}
+.state-list .state-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.state-row p {
+  margin: 0;
+  max-width: none;
+}
+.state-row-meaning {
+  font-size: 0.9375rem;
+}
+.state-row-actor {
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+@media (min-width: 56rem) {
+  .state-row {
+    grid-template-columns: 14rem 1fr 10rem;
+    align-items: baseline;
+  }
+  .state-row-actor {
+    text-align: right;
+  }
+}
+
+/* The one place the two enums are shown crossing. Deliberately not a matrix:
+   a 4x5 grid of mostly-impossible combinations would be a puzzle, and only
+   one cell of it is the point. */
+.gap-callout {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+  align-items: center;
+  padding: 1.25rem;
+  border: 1px solid hsl(var(--primary) / 0.35);
+  border-radius: var(--radius-frame);
+  background: hsl(var(--primary) / 0.06);
+}
+.gap-callout p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.gap-step {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--primary));
+}
+@media (min-width: 50rem) {
+  .gap-callout {
+    grid-template-columns: auto auto auto 1fr;
+    gap: 1.25rem;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Fields that cannot take input, and buttons that cannot be pressed.
+   ------------------------------------------------------------------------- */
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.fieldset-body {
+  margin-top: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
+  max-width: var(--measure);
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* The disabled state has to be readable at a glance, not inferred from a
+   slightly greyer border. A control that merely LOOKS ordinary while being
+   inert is the same confusion as a live field that throws the input away.
+   This marker sits on the label line, where the eye already is. */
+.tag-off {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.125rem 0.5rem;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius-pill);
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--secondary) / 0.7);
+}
+
+.field input,
+.field textarea {
+  font: inherit;
+  font-size: 0.9375rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  resize: vertical;
+}
+
+/* Disabled is the normal state of every control here, so it has to stay
+   legible rather than merely faded. The label keeps full contrast, the
+   control is visibly inert, and the placeholder clears AA against the field
+   background rather than being the usual unreadable grey. */
+.field input:disabled,
+.field textarea:disabled {
+  background: hsl(var(--secondary) / 0.6);
+  border-style: dashed;
+  color: hsl(var(--muted-foreground));
+  cursor: not-allowed;
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 1;
+}
+
+.field-hint {
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+  max-width: none;
+}
+
+.btn {
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 0.5625rem 1.125rem;
+  border-radius: var(--radius-button);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-out), background-color 0.15s var(--ease-out);
+}
+.btn-primary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.btn-ghost {
+  background: transparent;
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+/* Disabled is not a temporary state here. Every button on this origin is
+   permanently inert, so the usual `opacity: 0.5` treatment is wrong twice
+   over: measured against the page it put the primary button's label at
+   3.50:1 and the ghost's at 4.10:1, and a faded green button still reads as
+   something you are supposed to press.
+
+   So a disabled button stops being a faded version of itself and becomes a
+   distinct, legible, obviously inert object: muted surface, dashed edge,
+   muted label (about 5.8:1). The primary keeps a filled surface and the
+   ghost stays transparent, so a trace of the hierarchy survives, but neither
+   looks pressable. */
+.btn:disabled {
+  cursor: not-allowed;
+  border-style: dashed;
+  border-color: hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+.btn-primary:disabled {
+  background: hsl(var(--secondary));
+}
+.btn-ghost:disabled {
+  background: transparent;
+}
+.btn:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+.actions-note {
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Lists, tables, empty states
+   ------------------------------------------------------------------------- */
+.plain-list {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  max-width: var(--measure);
+}
+.plain-list li {
+  padding: 0.5rem 0 0.5rem 1.25rem;
+  position: relative;
+  font-size: 0.9375rem;
+}
+.plain-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.0625rem;
+  width: 0.5rem;
+  height: 1px;
+  background: hsl(var(--primary));
+}
+
+/* A six-column table does not fit a 390px viewport, and letting it push the
+   document wide gives the whole page a horizontal scrollbar. Scroll the
+   table instead of the page. `tabindex` is on the element in the markup so
+   the region is reachable by keyboard, which is the part people forget when
+   they add overflow. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  width: 100%;
+  min-width: 44rem;
+  border-collapse: collapse;
+  border: 1px solid hsl(var(--border));
+  font-size: 0.875rem;
+  background: hsl(var(--card));
+}
+.data-table th {
+  text-align: left;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--secondary) / 0.5);
+}
+.data-table td {
+  padding: 0.875rem 1rem;
+}
+
+.empty {
+  padding: 2rem 1.25rem;
+  text-align: center;
+  border: 1px dashed hsl(var(--border));
+  border-top: 0;
+}
+.empty p {
+  margin: 0 auto;
+  max-width: 56ch;
+  font-size: 0.9375rem;
+  color: hsl(var(--muted-foreground));
+}
+.empty-head {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.375rem;
+}
+
+/* -------------------------------------------------------------------------
+   Footer
+   ------------------------------------------------------------------------- */
+.site-footer {
+  border-top: 1px solid hsl(var(--border));
+  padding-block: 2.25rem;
+  font-size: 0.875rem;
+}
+.footer-inner {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+.footer-inner p {
+  margin: 0 0 0.5rem;
+}
+.footer-lead {
+  color: hsl(var(--foreground));
+}
+.site-footer .muted {
+  font-size: 0.8125rem;
+}
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+@media (min-width: 48rem) {
+  .footer-inner {
+    grid-template-columns: 1fr auto;
+    gap: 3rem;
+  }
+  .footer-links {
+    text-align: right;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Reduced motion. There is very little motion here by design: a console is
+   not an editorial site, and the catalogue's custom cursor, preloader and
+   mist effects are deliberately NOT carried over. The hover and press
+   transitions that remain still answer the query.
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Flipping the theme changes a colour on nearly every element at once, and
+   anything with a `transition` on a colour property then animates. The
+   result is a 150ms smear across the whole page rather than a switch, and
+   it is visible on the buttons and the header. Suppressed for the one frame
+   the swap takes; theme.js sets and clears the attribute. */
+html[data-theme-switching] *,
+html[data-theme-switching] *::before,
+html[data-theme-switching] *::after {
+  transition: none !important;
+}

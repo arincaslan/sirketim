@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CounterscentLogo } from "@/components/site/logo";
+import { PRODUCER_CONSOLE } from "@/lib/site";
 
 const COLUMNS = [
   {
@@ -8,6 +9,7 @@ const COLUMNS = [
     links: [
       { href: "/dupe-finder", label: "Dupe Finder" },
       { href: "/fragrance", label: "Fragrance Catalog" },
+      { href: "/new", label: "What's New" },
       { href: "/originals", label: "Where to Buy" },
       { href: "/library", label: "Library" },
     ],
@@ -26,7 +28,12 @@ const COLUMNS = [
     links: [
       { href: "/producers", label: "List your fragrance" },
       { href: "/producers/pricing", label: "Plans and pricing" },
-      { href: "/producers/login", label: "Producer sign in" },
+      // Straight to the console rather than through /producers/login, which
+      // is now a hand-off page explaining that sign-in lives on another
+      // origin. Sending someone to a page whose only job is to point at a
+      // second page is a hop nobody needs from a footer. /producers/login
+      // stays for anyone arriving on the old URL.
+      { href: `${PRODUCER_CONSOLE}/sign-in`, label: "Producer sign in" },
     ],
   },
 ];

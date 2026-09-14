@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PricingTable } from "@/components/producers/pricing-table";
+import { PRODUCER_CONSOLE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Producer plans",
@@ -31,6 +32,17 @@ export default function PricingPage() {
             read our standards first
           </Link>{" "}
           — they are the part most likely to decide whether this is a fit.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          The console a subscriber would work in is on its own address,{" "}
+          <a
+            href={PRODUCER_CONSOLE}
+            className="underline underline-offset-2 hover:text-primary"
+          >
+            producers.counterscent.com
+          </a>
+          , and is also unfinished. There is no checkout behind any plan above and no
+          payment provider connected to this site.
         </p>
       </div>
     </div>

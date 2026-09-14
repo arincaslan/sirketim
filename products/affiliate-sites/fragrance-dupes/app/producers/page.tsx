@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle, XCircle } from "@phosphor-icons/react/dist/ssr";
 import { buttonVariants } from "@/components/ui/button";
+import { PRODUCER_CONSOLE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "List your fragrance",
@@ -29,13 +30,22 @@ export default function ProducersPage() {
             moment in the decision than an ad reaches.
           </p>
         </div>
+        {/* The sign-in button leaves this site. Accounts, submissions and
+            the review queue live on their own origin
+            (producers.counterscent.com, its own Cloudflare Worker) because
+            this catalogue is a static export with no server and no database,
+            and is staying that way. HANDOFF.md, "The architecture answer".
+            A plain <a>, not next/link: Link is for in-app routes. */}
         <div className="flex flex-wrap gap-3">
           <Link href="/producers/pricing" className={buttonVariants({ variant: "default" })}>
             See plans and pricing
           </Link>
-          <Link href="/producers/login" className={buttonVariants({ variant: "outline" })}>
+          <a
+            href={`${PRODUCER_CONSOLE}/sign-in`}
+            className={buttonVariants({ variant: "outline" })}
+          >
             Producer sign in
-          </Link>
+          </a>
         </div>
       </div>
 
@@ -53,17 +63,43 @@ export default function ProducersPage() {
           follows is how it is designed to work, written down in advance so the standards are
           public before the first listing exists — not a description of something running.
         </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          The console itself is being built at{" "}
+          <a
+            href={PRODUCER_CONSOLE}
+            className="underline underline-offset-2 hover:text-primary"
+          >
+            producers.counterscent.com
+          </a>
+          . You can look at the screens there; none of them is connected to anything yet,
+          and each one says which part is missing.
+        </p>
       </div>
 
       <div className="mb-14 grid gap-6 sm:grid-cols-2">
         <div className="flex flex-col gap-4 rounded-frame border border-border bg-card p-6">
           <h2 className="font-display text-xl">What a listing buys</h2>
           <ul className="flex flex-col gap-3">
+            {/* TWO ITEMS WERE REMOVED HERE, both because they promised
+                something that has been decided against or does not exist.
+
+                "Your own producer page, with everything you list" - a public
+                producer directory is on HANDOFF.md's must-NOT-build list.
+                lib/producers.ts is fixture data naming eighteen real
+                operating companies, none of which signed up, so a
+                browse-by-producer surface would assert commercial
+                relationships that do not exist.
+
+                "The ability to reply to customer reviews" - there are no
+                customer reviews. lib/reviews.ts is deliberately empty (the
+                six that were there were invented and attributed to real
+                named companies, an FTC Fake Reviews Rule problem) and there
+                is no submission backend that could produce a real one. */}
             {[
               "A place in the ranked comparison for that original",
-              "Your own producer page, with everything you list",
+              "A buy link that points at your own store, not a marketplace",
               "Click data: which originals actually send you traffic",
-              "The ability to reply to customer reviews",
+              "A console for changing or withdrawing a listing yourself",
             ].map((item) => (
               <li key={item} className="flex gap-2.5 text-sm text-foreground/85">
                 <CheckCircle weight="fill" className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
@@ -76,11 +112,15 @@ export default function ProducersPage() {
         <div className="flex flex-col gap-4 rounded-frame border border-border bg-card p-6">
           <h2 className="font-display text-xl">What it does not buy</h2>
           <ul className="flex flex-col gap-3">
+            {/* The fourth item was "Removal of a customer review you
+                dislike", which is the mirror of the removed promise above:
+                there are no customer reviews to remove. Replaced with the
+                one we can actually point at code for. */}
             {[
               "A better match score",
               "A higher rank, at any tier",
               "A premium or featured slot in results",
-              "Removal of a customer review you dislike",
+              "A softer verdict, or approval over what it says",
             ].map((item) => (
               <li key={item} className="flex gap-2.5 text-sm text-foreground/85">
                 <XCircle weight="fill" className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -112,12 +152,25 @@ export default function ProducersPage() {
               body: "We compute the match from what you declared. A submission that simply restates the original's own notes is held for manual review and does not publish.",
             },
             {
-              title: "We review it",
-              body: "Within 3 business days. We check the notes are plausible, the link resolves to your product, and the imagery does not copy the original's bottle.",
+              title: "A person reviews it",
+              // NO REVIEW TIME IS STATED HERE, and that is deliberate. This
+              // said "Within 3 business days", which was an invented figure:
+              // no submission has ever been reviewed, so there is nothing to
+              // have measured. PRODUCER-TERMS §5 commits us to publishing a
+              // review time AND a publication cadence only once we have real
+              // numbers for them. A placeholder SLA on a page a producer
+              // reads before signing up is a promise we would be held to.
+              body: "Never automatically. We check the notes are plausible, the link resolves to your product on your own domain, and the submission is not a restatement of the original's own note pyramid.",
             },
             {
-              title: "It goes live as producer declared",
-              body: "Your listing appears in the ranked comparison with its match score capped until we verify your data independently. Verification lifts the cap; paying us never does.",
+              title: "Approved, then live at the next build",
+              // These are two states, not one, and the console shows them
+              // separately (PRODUCER-TERMS §5). This step used to say "It
+              // goes live as producer declared", which folded an editorial
+              // decision and a site build into one moment. The catalogue is
+              // a static export: approving a listing does not put it on the
+              // site, the next build does.
+              body: "Approval is a decision. Publication is a rebuild of this site, which is what actually puts your listing in the ranked comparison. Until we verify your data independently the match score stays capped, and verification is the only thing that lifts the cap.",
             },
           ].map((step, i) => (
             <li key={step.title} className="flex gap-4">
@@ -133,11 +186,14 @@ export default function ProducersPage() {
         </ol>
 
         <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border/70 pt-6">
-          <Link href="/producers/submit" className={buttonVariants({ variant: "default" })}>
-            Submit a listing
-          </Link>
+          <a
+            href={`${PRODUCER_CONSOLE}/console`}
+            className={buttonVariants({ variant: "default" })}
+          >
+            Open the producer console
+          </a>
           <span className="text-xs text-muted-foreground">
-            Requires a producer account. The free tier covers one listing.
+            On its own address, producers.counterscent.com. Not open yet, and it says so.
           </span>
         </div>
       </div>

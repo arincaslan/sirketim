@@ -1,118 +1,84 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LockSimple, Warning } from "@phosphor-icons/react/dist/ssr";
-import { SubmissionForm } from "@/components/producers/submission-form";
 import { buttonVariants } from "@/components/ui/button";
-import { gateProducerAccess, isPreviewMode } from "@/lib/producer-session";
-import { cn } from "@/lib/utils";
+import { PRODUCER_CONSOLE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Submit a listing",
-  description: "Submit a fragrance alternative for review.",
+  description: "Submitting a listing has moved to producers.counterscent.com.",
 };
 
 /**
- * The gated surface: only a signed-in producer with an account in good
- * standing may submit a listing.
+ * SUBMISSION HAS MOVED OFF THIS SITE. This page is the hand-off that keeps
+ * the URL alive. Same reasoning as ../login/page.tsx.
  *
- * Rendered on the server and gated before the form is ever sent to the
- * client, rather than hidden with CSS or behind a client-side check - the
- * form and its data should not reach an unauthorised visitor at all.
+ * What was here: a server-side gate (`gateProducerAccess()` in
+ * lib/producer-session.ts) in front of `components/producers/
+ * submission-form.tsx`. The gate was honest - it always returned signed-out,
+ * because there is no session - but the surface belongs on the origin that
+ * will actually have one. Both modules are left in place and unreferenced;
+ * the form in particular is the specification the console's submit screen
+ * gets built from, including the facet sliders that were deliberately
+ * removed from it (PRODUCER-TERMS §4: we derive the profile scores, because
+ * the copy-detection check compares a producer's notes against them and
+ * only works while we author one side).
  *
- * Signed-out and signed-in-but-unsubscribed are deliberately different
- * screens: one needs a sign-in link, the other needs a plan. Collapsing both
- * into one "access denied" makes for a dead end.
+ * ONE CONSEQUENCE WORTH KNOWING. lib/producer-session.ts now has no call
+ * sites, which also means `PRODUCER_PREVIEW=1` has nothing to preview. That
+ * file carries a `TODO(auth)` that HANDOFF.md lists under "What must NOT be
+ * built" - implementing `auth()` there breaks the static export at deploy
+ * time rather than at review time. An unreferenced module with a dangerous
+ * invitation in it should be narrowed or removed, but lib/ was owned by
+ * another session when this landed, so it is flagged rather than changed.
  */
-export default async function SubmitPage() {
-  const gate = await gateProducerAccess();
-
-  if (!gate.allowed) {
-    return (
-      <div className="container py-14 sm:py-20">
-        <div className="mx-auto flex max-w-[52ch] flex-col items-center gap-6 rounded-frame border border-border bg-card p-8 text-center sm:p-10">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
-            <LockSimple weight="fill" className="h-5 w-5 text-primary" aria-hidden />
-          </span>
-
-          {gate.reason === "signed-out" ? (
-            <>
-              <div className="flex flex-col gap-2">
-                <h1 className="font-display text-2xl">Sign in to submit a listing</h1>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Listings are submitted from a producer account, so we know who is making the
-                  claim and can come back to you about it.
-                </p>
-              </div>
-              <div className="flex flex-wrap justify-center gap-3">
-                <Link href="/producers/login" className={buttonVariants({ variant: "default" })}>
-                  Sign in
-                </Link>
-                <Link href="/producers/pricing" className={buttonVariants({ variant: "outline" })}>
-                  See the plans
-                </Link>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex flex-col gap-2">
-                <h1 className="font-display text-2xl">Choose a plan to start listing</h1>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Your account does not have an active plan. The free tier covers two listings and
-                  does not need a card.
-                </p>
-              </div>
-              <Link href="/producers/pricing" className={buttonVariants({ variant: "default" })}>
-                See the plans
-              </Link>
-            </>
-          )}
-
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            The producer program has not launched yet, so there is no way to sign in at the
-            moment. Nothing behind this page is live.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+export default function SubmitPage() {
   return (
-    <div className="container py-14 sm:py-16">
-      {isPreviewMode() && (
-        <div className="mx-auto mb-8 flex max-w-[68ch] gap-3 rounded-frame border border-destructive/50 bg-destructive/10 p-4">
-          <Warning weight="fill" className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden />
-          <p className="text-sm leading-relaxed text-foreground/85">
-            <strong className="font-semibold">Local preview session.</strong> You are seeing this
-            page through the development-only preview bypass (<code>PRODUCER_PREVIEW=1</code>), not
-            a real signed-in account. It cannot be enabled in a production build.
+    <div className="container py-14 sm:py-20">
+      <div className="mx-auto flex max-w-[52ch] flex-col gap-6">
+        <div className="flex flex-col gap-3">
+          <h1 className="font-display text-fluid-h2">Submitting has moved</h1>
+          <p className="text-muted-foreground">
+            Listings are submitted from the producer console at{" "}
+            <span className="font-semibold text-foreground/85">producers.counterscent.com</span>
+            , which is a separate application with its own accounts. This site is the
+            public catalogue and cannot accept a submission.
           </p>
         </div>
-      )}
 
-      <div className="mx-auto mb-10 flex max-w-[68ch] flex-col gap-3">
-        <h1 className="font-display text-fluid-h2">Submit a listing</h1>
-        <p className="text-muted-foreground">
-          Signed in as{" "}
-          <span className="font-semibold text-foreground/85">{gate.session.producer.name}</span>
-          {gate.session.subscription && (
-            <>
-              {" "}
-              on the{" "}
-              <span className={cn("font-semibold capitalize text-foreground/85")}>
-                {gate.session.subscription.tier}
-              </span>{" "}
-              plan.
-            </>
-          )}{" "}
-          We score your product against the original from the notes and wear you declare. Until we
-          verify those independently, your listing shows as{" "}
-          <span className="font-semibold text-foreground/80">producer declared</span> and its match
-          score is capped.
+        <div className="rounded-frame border border-dashed border-border p-6">
+          <h2 className="font-display text-lg">Nothing can be submitted yet, there either</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            There are no producer accounts and no way to store a submission. The console
+            shows the submission screen and the listing states it moves through, with
+            every field disabled and the reason given. Nothing you type anywhere on this
+            site or that one is kept.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <a
+            href={`${PRODUCER_CONSOLE}/console`}
+            className={buttonVariants({ variant: "default" })}
+          >
+            Open the producer console
+          </a>
+          <Link href="/producers" className={buttonVariants({ variant: "outline" })}>
+            What we ask for
+          </Link>
+        </div>
+
+        <p className="text-sm text-muted-foreground">
+          Before you write anything: we score a listing against an original already in our
+          catalogue, using a{" "}
+          <Link
+            href="/about#methodology"
+            className="underline underline-offset-2 hover:text-primary"
+          >
+            published formula
+          </Link>
+          , and we write the comparison ourselves. Neither is negotiable and no plan
+          changes either.
         </p>
-      </div>
-
-      <div className="mx-auto max-w-[68ch] rounded-frame border border-border bg-card p-6 sm:p-8">
-        <SubmissionForm />
       </div>
     </div>
   );

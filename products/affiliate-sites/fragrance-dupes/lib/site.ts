@@ -34,6 +34,26 @@ export function siteUrl(): string {
 export const CONTACT_EMAIL = "contact@counterscent.com";
 
 /**
+ * Where the producer console lives.
+ *
+ * A SECOND ORIGIN, NOT A ROUTE ON THIS SITE. Accounts, submissions, the review
+ * queue and everything else a producer does need a server and a database. This
+ * project has neither and is committed to not having them: `output: "export"`,
+ * no route handlers, and 620 affiliate redirects served from a generated
+ * `_redirects` file that a Worker on this origin would stop applying. So the
+ * console is its own Cloudflare Worker on its own hostname. See HANDOFF.md,
+ * "The architecture answer: do not touch the static site", and
+ * products/affiliate-sites/counterscent-producers/.
+ *
+ * A constant rather than an env var, for the same reason as CONTACT_EMAIL
+ * above: a forgotten deployment setting would turn every "sign in" link on the
+ * marketing pages into a link to nowhere, and a static export bakes that in.
+ *
+ * No trailing slash: every use appends a path.
+ */
+export const PRODUCER_CONSOLE = "https://producers.counterscent.com";
+
+/**
  * GA4 measurement ID (property created 2026-08-27).
  *
  * A constant rather than a build variable, for the same reason as the two

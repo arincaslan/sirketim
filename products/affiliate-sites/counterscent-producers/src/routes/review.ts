@@ -1,0 +1,191 @@
+import { html } from "../lib/html";
+import { layout } from "../ui/layout";
+import {
+  card,
+  deadButton,
+  deadField,
+  emptyState,
+  notShipped,
+  section,
+  stateBadge,
+  tableBlock,
+} from "../ui/components";
+
+/**
+ * "/review" - the editor's side, in its pre-launch state.
+ *
+ * It is a separate screen from the console rather than a mode of it, because
+ * the two have different readers, different permissions and different
+ * vocabulary. A producer never sees this page.
+ *
+ * It is linked from the overview rather than hidden, because today the only
+ * readers of this origin are the people deciding whether the shape is right.
+ * When accounts exist, this route goes behind the session and stops being
+ * linked from a public page.
+ */
+export function reviewQueue() {
+  const body = html`
+    ${section({
+      heading: "Waiting for a decision",
+      lede: html`Oldest first, with a paid tier's submissions taking priority within the
+        same day. Priority changes how soon something is read and nothing about where it
+        lands.`,
+      body: tableBlock({
+        label: "Submissions waiting for a decision",
+        columns: [
+          "Submitted",
+          "Producer",
+          "Fragrance",
+          "Against",
+          "Automated checks",
+          "State",
+        ],
+        empty: emptyState({
+          headline: "The queue is empty because there is no queue",
+          because: html`No submission has ever been made, there is no route that could
+            accept one, and this page holds no database connection. The admin queue is
+            step 7 of the build order.`,
+        }),
+      }),
+    })}
+
+    ${section({
+      heading: "The decisions, and who is allowed to make them",
+      lede: html`The control floor, decided by the founder and not an implementation
+        detail: automation may always take something down or make a claim weaker. It may
+        never put something up or make a claim stronger.`,
+      body: html`
+        <div class="stack">
+        <div class="grid-2">
+          ${card(html`
+            <h3>What automation does on its own</h3>
+            <ul class="plain-list">
+              <li>Flags a submission whose pyramid restates the original's.</li>
+              <li>Rejects a link that is not https, or that is a tracking or shortened link.</li>
+              <li>Caps a score, and refuses to lift a cap.</li>
+              <li>Holds anything it cannot classify, rather than guessing.</li>
+            </ul>
+          `)}
+          ${card(html`
+            <h3>What only a person does</h3>
+            <ul class="plain-list">
+              <li>Approves a listing. There is no auto-approval and there will not be one.</li>
+              <li>Writes the verdict, in our voice, including where the product falls short.</li>
+              <li>Marks a listing editorially verified, which is what lifts the 90 cap to 95.</li>
+              <li>Gives the reason attached to a rejection or a removal.</li>
+            </ul>
+          `)}
+        </div>
+
+        ${card(
+          html`
+            <h3>The decision panel</h3>
+            <p class="field-hint">
+              Disabled throughout. There is nothing in the queue to decide about.
+            </p>
+            <fieldset disabled class="fieldset-body">
+              ${deadField({
+                label: "Verdict",
+                kind: "textarea",
+                placeholder: "How this compares, in our voice, including where it falls short.",
+                hint: html`Written by us, not the producer, and not subject to their
+                  approval. A verdict that only says what is good is an advertisement.`,
+              })}
+              ${deadField({
+                label: "Reason",
+                placeholder: "Required on a rejection, a change request, or a removal.",
+                hint: html`The producer is told which reason applies. "No" with no reason
+                  attached is the thing that turns a queue into a black box.`,
+              })}
+              <div class="actions">
+                ${deadButton("Approve")}
+                ${deadButton("Request changes", "ghost")}
+                ${deadButton("Reject", "ghost")}
+                ${deadButton("Remove a live listing", "ghost")}
+              </div>
+            </fieldset>
+          `,
+          "review-card",
+        )}
+        </div>
+      `,
+    })}
+
+    ${section({
+      heading: "What happens after Approve",
+      lede: html`Approving does not publish. The chain below is the publish path, and
+        the gap in the middle of it is the reason the console shows
+        ${stateBadge("approved")} as a state of its own.`,
+      body: html`
+        <ul class="plain-list">
+          <li>An editor approves. The database records the decision and who made it.</li>
+          <li>
+            An export script writes the approved listings into generated TypeScript in
+            the catalogue's source tree. It refuses to emit anything it cannot classify,
+            rather than emitting something the public build would choke on.
+          </li>
+          <li>
+            That output is committed. Deliberately a commit and not a step inside the
+            build: if the public build read the database, a sleeping free-tier database
+            could fail the whole site's deploy, and a database credential would have to
+            live in the build environment. Committing keeps the public build reading only
+            repository files, puts every published listing in a diff somebody can read,
+            and makes reverting a commit a working takedown.
+          </li>
+          <li>The site builds and deploys. Only now is the listing live.</li>
+        </ul>
+
+        <div class="notice">
+          <p class="notice-title">A removal follows the same path in reverse</p>
+          <p>
+            A withdrawn or removed listing leaves the catalogue at the next build, and
+            its link identifier stops resolving because the redirect map only contains
+            identifiers that were emitted. The identifier is never reissued: clicks
+            already made can still pay out weeks later inside an affiliate network's
+            cookie window, and reusing the identifier would attribute them to a different
+            product.
+          </p>
+        </div>
+      `,
+    })}
+
+    ${section({
+      heading: "The pattern this queue exists to be able to see",
+      body: html`
+        <p>
+          Withdrawing after a bad score and resubmitting with a friendlier note pyramid
+          is review suppression wearing a different hat. Withdraw at 62, come back with a
+          different pyramid, publish at 88.
+        </p>
+        <p>
+          It is detectable rather than merely disapproved of, because a producer can hold
+          only one listing per original and the earlier submission's data is retained. A
+          resubmission against an original the same producer previously withdrew from
+          arrives in this queue with both versions shown side by side. Whether that is
+          built as a flag or left to a reviewer's eye is a decision for step 7, not a
+          thing this page should imply already works.
+        </p>
+      `,
+    })}
+
+    ${notShipped({
+      what: "Nothing on this page is wired to anything",
+      reason: html`No sign-in, no roles, no database connection, no export. The
+        vocabulary and the layout are the reviewable part; the mechanism is steps 7 and 8
+        of the build order.`,
+    })}
+  `;
+
+  return layout({
+    title: "Review queue",
+    heading: "Review queue",
+    status: {
+      label: "Nothing in the queue",
+      note: html`And no way for anything to enter it. This is the editor's side of the
+        console, shown as a layout rather than a working screen.`,
+    },
+    standfirst: html`What a reviewer sees: every submission waiting on a person, the
+      decisions available, and what each one does to a listing.`,
+    body,
+  });
+}

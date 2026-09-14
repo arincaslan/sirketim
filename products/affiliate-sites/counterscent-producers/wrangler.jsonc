@@ -1,0 +1,89 @@
+{
+  // Cloudflare Workers config for the Counterscent PRODUCER CONSOLE.
+  //
+  // A SECOND, SEPARATE APPLICATION - not part of the public catalogue.
+  // ------------------------------------------------------------------
+  // The catalogue at counterscent.com is a static export with no server and no
+  // route handlers, and it stays that way: its build is hermetic, its ~240
+  // pages are edge-cached, and 620 affiliate redirects are served from a
+  // `_redirects` file. Everything a producer console needs - accounts,
+  // sessions, a database - needs a server. Putting that server on the
+  // catalogue's origin would mean migrating all 620 redirects into Worker code
+  // first, because `_redirects` rules are NOT applied to requests served by
+  // Worker code. Getting that wrong breaks every buy link on the site.
+  //
+  // So: own origin, own Worker, own deploy. See HANDOFF.md, "The architecture
+  // answer: do not touch the static site".
+  //
+  // THIS IS NOT A COMPETING ROOT CONFIG. The repo root's wrangler.jsonc says
+  // plainly that a second site must get its own Cloudflare project rather than
+  // a second config at the root, because which of two configs wrangler picks
+  // depends on its working directory and two configs that must agree will
+  // eventually disagree. This one lives in its own project directory and is
+  // deployed from here.
+  //
+  // THE NAME IS THE WORKER'S IDENTITY. It matches the Worker the founder
+  // created in the dashboard on 2026-09-14. If this value and the dashboard
+  // ever disagree, a deploy silently creates a SECOND Worker and the live one
+  // keeps serving the old code - which looks exactly like "the deploy did
+  // nothing". That lesson was paid for during the counterscent rename.
+  "name": "counterscent-producers",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-14",
+
+  // The custom domain is declared HERE rather than clicked in the dashboard,
+  // and `wrangler deploy` creates the DNS record and certificate for it.
+  //
+  // Two reasons. First, the dashboard's "Add Custom Domain" flow returned "No
+  // zones match producers.counterscent.com" and fighting it is not worth a
+  // session. Second and more durable: the repo root's config exists precisely
+  // so a deploy depends on no dashboard settings at all, after setting a build
+  // command there failed to take three times running.
+  //
+  // `custom_domain: true` is what makes this a Custom Domain rather than a
+  // ROUTE, and the difference is not cosmetic. A route pattern covering
+  // counterscent.com would put this Worker in front of the public catalogue
+  // and take down every affiliate redirect on it. This binds one hostname and
+  // nothing else.
+  //
+  // It is also not optional for development: `workers.dev` is blocked wholesale
+  // on the founder's network (confirmed 2026-09-14 - every *.workers.dev host
+  // fails TLS while cloudflare.com and counterscent.com are fine), so the
+  // preview URL cannot be opened from there. A hostname under counterscent.com
+  // is the only address both of us can actually reach.
+  "routes": [
+    {
+      "pattern": "producers.counterscent.com",
+      "custom_domain": true
+    }
+  ],
+
+  // STATIC ASSETS: the stylesheet, the theme script, the two self-hosted
+  // fonts and the favicon. Added when the origin stopped being one HTML
+  // string and became an application shell.
+  //
+  // A request whose path matches a file under ./public is served by
+  // Cloudflare's asset layer and the Worker is NOT invoked, which is why
+  // those requests are free on both tiers and why public/_headers exists:
+  // it is the only way to put `X-Robots-Tag: noindex` on a response that
+  // never reaches src/lib/http.ts.
+  //
+  // `not_found_handling: "none"` is the important line. It means a request
+  // that matches no asset falls through to the Worker, which is what lets
+  // src/index.ts own routing and serve its own 404. The alternative,
+  // "single-page-application", would return an HTML file with a 200 for
+  // every unknown URL - the catalogue rejected that same setting for the
+  // same reason: it tells a crawler that every typo is a real page.
+  //
+  // No `binding` is declared, deliberately. The Worker has no reason to
+  // fetch its own assets programmatically, and a binding it does not need
+  // is a capability to reason about later.
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "none"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

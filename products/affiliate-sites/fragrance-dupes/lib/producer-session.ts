@@ -1,18 +1,33 @@
 import type { PlanId } from "@/lib/plans";
 
 /**
- * Who is the current producer, and may they list?
+ * ============================================================================
+ * THERE IS NEVER A SESSION ON THIS ORIGIN. DO NOT IMPLEMENT AUTH HERE.
+ * ============================================================================
  *
- * This is the single seam every gated producer surface goes through. It is
- * real logic over a data source that does not exist yet: there is no database
- * and no Auth.js wiring (PRODUCER-PROGRAM.md §8 items 2-3), so in normal
- * operation `getProducerSession()` returns null and every gated page shows
- * the signed-out state. That is correct behaviour, not a stub to route
- * around.
+ * As of 2026-09-14 this file has **zero call sites**. Sign-in and everything
+ * behind it moved to `producers.counterscent.com`
+ * (products/affiliate-sites/counterscent-producers/), and the pages that used
+ * to gate on it - /producers/login and /producers/submit - are hand-offs
+ * pointing at that origin.
  *
- * When the database lands, exactly one function below changes
- * (`getProducerSession`) - the gate, the subscription check, and every call
- * site stay as they are. The integration point is marked inline.
+ * That makes the `TODO(auth)` below an active trap rather than a plan, which
+ * is why this notice is here instead of the previous "when the database lands,
+ * exactly one function changes" framing. This project is `output: "export"`:
+ * it has no server, no route handlers and no request at render time. Wiring
+ * `auth()` into it does not fail in review, it fails at **deploy**, because a
+ * static export cannot read a cookie. Anyone following that TODO would get a
+ * green typecheck, a green lint, and a broken build - on the deploy that also
+ * carries 620 affiliate redirects.
+ *
+ * Auth belongs in the Worker on the other origin, where there is a request to
+ * read it from. See HANDOFF.md, "What must NOT be built".
+ *
+ * WHY THE FILE STILL EXISTS. The types below (`ProducerSession`,
+ * `ProducerSubscription`, `SubscriptionStatus`) are the shape the console will
+ * need, and they are already in step with prisma/schema.prisma. Deleting them
+ * would mean rewriting the same three interfaces from the schema in a week.
+ * `isPreviewMode()` currently previews nothing, because nothing calls it.
  */
 
 export type SubscriptionStatus = "trialing" | "active" | "past_due" | "canceled" | "incomplete";
@@ -60,11 +75,10 @@ const PREVIEW_SESSION: ProducerSession = {
 /**
  * The current producer session, or null when signed out.
  *
- * TODO(auth): when Auth.js and the database are live, this becomes:
- *   const session = await auth();
- *   if (!session?.user?.producerId) return null;
- *   load Producer + Subscription by that id and return them.
- * Nothing else in the codebase should need to change.
+ * NOT A TODO FOR THIS FILE. The obvious body - call `auth()`, load the
+ * Producer and Subscription by id - belongs in the producer Worker, which has
+ * a request to read a cookie from. Writing it here compiles, lints, and then
+ * breaks the static export at deploy time. See the notice at the top.
  */
 export async function getProducerSession(): Promise<ProducerSession | null> {
   if (isPreviewMode()) return PREVIEW_SESSION;
