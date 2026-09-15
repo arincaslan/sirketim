@@ -6,13 +6,79 @@ Machine setup is `SETUP.md`. This file is only about *what state the work is in*
 
 ---
 
-# 2026-09-14 — the producer programme got its plumbing, and a second origin
+# 2026-09-14/15 — the producer programme got its plumbing, and a second origin
 
-Read this section first; everything below it predates the day and some of it is
-superseded here. The short version: **a listing submitted by a producer now has
-a route onto the live site, four guards stop it arriving dishonestly, and
+Read this section first; everything below it predates these two days and some of
+it is superseded here. The short version: **a listing submitted by a producer now
+has a route onto the live site, four guards stop it arriving dishonestly, and
 `producers.counterscent.com` exists.** No producer exists yet, nothing on the
 public site changed for a reader except two new surfaces, and no score moved.
+
+## SWITCHING MACHINES — read this before anything else
+
+The founder is continuing on the other machine (`Semih`, not `win10`). Everything
+in the repo travels. **Six things do not, and four of them will look like
+breakage.** The older list further down this file is now incomplete; this one
+supersedes it.
+
+1. **`npm install` in TWO projects now, not one.**
+   `products/affiliate-sites/fragrance-dupes/` as before, and the new
+   `products/affiliate-sites/counterscent-producers/` (223 MB of node_modules,
+   gitignored). The producer origin will not build or deploy without it.
+2. **Cloudflare auth does not travel, and it expires overnight even in place.**
+   `wrangler login` writes to
+   `%APPDATA%\xdg.config\.wrangler\config\default.toml`, which is per-user, so
+   the other machine has none. Worse, on this machine the OAuth token silently
+   went stale between 14 and 15 Sep: `wrangler whoami` still printed a logged-in
+   account and the full scope list from cache, while the actual API call failed
+   with `Invalid access token [code: 9109]`. **`whoami` is not proof of auth —
+   only a real call is.** If deploys are going to be run by an agent rather than
+   by hand, create an API token (dashboard → My Profile → API Tokens → "Edit
+   Cloudflare Workers") and set `CLOUDFLARE_API_TOKEN`; it needs no browser and
+   does not lapse nightly.
+3. **`HOSTINGER_API_TOKEN` was rotated on 2026-09-14** and set as a user-level
+   env var on this machine only. The new value is NOT in the repo and must not
+   be — this repo is public. Ask the founder, then `setx`, then start a **new**
+   session (MCP servers read the environment at startup, and a Bash call in the
+   session that ran `setx` still sees the old value — read it back with
+   `[Environment]::GetEnvironmentVariable("HOSTINGER_API_TOKEN","User")` rather
+   than `$env:`). Verified working against
+   `https://developers.hostinger.com/api/domains/v1/portfolio`.
+4. **`TWENTY_FIRST_API_KEY`**, `gh auth login`, and Claude Code's own login —
+   per-machine as before.
+5. **`.agents/` skills** — re-run the `npx skills@latest add` commands in
+   `SETUP.md`. Two of them are now mandatory for UI work, see below.
+6. **`scripts/feeds/`** is still empty on a fresh clone and the site still builds
+   and deploys fine without it. Unchanged from the older list below.
+
+**A machine-specific path that bit repeatedly on 14 Sep:** `npx esbuild` swallows
+its own stderr through the npx wrapper, so a real compile error surfaces as an
+opaque `Command failed` with `stderr: null`. Calling the binary directly prints
+the actual error — but the path
+(`%LOCALAPPDATA%\npm-cache\_npx\<hash>\node_modules\@esbuild\win32-x64\esbuild.exe`)
+contains a per-install hash and a username, so do not copy it from here. Find it
+from the failing npx message.
+
+**One network fact to re-test rather than assume:** every `*.workers.dev` host
+failed TLS from this machine while `cloudflare.com` and `counterscent.com` were
+fine, and a Worker that was perfectly healthy read as broken because of it. It
+opened first try on mobile data. If the other machine is on a different network
+this may not apply — but never conclude a Worker is down from a `workers.dev`
+check alone.
+
+## The one action still pending
+
+**`producers.counterscent.com` is running yesterday's single-page placeholder.**
+The five-screen version is committed and pushed; it has never been deployed,
+because the token expired mid-attempt. Nothing was partially applied — the
+deploy failed at asset upload before writing anything, verified from outside.
+
+    cd products/affiliate-sites/counterscent-producers
+    npx wrangler login     # or set CLOUDFLARE_API_TOKEN
+    npx wrangler deploy
+
+That deploy also carries the robots.txt fix (`Allow` rather than `Disallow` —
+see below for why that is deliberate).
 
 ## What now runs end to end (empty, on purpose)
 
@@ -151,16 +217,48 @@ Four things learned getting it there, all of which will come up again:
 `/new` — the complete changelog, whole days only. A flat "most recent 24" cuts
 through the middle of a day and then reports a false count for it.
 
-A **newest-alternatives slider on the home page**, five cards. The founder's
-reason is that a subscriber should see value for the subscription, and they will:
-a new listing is new whoever filed it. **The rule stays recency, capped at two
-per producer.** Both halves matter — without the cap, today's newest five are
-five AromaPassions listings, which reads as a brand feature on the home page no
-matter what the heading says, and once producers submit individually one
-subscriber filing ten fragrances would own the strip. If this is ever re-sorted
-to put paying producers first, that is bought placement and `/disclosure` plus
-the home page's "No paid placement" panel have to be rewritten in the same
-change.
+A **newest-arrivals slider on the home page**. The founder's reason is that a
+subscriber should see value for the subscription, and they will: a new listing
+is new whoever filed it. **The rule stays recency, capped at two per producer.**
+Both halves matter — without the cap, today's newest five are five AromaPassions
+listings, which reads as a brand feature on the home page no matter what the
+heading says, and once producers submit individually one subscriber filing ten
+fragrances would own the strip. If this is ever re-sorted to put paying
+producers first, that is bought placement and `/disclosure` plus the home page's
+"No paid placement" panel have to be rewritten in the same change. The rule is
+now stated in the section's own standfirst, so it is visible to a reader rather
+than buried in a sort.
+
+**It took three passes and the third is the one to keep.** Worth recording,
+because the middle one was a reasonable-sounding mistake:
+
+- **v1 (14 Sep)** — five cards on a scroll-snap track, auto-advancing. Written
+  straight from the brief with neither design skill. The founder's verdict: it
+  should look better.
+- **v2 (15 Sep)** — run through both skills, which diagnosed the problem as
+  structural rather than cosmetic: the section was wearing `retailer-band`'s
+  costume, the bordered card band with a tracked eyebrow that belongs to the
+  page's quietest footer-adjacent *disclosure* element, used mid-narrative. And
+  five licensed photographs were rendering at 44px. It became a chapter with a
+  lead entry and an index, and **the carousel was removed** on the argument that
+  five items do not need to be made reachable.
+- **v3 (15 Sep), live** — the founder asked for a slider twice. **The form is
+  settled; do not reopen it.** What kept the second pass's gains is that it is
+  still a chapter and the photographs are now 224–448px; what makes an
+  auto-advancing slider defensible is that the navigation is the section's
+  *contents list* — five named tabs with hairlines that fill as the dwell
+  elapses — so every item is visible and one press away and rotation hides
+  nothing. Controls are prev / pause / next: pause alone satisfies WCAG 2.2 SC
+  2.2.2, but prev/next carry *direction*, which named tabs do not, and they are
+  the single-pointer equivalent of the swipe (SC 2.5.7).
+
+Two things found in v3's review that generalise. **A `visibility: hidden` set
+through Motion's `transitionEnd` is cancelled by an interrupting transition** —
+after 40 rapid tab presses all five panels were left visible, and nothing leaked
+only because `aria-hidden` and `tabIndex` were React-driven and doing the
+primary job by accident. Never put required state on an animation-end callback.
+And **Cormorant Garamond defaults to old-style figures**, so `51%` rendered with
+a descending 5; anywhere a number matters, `lining-nums`.
 
 **Listing dates are derived from git**, not a field on `DupeCandidate` — 79
 back-filled guesses avoided, and the party being measured cannot nudge it. An
@@ -214,12 +312,38 @@ byte-identical `Location`. Zero affiliate clicks fired.
   needs storage, a rights declaration in the terms (§6, written) and a commit
   path — plus a human looking at every image before it publishes, because a
   required upload is a moderation surface.
-- **A pre-existing accessibility defect on the live site**: the comment on
-  `--series-dupe` in `app/globals.css` claims it clears 4.5:1; it measures
-  **4.03:1 in dark mode**, and four shipped components use it as small text
-  (`pros-cons.tsx`, `value-bar.tsx`, `data-table-fallback.tsx`, `spec-panel.tsx`).
-  Fix is a dark-mode `--series-dupe-text` step mirroring the
-  `--series-reference-text` pattern the same comment block already established.
+- **Four pre-existing defects on the live site, none of them mine to fix inside
+  the briefs they were found under.** In rough order of who they hurt:
+
+  1. **Hydration mismatch for every reduced-motion visitor, site-wide.** Under
+     forced reduced motion the page throws `Hydration failed` five times and
+     falls back to full client rendering. `components/site/reveal.tsx` returns a
+     different element tree and `components/site/preloader.tsx` returns `null`,
+     while the server rendered the non-reduced branch. Every chapter uses both.
+     Fix: render the motion branch and disable it in an effect, or gate with CSS
+     rather than a JS branch.
+  2. **No `scroll-padding-top` anywhere**, so a control focused from off-screen
+     lands under the 65px sticky header — WCAG 2.2 SC 2.4.11. One line on `html`
+     in `app/globals.css` fixes every page. The slider works around it locally
+     with `scroll-mt-24`, which is not the real fix.
+  3. **`--series-dupe` measures 4.03:1 in dark mode** while the comment above it
+     in `app/globals.css` claims it clears 4.5:1, and four shipped components use
+     it as small text (`pros-cons.tsx`, `value-bar.tsx`, `data-table-fallback.tsx`,
+     `spec-panel.tsx`). Fix is a dark-mode `--series-dupe-text` step mirroring
+     the `--series-reference-text` pattern that same comment block established.
+     Also `<html>` carries `color-scheme: normal` even in dark mode, so
+     scrollbars and form controls stay light.
+  4. **`components/fragrance/fragrance-image.tsx`** serves a 1250–2000px source
+     into boxes as small as 44px with no `srcset`, and its `alt` repeats a name
+     the surrounding link text already says.
+
+- **Process, now binding rather than advisory:** every piece of UI goes through
+  `design-taste-frontend` (direction, before any markup) and `ui-ux-pro-max`
+  (review, before it is called done). Recorded in the repo root `CLAUDE.md` and
+  `departments/web-development/CLAUDE.md` on 15 Sep, **and it binds the top level
+  working directly, not only the web-development department** — which is how it
+  was broken in the first place. A single component counts as UI. Running one of
+  the two is not running both.
 
 ---
 
