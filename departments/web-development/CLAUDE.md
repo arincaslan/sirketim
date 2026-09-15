@@ -16,6 +16,10 @@ Deviate from this stack when a client's requirements call for it (e.g. WordPress
 
 ## Design workflow — UI/UX comes before code
 
+**MANDATORY, founder instruction 2026-09-15: every piece of UI in this repo goes through `design-taste-frontend` first and `ui-ux-pro-max` before it is called done.** Not just client builds, not just full screens — a single component counts. `design-taste-frontend` sets the direction before any markup exists; `ui-ux-pro-max` reviews what got built. They are not interchangeable and running one is not running both.
+
+This applies to whoever is holding the keyboard, including the top level working directly rather than through this department. The rule exists because it was broken: the home-page "newest alternatives" slider shipped on 2026-09-14 written straight from the brief with neither skill, and the founder's verdict on the result was "bu slider daha güzel olmalı". Writing plausible Tailwind is not designing, and the gap between those two is exactly what these skills close. A component that is correct, accessible and dull still fails.
+
 Don't go straight from brief to code. For every new client build (and any significant redesign of an existing one):
 
 1. Use the **`design` skill** to draft the actual UI/UX as artboards (the pages/screens/flows involved) before writing production code — this is where layout, hierarchy, and visual design decisions get made and reviewed, not improvised while coding.

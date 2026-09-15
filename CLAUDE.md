@@ -70,7 +70,7 @@ CLAUDE.md files nest and each layer adds scope: this root file → `departments/
 
 ## Departments
 
-- [Web Development](departments/web-development/CLAUDE.md) — Next.js + Tailwind + shadcn/ui, GitHub. **Hosting has no standing default** — pick per project against that file's comparison table. Not Vercel by default: its Hobby tier forbids commercial use.
+- [Web Development](departments/web-development/CLAUDE.md) — Next.js + Tailwind + shadcn/ui, GitHub. **Hosting has no standing default** — pick per project against that file's comparison table. Not Vercel by default: its Hobby tier forbids commercial use. **Every piece of UI goes through `design-taste-frontend` (direction, before markup) and `ui-ux-pro-max` (review, before done)** — founder instruction 2026-09-15, and it binds the top level too, not only the department. A component counts as UI. This is here rather than only in that file because the rule was broken by someone working from the top level who never opened it.
 - [Architecture](departments/architecture/CLAUDE.md) — briefs, zoning research, to-scale CAD floor plans (DXF/SVG/DWG), 3D catalog renders. Never claims permit-ready/stamped output.
 - [Sales](departments/sales/CLAUDE.md) — client pipeline/proposals, plus productizing department output for marketplace sales (Etsy primary).
 - [Advertising](departments/advertising/CLAUDE.md) — OpenArt-generated content, organic-first posting (Instagram/TikTok, always SFW) plus a founder-gated Fanvue (+18) channel — no NSFW generator currently configured, paid spend only when budgeted or revenue-funded.
