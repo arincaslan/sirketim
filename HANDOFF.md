@@ -843,7 +843,7 @@ These are account-scoped, not machine-scoped: they travel with the founder's Cla
 
 | Artifact | URL | State |
 |---|---|---|
-| **Counterscent Finalization** | `https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96` | **Current** — republished 2026-09-08 as the eighth pass, completed tasks ticked, real counts in, Perfumania recorded as waiting-on-feed. Mirrors `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`. |
+| **Counterscent Finalization** | `https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96` | **Current** — republished 2026-09-16 as the **ninth pass** (version 10): producer auth recorded live, Perfumania recorded as WIRED (off its storefront, not its feed), buy links 252 → 620, Phase 5.3 ticked and 5.5/5.6 added, the canonical/trailing-slash fix added as 2.10, and the shared mail token added as a founder action. Mirrors `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`. |
 | **Perfumania Coverage** | `https://claude.ai/code/artifact/6f979f92-1253-46ca-87f8-1f6ccc46566b` | **Current** — published 2026-09-09. The 123 references Perfumania stocks, which 32 are new coverage, the 6 image gaps closed, the 6 concentration disagreements, and the 20 it cannot reach. |
 | **Sirketim Dashboard** | `https://claude.ai/code/artifact/e2e47262-d56d-4ca9-8e6f-cdb07955e025` | **One pass behind.** `internal/dashboard/design/sirketim-dashboard.html` and `Main.dc.html` both carry task 185 and the "Sep 8" labels in the repo, but the *published* page still shows the previous snapshot. Not urgent: the dashboard's Finalization Guide link URL did not change, so clicking it from the stale dashboard still opens the current report. |
 
