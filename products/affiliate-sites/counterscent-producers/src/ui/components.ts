@@ -101,6 +101,207 @@ export function stateRow(opts: {
   </div>`;
 }
 
+/**
+ * THE EIGHT STATES, ONCE. Every word a producer or an editor reads about what
+ * a listing state means comes from this array.
+ *
+ * It was eight inline stateRow() calls in src/routes/overview.ts until
+ * 2026-09-16, and /console was about to grow a second copy. Two copies of a
+ * reference that must agree is a failure this repository has already paid for
+ * more than once, and it is worse here than usual: the copies would not
+ * disagree loudly, they would disagree by one clause, on the one page a
+ * producer reads to find out what we have decided about their listing.
+ *
+ * Order is deliberate and is roughly the path a listing takes, not the
+ * database's declaration order: started, sent, the two ways it can come back,
+ * the two ways it goes up, the two ways it comes down.
+ */
+const LISTING_STATE_REFERENCE: { state: ListingState; meaning: Html; movedBy: string }[] = [
+  {
+    state: "draft",
+    meaning: html`Started and not sent. Never exported, never seen by us.`,
+    movedBy: "The producer",
+  },
+  {
+    state: "in-review",
+    meaning: html`Sent, waiting for a person. Automated checks may already have
+      flagged it, and a flag can stop it here.`,
+    movedBy: "The producer",
+  },
+  {
+    state: "changes-requested",
+    meaning: html`We read it and need something fixed before it can be approved.
+      This is us asking them, which is the opposite direction from a producer
+      asking us for an edit.`,
+    movedBy: "An editor",
+  },
+  {
+    state: "rejected",
+    meaning: html`Not publishable, with the reason given. Common reasons: the
+      original is not in our catalogue, the declared data contradicts the
+      producer's own public product page, or the pyramid restates the original's.`,
+    movedBy: "An editor",
+  },
+  {
+    state: "approved",
+    meaning: html`Decided, and not on the site. It joins the catalogue at the
+      next build.`,
+    movedBy: "An editor",
+  },
+  {
+    state: "live",
+    meaning: html`In the build that is currently serving. This is the only state
+      the public site knows about.`,
+    movedBy: "A site build",
+  },
+  {
+    state: "withdrawn",
+    meaning: html`The producer took it down. It leaves the catalogue at the next
+      build and its link stops resolving. The record stays.`,
+    movedBy: "The producer",
+  },
+  {
+    state: "removed",
+    meaning: html`We took it down, and we say which reason: a breach, a rights
+      complaint, a dead link, or data we cannot reconcile.`,
+    movedBy: "An editor",
+  },
+];
+
+/**
+ * The state reference, in one of two densities.
+ *
+ * `full` is the eight-row explanation: the overview's version, and the one to
+ * link to. `specimen` is the eight badges as badges and nothing else, for a
+ * page that needs the reader to recognise the vocabulary rather than learn it.
+ * Both read the same array, so a specimen row can never show a state the
+ * reference does not explain.
+ */
+export function listingStates(opts: { detail?: "full" | "specimen" } = {}): Html {
+  if (opts.detail === "specimen") {
+    return html`<ul class="state-specimen">
+      ${LISTING_STATE_REFERENCE.map((s) => html`<li>${stateBadge(s.state)}</li>`)}
+    </ul>`;
+  }
+  return html`<div class="state-list">
+    ${LISTING_STATE_REFERENCE.map((s) => stateRow(s))}
+  </div>`;
+}
+
+/* ------------------------------------------------------------------------ *
+ * Identity and allowance
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Several short facts on one row: who this account belongs to, which plan is
+ * on file, how much of it is used.
+ *
+ * Nothing else in this vocabulary carries facts side by side - card() is the
+ * only container and it stacks, which is right for a paragraph and wrong for
+ * four values of three words each. This is the one place on the origin where
+ * density rises, and it rises because it is the answer to the first question
+ * an attached producer has when the page loads.
+ *
+ * A <dl>, not a row of <div>s: each value has a label, that is what a
+ * description list is, and it is the difference between "Free" being read out
+ * as a word and being read out as the plan.
+ */
+export function identityBar(opts: {
+  facts: { label: string; value: Html }[];
+  /** Trailing control, today the sign-out form. */
+  action?: Html;
+}): Html {
+  return html`<div class="identity-bar">
+    <dl class="identity-facts">
+      ${opts.facts.map(
+        (f) => html`<div class="identity-fact">
+        <dt>${f.label}</dt>
+        <dd>${f.value}</dd>
+      </div>`,
+      )}
+    </dl>
+    ${opts.action ? html`<div class="identity-action">${opts.action}</div>` : ""}
+  </div>`;
+}
+
+/**
+ * "0 of 1 listing used", and the three other things that sentence has to be
+ * able to say instead.
+ *
+ * WHY THIS IS A FUNCTION AND NOT AN INLINE TERNARY. There are four honest
+ * cases and each of them is a different claim:
+ *
+ *   `allowance: null`      No Subscription row exists. This is EVERY producer
+ *                          at launch. It must not render "Free plan": absence
+ *                          of a row is not a free plan, and printing one
+ *                          asserts a record that is not there. Subscription
+ *                          .tier also defaults to "free", so a free producer
+ *                          is representable two ways and only one of them is
+ *                          a fact.
+ *   `allowance: "unknown"` There is a row and its tier is a string this
+ *                          console does not recognise. `Subscription.tier` is
+ *                          deliberately a free string in the schema, so this
+ *                          is reachable by a business decision rather than a
+ *                          bug, and guessing an allowance for it would be
+ *                          inventing a limit.
+ *   `allowance: "uncapped"` A tier with no cap. There is no figure to be "of".
+ *   `allowance: <number>`  The ordinary case, and the one place a producer is
+ *                          told they are full.
+ *
+ * Branching this inline in a route is how /console and the future submit page
+ * end up phrasing the same fact two ways.
+ *
+ * Phrasing content only (spans, no <p>), because its first caller renders it
+ * inside a <dd> in the identity bar.
+ */
+export function quotaLine(opts: {
+  used: number;
+  allowance: number | "uncapped" | "unknown" | null;
+  /** The tier string as stored, for the case where we do not recognise it. */
+  tier?: string;
+}): Html {
+  const listings = opts.used === 1 ? "1 listing" : `${opts.used} listings`;
+
+  if (opts.allowance === null) {
+    return html`<span class="quota">
+      <span class="quota-figure">No plan on file</span>
+      <span class="quota-note">
+        No subscription record exists for this producer, so there is no allowance to
+        count against. ${listings} on file.
+      </span>
+    </span>`;
+  }
+
+  if (opts.allowance === "unknown") {
+    return html`<span class="quota">
+      <span class="quota-figure">Allowance not known here</span>
+      <span class="quota-note">
+        The plan on file is recorded as "${opts.tier ?? ""}", which this console has no
+        allowance for. We will not guess one. ${listings} on file.
+      </span>
+    </span>`;
+  }
+
+  if (opts.allowance === "uncapped") {
+    return html`<span class="quota">
+      <span class="quota-figure">${listings}</span>
+      <span class="quota-note">This plan sets no cap on how many.</span>
+    </span>`;
+  }
+
+  const full = opts.used >= opts.allowance;
+  return html`<span class="quota">
+    <span class="quota-figure">${String(opts.used)} of ${String(opts.allowance)} used</span>
+    <span class="quota-note">
+      ${
+        full
+          ? html`The allowance on this plan is full. A withdrawn listing frees its slot.`
+          : html`Withdrawn and removed listings do not count against it.`
+      }
+    </span>
+  </span>`;
+}
+
 /* ------------------------------------------------------------------------ *
  * Form fields that cannot accept input
  * ------------------------------------------------------------------------ */
@@ -148,9 +349,35 @@ export function deadField(opts: {
   </div>`;
 }
 
-/** A button that is present so the screen reads correctly, and does nothing. */
-export function deadButton(label: string, variant: "primary" | "ghost" = "primary"): Html {
-  return html`<button type="button" class="btn btn-${variant}" disabled>${label}</button>`;
+/**
+ * A button that is present so the screen reads correctly, and does nothing.
+ *
+ * `reason` IS REQUIRED, and that is the point of this signature rather than a
+ * detail of it. notShipped() requires `reason`, deadField() requires `hint`,
+ * emptyState() requires `because` - and this function used to require nothing,
+ * which left the most clickable-looking dead object on the page as the only
+ * one exempt from the house rule. A disabled button with no stated reason is a
+ * dead end, and the reader's guess ("I must not be allowed") is usually the
+ * wrong one: on this origin the usual answer is that the form behind it has
+ * not been built yet, which is about us and not about them.
+ *
+ * ONE REASON PER BUTTON, NOT ONE PER ROW. The three verbs on /console are
+ * disabled for two different reasons - the submit form does not exist, and the
+ * other two have nothing to act on - and a single note under a row of buttons
+ * cannot carry two. The reason renders under its own button and is wired to it
+ * with `aria-describedby`, so the association survives for a reader who is not
+ * looking at the layout.
+ */
+export function deadButton(
+  label: string,
+  opts: { variant?: "primary" | "ghost"; reason: Html },
+): Html {
+  const variant = opts.variant ?? "primary";
+  const id = "why-" + label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  return html`<span class="dead-action">
+    <button type="button" class="btn btn-${variant}" disabled aria-describedby="${id}">${label}</button>
+    <span class="dead-action-why" id="${id}">${opts.reason}</span>
+  </span>`;
 }
 
 /* ------------------------------------------------------------------------ *
@@ -208,6 +435,22 @@ export function button(
  * Empty states
  * ------------------------------------------------------------------------ */
 
+/** One cell. `rowHeader` renders `<th scope="row">`, which is what makes a
+ *  table whose first column labels the row readable out loud rather than a
+ *  grid of unlabelled values. */
+export interface TableCell {
+  content: Html;
+  rowHeader?: boolean;
+  colSpan?: number;
+}
+
+export interface TableRow {
+  cells: TableCell[];
+  /** A heavier top border. For the row that starts a new part of a table -
+   *  the "no tier buys" block under the plan comparison, today's only one. */
+  rule?: boolean;
+}
+
 /**
  * A table plus its empty state, in a region that scrolls sideways on a narrow
  * viewport instead of widening the document.
@@ -215,8 +458,34 @@ export function button(
  * `tabindex="0"` is not decoration. An overflow container that can only be
  * scrolled by dragging is unreachable from a keyboard, which is the usual
  * cost of "just make the table scroll".
+ *
+ * THIS RENDERS BODY ROWS, AND THAT IS WHY THERE IS NO SECOND TABLE FUNCTION.
+ * It could not render one until 2026-09-16, which made a `planTable()` beside
+ * it look like the cheap option. Two table functions drift: the second one
+ * gets the scroll region and the first one keeps the keyboard fix, or the
+ * other way round, and nobody notices because each is only ever read next to
+ * its own caller. One function, two callers.
+ *
+ * The options type is a union so the empty state cannot be forgotten. A table
+ * built from a literal list of rows (the plan comparison) is never empty and
+ * does not need one; a table built from a query (the listing table) is empty
+ * on the day it ships and must say why.
  */
-export function tableBlock(opts: { label: string; columns: string[]; empty: Html }): Html {
+export type TableBlockOptions = { label: string; columns: string[] } & (
+  | { rows: [TableRow, ...TableRow[]]; empty?: Html }
+  | { rows?: TableRow[]; empty: Html }
+);
+
+export function tableBlock(opts: TableBlockOptions): Html {
+  const rows = opts.rows ?? [];
+
+  const cell = (c: TableCell): Html => {
+    const span = c.colSpan && c.colSpan > 1 ? html` colspan="${String(c.colSpan)}"` : "";
+    return c.rowHeader
+      ? html`<th scope="row"${span}>${c.content}</th>`
+      : html`<td${span}>${c.content}</td>`;
+  };
+
   return html`<div class="table-scroll" tabindex="0" role="region" aria-label="${opts.label}">
     <table class="data-table">
       <thead>
@@ -224,9 +493,16 @@ export function tableBlock(opts: { label: string; columns: string[]; empty: Html
           ${opts.columns.map((c) => html`<th scope="col">${c}</th>`)}
         </tr>
       </thead>
+      ${
+        rows.length
+          ? html`<tbody>
+        ${rows.map((r) => html`<tr class="${r.rule ? "row-rule" : ""}">${r.cells.map(cell)}</tr>`)}
+      </tbody>`
+          : ""
+      }
     </table>
   </div>
-  ${opts.empty}`;
+  ${rows.length ? "" : (opts.empty ?? "")}`;
 }
 
 /**

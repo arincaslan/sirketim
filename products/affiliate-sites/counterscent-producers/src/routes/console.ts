@@ -1,106 +1,508 @@
-import { html } from "../lib/html";
+import { html, type Html } from "../lib/html";
+import { page } from "../lib/http";
 import { CATALOGUE, layout } from "../ui/layout";
 import {
+  button,
   card,
   deadButton,
   emptyState,
+  identityBar,
+  listingStates,
   notShipped,
+  quotaLine,
   section,
   stateBadge,
   tableBlock,
+  type ListingState,
+  type TableRow,
 } from "../ui/components";
+import type { Env } from "../lib/env";
+import { db } from "../lib/db";
+import { getAuthContext, type AuthUser } from "../lib/auth";
+import {
+  allowanceForTier,
+  loadProducerConsole,
+  type Allowance,
+  type ListingRow,
+  type ProducerConsoleData,
+} from "../lib/producer";
 
 /**
- * "/console" - the producer's own screen, in its pre-launch state.
+ * "/console" - the producer's own screen, wired to the session on 2026-09-16.
  *
- * The table is rendered with its real columns and an empty body. That is a
- * deliberate choice over not rendering it: the columns ARE the design
- * decision worth reviewing, and an empty table with a stated reason is
- * honest in a way that a fabricated row of sample data would not be. There
- * are no example producers anywhere on this origin, and there must not be:
- * lib/producers.ts in the catalogue is fixture data naming eighteen real
- * operating companies, none of which signed up, so putting any of them on a
- * screen here would assert a commercial relationship that does not exist.
+ * ============================================================================
+ * THREE DOCUMENTS, NOT ONE DOCUMENT WITH A SWAPPED ACCOUNT CARD.
+ * ============================================================================
  *
- * This Worker holds no database binding and issues no query. The Neon
- * database exists (provisioned 2026-09-14) and this origin is not connected
- * to it, which is why the copy says "does not read" rather than "is empty".
+ * The obvious build is one page with a strip at the top that changes. It is
+ * wrong for the same reason notShipped() requires a reason: a visitor and an
+ * attached producer arrive with different first questions, and sharing
+ * everything below the strip means a signed-out visitor leads with an empty
+ * listing table belonging to an account that does not exist.
+ *
+ *   (a) SIGNED OUT. Doubles as this programme's only sales page, because the
+ *       origin is noindex and reached from an email or a link. It sells, it
+ *       offers the two real ways in, and it carries NO listing table and NO
+ *       disabled action buttons. A disabled "Submit a fragrance" shown to
+ *       someone with no account is a dead end no reason string rescues.
+ *
+ *   (b) SIGNED IN, NO PRODUCER ATTACHED. **This is the common case, not an
+ *       edge case.** findOrCreateUser() never creates a Producer row, so every
+ *       real account is in this state at the moment it is created, and will be
+ *       until a person attaches it by hand. A design that treats it as an
+ *       error would be showing an error to every producer who ever signs in.
+ *       It is a waypoint and it reads as one: no error colour, no empty table,
+ *       and the account card first, because the reader just clicked a link in
+ *       an email and their only question is whether it worked.
+ *
+ *   (c) SIGNED IN AND ATTACHED. The workspace. Nobody is in it today; zero
+ *       producers exist.
+ *
+ * What stays identical across all three: the shell, the status and standfirst
+ * slots, the band rhythm, the state vocabulary. That is enough continuity, and
+ * moving from (b) to (c) should feel like the page filling in rather than
+ * changing identity. The four channels that tell them apart are layered on
+ * purpose, so no single one carries it: the status pill (outline against
+ * solid), the h1, the shape of the first block, and whether a table is there
+ * at all. Not colour alone, no second accent, no per-state theme.
+ *
+ * WHAT THIS PAGE STILL CANNOT DO, and says so at every point of use: submit,
+ * edit, withdraw, or take a payment. There is no submit form, no queue, no
+ * billing and no Subscribe button anywhere on this origin.
  */
-export function producerConsole() {
+export async function producerConsole(request: Request, env: Env): Promise<Response> {
+  const auth = await getAuthContext(request, env);
+
+  if (!auth) return page(signedOut());
+
+  if (!auth.producerId) {
+    // allowForms, for the sign-out <form>. Granted per page rather than
+    // origin-wide (src/lib/http.ts), so the grant tracks what the page
+    // actually contains.
+    return page(noProducerAttached(auth), 200, { allowForms: true });
+  }
+
+  const sql = db(env);
+  let data: ProducerConsoleData | null = null;
+  try {
+    // `sql` cannot be null here in practice - getAuthContext() returns null
+    // without a database - but the type admits it and a thrown TypeError would
+    // render as a blank 500 to the one person able to report it.
+    if (!sql) throw new Error("no database connection");
+    data = await loadProducerConsole(sql, auth.producerId);
+  } catch {
+    return page(listingsUnreadable(auth), 503, { allowForms: true });
+  }
+
+  if (!data) return page(producerRecordMissing(auth), 200, { allowForms: true });
+
+  return page(attached(auth, data), 200, { allowForms: true });
+}
+
+/* ======================================================================== *
+ * (a) Signed out
+ * ======================================================================== */
+
+function signedOut(): Html {
   const body = html`
     ${section({
-      heading: "Account",
+      heading: "Two ways in, and there are only two",
+      lede: html`There is no signup form on this origin. That is a decision, not a
+        missing page: a listing claims a relationship between your product and somebody
+        else's, so we would rather know who is making the claim before there is an
+        account to make it from.`,
       body: html`
-        ${card(html`
-          <p><strong>Not signed in.</strong></p>
-          <p class="muted">
-            There is no account to be signed in to. When there is, this strip carries who
-            you are, which plan you are on, and how many listings that plan covers, read
-            from the subscription record rather than typed into a page. The plans
-            themselves are on the public site:
-            <a href="${CATALOGUE}/producers/pricing">plans and pricing</a>.
-          </p>
-        `)}
+        <div class="grid-2">
+          ${card(html`
+            <h3>You already have an account</h3>
+            <p class="muted">
+              We email you a link. It works once, for fifteen minutes, and there is no
+              password to lose or to be stolen from us.
+            </p>
+            <p class="door-action">
+              <a class="btn btn-primary" href="/sign-in">Request a sign-in link</a>
+            </p>
+          `)}
+          ${card(html`
+            <h3>You do not</h3>
+            <p class="muted">
+              Write to us with the fragrances you would list and the originals they go
+              against. A person reads it and answers. We cannot tell you how long that
+              takes, because nobody has been through it yet and a number invented now
+              would be a promise nobody measured.
+            </p>
+            <p class="door-action">
+              <a class="btn btn-ghost" href="mailto:contact@counterscent.com"
+                >Write to contact@counterscent.com</a
+              >
+            </p>
+          `)}
+        </div>
       `,
     })}
 
     ${section({
-      heading: "Everything you have submitted",
-      lede: html`One row per fragrance, whatever state it is in. Withdrawn and removed
-        listings stay in this table rather than disappearing from it, because a record
-        you can make vanish is not a record.`,
+      heading: "What a listing buys, and what no plan buys",
+      lede: html`This is the question this audience arrives with, so it is answered above
+        the plans rather than underneath them.`,
       body: html`
         <div class="stack">
           <div>
-            ${tableBlock({
-              label: "Your listings",
-              columns: ["Your fragrance", "Compared against", "Match", "State", "Last change"],
-              empty: emptyState({
-                headline: "Nothing to show, and nothing to show it from",
-                because: html`This page does not read the database. It holds no
-                  connection to one, issues no query, and cannot write anything. The
-                  producer console is step 6 of the build order; what exists today is the
-                  layout it will use.`,
-              }),
-            })}
+          <h3>What a listing buys</h3>
+          <ul class="plain-list">
+            <li>
+              A place in a ranked comparison against an original we have already
+              researched, with a match score computed by a published formula rather than
+              negotiated.
+            </li>
+            <li>
+              A page that says what is genuinely different about your fragrance, in your
+              words, beside what we say about it in ours.
+            </li>
+            <li>
+              A link a reader can check your claims against: your own product page, with
+              the price we last verified and the date we verified it.
+            </li>
+          </ul>
           </div>
-
-          <div class="actions">
-            ${deadButton("Submit a fragrance")}
-            ${deadButton("Request an edit", "ghost")}
-            ${deadButton("Withdraw a listing", "ghost")}
-            <p class="actions-note">
-              Every verb is disabled. None of them has anything to act on.
-            </p>
+          <div>
+          <h3>What no plan buys</h3>
+          <ul class="plain-list">
+            <li>
+              <strong>No plan buys a better match score</strong>, a higher rank,
+              placement, or a friendlier verdict. The modules that compute and order
+              scores are barred from importing anything that knows what a producer pays,
+              and the catalogue's build fails if that changes. An import-graph assertion
+              is a control; a promise in a document is not.
+            </li>
+            <li>
+              <strong>We take no commission on a paid tier's sales</strong>, so we have
+              no financial interest in where a subscriber ranks or how much traffic they
+              get. That is what makes the line above worth anything.
+            </li>
+            <li>
+              <strong>Nothing is approved automatically</strong>, at any tier. Automation
+              may flag a listing, weaken a claim on it, or take it down. It may never put
+              one up.
+            </li>
+          </ul>
           </div>
         </div>
       `,
     })}
 
     ${section({
-      heading: "What each column will mean",
+      heading: "The plans",
+      lede: html`What each tier covers. What each tier costs is not printed on this
+        screen, and the row that would carry it says why.`,
+      body: html`
+        <div class="stack">
+          ${planTable()}
+          ${notShipped({
+            what: "Nothing on this screen can be paid for",
+            reason: html`There is no checkout on this origin, no payment provider
+              connected to it, and no way for anyone to take money from you today. Which
+              provider it will eventually be is also unsettled: the usual ones do not
+              serve a Turkey-based business, so the shortlist is short and the question
+              is open. Three capability lines are missing from the table above for a
+              different reason. Click reporting and conversion reporting are not built
+              for anyone, at any tier, and who may withdraw or request an edit without
+              paying is a contradiction between our own plan list and our producer terms
+              that we have not settled. We would rather leave a row out than print a
+              contested capability as a fact.`,
+          })}
+          <p>
+            The one thing that moves any of this is an email:
+            <a href="mailto:contact@counterscent.com">contact@counterscent.com</a>. Tell
+            us how many fragrances you would list and which originals they go against.
+            We would rather price this against real catalogues than against a guess.
+          </p>
+        </div>
+      `,
+    })}
+
+    ${section({
+      heading: "Approved and live are different states",
+      lede: html`The distinction the whole console is organised around, and the reason
+        the database carries two state columns rather than one.`,
+      body: html`
+        <div class="stack">
+          <div class="gap-callout">
+            <p><span class="pill state state-approved">Approved, not yet live</span></p>
+            <p class="gap-step">then the next site build</p>
+            <p><span class="pill state state-live">Live</span></p>
+            <p class="muted">
+              Approval is a decision recorded in a database. Publication is a build that
+              writes the listing into the catalogue's own files.
+            </p>
+          </div>
+          <div>
+            <h3>The eight states a listing can be in</h3>
+            <p class="muted">
+              Named as the database names them, so what you read, what an editor reads,
+              and what is stored are the same eight words.
+            </p>
+            ${listingStates({ detail: "specimen" })}
+            <p class="muted">
+              Each one is explained in full on <a href="/">the overview</a>.
+            </p>
+          </div>
+        </div>
+      `,
+    })}
+
+    ${neverDoBand()}
+
+    ${section({
+      heading: "Before you write to us",
+      body: html`
+        <p>
+          The part most likely to decide whether this is a fit is
+          <a href="${CATALOGUE}/about#methodology">how we score</a>, not the price. It is
+          published in full, including the cap that stops any producer-declared listing
+          reaching 90 per cent and the ceiling that stops anything at all publishing
+          above 95.
+        </p>
+        <p>
+          Then:
+          <a href="mailto:contact@counterscent.com">contact@counterscent.com</a>.
+        </p>
+      `,
+    })}
+  `;
+
+  return layout({
+    title: "Producer console",
+    heading: "Listing on Counterscent",
+    status: {
+      label: "Sign-in required",
+      // Not "Signed out", which implies a session that ended. Most readers of
+      // this page have never had one.
+      tone: "outline",
+      note: html`This screen is the same for everyone who is not signed in. Nothing below
+        is personalised and nothing is hidden from you.`,
+    },
+    standfirst: html`What listing a fragrance here involves, what each tier covers, and
+      the two ways to get an account. There is no self-serve signup: a person attaches an
+      account to a real company by hand.`,
+    body,
+  });
+}
+
+/* ======================================================================== *
+ * (b) Signed in, no producer attached
+ * ======================================================================== */
+
+function noProducerAttached(auth: AuthUser): Html {
+  const body = html`
+    ${section({
+      heading: "Account",
+      body: card(html`
+        <p><strong>Signed in as <span class="wrap-anywhere">${auth.email}</span>.</strong></p>
+        <p class="muted">
+          The sign-in link worked and this session lasts thirty days. No company record is
+          attached to this address yet, which is the normal state of a new account here
+          rather than something that went wrong.
+        </p>
+        <form method="post" action="/sign-out" class="actions">
+          ${button("Sign out", { variant: "ghost" })}
+        </form>
+      `),
+    })}
+
+    ${section({
+      heading: "What happens next, and who does it",
+      lede: html`Three steps, with a real actor on each. None of them is a queue position,
+        because there is no queue.`,
+      body: html`
+        <div class="stack">
+          <ul class="plain-list">
+            <li>
+              <strong>You write to us</strong> at
+              <a href="mailto:contact@counterscent.com">contact@counterscent.com</a> from
+              this address, with your company and the fragrances you would list. If you
+              have already done that, nothing more is needed from you.
+            </li>
+            <li>
+              <strong>A person attaches this address</strong> to your company's record.
+              It is a decision about identity, so it is made by a person and not by
+              signing in. It is also the reason nobody can create a producer here by
+              filling in a form.
+            </li>
+            <li>
+              <strong>This page changes on its own</strong> the next time you load it.
+              There is nothing to click at that point and no second email to wait for.
+            </li>
+          </ul>
+          <p class="muted">
+            We are not going to tell you how long that takes. Nobody has been through it
+            yet, so any figure would be invented, and our own terms commit us to
+            publishing a review time only once we have measured real ones.
+          </p>
+        </div>
+      `,
+    })}
+
+    ${section({
+      heading: "The tier an attached account starts on",
+      body: html`
+        <p>
+          The free tier, which covers one listing, reviewed by a person like every other
+          listing here. Nothing is on file for this address: there is no producer record
+          and no subscription record, so there is no plan to show you yet. What each tier
+          covers is on
+          <a href="${CATALOGUE}/producers/pricing">plans and pricing</a>, and no figure
+          anywhere on this origin is an offer.
+        </p>
+      `,
+    })}
+
+    ${section({
+      heading: "Your listings",
+      body: notShipped({
+        what: "There is no listings table on this screen yet",
+        reason: html`A table of listings belongs to a producer record, and this address is
+          not attached to one. An empty table here would be a table of nothing about
+          nobody, and it would make this screen look like the one an attached producer
+          sees, which is the single most misleading thing this page could do. It appears
+          when the attachment does.`,
+      }),
+    })}
+  `;
+
+  return layout({
+    title: "Producer console",
+    heading: "Your account is set up.",
+    status: {
+      label: "No producer attached",
+      tone: "outline",
+      note: html`Signing in worked. The next step is ours, not yours, and it is described
+        below.`,
+    },
+    standfirst: html`You are signed in as
+      <span class="wrap-anywhere">${auth.email}</span>. What is missing is the link
+      between this address and a company, which a person makes by hand.`,
+    body,
+  });
+}
+
+/* ======================================================================== *
+ * (c) Signed in and attached
+ * ======================================================================== */
+
+function attached(auth: AuthUser, data: ProducerConsoleData): Html {
+  const { producer, listings, inUse } = data;
+  const allowance: Allowance | null = producer.tier === null ? null : allowanceForTier(producer.tier);
+  const hasListings = listings.length > 0;
+  const atAllowance = typeof allowance === "number" && inUse >= allowance;
+
+  const body = html`
+    ${section({
+      heading: "Account",
+      body: html`
+        ${identityBar({
+            facts: [
+              { label: "Producer", value: html`${producer.name}` },
+              { label: "Signed in as", value: html`<span class="wrap-anywhere">${auth.email}</span>` },
+              {
+                label: "Plan",
+                // ABSENCE OF A Subscription ROW RENDERS "No plan on file",
+                // NEVER "Free plan". Subscription.tier defaults to "free", so
+                // a free producer is representable two ways and only one of
+                // them is a record that exists. This is every producer's state
+                // at launch, which makes it the common path rather than the
+                // fallback.
+                value:
+                  producer.tier === null
+                    ? html`No plan on file`
+                    : html`${producer.tier}${producer.status ? html` <span class="cell-sub">${producer.status.toLowerCase()}</span>` : ""}`,
+              },
+              { label: "Listings", value: quotaLine({ used: inUse, allowance, tier: producer.tier ?? undefined }) },
+            ],
+            action: html`<form method="post" action="/sign-out" class="actions">
+              ${button("Sign out", { variant: "ghost" })}
+            </form>`,
+        })}
+      `,
+    })}
+
+    ${section({
+      heading: "Everything you have submitted",
+      lede: html`One row per fragrance, whatever state it is in. Withdrawn and removed
+        listings stay in this table rather than disappearing from it, because a record you
+        can make vanish is not a record.`,
+      body: html`
+        <div class="stack">
+          <div>
+            ${tableBlock({
+              label: "Your listings",
+              columns: ["Your fragrance", "Compared against", "Match", "State", "Last change"],
+              rows: listingRows(listings),
+              empty: emptyState({
+                headline: "You have not submitted anything yet",
+                because: html`Nothing has been submitted against this producer record, and
+                  there is no way to submit one from here yet: the form is the next piece
+                  of work. So this table stays empty even if you have a fragrance ready,
+                  and that is about us rather than about you.`,
+              }),
+            })}
+          </div>
+
+          <div class="actions">
+            ${deadButton("Submit a fragrance", {
+              reason: html`The submission form is not built. It needs a note selector
+                drawn from our own catalogue's vocabulary before it can accept anything,
+                because free-typed notes would silently move your score.`,
+            })}
+            ${deadButton("Request an edit", {
+              variant: "ghost",
+              reason: hasListings
+                ? html`Per-listing verbs are not built. When they are, this one will sit
+                    in the row it acts on rather than up here.`
+                : html`Nothing to act on. An edit request is made against one published
+                    listing and you have none, so this stays disabled for an empty table
+                    even after the form ships.`,
+            })}
+            ${deadButton("Withdraw a listing", {
+              variant: "ghost",
+              reason: hasListings
+                ? html`Also per-listing, and also not built. Withdrawing sets a state and
+                    keeps the record and the click history; it never deletes a row.`
+                : html`Nothing to act on, for the same reason. Withdrawal acts on one
+                    listing, and it sets a state rather than deleting anything.`,
+            })}
+          </div>
+        </div>
+      `,
+    })}
+
+    ${atAllowance ? exhaustedAllowance(allowance as number) : ""}
+
+    ${section({
+      heading: "What each column means",
       body: html`
         <ul class="plain-list">
           <li>
-            <strong>Compared against</strong> is an original already in our catalogue.
-            You choose it; you cannot add one. The comparison runs against a note pyramid
-            we researched, so a fragrance we have not written up yet cannot be scored
+            <strong>Compared against</strong> is an original already in our catalogue. You
+            choose it; you cannot add one. The comparison runs against a note pyramid we
+            researched, so a fragrance we have not written up yet cannot be scored
             against, and we do not commit to a date for researching one.
           </li>
           <li>
             <strong>Match</strong> is computed, not negotiated. It is capped at 90 per
-            cent while a listing is producer-declared, and at 95 once we have verified it
-            independently. Nothing publishes above 95. Verification lifts the cap;
-            nothing else does, and paying us certainly does not.
+            cent while a listing is producer-declared and at 95 once we have verified it
+            independently; nothing publishes above 95. This console does not hold a copy
+            of the figure: it is computed by the catalogue's own build, so the number on
+            your public listing is the only one there is. The one score stored here is the
+            score a listing had at the moment it came down, frozen.
           </li>
           <li>
-            <strong>State</strong> is the pair of database columns, shown as one label
-            per row. The one to read carefully is
-            ${stateBadge("approved")}, which means we have said yes and the catalogue has
-            not been rebuilt yet.
+            <strong>State</strong> is the pair of database columns, shown as one label per
+            row. The one to read carefully is ${stateBadge("approved")}, which means we
+            have said yes and the catalogue has not been rebuilt yet.
           </li>
           <li>
-            <strong>Last change</strong> comes from an append-only event log, not from a
+            <strong>Last change</strong> is read from an append-only event log, not from a
             timestamp somebody can overwrite. Every state change is attributed to a
             person, to us, or to an automated check, so months later it is still possible
             to say who moved a listing and when.
@@ -109,30 +511,7 @@ export function producerConsole() {
       `,
     })}
 
-    ${section({
-      heading: "The two things this screen will never do",
-      body: html`
-        <div class="grid-2">
-          ${card(html`
-            <h3>Let you write your own scores</h3>
-            <p class="muted">
-              The six profile numbers are derived by us from your declared notes and
-              concentration. They were once six sliders on a form and were taken out on
-              purpose: our copy-detection check compares your notes against those
-              numbers, and handing the same party both inputs defeats it by construction.
-            </p>
-          `)}
-          ${card(html`
-            <h3>Publish anything by itself</h3>
-            <p class="muted">
-              No automated step may approve a listing or make a claim on it stronger.
-              Automation can flag, weaken and take down; a person has to put something
-              up. Even then, publication waits for the next site build.
-            </p>
-          `)}
-        </div>
-      `,
-    })}
+    ${neverDoBand()}
 
     ${notShipped({
       what: "Photograph upload is not here either",
@@ -147,13 +526,347 @@ export function producerConsole() {
     title: "Producer console",
     heading: "Your listings",
     status: {
-      label: "Signed out",
-      note: html`Not because a session expired. There is no account system on this
-        origin, so this page cannot be anything but signed out.`,
+      label: "Console live",
+      // The one solid pill on the origin. Solid means published on a listing
+      // badge and it means the same thing here: the surface in front of you is
+      // real and reading your own data.
+      tone: "solid",
+      note: html`This screen is reading your producer record. Nothing on it can be
+        submitted, edited or withdrawn yet, and each disabled verb says which of those two
+        reasons applies to it.`,
     },
-    standfirst: html`What a producer sees after signing in: everything they have
-      submitted, what state each listing is in, and the four things they can do about
-      it.`,
+    standfirst: html`Everything ${producer.name} has submitted, what state each listing is
+      in, and what can be done about it today.`,
     body,
+  });
+}
+
+/** The listing table's body rows. */
+function listingRows(listings: ListingRow[]): TableRow[] {
+  return listings.map((l) => ({
+    cells: [
+      {
+        rowHeader: true,
+        content: html`<span class="cell-title">${l.name}</span>
+          <span class="cell-sub">${l.brand}</span>`,
+      },
+      { content: html`<span class="wrap-anywhere">${l.referenceSlug}</span>` },
+      {
+        content:
+          l.scoreAtRemoval === null
+            ? html`<span class="tag-off">Not held here</span>`
+            : html`<span class="cell-title">${String(l.scoreAtRemoval)}%</span>
+                <span class="cell-sub">frozen at removal</span>`,
+      },
+      { content: stateBadge(listingStateFor(l)) },
+      {
+        content: l.lastActionOn
+          ? html`<span class="cell-title">${l.lastActionOn}</span>
+              <span class="cell-sub">${l.lastAction ?? ""}</span>`
+          : html`<span class="cell-sub">Nothing recorded yet</span>`,
+      },
+    ],
+  }));
+}
+
+/**
+ * The two database columns, as the one label a producer reads.
+ *
+ * Both are Postgres enums, so an unrecognised value is not reachable without a
+ * migration. The order of the tests is the part that matters: where the two
+ * columns disagree, publishState wins, because it describes where the listing
+ * actually IS and an editorial decision that has not taken effect is exactly
+ * what the "approved, not yet live" badge exists to say.
+ */
+function listingStateFor(l: { approvalStatus: string; publishState: string }): ListingState {
+  switch (l.publishState) {
+    case "LIVE":
+      return "live";
+    case "WITHDRAWN_BY_PRODUCER":
+      return "withdrawn";
+    case "REMOVED_BY_EDITOR":
+      return "removed";
+    case "DRAFT":
+      return l.approvalStatus === "CHANGES_REQUESTED" ? "changes-requested" : "draft";
+    default:
+      if (l.approvalStatus === "REJECTED") return "rejected";
+      if (l.approvalStatus === "CHANGES_REQUESTED") return "changes-requested";
+      if (l.approvalStatus === "APPROVED") return "approved";
+      return "in-review";
+  }
+}
+
+/* ======================================================================== *
+ * The exhausted-allowance screen
+ * ======================================================================== *
+ *
+ * UNREACHABLE TODAY, AND BUILT ANYWAY. Nobody can submit anything, so no
+ * allowance can be used, so this never renders. It is written now because it
+ * is the single most likely place this product fakes success: it is the exact
+ * moment a subscription flow wants a Subscribe button, and the button would do
+ * nothing. Left to be written in a hurry beside a payment integration, it gets
+ * one.
+ *
+ * It renders from the same count the quota line uses, so the screen and the
+ * figure above it cannot disagree.
+ */
+function exhaustedAllowance(allowance: number): Html {
+  const lead =
+    allowance === 1
+      ? html`The free tier covers one listing and you have it.`
+      : html`The plan on file covers ${String(allowance)} listings and all of them are in
+          use.`;
+
+  return section({
+    heading: allowance === 1 ? "Your free listing is in use" : "This plan's listings are all in use",
+    body: html`
+      <div class="stack">
+        ${notShipped({
+          what: "A second listing needs a paid tier, and no paid tier is open",
+          reason: html`${lead} There is no checkout on this site, no payment provider
+            connected to it, and no way for anyone to take money from you today. We are
+            not showing you a Subscribe button that does nothing, because a button that
+            cannot work is a slower way of saying this.`,
+        })}
+        <p>
+          <strong>What actually moves this:</strong> write to
+          <a href="mailto:contact@counterscent.com">contact@counterscent.com</a> and tell
+          us how many fragrances you would list and which originals they go against. A
+          person reads it. What the paid tiers cost and contain is waiting on exactly
+          that, because nobody has listed here yet and we would rather price against real
+          catalogues than a guess. We cannot give you a date and we will not invent one.
+        </p>
+        <p class="muted">
+          Withdrawing a listing frees its slot. A withdrawn listing keeps its record and
+          its click history; withdrawal is a change of state, never a deletion.
+        </p>
+      </div>
+    `,
+  });
+}
+
+/* ======================================================================== *
+ * Shared bands
+ * ======================================================================== */
+
+/**
+ * The plan comparison, as one table rather than three cards.
+ *
+ * NOT TASTE. The "no tier buys" rows render INSIDE the same table, spanning
+ * the tier columns under a rule, which makes "no plan buys rank" a structural
+ * fact of the table rather than a claim printed underneath it. Three cards
+ * cannot do that, and the catalogue already owns the card version.
+ *
+ * NO CURRENCY FIGURES, DELIBERATELY. This project has no import path to the
+ * catalogue's lib/plans.ts, so any number typed here is a third hand-written
+ * copy sitting behind that file's constants and, eventually, a payment
+ * provider's own price objects, with no build step anywhere that could catch a
+ * mismatch. A producer seeing one figure here and a different one on the
+ * pricing page is worse than one seeing no figure here. What the table carries
+ * instead is capability, which is a fact we enforce ourselves.
+ *
+ * There is also no monthly/yearly toggle: it is client state, there is no
+ * JavaScript budget, and a toggle belongs at a point of purchase, which this
+ * is not.
+ */
+function planTable(): Html {
+  const cell = (content: Html) => ({ content });
+  const label = (text: string) => ({ content: html`${text}`, rowHeader: true });
+
+  return tableBlock({
+    label: "What each tier covers",
+    // The first column header labels the ROW axis, not a value column, and it
+    // has to be true of every row in it. "What you get" was, until the cost row
+    // and the "no tier buys" row, which are the two rows most worth reading.
+    columns: ["Item", "Free", "Standard", "Featured"],
+    rows: [
+      {
+        cells: [
+          label("Listings included"),
+          cell(html`1`),
+          cell(html`25`),
+          cell(html`No cap`),
+        ],
+      },
+      {
+        cells: [
+          label("Commission we take on your sales"),
+          cell(html`A share of a sale, through an affiliate network`),
+          cell(html`None`),
+          cell(html`None`),
+        ],
+      },
+      {
+        cells: [
+          label("Reviewed by a person"),
+          cell(html`Always`),
+          cell(html`Always`),
+          cell(html`Always`),
+        ],
+      },
+      {
+        cells: [
+          label("Priority in the review queue"),
+          cell(html`No`),
+          cell(html`No`),
+          cell(html`Yes`),
+        ],
+      },
+      {
+        cells: [
+          label("What it costs"),
+          cell(html`Nothing`),
+          {
+            colSpan: 2,
+            content: html`<span class="table-span"
+              >Not printed on this screen. The only figures that exist are indicative
+              rather than final, they live on
+              <a href="${CATALOGUE}/producers/pricing">plans and pricing</a> with that
+              said plainly, and we would rather you read them there once than see a
+              number here that has drifted away from them.</span
+            >`,
+          },
+        ],
+      },
+      {
+        rule: true,
+        cells: [
+          label("No tier buys, at any price"),
+          {
+            colSpan: 3,
+            content: html`<div class="table-span">
+              <ul class="plain-list">
+                <li>A better match score.</li>
+                <li>A higher rank, at any tier.</li>
+                <li>A premium or featured slot in results.</li>
+                <li>Approval over the verdict we write.</li>
+              </ul>
+              <p>
+                The first two are not only promised. The modules that compute and order
+                scores cannot import anything that knows what a producer pays, and the
+                catalogue's build fails if that changes.
+              </p>
+            </div>`,
+          },
+        ],
+      },
+    ],
+  });
+}
+
+/** The ethical core, unchanged since the layout preview and shown wherever
+ *  somebody is close enough to listing to need it: (a) and (c). */
+function neverDoBand(): Html {
+  return section({
+    heading: "The two things this screen will never do",
+    body: html`
+      <div class="grid-2">
+        ${card(html`
+          <h3>Let you write your own scores</h3>
+          <p class="muted">
+            The six profile numbers are derived by us from your declared notes and
+            concentration. They were once six sliders on a form and were taken out on
+            purpose: our copy-detection check compares your notes against those numbers,
+            and handing the same party both inputs defeats it by construction.
+          </p>
+        `)}
+        ${card(html`
+          <h3>Publish anything by itself</h3>
+          <p class="muted">
+            No automated step may approve a listing or make a claim on it stronger.
+            Automation can flag, weaken and take down; a person has to put something up.
+            Even then, publication waits for the next site build.
+          </p>
+        `)}
+      </div>
+    `,
+  });
+}
+
+/* ======================================================================== *
+ * The two ways (c) can fail
+ * ======================================================================== */
+
+/** The database could not be read. A 503 with a reason, never an empty table:
+ *  "you have no listings" and "we could not find out" are different claims and
+ *  only one of them is ours to make. */
+function listingsUnreadable(auth: AuthUser): Html {
+  return layout({
+    title: "Producer console",
+    heading: "We could not read your listings",
+    status: {
+      label: "Read failed",
+      tone: "outline",
+      note: html`This is our side, not yours. Your account and your listings are
+        untouched.`,
+    },
+    standfirst: html`You are signed in as
+      <span class="wrap-anywhere">${auth.email}</span>, and the query that loads this
+      screen did not come back.`,
+    body: html`
+      ${section({
+        heading: "What this is and is not",
+        body: html`
+          <div class="stack">
+            ${notShipped({
+              what: "Nothing was written and nothing was lost",
+              reason: html`This screen only reads. A failed read means the database was
+                unreachable or refused the query; it does not mean a listing changed
+                state, and no listing state is ever changed by loading a page.`,
+            })}
+            <p>
+              Reloading is worth one try. If it keeps happening, tell us at
+              <a href="mailto:contact@counterscent.com">contact@counterscent.com</a> and
+              say roughly when, which is enough for us to find it in the logs.
+            </p>
+            <form method="post" action="/sign-out" class="actions">
+              ${button("Sign out", { variant: "ghost" })}
+            </form>
+          </div>
+        `,
+      })}
+    `,
+  });
+}
+
+/** The account points at a producer record that is not there. Barely
+ *  reachable (User.producerId is SetNull on delete, so it can only happen
+ *  mid-flight) and worth saying out loud rather than rendering as an empty
+ *  workspace, which would read as "you have no listings" to someone who may
+ *  have had several. */
+function producerRecordMissing(auth: AuthUser): Html {
+  return layout({
+    title: "Producer console",
+    heading: "This account points at a record we cannot find",
+    status: {
+      label: "Producer record missing",
+      tone: "outline",
+      note: html`An unusual state, and ours to fix rather than yours.`,
+    },
+    standfirst: html`You are signed in as
+      <span class="wrap-anywhere">${auth.email}</span>, and the producer record this
+      address is attached to did not come back from the database.`,
+    body: html`
+      ${section({
+        heading: "What to do",
+        body: html`
+          <div class="stack">
+            <p>
+              Write to
+              <a href="mailto:contact@counterscent.com">contact@counterscent.com</a> from
+              this address and say you saw this. It is specific enough to find, and it is
+              not something you can clear from your side.
+            </p>
+            <p class="muted">
+              Listings are never deleted here, so this is not what a removed listing looks
+              like. A removal is a change of state and the record stays.
+            </p>
+            <form method="post" action="/sign-out" class="actions">
+              ${button("Sign out", { variant: "ghost" })}
+            </form>
+          </div>
+        `,
+      })}
+    `,
   });
 }

@@ -7,10 +7,16 @@
 -- generator produces for the `RateLimit` model in ../../schema.prisma, so a
 -- later `prisma migrate dev` sees no drift.
 --
--- NOT APPLIED AS OF 2026-09-16. Apply it BEFORE deploying the Worker that
--- expects it - POST /sign-in refuses to send mail when its limit table is
--- missing (it fails closed rather than sending unthrottled), so the reverse
--- order means sign-in answers 503 until this runs.
+-- APPLIED 2026-09-16 to the Neon `production` branch, before the Worker that
+-- expects it shipped - POST /sign-in refuses to send mail when its limit table
+-- is missing (it fails closed rather than sending unthrottled), so the reverse
+-- order would have meant sign-in answering 503 to everyone until it ran.
+--
+-- This comment previously read "NOT APPLIED AS OF 2026-09-16" and stayed that
+-- way after the migration ran. It then misled a subagent the same day into
+-- reporting an unapplied migration as a deploy blocker, because an agent with
+-- no database access has nothing to check it against. Confirm with
+-- `npx prisma migrate status`, or query `_prisma_migrations` - never this line.
 
 -- CreateTable
 CREATE TABLE "RateLimit" (

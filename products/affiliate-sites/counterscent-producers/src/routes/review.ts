@@ -98,10 +98,26 @@ export function reviewQueue() {
                   attached is the thing that turns a queue into a black box.`,
               })}
               <div class="actions">
-                ${deadButton("Approve")}
-                ${deadButton("Request changes", "ghost")}
-                ${deadButton("Reject", "ghost")}
-                ${deadButton("Remove a live listing", "ghost")}
+                ${deadButton("Approve", {
+                  reason: html`This page reads nothing and writes nothing. There is no
+                    submission behind this panel to approve, and no access control
+                    deciding who may.`,
+                })}
+                ${deadButton("Request changes", {
+                  variant: "ghost",
+                  reason: html`Same: nothing to ask about. A change request is addressed
+                    to a producer, and no submission here has one.`,
+                })}
+                ${deadButton("Reject", {
+                  variant: "ghost",
+                  reason: html`Same, and a rejection is the one decision that must always
+                    reach a named person with a written reason attached.`,
+                })}
+                ${deadButton("Remove a live listing", {
+                  variant: "ghost",
+                  reason: html`Nothing is live. A removal also sets a state rather than
+                    deleting a row, so the record and the click history survive it.`,
+                })}
               </div>
             </fieldset>
           `,

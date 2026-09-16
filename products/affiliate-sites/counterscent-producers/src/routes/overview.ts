@@ -1,6 +1,6 @@
 import { html } from "../lib/html";
 import { CATALOGUE, layout } from "../ui/layout";
-import { button, card, section, stateRow } from "../ui/components";
+import { button, card, listingStates, section } from "../ui/components";
 import type { Env } from "../lib/env";
 import { getAuthContext } from "../lib/auth";
 import { page } from "../lib/http";
@@ -15,13 +15,16 @@ import { page } from "../lib/http";
  * programme opens, this page becomes the signed-out landing page and that
  * section comes out.
  *
- * SINCE STEP 5 (2026-09-16) THIS IS THE ONE PAGE ON THE ORIGIN THAT SHOWS
- * REAL SESSION STATE. Not /console: that page's own file explains why it
- * still hardcodes "signed out" for everyone, including a request carrying a
- * valid session cookie, until step 6 wires the session-check helper in. This
- * page is where "did sign-in actually work" is checkable in the meantime,
- * and where the sign-out form lives, because there is nowhere else on the
- * origin that currently renders a signed-in state to hang one off of.
+ * THIS WAS THE ONLY PAGE ON THE ORIGIN THAT SHOWED REAL SESSION STATE, AND
+ * SINCE STEP 6 (2026-09-16) IT IS NOT. /console now calls the same
+ * getAuthContext() helper and branches on the answer three ways, so it is
+ * where a signed-in producer belongs and where /verify now sends them. This
+ * page keeps its account strip because it is still the first address anyone
+ * types and "am I signed in" should not require a second click to answer;
+ * what it no longer is, is the only honest place to ask.
+ *
+ * /review is still unwired, and deliberately: it needs an access-control
+ * story (there is no role column on User) before it reads anything real.
  */
 export async function overview(request: Request, env: Env) {
   const auth = await getAuthContext(request, env);
@@ -150,57 +153,7 @@ export async function overview(request: Request, env: Env) {
           Named as the database names them, so what a producer reads and what an editor
           reads and what is stored are the same eight words.
         </p>
-        <div class="state-list">
-          ${stateRow({
-            state: "draft",
-            meaning: html`Started and not sent. Never exported, never seen by us.`,
-            movedBy: "The producer",
-          })}
-          ${stateRow({
-            state: "in-review",
-            meaning: html`Sent, waiting for a person. Automated checks may already have
-              flagged it, and a flag can stop it here.`,
-            movedBy: "The producer",
-          })}
-          ${stateRow({
-            state: "changes-requested",
-            meaning: html`We read it and need something fixed before it can be approved.
-              This is us asking them, which is the opposite direction from a producer
-              asking us for an edit.`,
-            movedBy: "An editor",
-          })}
-          ${stateRow({
-            state: "rejected",
-            meaning: html`Not publishable, with the reason given. Common reasons: the
-              original is not in our catalogue, the declared data contradicts the
-              producer's own public product page, or the pyramid restates the original's.`,
-            movedBy: "An editor",
-          })}
-          ${stateRow({
-            state: "approved",
-            meaning: html`Decided, and not on the site. It joins the catalogue at the
-              next build.`,
-            movedBy: "An editor",
-          })}
-          ${stateRow({
-            state: "live",
-            meaning: html`In the build that is currently serving. This is the only state
-              the public site knows about.`,
-            movedBy: "A site build",
-          })}
-          ${stateRow({
-            state: "withdrawn",
-            meaning: html`The producer took it down. It leaves the catalogue at the next
-              build and its link stops resolving. The record stays.`,
-            movedBy: "The producer",
-          })}
-          ${stateRow({
-            state: "removed",
-            meaning: html`We took it down, and we say which reason: a breach, a rights
-              complaint, a dead link, or data we cannot reconcile.`,
-            movedBy: "An editor",
-          })}
-        </div>
+        ${listingStates()}
         </div>
         </div>
       `,
@@ -240,8 +193,9 @@ export async function overview(request: Request, env: Env) {
 
     ${section({
       heading: "The screens, as they stand",
-      lede: html`Sign in is real now (step 5, 2026-09-16). The other two are still layout
-        previews that read real state vocabulary and no real data.`,
+      lede: html`Sign in and the console are real now (steps 5 and 6, 2026-09-16). The
+        review queue is still a layout preview that reads real state vocabulary and no
+        real data.`,
       body: html`
         <div class="grid-2">
           ${card(html`
@@ -255,10 +209,10 @@ export async function overview(request: Request, env: Env) {
           ${card(html`
             <h3><a href="/console">The producer console</a></h3>
             <p class="muted">
-              The listing table and the four actions, with the empty state that is
-              currently the only honest thing to show. Still says "signed out"
-              unconditionally, even to a signed-in request - that page is not wired to a
-              session yet, on purpose, until step 6.
+              Reads your actual session and shows one of three screens: signed out,
+              signed in with no producer record attached yet, or attached, with your own
+              listings in it. Nothing can be submitted from it - the form is the next
+              piece of work - and it says so where the button would be.
             </p>
           `)}
           ${card(html`
@@ -301,9 +255,9 @@ export async function overview(request: Request, env: Env) {
       showBackLink: false,
       status: {
         label: "Not open yet",
-        note: html`Signing in is real (see "Account" above); there is still nothing to do
-          once signed in and no way to submit anything. Every screen here says so where it
-          would matter.`,
+        note: html`Signing in is real (see "Account" above) and
+          <a href="/console">the console</a> now reads it, but there is still no way to
+          submit anything. Every screen here says so where it would matter.`,
       },
       standfirst: html`This is where a fragrance producer will list an alternative on
         counterscent.com, follow it through review, and take it down again. It is being

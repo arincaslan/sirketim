@@ -36,8 +36,24 @@ export interface PageOptions {
   title: string;
   /** The <h1>. Kept separate from `title` so the tab and the page can differ. */
   heading: string;
-  /** A status pill plus one sentence, above the heading. */
-  status?: { label: string; note: Html };
+  /**
+   * A status pill plus one sentence, above the heading.
+   *
+   * `tone` is the pill's fill, and it carries meaning rather than emphasis.
+   * Outline is the default and means "not yet, or not you"; solid means the
+   * surface in front of you is real and working. That is the same
+   * solid-means-published geometry the listing badges use and the mark itself
+   * is drawn from, so the console's status language and the listings' status
+   * language are one language instead of two.
+   *
+   * It exists because every status strip on this origin rendered the same
+   * outline pill, which made /console signed out and /console with a live
+   * producer record look identical above the fold. Colour is never the only
+   * channel - the label, the heading, the first block's shape and the presence
+   * of a table all move as well - but this is the first of the four a reader
+   * meets.
+   */
+  status?: { label: string; note: Html; tone?: "outline" | "solid" };
   /** One paragraph under the heading. */
   standfirst?: Html;
   body: Html;
@@ -95,7 +111,7 @@ export function layout(options: PageOptions): Html {
     ${
       status
         ? html`<div class="status-strip" role="note">
-      <span class="pill pill-alert">${status.label}</span>
+      <span class="pill ${status.tone === "solid" ? "pill-solid" : "pill-alert"}">${status.label}</span>
       <p>${status.note}</p>
     </div>`
         : ""

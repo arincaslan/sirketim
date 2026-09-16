@@ -10,16 +10,20 @@ import { consumeVerificationToken, createSession, findOrCreateUser, setSessionCo
  * "/verify" - the magic-link callback. Not linked from anywhere on this
  * origin; the only way here is the URL emailed by POST /sign-in.
  *
- * REDIRECTS TO "/", NOT "/console", ON SUCCESS. That is a deliberate
- * deviation from the obvious "sign in, land where you'll work" flow, and the
- * reason is step 6, not this step: /console (src/routes/console.ts) still
- * unconditionally renders "Not signed in... there is no account system on
- * this origin" - it does not call the session-check helper this step built,
- * on purpose, because wiring it in is step 6's job. Sending a freshly
- * authenticated producer straight to a page that would then tell them,
- * falsely, that they are signed out is worse than sending them to the
- * overview instead, which DOES reflect real session state (src/routes/
- * overview.ts). Revisit this redirect target when step 6 lands.
+ * REDIRECTS TO "/console" ON SUCCESS, which is the ordinary "sign in, land
+ * where you work" flow and needs no defending. It is worth saying what it
+ * replaced, once, because the replaced version was right at the time: this
+ * used to redirect to "/" because /console rendered "not signed in" to
+ * everyone, including a request holding a valid session cookie, so landing a
+ * freshly authenticated producer there would have told them their sign-in had
+ * failed. Step 6 wired /console to getAuthContext(), that page now reads real
+ * session state in all three of its forms, and the reason expired with it.
+ *
+ * Note what a producer sees on arrival, because it is not a dashboard:
+ * findOrCreateUser() never attaches a Producer record, so a brand new account
+ * lands on the "signed in, nothing attached yet" screen. That is the normal
+ * first experience and /console is built to read as a waypoint rather than an
+ * error. Attaching an inbox to a real company stays an editorial act.
  */
 export async function verify(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
@@ -81,5 +85,5 @@ export async function verify(request: Request, env: Env): Promise<Response> {
   const user = await findOrCreateUser(sql, identifier);
   const session = await createSession(sql, user.id);
 
-  return redirect("/", { setCookie: setSessionCookieHeader(session.token, session.expires) });
+  return redirect("/console", { setCookie: setSessionCookieHeader(session.token, session.expires) });
 }

@@ -5,19 +5,22 @@
  * nothing behind any surface - no accounts, no sign-in, no way to submit
  * anything. That house rule (a feature whose backing service does not exist
  * yet must say so at the point of use, never a fake success) has not
- * changed; what changed on 2026-09-16 (build step 5) is that part of this
- * origin now has a backing service. Accounts and sign-in are real: POST
+ * changed; what changed on 2026-09-16 (build steps 5 and 6) is that part of
+ * this origin now has a backing service. Accounts and sign-in are real: POST
  * /sign-in stores an expiring, single-use token and emails a link (gated on
  * whether the mail secret is actually set - see src/lib/mailer.ts), GET
  * /verify consumes it once and starts a session, and this Worker now holds a
- * real (if minimal) connection to the database provisioned 2026-09-14. What
- * is still exactly a skeleton: /console and /review. Both remain unwired to
- * the session this step built - see their own files and src/routes/verify.ts
- * for why that is deliberate, not an oversight, until build steps 6 and 7.
+ * real (if minimal) connection to the database provisioned 2026-09-14. Step 6
+ * wired /console to that session: it reads who you are and renders one of
+ * three real screens, including your own listings if a producer record is
+ * attached to your address. What is still exactly a skeleton: /review, which
+ * stays unwired because it needs an access-control story first - there is no
+ * role column on User and it is currently linked from a public page.
  *
- * WHAT IT WILL BE: build steps 6 and 7 of HANDOFF.md - the producer console
- * (submit, list, withdraw, request an edit, see status) and the admin
- * approval queue.
+ * WHAT IT WILL BE: the rest of build steps 6 and 7 of HANDOFF.md - the submit
+ * form and the per-listing verbs (withdraw, request an edit), then the admin
+ * approval queue. Nothing on this origin can submit a listing today, and
+ * every screen that would carry that verb says so where the button is.
  *
  * ---------------------------------------------------------------------------
  * THE ARCHITECTURE, AND WHAT WAS REJECTED
@@ -106,7 +109,12 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
   "/sign-in": { GET: (req, env) => signIn(req, env), POST: (req, env) => signInSubmit(req, env) },
   "/verify": { GET: (req, env) => verify(req, env) },
   "/sign-out": { POST: (req, env) => signOut(req, env) },
-  "/console": { GET: () => page(producerConsole()) },
+  // Takes (req, env) and returns its own Response rather than being wrapped in
+  // page() here, for the same reason "/" does: it reads the session, and the
+  // signed-in branches carry a real sign-out <form>, so it has to decide its
+  // own `form-action` grant. A route whose CSP is chosen by the table cannot
+  // do that without the table knowing who is signed in.
+  "/console": { GET: (req, env) => producerConsole(req, env) },
   "/review": { GET: () => page(reviewQueue()) },
   "/robots.txt": { GET: robots },
   "/health": { GET: health },

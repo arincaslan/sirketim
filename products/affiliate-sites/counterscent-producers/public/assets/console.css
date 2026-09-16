@@ -169,6 +169,14 @@ p {
   color: hsl(var(--muted-foreground));
 }
 
+/* For the values this origin renders that have no spaces in them and no upper
+   bound on length: an email address, a producer's slug, a reference slug. At
+   390px any of them will push a card wider than the viewport, and the usual
+   `break-word` does not help a string with no break opportunities in it. */
+.wrap-anywhere {
+  overflow-wrap: anywhere;
+}
+
 .shell {
   width: 100%;
   max-width: var(--shell);
@@ -250,6 +258,24 @@ p {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+/* THE HEADER OVERFLOWED THE DOCUMENT AT 390px. The lockup, the catalogue link
+   and the theme toggle came to about 376px of content inside 342px of shell,
+   so the toggle was clipped by the viewport edge and the whole page gained a
+   horizontal scrollbar - on every screen of the origin, not only this one.
+   Found by measuring rather than by looking, because a clipped control at the
+   right edge of a sticky header is easy to miss in a screenshot.
+
+   The catalogue link is what gives way: it is the same link, first in the
+   footer's own list, so nothing is lost at this width, and the theme toggle is
+   the one header control with no duplicate anywhere. Wrapping the header
+   instead would make it two lines tall and put scroll-padding-top (5rem, kept
+   in step with .header-inner's min-height) out of step with it. */
+@media (max-width: 26rem) {
+  .header-actions .quiet-link {
+    display: none;
+  }
 }
 
 .quiet-link {
@@ -445,6 +471,19 @@ h3 {
   background: hsl(var(--primary) / 0.08);
 }
 
+/* The status pill's other tone, and it says the same thing .state-live says:
+   solid means the thing in front of you is real. Every status strip on this
+   origin used to render .pill-alert, which made /console signed out and
+   /console with a live producer record look identical above the fold. It is
+   the same fill as .state-live rather than a new colour, on purpose - the
+   console's status language and the listings' status language are one
+   language. White on green measures 7.69:1 in light and 7.00:1 in dark. */
+.pill-solid {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
 .state-live {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
@@ -511,6 +550,20 @@ h3 {
   .state-row-actor {
     text-align: right;
   }
+}
+
+/* The eight badges as badges, for a page whose reader needs to recognise the
+   vocabulary rather than learn it. It reads the same array the full reference
+   does (listingStates() in src/ui/components.ts), so a specimen can never show
+   a state the reference does not explain. Wraps rather than scrolls: these are
+   eight independent objects, not a row to be read across. */
+.state-specimen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 1rem;
+  padding: 0;
+  list-style: none;
 }
 
 /* The one place the two enums are shown crossing. Deliberately not a matrix:
@@ -676,16 +729,128 @@ fieldset {
   transform: scale(0.98);
 }
 
+/* A link wearing the button's clothes. The only live actions on the signed-out
+   screen are a navigation and a mailto, and both are anchors: a <button> that
+   navigates would be the wrong element, and styling the anchor is cheaper than
+   explaining why the two real actions on the page look unlike every other
+   action on the origin. */
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+a.btn:hover {
+  text-decoration: none;
+}
+.door-action {
+  margin: 1.25rem 0 0;
+}
+
+/* ONE REASON PER DEAD BUTTON, UNDER THE BUTTON IT BELONGS TO. There used to be
+   a single .actions-note under a row of three, which could carry one reason for
+   three buttons disabled for two different reasons. The button and its reason
+   are one column; the row still wraps. */
+.dead-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 17rem;
+}
+.dead-action-why {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  align-items: center;
+  /* Was `center`. A row of buttons could be centred against each other; a row
+     of buttons each carrying its own reason underneath cannot, because the
+     reasons are different lengths and centring them floats the buttons to
+     different heights. */
+  align-items: flex-start;
 }
 .actions-note {
   font-size: 0.8125rem;
   color: hsl(var(--muted-foreground));
   margin: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Identity bar and allowance. The one place on this origin where density
+   rises: four short facts on one row, because they are the answer to the
+   first question an attached producer has when the page loads.
+   ------------------------------------------------------------------------- */
+.identity-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--card));
+}
+
+.identity-facts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem 2.5rem;
+  margin: 0;
+  min-width: 0;
+}
+.identity-fact {
+  min-width: 0;
+}
+.identity-fact dt {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(var(--muted-foreground));
+}
+.identity-fact dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+/* Below 40rem the facts stack and the sign-out control sits under them. The
+   alternative, a horizontal scroll on the one strip carrying the reader's own
+   name, is the worst place on the page to hide something. */
+@media (min-width: 40rem) {
+  .identity-facts {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, max-content);
+  }
+}
+
+.identity-action {
+  margin-left: auto;
+}
+.identity-action .actions {
+  margin: 0;
+}
+
+/* The allowance sentence. Phrasing content, because it renders inside a <dd>
+   in the bar above as well as on its own. */
+.quota {
+  display: block;
+}
+.quota-figure {
+  display: block;
+}
+.quota-note {
+  display: block;
+  margin-top: 0.125rem;
+  max-width: 34ch;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
 }
 
 /* -------------------------------------------------------------------------
@@ -743,6 +908,75 @@ fieldset {
 }
 .data-table td {
   padding: 0.875rem 1rem;
+  vertical-align: top;
+}
+
+/* A row that labels itself. `th[scope="row"]` is what makes a comparison table
+   readable out loud instead of a grid of unlabelled values, and it has to shed
+   the column header's treatment above: no uppercase, no shaded fill, full
+   foreground contrast, because it is a label inside the body rather than a
+   heading over it. */
+.data-table th[scope="row"] {
+  padding: 0.875rem 1rem;
+  width: 14rem;
+  vertical-align: top;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--foreground));
+  background: transparent;
+  border-bottom: 0;
+}
+
+.data-table tbody tr + tr > td,
+.data-table tbody tr + tr > th {
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* The rule that separates what a tier covers from what no tier buys. It has to
+   be heavier than the row separators or the block below it reads as four more
+   ordinary rows. Declared after them so it wins on order rather than on
+   !important. */
+.data-table tbody tr.row-rule > td,
+.data-table tbody tr.row-rule > th {
+  border-top: 2px solid hsl(var(--border));
+}
+
+/* A cell spanning the tier columns. Its content is prose, so it gets the
+   measure and the leading of prose rather than a data cell's. */
+.table-span {
+  display: block;
+  max-width: 52ch;
+  line-height: 1.55;
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+.table-span .plain-list {
+  margin: 0;
+}
+.table-span .plain-list li {
+  padding-block: 0.25rem;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}
+.table-span p {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+}
+
+/* Two lines in one cell: the value, and what qualifies it. Used where a number
+   without its qualifier would be a different claim - a match score that is
+   frozen at removal rather than current, for one. */
+.cell-title {
+  display: block;
+  font-weight: 600;
+}
+.cell-sub {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
 }
 
 .empty {
