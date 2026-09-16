@@ -298,7 +298,7 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
             )}
             <p className="mt-4 text-sm text-muted-foreground">
               Make a fragrance you think belongs here?{" "}
-              <Link href="/producers" className="text-primary underline underline-offset-4">
+              <Link href="/producers/" className="text-primary underline underline-offset-4">
                 List it with us
               </Link>
               .

@@ -78,13 +78,13 @@ export function Hero() {
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
-              <Link href="/dupe-finder">
+              <Link href="/dupe-finder/">
                 Find your dupe
                 <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/about">Our standards</Link>
+              <Link href="/about/">Our standards</Link>
             </Button>
           </div>
         </motion.div>

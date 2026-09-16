@@ -61,7 +61,7 @@ export function RetailerBand() {
             <p className="max-w-[64ch] text-sm text-muted-foreground">
               They are not partners or sponsors, and none of them has reviewed anything on
               this site. Which retailer stocks a bottle has no effect on its match score.{" "}
-              <Link href="/disclosure" className="text-primary underline underline-offset-4">
+              <Link href="/disclosure/" className="text-primary underline underline-offset-4">
                 How this works
               </Link>
             </p>

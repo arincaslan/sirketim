@@ -43,7 +43,7 @@ export function ChapterTryIt() {
             that shows exactly where each one lines up.
           </p>
           <Button asChild size="lg" data-cursor="view" className="mt-2 w-fit">
-            <Link href="/dupe-finder">
+            <Link href="/dupe-finder/">
               Find your dupe
               <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
             </Link>

@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Our Standards",
   description:
     "How Counterscent tests fragrances, calculates similarity scores, and keeps affiliate revenue from influencing a single rating.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {
@@ -140,7 +141,7 @@ export default function AboutPage() {
                 Through affiliate commissions when a reader buys through one
                 of our links. It costs you nothing extra, and it never moves
                 a product up or down our ranking.{" "}
-                <Link href="/disclosure" className="underline underline-offset-2 hover:text-primary">
+                <Link href="/disclosure/" className="underline underline-offset-2 hover:text-primary">
                   Read the full disclosure policy
                 </Link>
                 .
@@ -174,11 +175,11 @@ export default function AboutPage() {
       <Reveal className="container max-w-3xl py-14 text-center sm:py-16">
         <p className="text-lg text-muted-foreground">
           Questions about a specific rating?{" "}
-          <Link href="/library" className="text-primary underline underline-offset-2">
+          <Link href="/library/" className="text-primary underline underline-offset-2">
             Browse the library
           </Link>{" "}
           or start with the{" "}
-          <Link href="/dupe-finder" className="text-primary underline underline-offset-2">
+          <Link href="/dupe-finder/" className="text-primary underline underline-offset-2">
             dupe finder
           </Link>
           .

@@ -105,7 +105,7 @@ export default function WhatsNewPage() {
             No listing on this site carries a recorded publication date yet, so there is
             nothing honest to show here. {DUPES.length} alternatives are live and
             comparable in the{" "}
-            <Link href="/dupe-finder" className="text-primary underline underline-offset-4">
+            <Link href="/dupe-finder/" className="text-primary underline underline-offset-4">
               Dupe Finder
             </Link>{" "}
             &mdash; they are simply undated, and we would rather show nothing than invent
@@ -279,7 +279,7 @@ export default function WhatsNewPage() {
           alternative: {coverage.singleListing} have exactly one, and {coverage.uncovered} have
           none at all. Dupe houses clone bestsellers, so a large part of any serious fragrance
           catalogue will never have one, and we would rather say that than pad the page.{" "}
-          <Link href="/producers" className="text-primary underline underline-offset-4">
+          <Link href="/producers/" className="text-primary underline underline-offset-4">
             Make one that belongs here?
           </Link>
         </p>

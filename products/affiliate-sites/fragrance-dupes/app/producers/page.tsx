@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "List your fragrance",
   description:
     "How producers list an alternative on Counterscent: what we ask for, what a subscription does and does not buy, and how listings are reviewed.",
+  alternates: { canonical: "/producers" },
 };
 
 /**
@@ -37,7 +38,7 @@ export default function ProducersPage() {
             and is staying that way. HANDOFF.md, "The architecture answer".
             A plain <a>, not next/link: Link is for in-app routes. */}
         <div className="flex flex-wrap gap-3">
-          <Link href="/producers/pricing" className={buttonVariants({ variant: "default" })}>
+          <Link href="/producers/pricing/" className={buttonVariants({ variant: "default" })}>
             See plans and pricing
           </Link>
           <a

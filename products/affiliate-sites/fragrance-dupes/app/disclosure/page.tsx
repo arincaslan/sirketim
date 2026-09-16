@@ -4,6 +4,7 @@ import { getLiveMerchants } from "@/lib/merchants";
 export const metadata: Metadata = {
   title: "Affiliate Disclosure",
   description: "How Counterscent discloses affiliate relationships, in full, per FTC guidance.",
+  alternates: { canonical: "/disclosure" },
 };
 
 export default function DisclosurePage() {

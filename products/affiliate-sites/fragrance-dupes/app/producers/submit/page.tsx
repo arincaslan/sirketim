@@ -6,6 +6,7 @@ import { PRODUCER_CONSOLE } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Submit a listing",
   description: "Submitting a listing has moved to producers.counterscent.com.",
+  alternates: { canonical: "/producers/submit" },
 };
 
 /**
@@ -62,7 +63,7 @@ export default function SubmitPage() {
           >
             Open the producer console
           </a>
-          <Link href="/producers" className={buttonVariants({ variant: "outline" })}>
+          <Link href="/producers/" className={buttonVariants({ variant: "outline" })}>
             What we ask for
           </Link>
         </div>

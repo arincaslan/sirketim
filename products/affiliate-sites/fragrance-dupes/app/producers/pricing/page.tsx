@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Producer plans",
   description:
     "List your fragrance alternatives on Counterscent. Monthly or yearly, with a free tier to test the channel first. No plan buys rank.",
+  alternates: { canonical: "/producers/pricing" },
 };
 
 export default function PricingPage() {
@@ -28,7 +29,7 @@ export default function PricingPage() {
           The producer program has not launched. There are no producer accounts, no billing
           connected to this site, and the prices above are indicative rather than final. Nothing
           here will charge you. If you make fragrances and want to be told when it opens,{" "}
-          <Link href="/about" className="underline underline-offset-2 hover:text-primary">
+          <Link href="/about/" className="underline underline-offset-2 hover:text-primary">
             read our standards first
           </Link>{" "}
           — they are the part most likely to decide whether this is a fit.

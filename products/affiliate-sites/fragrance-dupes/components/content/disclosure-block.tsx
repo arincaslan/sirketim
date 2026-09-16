@@ -15,7 +15,7 @@ export function DisclosureBlock() {
         This piece contains affiliate links. If you buy through one, we may earn a
         commission at no extra cost to you. It never changes which product we rank
         first.{" "}
-        <Link href="/disclosure" className="underline underline-offset-2 hover:text-primary">
+        <Link href="/disclosure/" className="underline underline-offset-2 hover:text-primary">
           Read our full policy
         </Link>
         .

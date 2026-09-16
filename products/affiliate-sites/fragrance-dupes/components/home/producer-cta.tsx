@@ -34,11 +34,11 @@ export function ProducerCta() {
         </div>
 
         <div className="flex shrink-0 flex-wrap gap-3">
-          <Link href="/producers" className={cn(buttonVariants({ variant: "default" }), "gap-2")}>
+          <Link href="/producers/" className={cn(buttonVariants({ variant: "default" }), "gap-2")}>
             For producers
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
-          <Link href="/producers/pricing" className={buttonVariants({ variant: "outline" })}>
+          <Link href="/producers/pricing/" className={buttonVariants({ variant: "outline" })}>
             See plans
           </Link>
         </div>

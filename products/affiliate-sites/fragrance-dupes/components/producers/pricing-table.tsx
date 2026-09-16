@@ -139,7 +139,7 @@ export function PricingTable() {
               </ul>
 
               {isFree ? (
-                <Link href="/producers/login" className={cn(buttonVariants({ variant: "outline" }), "w-full")}>
+                <Link href="/producers/login/" className={cn(buttonVariants({ variant: "outline" }), "w-full")}>
                   Create a free account
                 </Link>
               ) : (

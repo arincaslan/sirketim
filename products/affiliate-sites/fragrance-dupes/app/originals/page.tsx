@@ -102,7 +102,7 @@ export default function OriginalsPage() {
           &mdash; there is no note pyramid, profile or match score for a fragrance we
           have not researched, and we would rather say so than publish one we invented.
           Everything on this page is what the retailer states about its own stock.{" "}
-          <Link href="/fragrance" className="text-primary underline underline-offset-4">
+          <Link href="/fragrance/" className="text-primary underline underline-offset-4">
             Browse the researched catalog
           </Link>{" "}
           for the comparisons.

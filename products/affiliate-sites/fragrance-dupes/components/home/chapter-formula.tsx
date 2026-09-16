@@ -77,7 +77,7 @@ export function ChapterFormula() {
           </ol>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
             <Button asChild size="lg" className="w-fit">
-              <Link href="/dupe-finder">
+              <Link href="/dupe-finder/">
                 Find your dupe
                 <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
               </Link>

@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "What Counterscent collects, what it does not, and who processes data on our behalf.",
+  alternates: { canonical: "/privacy" },
 };
 
 const UPDATED = "27 August 2026";
@@ -92,7 +93,7 @@ export default function PrivacyPage() {
         <p>
           Some outbound links are affiliate links, and we may earn a
           commission if you buy through them &mdash; see our{" "}
-          <a href="/disclosure">affiliate disclosure</a>. When you follow one,
+          <a href="/disclosure/">affiliate disclosure</a>. When you follow one,
           the retailer may set its own cookie to credit the referral. That
           cookie is set by them, under their privacy policy, not ours. We
           never receive your order details, your payment information, or your
@@ -143,7 +144,7 @@ export default function PrivacyPage() {
         <h2>Contact</h2>
         <p>
           Questions about this policy, or a request about your data, can go to{" "}
-          <a href="/contact">our contact page</a>.
+          <a href="/contact/">our contact page</a>.
         </p>
       </div>
     </div>

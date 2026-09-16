@@ -6,6 +6,7 @@ import { PRODUCER_CONSOLE } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Producer sign in",
   description: "Producer sign-in has moved to producers.counterscent.com.",
+  alternates: { canonical: "/producers/login" },
 };
 
 /**
@@ -64,14 +65,14 @@ export default function ProducerLoginPage() {
           >
             Go to producer sign in
           </a>
-          <Link href="/producers" className={buttonVariants({ variant: "outline" })}>
+          <Link href="/producers/" className={buttonVariants({ variant: "outline" })}>
             How the programme works
           </Link>
         </div>
 
         <p className="text-sm text-muted-foreground">
           Here to compare fragrances instead?{" "}
-          <Link href="/dupe-finder" className="underline underline-offset-2 hover:text-primary">
+          <Link href="/dupe-finder/" className="underline underline-offset-2 hover:text-primary">
             The Dupe Finder
           </Link>{" "}
           needs no account and never will.

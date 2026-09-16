@@ -50,7 +50,7 @@ export default function ContactPage() {
         <h2>Fragrance houses and dupe producers</h2>
         <p>
           If you make fragrances and want your products listed, start at{" "}
-          <a href="/producers">the producer programme</a>. Listings are scored
+          <a href="/producers/">the producer programme</a>. Listings are scored
           by the same published formula as everyone else, and no plan buys
           rank, score, or placement &mdash; see{" "}
           <a href="/about#methodology">our standards</a>.
@@ -63,8 +63,8 @@ export default function ContactPage() {
         <h2>Press and partnerships</h2>
         <p>
           Same address, and please say which it is in the subject line. Our{" "}
-          <a href="/disclosure">affiliate disclosure</a> and{" "}
-          <a href="/privacy">privacy policy</a> answer most commercial
+          <a href="/disclosure/">affiliate disclosure</a> and{" "}
+          <a href="/privacy/">privacy policy</a> answer most commercial
           questions before you have to ask them.
         </p>
       </div>

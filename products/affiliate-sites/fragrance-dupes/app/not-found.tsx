@@ -9,7 +9,7 @@ export default function NotFound() {
         The page you&apos;re looking for moved, or never existed. Try the dupe finder instead.
       </p>
       <Button asChild size="lg">
-        <Link href="/dupe-finder">Find your dupe</Link>
+        <Link href="/dupe-finder/">Find your dupe</Link>
       </Button>
     </div>
   );

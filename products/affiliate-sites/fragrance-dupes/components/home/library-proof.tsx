@@ -20,7 +20,7 @@ export function LibraryProof({ pieces }: { pieces: ContentPiece[] }) {
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <h2 className="font-display text-fluid-h2">From the library</h2>
           <Link
-            href="/library"
+            href="/library/"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
           >
             View all

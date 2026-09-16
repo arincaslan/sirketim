@@ -78,7 +78,7 @@ export function ChapterStandards() {
             we&apos;ll show you the formula.
           </p>
           <Button asChild variant="link" size="lg" className="px-0">
-            <Link href="/dupe-finder">
+            <Link href="/dupe-finder/">
               Find your dupe
               <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
             </Link>

@@ -65,7 +65,7 @@ export default function FragranceCatalogPage() {
           {REFERENCES.length} originals we&apos;ve researched, across {groups.length} houses -
           full note pyramid, facet profile, and price per ml for each. Already know which
           one you&apos;re comparing?{" "}
-          <Link href="/dupe-finder" className="text-primary underline underline-offset-4">
+          <Link href="/dupe-finder/" className="text-primary underline underline-offset-4">
             Go straight to the Dupe Finder
           </Link>
           .
@@ -85,7 +85,7 @@ export default function FragranceCatalogPage() {
             <>
               {" "}
               Last added to{" "}
-              <Link href="/new" className="text-primary underline underline-offset-4">
+              <Link href="/new/" className="text-primary underline underline-offset-4">
                 <time dateTime={lastUpdated}>{formatListingDate(lastUpdated)}</time>
               </Link>
               .

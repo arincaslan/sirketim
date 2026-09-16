@@ -370,7 +370,7 @@ function NewArrivalsSlider({ arrivals }: { arrivals: NewArrival[] }) {
             from any one producer.
           </p>
           <Link
-            href="/new"
+            href="/new/"
             className="inline-flex scroll-mt-24 items-center gap-1.5 justify-self-start rounded-frame text-sm font-semibold text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background sm:col-start-2 sm:row-start-1 sm:self-end sm:justify-self-end"
           >
             See everything added
