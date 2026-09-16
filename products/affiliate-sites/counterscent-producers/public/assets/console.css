@@ -1060,3 +1060,77 @@ html[data-theme-switching] *::before,
 html[data-theme-switching] *::after {
   transition: none !important;
 }
+
+/* ------------------------------------------------------------------------ *
+ * Per-listing action, and the two utilities it needs
+ * ------------------------------------------------------------------------ */
+
+/* The withdraw link in a table row. Deliberately NOT a .btn: a row of buttons
+   down a table column reads as the page's primary action repeated, and this is
+   the least primary thing on the screen. It stays a link because it opens a
+   confirmation rather than performing the withdrawal. */
+.cell-action {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  white-space: nowrap;
+}
+.cell-action:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Visible to a screen reader, not on screen. The withdraw link says only
+   "Withdraw" visually, because the row it sits in already names the listing -
+   but a reader tabbing through links out of context would hear "Withdraw"
+   several times with nothing to tell them apart, so the name goes in here.
+   Not `display: none`, which removes it from the accessibility tree too. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* A confirm/cancel pair. Separate from .actions, which aligns to flex-start so
+   each button can carry a different-length reason underneath; these two carry
+   no reasons and read better aligned on their shared baseline. */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1.25rem;
+}
+
+/* A completed action, reported on the page it returns to. Distinct from
+   .error-summary: that interrupts, this confirms. Same left-rule geometry so
+   the two read as one family, and no colour-only signal - the heading says
+   "Withdrawn" in words, because a green bar alone is not a message. */
+.notice-done {
+  border: 1px solid hsl(var(--border));
+  border-left: 3px solid hsl(var(--foreground));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--secondary));
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.5rem;
+}
+.notice-done:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+.notice-done-title {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+.notice-done p:last-child {
+  margin-bottom: 0;
+}

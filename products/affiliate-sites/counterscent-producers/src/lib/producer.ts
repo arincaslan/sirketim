@@ -77,6 +77,10 @@ export interface ListingRow {
   id: string;
   name: string;
   brand: string;
+  /** The derived, per-producer-unique listing slug. Read so the withdraw
+   *  confirmation can name the exact `/go/` identifier that stops resolving,
+   *  rather than describing one in the abstract. */
+  slug: string;
   referenceSlug: string;
   approvalStatus: string;
   publishState: string;
@@ -114,6 +118,62 @@ export function countsAgainstAllowance(publishState: string): boolean {
   return publishState !== "WITHDRAWN_BY_PRODUCER" && publishState !== "REMOVED_BY_EDITOR";
 }
 
+/* ---------------------------------------------------------------------- *
+ * The gate
+ * ---------------------------------------------------------------------- */
+
+export type QuotaVerdict =
+  | { kind: "ok" }
+  | { kind: "at-allowance"; allowance: number }
+  | { kind: "unknown-tier"; tier: string };
+
+/**
+ * ============================================================================
+ * WHETHER THIS PRODUCER MAY ADD ANOTHER LISTING. SERVER SIDE, ON THE ROUTE.
+ * ============================================================================
+ *
+ * Never in the UI alone. The GET uses this to decide whether to render a form
+ * at all and the POST uses it again before it writes, because a stale tab, a
+ * second window, or a request that never came from our form would otherwise
+ * walk straight past a decision made only at render time.
+ *
+ * It counts with countsAgainstAllowance() above and nothing else. The console's
+ * own copy promises that rule ("a withdrawn listing frees its slot"), so a
+ * second, slightly different count written next to the form would be a promise
+ * broken by arithmetic.
+ *
+ * THE TWO AWKWARD CASES, DECIDED RATHER THAN DEFAULTED. allowanceForTier()
+ * returns "unknown" for a tier string this console does not recognise, and
+ * `tier: null` means there is no Subscription row at all. Neither may be
+ * silently treated as free, and neither may be treated as unlimited.
+ *
+ *   "unknown"  REFUSES THE WRITE. There is a subscription on file and we do not
+ *              know what it covers. Guessing low tells a paying producer they
+ *              are full; guessing high lets them past a limit they are paying to
+ *              have raised. The honest answer is that we will not guess, and it
+ *              is a state a person has to clear.
+ *
+ *   null       IS ENFORCED AS THE FREE ALLOWANCE OF ONE, and that is a
+ *              narrower statement than it looks. It is an enforcement decision
+ *              only: the UI still renders "No plan on file", because absence of
+ *              a row is not a free plan and printing one asserts a record that
+ *              is not there. The reason for enforcing rather than refusing is
+ *              that this is EVERY producer's state at launch - there are zero
+ *              Subscription rows - so refusing all of them would make the form
+ *              unreachable by everyone, which is a broken console rather than a
+ *              cautious one. The direction of the error also matters: enforcing
+ *              one is the tightest allowance any tier has, so nobody gets more
+ *              than they are entitled to out of it.
+ */
+export function quotaGate(opts: { tier: string | null; inUse: number }): QuotaVerdict {
+  const allowance: Allowance = opts.tier === null ? 1 : allowanceForTier(opts.tier);
+
+  if (allowance === "unknown") return { kind: "unknown-tier", tier: opts.tier ?? "" };
+  if (allowance === "uncapped") return { kind: "ok" };
+  if (opts.inUse >= allowance) return { kind: "at-allowance", allowance };
+  return { kind: "ok" };
+}
+
 /**
  * Returns null when `producerId` points at no Producer row. That is not
  * impossible: User.producerId is SetNull on delete, so it can only happen
@@ -147,7 +207,7 @@ export async function loadProducerConsole(
   // whatever the row count, and the ORDER BY ... LIMIT 1 inside it is exactly
   // what the ("submissionId", "createdAt") index on AuditEvent is for.
   const listings = (await sql`
-    SELECT s.id, s.name, s.brand, s."referenceSlug",
+    SELECT s.id, s.name, s.brand, s.slug, s."referenceSlug",
            s."approvalStatus"::text AS "approvalStatus",
            s."publishState"::text   AS "publishState",
            s."scoreAtRemoval",

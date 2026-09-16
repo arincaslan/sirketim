@@ -89,6 +89,8 @@ import { robots } from "./routes/robots";
 import { signIn, signInSubmit } from "./routes/sign-in";
 import { verify } from "./routes/verify";
 import { signOut } from "./routes/sign-out";
+import { submitPage, submitListing } from "./routes/submit";
+import { withdrawPage, withdrawSubmit } from "./routes/withdraw";
 import type { Env } from "./lib/env";
 
 type Handler = (request: Request, env: Env) => Response | Promise<Response>;
@@ -115,6 +117,17 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
   // own `form-action` grant. A route whose CSP is chosen by the table cannot
   // do that without the table knowing who is signed in.
   "/console": { GET: (req, env) => producerConsole(req, env) },
+  // The two authenticated writes this origin accepts. Both are POST-only for
+  // the act itself and GET for the screen that precedes it, so neither can be
+  // triggered by a link, an image, or a prefetch.
+  "/console/submit": {
+    GET: (req, env) => submitPage(req, env),
+    POST: (req, env) => submitListing(req, env),
+  },
+  "/console/withdraw": {
+    GET: (req, env) => withdrawPage(req, env),
+    POST: (req, env) => withdrawSubmit(req, env),
+  },
   "/review": { GET: () => page(reviewQueue()) },
   "/robots.txt": { GET: robots },
   "/health": { GET: health },

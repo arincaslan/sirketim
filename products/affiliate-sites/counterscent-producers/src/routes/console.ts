@@ -21,6 +21,7 @@ import { db } from "../lib/db";
 import { getAuthContext, type AuthUser } from "../lib/auth";
 import {
   allowanceForTier,
+  countsAgainstAllowance,
   loadProducerConsole,
   type Allowance,
   type ListingRow,
@@ -96,7 +97,19 @@ export async function producerConsole(request: Request, env: Env): Promise<Respo
 
   if (!data) return page(producerRecordMissing(auth), 200, { allowForms: true });
 
-  return page(attached(auth, data), 200, { allowForms: true });
+  // A WITHDRAWAL THAT SAYS NOTHING IS A SILENT SUCCESS. POST /console/withdraw
+  // redirects here with the slug it withdrew, and without this the producer
+  // performs an act they cannot undo and is returned to a page that looks
+  // exactly as it did before. The slug is read back out of their OWN listings
+  // rather than trusted from the query string, so a crafted URL cannot make
+  // this page assert that something was withdrawn when nothing was.
+  const withdrewSlug = new URL(request.url).searchParams.get("withdrew");
+  const withdrew =
+    withdrewSlug && data.listings.find((l) => l.slug === withdrewSlug && !countsAgainstAllowance(l.publishState))
+      ? data.listings.find((l) => l.slug === withdrewSlug) ?? null
+      : null;
+
+  return page(attached(auth, data, withdrew), 200, { allowForms: true });
 }
 
 /* ======================================================================== *
@@ -390,13 +403,31 @@ function noProducerAttached(auth: AuthUser): Html {
  * (c) Signed in and attached
  * ======================================================================== */
 
-function attached(auth: AuthUser, data: ProducerConsoleData): Html {
+function attached(auth: AuthUser, data: ProducerConsoleData, withdrew: ListingRow | null = null): Html {
   const { producer, listings, inUse } = data;
   const allowance: Allowance | null = producer.tier === null ? null : allowanceForTier(producer.tier);
   const hasListings = listings.length > 0;
   const atAllowance = typeof allowance === "number" && inUse >= allowance;
 
   const body = html`
+    ${
+      // role="status" rather than role="alert": this is a completed action
+      // being reported, not a problem interrupting one. tabindex="-1" plus
+      // autofocus moves a keyboard reader here on arrival, which is the only
+      // way to do it on an origin with no client JavaScript.
+      withdrew
+        ? html`<div class="notice-done" role="status" tabindex="-1" autofocus>
+            <p class="notice-done-title">
+              Withdrawn: ${withdrew.brand} ${withdrew.name}
+            </p>
+            <p class="field-hint">
+              It is no longer published and <code>/go/${withdrew.slug}</code> stops resolving at
+              our next build. The record and its click history are kept, and the slot it was
+              using is free again.
+            </p>
+          </div>`
+        : ""
+    }
     ${section({
       heading: "Account",
       body: html`
@@ -436,42 +467,46 @@ function attached(auth: AuthUser, data: ProducerConsoleData): Html {
           <div>
             ${tableBlock({
               label: "Your listings",
-              columns: ["Your fragrance", "Compared against", "Match", "State", "Last change"],
+              columns: ["Your fragrance", "Compared against", "Match", "State", "Last change", "Action"],
               rows: listingRows(listings),
               empty: emptyState({
                 headline: "You have not submitted anything yet",
-                because: html`Nothing has been submitted against this producer record, and
-                  there is no way to submit one from here yet: the form is the next piece
-                  of work. So this table stays empty even if you have a fragrance ready,
-                  and that is about us rather than about you.`,
+                because: html`Nothing has been submitted against this producer record yet.
+                  <a href="/console/submit">Submit a fragrance</a> when you are ready. It goes
+                  to a person to read, not straight onto the site.`,
               }),
             })}
           </div>
 
           <div class="actions">
-            ${deadButton("Submit a fragrance", {
-              reason: html`The submission form is not built. It needs a note selector
-                drawn from our own catalogue's vocabulary before it can accept anything,
-                because free-typed notes would silently move your score.`,
-            })}
+            ${
+              // AT THE ALLOWANCE, THE LINK IS NOT RENDERED AS A LINK. Sending a
+              // producer to a form that will refuse them is a worse answer than
+              // saying so here - and the submit route re-checks the quota anyway,
+              // because enforcement that lives in a page is enforcement the server
+              // does not do.
+              atAllowance
+                ? deadButton("Submit a fragrance", {
+                    reason: html`You are using every listing your tier allows. Withdraw one
+                      from the table above and its slot comes back, or move up a tier.`,
+                  })
+                : html`<a class="btn btn-primary" href="/console/submit">Submit a fragrance</a>`
+            }
             ${deadButton("Request an edit", {
               variant: "ghost",
               reason: hasListings
-                ? html`Per-listing verbs are not built. When they are, this one will sit
-                    in the row it acts on rather than up here.`
+                ? html`Not built yet. An edit request goes to the same person who reads a
+                    submission, and until that route exists, write to us instead.`
                 : html`Nothing to act on. An edit request is made against one published
-                    listing and you have none, so this stays disabled for an empty table
-                    even after the form ships.`,
-            })}
-            ${deadButton("Withdraw a listing", {
-              variant: "ghost",
-              reason: hasListings
-                ? html`Also per-listing, and also not built. Withdrawing sets a state and
-                    keeps the record and the click history; it never deletes a row.`
-                : html`Nothing to act on, for the same reason. Withdrawal acts on one
-                    listing, and it sets a state rather than deleting anything.`,
+                    listing and you have none.`,
             })}
           </div>
+          ${
+            // WITHDRAW IS DELIBERATELY NOT HERE. It acts on one listing, so it
+            // lives in that listing's row: a page-level withdraw would have to ask
+            // "which one", and the answer would be a <select> that should not exist.
+            ""
+          }
         </div>
       `,
     })}
@@ -565,8 +600,28 @@ function listingRows(listings: ListingRow[]): TableRow[] {
               <span class="cell-sub">${l.lastAction ?? ""}</span>`
           : html`<span class="cell-sub">Nothing recorded yet</span>`,
       },
+      {
+        // A LINK, NOT A FORM BUTTON, because this cell only opens the
+        // confirmation - the withdrawal itself is a POST from that page. A
+        // one-click withdraw in a table row would be an irreversible act behind
+        // a stray tap, and this one genuinely is irreversible from the console:
+        // the unique constraint on (producerId, referenceSlug) means the
+        // withdrawn row still holds the pairing.
+        content: withdrawable(l)
+          ? html`<a class="cell-action" href="/console/withdraw?id=${l.id}"
+              >Withdraw<span class="visually-hidden"> ${l.brand} ${l.name}</span></a
+            >`
+          : html`<span class="cell-sub">Already withdrawn</span>`,
+      },
     ],
   }));
+}
+
+/** The same rule countsAgainstAllowance() applies, asked the other way round.
+ *  Kept here rather than imported so the table and the withdraw route cannot
+ *  disagree about which listings offer the verb: both read publishState. */
+function withdrawable(l: ListingRow): boolean {
+  return l.publishState !== "WITHDRAWN_BY_PRODUCER" && l.publishState !== "REMOVED_BY_EDITOR";
 }
 
 /**

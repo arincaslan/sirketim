@@ -131,6 +131,58 @@ export const SIGN_IN_GLOBAL_WINDOW_SECONDS = 86_400;
 export const SIGN_IN_GLOBAL_MAX_SENDS = 100;
 
 /**
+ * AUTHENTICATED WRITES: twenty per hour, per producer.
+ *
+ * Covers POST /console/submit and POST /console/withdraw together, in one
+ * bucket, because what needs bounding is "writes from this producer" and not
+ * either verb on its own.
+ *
+ * KEYED ON THE PRODUCER, NOT THE IP. The writer here is authenticated, and
+ * there is no anonymous path to either route: both require a session, which
+ * requires a link followed from a verified inbox. An IP key would be strictly
+ * worse in both directions - a fragrance house whose staff share one office
+ * NAT address would share one allowance, and a single producer on a dynamic
+ * address could reset theirs by reconnecting.
+ *
+ * WHY TWENTY. Argued from the demand side, because that is the side anybody
+ * can actually see. There are zero enrolled producers today. The free tier
+ * covers one active listing, the largest paid tier that exists covers 25, and
+ * every write here is a person filling in a form about a real product they
+ * make: a submission is a deliberate act that happens a handful of times in
+ * the life of an account, and a withdrawal is rarer still. Twenty an hour is
+ * well past any honest use and still low enough that a loop stops quickly.
+ *
+ * NO GLOBAL BUCKET HERE, and that is not an oversight. The global cap on
+ * POST /sign-in exists because that endpoint is unauthenticated and spends a
+ * shared, exhaustible resource: mail from the business's own inbox. These
+ * routes spend neither. Reaching them at all requires a session, which
+ * requires a verified email, which is already bounded by
+ * SIGN_IN_GLOBAL_MAX_SENDS above - so the number of distinct producers who can
+ * be hammering this in a day is capped upstream by a limit that already exists.
+ * A second global counter would add a shared failure mode (one abuser pausing
+ * submissions for everybody) to defend a resource that is not shared.
+ *
+ * FAIL CLOSED, exactly as sign-in does: if the limiter cannot answer, the write
+ * is refused with an honest 503 that says nothing was saved. Carrying on
+ * unthrottled would restore the gap this exists to close while looking fine.
+ *
+ * REVIEW TRIGGER, so this cannot quietly rot into a wrong number: revisit at
+ * the first producer who trips it without doing anything wrong, or when any
+ * tier's allowance goes above 25, or at ~10 active producers, whichever comes
+ * first. Unlike SIGN_IN_GLOBAL_MAX_SENDS, this constant is NOT rendered into
+ * user-facing copy, so changing it changes a guard and not a published claim.
+ */
+export const PRODUCER_WRITE_WINDOW_SECONDS = 3_600;
+export const PRODUCER_WRITE_MAX = 20;
+
+/** The bucket a producer's writes count against. Prefixed, like every other
+ *  key in this table: `RateLimit.key` is an opaque string by design, so a new
+ *  limit is a new prefix rather than a new table. */
+export function producerWriteKey(producerId: string): string {
+  return `producer-write:${producerId}`;
+}
+
+/**
  * How long a bucket row survives after its window opened, before the sweep
  * below deletes it.
  *

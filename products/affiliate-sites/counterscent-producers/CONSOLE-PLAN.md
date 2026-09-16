@@ -1,3 +1,70 @@
+# STATUS: PHASE 2 IS BUILT AND DEPLOYED, 2026-09-16
+
+Version `cbddcd45-02f4-4510-97b4-8d496ac1a2ec`. `/console/submit` and
+`/console/withdraw` are live and answer **401** to an unauthenticated request,
+verified from outside. Sections 4.x below are now a record of what was built
+rather than a specification of what to build.
+
+## Founder decisions taken 2026-09-16, which overruled parts of this plan
+
+1. **The console SHOWS PRICES.** Section 2.4's ruling is overruled. The drift
+   argument behind it was answered rather than ignored: `src/generated/plans.ts`
+   is produced by `scripts/generate-constants.mjs` from `fragrance-dupes/lib/plans.ts`,
+   so the figures are generated, not a third hand-typed copy.
+2. **Free tier takes no money and allows exactly ONE active listing.**
+3. **Free-tier producers MAY withdraw**, and withdrawing frees the slot. This
+   closes the contradiction this plan flagged between `plans.ts` and
+   `PRODUCER-TERMS` section 10.
+4. **`/review` access control is deferred.** It stays inert - `notShipped()`,
+   no database calls - and was not touched.
+5. **The Featured-tier naming point is NOT decided** and nothing was renamed.
+   The founder said they did not understand it; it is explained to them
+   directly rather than acted on.
+6. **How listings get checked is STILL NOT DECIDED** (section 5). A submission
+   therefore lands as `PENDING` and waits for a person. No automated verdict of
+   any kind was built.
+
+## What was finished at the top level rather than by the department
+
+The delegated run stalled - 600s with no progress, the signature the root
+CLAUDE.md records for a `grep` walking `node_modules` - after writing most of
+the code but **before wiring any of it up**. Finished directly:
+
+- **Two defects in the written code.** A backtick inside a tagged template
+  literal (a SQL comment containing `` `WHERE` ``) terminated the template and
+  broke the parse; and `Record<string, string[]>` under `noUncheckedIndexedAccess`
+  made three note-tier reads possibly-undefined. The second was fixed by
+  narrowing the key type, not by casting.
+- **The routes were not reachable.** `src/index.ts` had no entry for either
+  path, so ~2,400 lines of route code could not be called.
+- **`src/routes/withdraw.ts` did not exist.** `withdrawListing()` was written in
+  the data layer with no route to call it.
+- **The console still said the form was unbuilt**, with three `deadButton`s.
+  Submit is now a real link, withdraw moved into the row it acts on, and the
+  empty state stopped apologising for a form that now exists.
+- **Three CSS classes were referenced and undefined** (`.cell-action`,
+  `.visually-hidden`, `.btn-row`). Added with no new tokens.
+
+## What the ui-ux-pro-max review changed
+
+The form surface passed: `role="alert"` plus `tabindex="-1"` on the error
+summary, each item linked to its field, `aria-invalid` and `aria-describedby`
+on every control, inline errors retained alongside the summary.
+
+Two things it caught:
+
+- **Withdrawal was a SILENT SUCCESS.** `POST /console/withdraw` redirected to
+  `/console?withdrew=<slug>` and the console ignored the parameter, so a
+  producer performed an act they cannot undo and landed on a page that looked
+  unchanged. There is now a `role="status"` confirmation naming the listing and
+  the `/go/` id that stops resolving. **The slug is read back out of the
+  producer's own listings**, so a crafted URL cannot make the page claim a
+  withdrawal that did not happen.
+- **Focus never moved to the error summary.** With no client JS the only way is
+  `autofocus` on the `tabindex="-1"` container, which is now set.
+
+---
+
 # CONSOLE-PLAN.md
 
 The plan for turning `/console` from a layout preview into a real surface.

@@ -1,4 +1,4 @@
-import { html, type Html } from "../lib/html";
+import { escape, html, raw, type Html } from "../lib/html";
 
 /**
  * The small set of pieces every screen on this origin is built from.
@@ -391,32 +391,276 @@ export function deadButton(
  * site, not buried in an import path.
  */
 
-/** A field that can actually take a value. `hint` stays required, same as
- *  deadField() - a form asking for something has to say why. */
+/**
+ * A field that can actually take a value. `hint` stays required, same as
+ * deadField() - a form asking for something has to say why.
+ *
+ * THE ORDER IS LABEL, CONTROL, ERROR, HINT, and it is the same in every field
+ * function below. A label under its input is read after the thing it names; an
+ * error under the hint is read after the reader has already moved on. Both are
+ * wired to the control with `aria-describedby`, so the association survives for
+ * somebody who is not looking at the layout.
+ *
+ * REQUIRED IS UNMARKED AND OPTIONAL IS MARKED, which is the opposite of the
+ * usual asterisk. On the submit form all but four fields are required, so
+ * marking the required ones would put a badge on almost every row and mark
+ * nothing out at all. The form says once, above the first group, that
+ * everything is required unless it says otherwise.
+ */
 export function field(opts: {
   name: string;
   label: string;
   hint: Html;
-  type?: "text" | "email";
+  type?: "text" | "email" | "url" | "number";
   placeholder?: string;
   required?: boolean;
   autoFocus?: boolean;
   autoComplete?: string;
+  /** What the producer already typed, put back after a failed POST. */
+  value?: string;
+  error?: string;
+  /** The id of a <datalist> to back this input with native typeahead. */
+  list?: string;
+  min?: string;
+  max?: string;
+  step?: string;
+  inputMode?: string;
 }): Html {
   const id = "f-" + opts.name;
   return html`<div class="field">
-    <label for="${id}">${opts.label}</label>
+    ${fieldLabel(id, opts.label, opts.required)}
     <input
       id="${id}"
       name="${opts.name}"
       type="${opts.type ?? "text"}"
+      value="${opts.value ?? ""}"
       placeholder="${opts.placeholder ?? ""}"
       autocomplete="${opts.autoComplete ?? "off"}"
+      ${opts.list ? raw(`list="${escape(opts.list)}"`) : ""}
+      ${opts.min !== undefined ? raw(`min="${escape(opts.min)}"`) : ""}
+      ${opts.max !== undefined ? raw(`max="${escape(opts.max)}"`) : ""}
+      ${opts.step ? raw(`step="${escape(opts.step)}"`) : ""}
+      ${opts.inputMode ? raw(`inputmode="${escape(opts.inputMode)}"`) : ""}
+      ${opts.error ? raw(`aria-invalid="true"`) : ""}
+      aria-describedby="${describedBy(id, opts.error)}"
       ${opts.required ? "required" : ""}
       ${opts.autoFocus ? "autofocus" : ""}
     >
-    <p class="field-hint">${opts.hint}</p>
+    ${fieldError(id, opts.error)}
+    <p class="field-hint" id="${id}-hint">${opts.hint}</p>
   </div>`;
+}
+
+/** Several sentences of prose, which is what "what is genuinely different"
+ *  and an ingredient list both are. */
+export function textareaField(opts: {
+  name: string;
+  label: string;
+  hint: Html;
+  rows?: number;
+  placeholder?: string;
+  required?: boolean;
+  value?: string;
+  error?: string;
+}): Html {
+  const id = "f-" + opts.name;
+  return html`<div class="field">
+    ${fieldLabel(id, opts.label, opts.required)}
+    <textarea
+      id="${id}"
+      name="${opts.name}"
+      rows="${String(opts.rows ?? 4)}"
+      placeholder="${opts.placeholder ?? ""}"
+      ${opts.error ? raw(`aria-invalid="true"`) : ""}
+      aria-describedby="${describedBy(id, opts.error)}"
+      ${opts.required ? "required" : ""}
+    >${opts.value ?? ""}</textarea>
+    ${fieldError(id, opts.error)}
+    <p class="field-hint" id="${id}-hint">${opts.hint}</p>
+  </div>`;
+}
+
+/**
+ * A closed set of choices.
+ *
+ * USED WHERE THE VALUE MUST COME FROM OUR VOCABULARY AND NOWHERE ELSE: the
+ * original a listing is compared against, and the sillage label. A <select>
+ * cannot express a value that is not in it, so "you cannot invent an original"
+ * stops being a rule the server has to enforce against a text box and becomes a
+ * property of the control. The server still checks, because a POST does not
+ * have to come from our form.
+ *
+ * Optional groups, because 216 originals in one flat list is a wall. Grouping
+ * by house matches how a producer already thinks about them.
+ */
+export function selectField(opts: {
+  name: string;
+  label: string;
+  hint: Html;
+  required?: boolean;
+  value?: string;
+  error?: string;
+  /** The first, empty option. Not a placeholder standing in for a label. */
+  emptyLabel: string;
+  options?: { value: string; label: string }[];
+  groups?: { label: string; options: { value: string; label: string }[] }[];
+}): Html {
+  const id = "f-" + opts.name;
+  const option = (o: { value: string; label: string }) =>
+    html`<option value="${o.value}"${opts.value === o.value ? raw(" selected") : ""}>${o.label}</option>`;
+
+  return html`<div class="field">
+    ${fieldLabel(id, opts.label, opts.required)}
+    <select
+      id="${id}"
+      name="${opts.name}"
+      ${opts.error ? raw(`aria-invalid="true"`) : ""}
+      aria-describedby="${describedBy(id, opts.error)}"
+      ${opts.required ? "required" : ""}
+    >
+      <option value="">${opts.emptyLabel}</option>
+      ${(opts.options ?? []).map(option)}
+      ${(opts.groups ?? []).map(
+        (g) => html`<optgroup label="${g.label}">${g.options.map(option)}</optgroup>`,
+      )}
+    </select>
+    ${fieldError(id, opts.error)}
+    <p class="field-hint" id="${id}-hint">${opts.hint}</p>
+  </div>`;
+}
+
+/**
+ * One tier of a note pyramid: several inputs sharing one vocabulary.
+ *
+ * THE SELECTOR IS A <datalist>, WHICH IS NATIVE TYPEAHEAD AT ZERO JAVASCRIPT.
+ * CONSOLE-PLAN 4.4 ranked the options by cost and this is the cheapest that
+ * works: the browser filters as you type, and where it is not supported the
+ * control degrades to a plain text box rather than to nothing. A <select
+ * multiple> over 286 notes is unusable, and a progressive-enhancement script
+ * is more machinery than this has earned.
+ *
+ * FREE TEXT REMAINS POSSIBLE, ON PURPOSE. A producer may legitimately declare a
+ * material our catalogue has never recorded, and a control that refused one
+ * would be constraining what they are allowed to honestly say about their own
+ * product. An off-vocabulary note is accepted and flagged for a person.
+ *
+ * ONE VISIBLE LABEL PER TIER, NOT SIX. The legend names the tier and the first
+ * box carries a visible label; boxes two onward carry visually-hidden ones
+ * ("Top note 2"), so every control has an accessible name without printing
+ * eighteen labels on the densest screen on this origin. That is a deliberate
+ * departure from label-above-every-input, and it is the standard treatment for
+ * a repeated homogeneous list.
+ */
+export function noteTier(opts: {
+  name: string;
+  legend: string;
+  /** Singular, lowercase, for the hidden labels: "top note". */
+  singular: string;
+  hint: Html;
+  values: string[];
+  listId: string;
+  /** Attached to the first input, which is the required one. */
+  error?: string;
+}): Html {
+  return html`<fieldset class="note-tier">
+    <legend>${opts.legend}</legend>
+    <p class="field-hint">${opts.hint}</p>
+    <div class="note-inputs">
+      ${opts.values.map((value, i) => {
+        const id = `f-${opts.name}-${i}`;
+        const first = i === 0;
+        return html`<div class="note-input">
+          ${
+            first
+              ? html`<label for="${id}">First ${opts.singular}</label>`
+              : html`<label for="${id}" class="visually-hidden"
+                  >${opts.legend} ${String(i + 1)}</label
+                >`
+          }
+          <input
+            id="${id}"
+            name="${opts.name}-${String(i)}"
+            type="text"
+            list="${opts.listId}"
+            value="${value}"
+            autocomplete="off"
+            ${first && opts.error ? raw(`aria-invalid="true"`) : ""}
+            ${first && opts.error ? raw(`aria-describedby="${escape(id)}-error"`) : ""}
+            ${first ? "required" : ""}
+          >
+          ${first ? fieldError(id, opts.error) : ""}
+        </div>`;
+      })}
+    </div>
+  </fieldset>`;
+}
+
+/** The shared vocabulary, rendered once per page rather than once per input.
+ *  Three tiers times six boxes would otherwise be eighteen copies of 286
+ *  options in one document. */
+export function datalist(id: string, values: readonly string[]): Html {
+  return html`<datalist id="${id}">
+    ${values.map((v) => html`<option value="${v}"></option>`)}
+  </datalist>`;
+}
+
+/**
+ * The errors, once, at the top, each linking to the control it belongs to.
+ *
+ * A dense form scrolls, so an error two groups down is an error nobody finds.
+ * `role="alert"` and `tabindex="-1"` are what let the page move focus here on
+ * a failed submit without JavaScript: the browser focuses the fragment, and a
+ * screen reader announces the whole list.
+ */
+export function errorSummary(items: { field: string; label: string; message: string }[]): Html {
+  if (items.length === 0) return html``;
+  return html`<div class="error-summary" role="alert" tabindex="-1" autofocus id="errors">
+    <p class="error-summary-title">
+      ${items.length === 1
+        ? "One thing needs fixing before this can be submitted"
+        : `${String(items.length)} things need fixing before this can be submitted`}
+    </p>
+    <p class="field-hint">
+      Nothing was saved and nothing was sent. Everything you typed is still below.
+    </p>
+    <ul class="error-summary-list">
+      ${items.map(
+        (e) => html`<li><a href="#f-${e.field}">${e.label}: ${e.message}</a></li>`,
+      )}
+    </ul>
+  </div>`;
+}
+
+/** A named part of a long form. A submit form is the densest screen on this
+ *  origin and eighteen controls in one run is a wall; these are the seams. */
+export function formGroup(opts: { legend: string; note?: Html; body: Html }): Html {
+  return html`<fieldset class="form-group">
+    <legend>${opts.legend}</legend>
+    ${opts.note ? html`<p class="form-group-note">${opts.note}</p>` : ""}
+    ${opts.body}
+  </fieldset>`;
+}
+
+/** The CSRF token, in the one field name every handler reads. See
+ *  src/lib/csrf.ts for why this is derived rather than stored. */
+export function csrfInput(name: string, token: string): Html {
+  return html`<input type="hidden" name="${name}" value="${token}">`;
+}
+
+function fieldLabel(id: string, label: string, required?: boolean): Html {
+  return html`<span class="field-label-row">
+    <label for="${id}">${label}</label>
+    ${required ? "" : html`<span class="field-optional">Optional</span>`}
+  </span>`;
+}
+
+function fieldError(id: string, error?: string): Html {
+  if (!error) return html``;
+  return html`<p class="field-error" id="${id}-error">${error}</p>`;
+}
+
+function describedBy(id: string, error?: string): string {
+  return error ? `${id}-error ${id}-hint` : `${id}-hint`;
 }
 
 /** A button that actually submits or actually does something - the live
