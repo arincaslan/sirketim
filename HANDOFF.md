@@ -1,3 +1,87 @@
+# 2026-09-16 (END OF DAY) - SWITCHING TO THE `win10` MACHINE
+
+**Everything is committed, pushed and deployed. `main` is at `6d903b3` and the
+working tree is clean, so a `git pull` on the other machine gets all of it.**
+Eight commits landed today. Read this section first; the sections under it are
+the same day written as it happened and some of their "still open" items are
+closed here.
+
+## What is LIVE right now, verified from outside rather than assumed
+
+| Origin | State |
+|---|---|
+| `counterscent.com` | Catalogue, 200s, sitemap 240, **620** affiliate ids |
+| `producers.counterscent.com` | Worker version `cbddcd45-02f4-4510-97b4-8d496ac1a2ec` |
+| `/sign-in` | **Works.** Founder signed in by hand and confirmed it |
+| `/console` | Real: three states, listings table, quota line |
+| `/console/submit` | **Live.** 401 unauthenticated |
+| `/console/withdraw` | **Live.** 401 unauthenticated |
+| `/review` | Deliberately inert - `notShipped()`, no database calls |
+
+## THE PART THAT DOES NOT TRAVEL - do this first on `win10`
+
+Three kinds of state are per-machine and a `git pull` will not bring any of it.
+
+1. **Neon credentials.** `counterscent-producers/.env`, `.env.local` and `.neon`
+   exist on `Semih` and are gitignored by design. On `win10` either use the
+   **`neon` MCP** (which is installed there, user-level, in
+   `C:\Users\win10\.claude.json` - it does NOT exist on `Semih`, which is why
+   this machine had to run `neon link` at all), or repeat:
+   `npx -y neon auth` then
+   `npx -y neon link --project-id holy-sunset-91521586 --branch production -y`.
+   Note the current CLI writes **`.env.local`**, not `.env` as
+   `.dev.vars.example` still says; Prisma reads `.env`, so copy it across.
+2. **Cloudflare auth.** `wrangler login` writes to `%APPDATA%\xdg.config\.wrangler`
+   per user. **`wrangler whoami` reads from cache and will say you are logged in
+   when you are not** - prove it with a real call such as
+   `npx wrangler secret list` from `counterscent-producers/`. It should print
+   three secrets (`DATABASE_URL`, `HOSTINGER_MAIL_API_TOKEN`, `HOSTINGER_MAILBOX_ID`).
+3. **`npm install` in TWO projects** - `fragrance-dupes` and
+   `counterscent-producers`. Unstage the `package-lock.json` churn it causes
+   (`dev` -> `devOptional`) unless a dependency change is the point.
+
+**Both Hostinger tokens were working from `Semih` at end of day**, proven by real
+calls. The 2026-09-14 rotation is now applied on both machines.
+
+## OPEN, and every one of them is a founder decision
+
+1. **The `Featured` tier is named after the one thing we promise it does not
+   buy.** `NEVER_INCLUDED` says "A premium or featured slot in results". The
+   founder was asked twice, said they did not understand the point the first
+   time, and it has been explained but not decided. **Nothing was renamed.**
+   Either rename the tier or reword that line.
+2. **How listings get checked** - human queue vs automated rule-checking.
+   Deferred deliberately. Until it is taken, a submission lands `PENDING` and
+   waits for a person; no automated verdict exists. Options and a recommendation
+   are in `counterscent-producers/CONSOLE-PLAN.md` section 5.
+3. **`/review` has no access control and no role model to build one from** - no
+   `role` or `isStaff` column on `User`. Harmless only while it stays inert.
+   Founder deferred it: "we will take a look at review later".
+4. **The Worker is using the founder's OWN Hostinger mail token.** Not narrower
+   or wider - Hostinger publishes no send-only scope - but revoking it during an
+   incident **also kills the founder's `hostinger-email` MCP**. Issue a separate
+   one in hPanel and `wrangler secret put HOSTINGER_MAIL_API_TOKEN` over it.
+5. **The 1,680.00 TRY Hostinger invoice split**, which blocks the CFO. Tested,
+   not assumed: the API token is scoped so `/renewal` and billing both answer
+   401 while portfolio reads work. No agent can retrieve it.
+6. **The dashboard task list was not updated today**, twice flagged and twice
+   skipped. It needs a full read of the live artifact (~786 lines), so give it a
+   deliberate slot rather than tacking it onto the end of a session.
+
+## Two traps found today that cost real time
+
+- **A subagent can write correct code and leave it unreachable.** The Phase 2
+  run produced ~2,400 lines across seven files and **wired none of them into
+  `src/index.ts`**, so nothing it built could be called. Checking that a claimed
+  file exists is not enough - **check that it is reachable**: grep the router,
+  and call the route.
+- **A stale comment misled an agent into inventing a blocker.** This migration's
+  own header still read "NOT APPLIED" after it had been applied, and the COO,
+  having no database access, reported it as a deploy blocker. Both migrations
+  ARE applied. Check `_prisma_migrations` or `npx prisma migrate status`, never a
+  comment.
+
+---
 # Handoff - started 2026-09-05, last updated 2026-09-16 (second session, end)
 
 **Perishable.** This is where a working session stopped, not a permanent document. When its open items are done, delete it rather than letting it rot into a false account of the project. Durable lessons belong in the relevant `CLAUDE.md`; the ordered roadmap belongs in `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`.
