@@ -39,6 +39,13 @@
       "args": ["--package=hostinger-api-mcp@latest", "hostinger-vps-mcp"],
       "env": { "HOSTINGER_API_TOKEN": "${HOSTINGER_API_TOKEN}" }
     },
+    "hostinger-email": {
+      "type": "http",
+      "url": "https://mcp.mail.hostinger.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${HOSTINGER_MAIL_TOKEN}"
+      }
+    },
     "motion": {
       "type": "http",
       "url": "https://mcp.motion.so/mcp"

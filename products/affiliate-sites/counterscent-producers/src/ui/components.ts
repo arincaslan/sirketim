@@ -154,6 +154,57 @@ export function deadButton(label: string, variant: "primary" | "ghost" = "primar
 }
 
 /* ------------------------------------------------------------------------ *
+ * Live form fields
+ * ------------------------------------------------------------------------ *
+ * The counterpart to deadField()/deadButton() above, for the one form on
+ * this origin that is real: /sign-in (src/routes/sign-in.ts). Kept in this
+ * file rather than a separate one because a page should never be able to
+ * reach for "a field" without also seeing the disabled version sitting right
+ * next to it - the choice between them is meant to be visible at the call
+ * site, not buried in an import path.
+ */
+
+/** A field that can actually take a value. `hint` stays required, same as
+ *  deadField() - a form asking for something has to say why. */
+export function field(opts: {
+  name: string;
+  label: string;
+  hint: Html;
+  type?: "text" | "email";
+  placeholder?: string;
+  required?: boolean;
+  autoFocus?: boolean;
+  autoComplete?: string;
+}): Html {
+  const id = "f-" + opts.name;
+  return html`<div class="field">
+    <label for="${id}">${opts.label}</label>
+    <input
+      id="${id}"
+      name="${opts.name}"
+      type="${opts.type ?? "text"}"
+      placeholder="${opts.placeholder ?? ""}"
+      autocomplete="${opts.autoComplete ?? "off"}"
+      ${opts.required ? "required" : ""}
+      ${opts.autoFocus ? "autofocus" : ""}
+    >
+    <p class="field-hint">${opts.hint}</p>
+  </div>`;
+}
+
+/** A button that actually submits or actually does something - the live
+ *  counterpart to deadButton(). Defaults to `type="submit"` because every
+ *  live button on this origin so far is inside exactly one <form>. */
+export function button(
+  label: string,
+  opts: { variant?: "primary" | "ghost"; type?: "submit" | "button" } = {},
+): Html {
+  const variant = opts.variant ?? "primary";
+  const type = opts.type ?? "submit";
+  return html`<button type="${type}" class="btn btn-${variant}">${label}</button>`;
+}
+
+/* ------------------------------------------------------------------------ *
  * Empty states
  * ------------------------------------------------------------------------ */
 

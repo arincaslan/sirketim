@@ -6,6 +6,14 @@ build/
 # exposed by the narrower pattern.
 .env*
 !.env.example
+
+# wrangler's own local-secrets file (products/affiliate-sites/counterscent-producers/
+# and any future Worker project) -- NOT matched by .env* above, it is a
+# different filename by wrangler's own convention. Same reasoning: this repo
+# is public, and .dev.vars is where DATABASE_URL and the Hostinger SMTP
+# password land for local `wrangler dev`.
+.dev.vars
+!.dev.vars.example
 *.log
 .DS_Store
 Thumbs.db

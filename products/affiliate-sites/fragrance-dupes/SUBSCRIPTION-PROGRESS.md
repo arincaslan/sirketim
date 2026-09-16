@@ -1,18 +1,20 @@
 # Subscriber work: what is done, what is next
 
-**Written 2026-09-11, updated 2026-09-14 (evening).** A progress report for the
-founder, kept in the repo so it arrives with a `git pull`. It covers the
-producer subscription programme only. The plan it executes is in `HANDOFF.md`,
-section "The producer subscription programme"; the rules it obeys are in
-`PRODUCER-PROGRAM.md`.
+**Written 2026-09-11, updated 2026-09-14 (evening), updated 2026-09-16.** A
+progress report for the founder, kept in the repo so it arrives with a
+`git pull`. It covers the producer subscription programme only. The plan it
+executes is in `HANDOFF.md`, section "The producer subscription programme";
+the rules it obeys are in `PRODUCER-PROGRAM.md`.
 
 ---
 
 ## The short version
 
-Four of the nine build steps are done. **What changed on 14 September is that
-the road between a producer's submission and the live site now exists and is
-guarded** — and `producers.counterscent.com` is up.
+Five of the nine build steps are done. **What changed on 16 September is that
+a real person can sign in** — not a layout preview: an email, a link, a
+session, a sign-out, all working, all typechecked, all exercised against a
+running local Worker. What has NOT changed: nobody can do anything once
+signed in. That is steps 6 and 7, still not started, on purpose.
 
 | # | Step | State |
 |---|---|---|
@@ -20,7 +22,7 @@ guarded** — and `producers.counterscent.com` is up.
 | 2 | Provision a database | **Done** 2026-09-14 |
 | 3 | Schema catch-up | **Done** |
 | 4 | Publish state, revisions, audit trail | **Done** |
-| 5 | Auth on the producer origin | Not started — **the origin now exists** (new 14 Sep) |
+| 5 | Auth on the producer origin | **Done** 2026-09-16 — see the section at the end of this file for what is and is not verified |
 | 6 | Producer console | Not started |
 | 7 | Admin approval queue | Not started |
 | 8 | Export and publish path | **The route is complete and guarded** (new 14 Sep); the exporter itself needs 6 |
@@ -536,3 +538,231 @@ is the obvious home; the producer Worker is another once it exists.
 My recommendation: **do nothing until the producer console is live.** Once it is,
 real sign-ins are the keepalive, and any timer we added becomes a cost with no
 job. If you want the insurance before then, weekly and read-only.
+
+---
+
+# Update, 2026-09-16: step 5, auth on the producer origin
+
+A real person can sign in on `producers.counterscent.com` now. Not the shape
+of sign-in - sign-in.
+
+## What actually works
+
+Request a link at `/sign-in`, and if the Worker has both secrets it needs
+(more on that below), it stores a token that is good for 15 minutes and used
+exactly once, emails it from `contact@counterscent.com`, and following the
+link (`/verify`) signs you in for 30 days with a cookie scoped to this origin
+alone - `__Host-` prefixed, which is the browser enforcing "this origin only"
+rather than just this project promising it. `/sign-out` ends it. All four of
+those - the request, the link, the session, the sign-out - are real code
+against the real Neon database, not a mock.
+
+What it deliberately does **not** do: create a Producer. Signing in creates a
+`User` row with no producer attached. Attaching one is an editorial decision
+about identity - matching a real inbox to a real company - and that has to
+stay a person's call, not a side effect of clicking an email link. I checked
+this against the migrated schema before writing it rather than assuming the
+plan still matched the database: `User.producerId` is nullable with no
+default requiring a producer, so this holds.
+
+## What I could not verify, and why
+
+**No email has actually been sent.** Two reasons, both worth knowing rather
+than glossing over:
+
+1. The mail secrets are not set on the Worker yet. As of the 2026-09-16
+   rail change these are `HOSTINGER_MAIL_API_TOKEN` and
+   `HOSTINGER_MAILBOX_ID`, not the SMTP pair this entry originally named -
+   see point 2. The token must be issued **separately** from the founder's
+   own `HOSTINGER_MAIL_TOKEN`, so that revoking the Worker's credential on
+   suspicion does not also break the founder's mail tooling; a revocation
+   with a cost attached is one that gets deferred. The page and the send
+   path both check for the secrets at request time and say so explicitly if
+   either is missing - `/sign-in` shows a real, honest "not fully connected"
+   notice instead of a form that would silently discard what you typed.
+2. ~~The hand-written SMTP client has never touched a real mail server.~~
+   **SUPERSEDED 2026-09-16, and the premise under it was false.** What this
+   entry said, and what `src/lib/smtp.ts` asserted in its own header, was
+   that "Hostinger's mailbox is SMTP-only - there is no HTTP transactional
+   mail API behind it", so *some* hand-rolled SMTP client had to exist. That
+   is not true. Hostinger publishes `POST /api/v1/mailboxes/{id}/send`,
+   confirmed live against this exact mailbox by calling it. The Worker now
+   sends with a plain `fetch()` and **`src/lib/smtp.ts` has been deleted** -
+   not kept as a fallback, because two rails would mean both credentials
+   live on the Worker and would keep an untested path alive for exactly the
+   moment things are already going wrong.
+
+   The reason this mattered is the reason it is recorded rather than quietly
+   edited out: the risky code was justified by a confident, checkable,
+   wrong claim about a vendor, and nobody checked it for two days. The
+   durable version is now in the root `CLAUDE.md` - *before hand-rolling a
+   wire protocol, check whether the vendor publishes an HTTP API.* The
+   original worry was also real and is now simply gone: whether outbound TCP
+   465 is open on this Worker's Cloudflare plan was never confirmable
+   without deploying, and an HTTP call's failure modes can be exercised from
+   a laptop before a secret is set. **A real send is still the first proof
+   the mail path works end to end** - that has not changed, only the rail
+   and whether it can be tested in advance.
+
+What I could and did verify: a full typecheck with no errors, and a live
+local Worker (`wrangler dev --local`) exercised through every route and every
+state - signed in, signed out, secrets present, secrets absent, an expired
+token, a missing token, the 405 on a method a route does not take, the 301 on
+a trailing slash, the CSP header actually changing between a page with a
+`<form>` and one without. `prisma validate` passes against the schema in its
+new location with a placeholder `.env`, the same way it did in the old one.
+The one thing genuinely outside what this environment could touch is the
+last mile: bytes actually leaving a Cloudflare Worker over a raw TCP socket
+and a real inbox receiving something.
+
+## Two decisions, and where they live
+
+The brief asked for two architecture calls, made and justified in the
+project's own style, at the point each is made:
+
+- **Hand-rolled sessions, not `@auth/core`.** The reasoning is in
+  `src/lib/auth.ts`'s header. Short version: `@auth/core` is built to be
+  wired into a framework's own request lifecycle, and this Worker
+  deliberately has no framework (`src/index.ts`'s own rejected-architecture
+  list says why); using it here would mean hand-building the adapter shim a
+  framework normally provides for free, on top of a new dependency, for five
+  operations that are more legible written out directly against the four
+  tables the schema already carries for exactly this.
+- **Raw SQL over `@neondatabase/serverless`, not Prisma Client.** The
+  reasoning is in `src/lib/db.ts`'s header. Short version: Prisma Client
+  cannot run in a Worker without `@prisma/adapter-neon` on top of it, which
+  is real weight (a generated client, a build step) for five queries that do
+  not need a query builder. The cost named rather than hidden: an id Prisma
+  would have generated as a `cuid()` has to be generated here as a
+  `crypto.randomUUID()` instead, because that default lives in Prisma's
+  client, not in a Postgres `DEFAULT` expression - confirmed against the
+  actual migration SQL, not assumed.
+
+## Two files moved
+
+`prisma/schema.prisma` and `neon.ts` both said, in their own comments, that
+they would move here "when the console is built." That origin now exists,
+and this is the first code in it that touches the database, so they moved -
+full paths, both projects' own headers explain the move and what changed
+about the reasoning now that it is real rather than anticipated:
+
+- `products/affiliate-sites/counterscent-producers/prisma/schema.prisma`
+  (plus `prisma/migrations/`)
+- `products/affiliate-sites/counterscent-producers/neon.ts`
+
+`fragrance-dupes/package.json` lost four now-unused packages
+(`@prisma/client`, `prisma`, `@neon/config`, `@neon/env` - nothing in this
+project ever imported `@prisma/client`, confirmed by search before removing
+it) and its own `npm run build` still passes clean at 248 pages, 620
+redirects, scoring-isolation clean, after the removal - checked, not
+assumed. `.env.example` here lost the Neon/Prisma block it no longer needs
+and points at the new location instead, and lost `AUTH_SECRET`/`AUTH_URL` -
+leftover scaffolding for an Auth.js integration that was never built and,
+per the decision above, now will not be; nothing in this project ever read
+them.
+
+## What did NOT get built, on purpose
+
+`/console` and `/review` are untouched. Both still say "signed out"
+unconditionally, even to a request carrying a valid session cookie - the
+session-check helper this step built (`getAuthContext` in `auth.ts`) is not
+wired into either page, because doing that is step 6/7's job. The magic-link
+callback redirects to `/` rather than `/console` for exactly this reason -
+sending someone straight to a page that would then tell them, falsely, that
+they are signed out is worse than sending them to the one page that does
+reflect real state (`/`, which now shows "Signed in as ⟨email⟩" and a working
+sign-out form when there is a session to show).
+
+No billing, no checkout, no producer directory, no auto-approval - none of
+that was touched, per the guardrails for this step.
+
+## What I'd flag rather than decide myself
+
+Two things:
+
+- **The SMTP send path is unverified end to end**, for the reasons above.
+  The first real attempt should be watched, not assumed to work because the
+  code compiles.
+- ~~**There is no rate limiting on `/sign-in`.**~~ **Closed the same day,
+  before any deploy - see the section below.** Leaving the original line
+  struck through rather than deleted, because the reasoning in it was wrong
+  in two ways worth remembering: it said this needed KV or Durable Objects
+  ("infrastructure this Worker does not have yet"), when the database the
+  same handler already writes to was enough; and it called the exposure
+  "small, bounded... someone spamming one inbox", when the inbox being spammed
+  from is `contact@counterscent.com` and the real cost is that mailbox being
+  rate-limited or suspended by Hostinger - which takes the address customers
+  write to down along with sign-in.
+
+## Added the same day: rate limiting on `/sign-in`
+
+Three limits, in the order a request meets them:
+
+1. **Five POSTs per ten minutes, per IP** (`CF-Connecting-IP`). The sixth
+   inside the window gets a 429 with `Retry-After` and a page that explains
+   itself in words - not a silent drop, which only teaches someone to press
+   the button again. A refused request still counts but does not extend the
+   window, so nobody can be held locked out indefinitely. A request arriving
+   with no such header (local `wrangler dev`, or anything that ever bypassed
+   the edge) goes into one shared bucket rather than being waved through:
+   fails closed, and stays visible.
+2. **One live token per address.** An address that already has an unexpired
+   token gets no second email - which is what caps this at one mail per
+   address per 15 minutes, using nothing but the token row the flow already
+   writes. **The refusal is byte-for-byte the success response**, deliberately:
+   a refusal that looked different would turn the form into a way to ask
+   "does this address have something here", and the existing copy ("a link is
+   on its way if that address can receive mail") stays true, because one
+   genuinely is.
+3. **One hundred sends a day across the whole origin.** The per-IP limit caps
+   one source and nothing else; this is the one that actually protects the
+   mailbox. It counts sends rather than requests, so refused traffic cannot
+   burn the day's budget. When it trips, sign-in answers an honest 503 saying
+   nothing was sent - never the "check your inbox" page, which would be a
+   fake success. The number is deliberately under any plausible Hostinger cap
+   rather than tuned to a real one; I could not verify which cap applies to
+   this mailbox.
+
+The counters live in **Postgres**, in a new `RateLimit` table. Not KV (a
+new binding, and eventually consistent - a counter that under-reports during
+a burst is wrong at exactly the moment it is read), not a Durable Object (a
+new binding, a migration stanza and a second stateful system standing beside
+the database this handler already talks to). Expired `VerificationToken` rows
+are now purged on the same path, so that table cannot grow off refused or
+abandoned attempts, and stale counter rows are swept the same way - no cron
+trigger, because a scheduled Worker would be a second entry point to deploy
+and secure for a DELETE that is free on a request already talking to this
+database.
+
+**One migration was added and NOT applied: `20260916143000_add_rate_limit`.**
+It is additive - one new table, nothing existing altered - and the database
+holds no real data, but applying it is a change to production state you have
+not reviewed, so it is left for you. **Run it before deploying the Worker**,
+not after: sign-in refuses to send mail when it cannot reach its limit table
+(503, saying exactly that), rather than sending unthrottled.
+
+While testing this I found a real bug in what step 5 shipped, and fixed it.
+`VerificationToken.expires` was written from the Worker's clock as a UTC
+instant into a `TIMESTAMP` column that carries no time zone, and then
+compared against Postgres `now()`. With the database session's TimeZone
+anywhere east of UTC, every magic link is **born already expired** and
+`/verify` answers 410 to everybody - sign-in dead, from a setting nobody
+would think to look at. Reproduced against a real Postgres at
+`Europe/Istanbul`; Neon defaulting to UTC is the only reason it worked. Both
+the write and the comparisons now go through `now()`, so the 15 minutes are
+15 minutes under any zone. `Session.expires` still has the older shape and I
+left it: same mistake, but 30 days wide instead of 15 minutes, so it shifts a
+session by hours rather than destroying it, and fixing it was not this task.
+
+What I verified, and how: the SQL and the handler were exercised against a
+real Postgres engine (PGlite, in a scratch directory - not a new dependency
+of the project) by importing the **shipped** functions rather than
+reimplementing them, covering the boundary at five and six requests, the
+window resetting after it lapses, the byte-identical throttle response, the
+token being rolled back after an SMTP failure and the retry immediately
+afterwards working, the global cap, and a missing `RateLimit` table
+degrading to a 503 instead of throwing. Then the whole thing in a real local
+Worker (`wrangler dev`), where an unreachable database produced exactly the
+honest 503 rather than a 500, and every other route still answered as before.
+What I could NOT verify is unchanged from the rest of step 5: no real email
+has been sent, and none of this has been deployed.

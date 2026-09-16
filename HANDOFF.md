@@ -1,4 +1,4 @@
-# Handoff — started 2026-09-05, last updated 2026-09-14 (end of session)
+# Handoff - started 2026-09-05, last updated 2026-09-16 (second session, end)
 
 **Perishable.** This is where a working session stopped, not a permanent document. When its open items are done, delete it rather than letting it rot into a false account of the project. Durable lessons belong in the relevant `CLAUDE.md`; the ordered roadmap belongs in `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`.
 
@@ -6,10 +6,362 @@ Machine setup is `SETUP.md`. This file is only about *what state the work is in*
 
 ---
 
+# 2026-09-16 (third session) - STEP 5 IS DEPLOYED AND WORKS END TO END
+
+**Auth is live on `producers.counterscent.com` and a real magic link has been
+sent, received and used.** Everything below this block that says step 5 is
+unshipped describes the state before this session; it is kept for the reasoning,
+not the status. **Still uncommitted** - the deploy came from the working tree.
+
+Version ID `9e5cd6a0-0f10-44c7-a9db-fa2df6b81fe9`. Migration
+`20260916143000_add_rate_limit` applied to Neon `production` BEFORE the deploy,
+in the order the 503-fails-closed design requires.
+
+## What was proven, by observation rather than inference
+
+| Check | Result |
+|---|---|
+| `POST /sign-in` (real address) | 302 -> `?sent=` |
+| Email actually arrived | INBOX uid 4, 14:34:22Z, `From: Counterscent` |
+| Magic link followed | 302 -> `/`, `__Host-session` set |
+| Cookie attributes | `HttpOnly; Secure; SameSite=Lax; Path=/` |
+| Cookie expiry | `Fri, 16 Oct 2026` - **30 days out, so the timezone fix is real** |
+| Token replayed | **410 Gone** - single use holds |
+| Garbage token | 410, identical - reveals nothing |
+| DB after | `User` 1, `Session` 1, `VerificationToken` **0** (consumed) |
+
+The cookie expiry deserves the emphasis: under the bug this fixed, every session
+was born already expired. Thirty days is the observable proof it is gone.
+
+**The global cap counts SENDS, not requests, and that is now measured rather than
+designed:** four POSTs hit the IP bucket (`signin-ip:...` = 4) while
+`signin-send:global` = 1, because only one of the four ever reached the mail call.
+
+## ~~BUG FOUND IN PRODUCTION: unguarded `formData()` returns a generic 500~~ FIXED
+
+`src/routes/sign-in.ts` did `await request.formData()` with no try/catch, so a
+POST whose body was absent or unparseable threw and the Worker answered **500** -
+reproduced twice on the live origin. Exactly the fake-failure shape the rest of
+that file goes to great lengths to avoid.
+
+**Fixed and redeployed the same session** (version
+`51a74ba2-3502-4215-a4d2-3183a9bbc1e6`), and verified against the live origin:
+the same malformed POST now answers `302 -> /sign-in?error=invalid-email`.
+
+It is given the SAME answer as a malformed address rather than a distinct status,
+on purpose - a request with no readable body carries no usable address either, and
+two shapes would be two things to keep in step for no gain. The rate-limit slot is
+spent either way, because the bump runs before the body is read.
+
+## The limiter was exercised, not just reasoned about
+
+With the IP bucket at 5 of 5, the sixth request in the window answered
+**`429 Too Many Requests` with `Retry-After: 237`**. Both the refusal and the
+countdown are real.
+
+One trap for whoever reads the bucket table directly: `windowStart` is a zoneless
+`TIMESTAMP(3)`, so pulling the raw value into JavaScript and calling
+`toISOString()` on it prints a time three hours off the mailbox's own timestamps
+(Turkey is UTC+3) and looks alarmingly like a clock bug. **It is not one.** Every
+comparison the limiter makes happens in SQL, where the two coercions cancel - ask
+Postgres for the remaining seconds rather than computing them in JS, and the
+number agrees with `Retry-After` exactly.
+
+## Practical notes for whoever tests next
+
+- **The per-IP bucket for this office is at 4 of 5** for a ten-minute window from
+  14:34Z. The next request from the same address is the last before a 429. The
+  window is fixed, not sliding - it resets ten minutes after the FIRST request.
+- The founder's mailbox now holds two "Sign in to Counterscent" messages that are
+  tests (INBOX uid 3 = a pre-deploy smoke test sent directly via the API, uid 4 =
+  the real Worker send). Neither is a real sign-in request.
+- **A signed-in producer still lands in an empty room.** `/console` and `/review`
+  hardcode "signed out" until step 6. Auth working does not mean the console works.
+
+## OPEN ACTION carried forward, do not lose this
+
+`HOSTINGER_MAIL_API_TOKEN` on the Worker currently holds **the founder's own
+`HOSTINGER_MAIL_TOKEN` value**, by an explicit decision to get a test today and
+rotate after. Until a separate hPanel token replaces it, revoking the Worker's
+token on suspicion also kills the founder's `hostinger-email` MCP server
+mid-incident. That is the entire reason the two were meant to be distinct.
+
+---
+
+# 2026-09-16 - step 5 is BUILT AND UNCOMMITTED; the mail rail question is settled
+
+**Start here.** Two sessions ran on 2026-09-16. The first built step 5 (auth) and
+left three open questions. The second answered all three and changed code to match.
+Sections below that are struck through were open at the time and are now closed -
+they are kept because they record *why*, which the resolution alone does not.
+
+## What the second session changed, and what it did NOT do
+
+**Changed, in the working tree only:** the Worker's mail rail (hand-rolled SMTP ->
+Hostinger's HTTP Email API, `src/lib/smtp.ts` deleted), the `Session.expires`
+timezone bug, the 100/day cap's stated basis, the secret names in `env.ts` and
+`.dev.vars.example`, and every stale SMTP reference including one piece of
+user-facing copy on `/sign-in`. Plus this file, `SUBSCRIPTION-PROGRESS.md` and the
+root `CLAUDE.md`.
+
+**Verified rather than asserted:** `npm run typecheck` exits 0 and
+`wrangler deploy --dry-run` bundles clean (254 KiB) in `counterscent-producers/`;
+the catalogue in `fragrance-dupes/` builds at exactly 620 affiliate redirects and
+248 route outputs.
+
+**NOT done, and deliberately:** nothing was committed, pushed or deployed. No
+secret was set. No email has ever been sent by this Worker on any rail - the first
+real send is still the first proof the mail path works.
+
+## The shortest path to a working sign-in, in order
+
+1. **Founder reviews the diff.** This was asked for before any commit and has still
+   not happened. It is the only step with no technical prerequisite.
+2. **Issue a separate Hostinger mail token** for the Worker (hPanel) -
+   `HOSTINGER_MAIL_API_TOKEN`. Not the general `HOSTINGER_API_TOKEN` (that one fixes
+   the MCP servers, see item 3 below) and not the founder's `HOSTINGER_MAIL_TOKEN`.
+   Three distinct credentials on purpose; the reasoning is in `src/lib/env.ts`.
+3. **Apply the migration BEFORE the Worker ships.** `POST /sign-in` fails closed
+   with a 503 when its rate-limit table is missing, so shipping first means sign-in
+   answers 503 to everyone until the migration runs. Needs `neon link` credentials.
+4. **`wrangler secret put`** `DATABASE_URL`, `HOSTINGER_MAIL_API_TOKEN`,
+   `HOSTINGER_MAILBOX_ID` (`AC9278a32f3d4ca8bd1119f31c2d1c` - an identifier, not a
+   credential). Cloudflare auth does not travel between machines and the OAuth token
+   lapses overnight; `CLOUDFLARE_API_TOKEN` is unset here.
+5. **Deploy, then click "email me a sign-in link" once.** Confirm it by looking in
+   the mailbox's `INBOX.Sent` - the API saves a copy of every message it sends,
+   which SMTP-from-a-Worker would not have done.
+
+## Still open, and only the founder can close them
+
+- **The 1,680.00 TRY Hostinger invoice split**, and whether auto-renew is on for
+  `counterscent.com`. Tested 2026-09-16 rather than assumed: the API token is scoped
+  so `/renewal` and `/api/billing/...` both answer 401 while portfolio reads work.
+  `departments/accounting/ledger.md` was right that this needs the invoice. It is
+  what blocks the CFO, and therefore the dedicated-sending-mailbox decision.
+- **Whether a dedicated sending mailbox is worth it.** The argument is
+  deliverability, NOT security: automated mail from `contact@` means a spam
+  complaint takes out sign-in and the address customers write to as one incident.
+- **Whether a working login should sit on a public origin before step 6 gives it
+  anything to do.** Step 5 is sign-in only; `/console` and `/review` still hardcode
+  "signed out" for everyone by design, so a producer who signs in lands in an empty
+  room.
+
+## Nothing from step 5 is committed or deployed
+## Nothing from step 5 is committed or deployed
+
+The entire auth build sits in the **working tree only**. `git status` shows it:
+new `counterscent-producers/src/lib/{auth,db,mailer,env,rate-limit}.ts` (the
+sixth, `smtp.ts`, was written then deleted the same day and never committed), new
+`src/routes/{verify,sign-out}.ts`, modified `src/index.ts`/`sign-in.ts`/`http.ts`,
+moved `prisma/` and `neon.ts`, plus `HANDOFF.md`/`SUBSCRIPTION-PROGRESS.md`. The
+founder asked to review the diff before any commit, and that review has not
+happened. **Live production is still the pre-auth skeleton** — verified from
+outside: `/verify` returns 404 and `POST /sign-in` returns 405. So none of the
+auth code is exposed, and there is no rush created by a half-deployed state.
+
+Unrelated and also uncommitted, from an earlier session: a modified
+`milena-dranka/post-log.md` and seven untracked `.mp4` files under that
+campaign's `assets/`. Not this work; leave them or ask.
+
+## ~~The decision that should be taken BEFORE any secret is set~~ - TAKEN 2026-09-16
+
+**Decided and implemented: the Worker sends over Hostinger's HTTP Email API, and
+`src/lib/smtp.ts` is deleted.** What follows is kept because it records why, and
+because the credential question it raises is still open in one respect (below).
+
+The hand-rolled SMTP client had never touched a live mail server and rested on an
+assumption nobody had confirmed: that outbound TCP on port 465 works on this
+Workers plan (port 25 is blocked everywhere by policy; 465/587 by plan tier was
+never verified). **That assumption could only ever be tested by deploying**, which
+is what settled it - an HTTP call's failure modes can be exercised from a laptop
+before a secret is set. The client was deleted rather than kept as a fallback:
+two rails means both credentials live on the Worker, and keeps an untested path
+alive for exactly the moment things are already going wrong.
+
+Confirmed live this session by calling the API directly with the founder's token:
+
+| | |
+|---|---|
+| Mailbox | `contact@counterscent.com`, `resourceId` `AC9278a32f3d4ca8bd1119f31c2d1c` |
+| Order | `orderResourceId` `OR73daa96936ee6ec5f961040c38f7` (one mailbox on it) |
+| Send endpoint | `POST /api/v1/mailboxes/{mailboxResourceId}/send` |
+| API rate limit | `X-Ratelimit-Limit: 300` (window not established — that is an API call budget, NOT a proven mail-sending cap) |
+
+Swapping to `fetch()` against that endpoint would delete the hand-written
+protocol implementation and the port-465 question in one move — the single
+largest unproven piece of step 5. **It also changes which secrets the Worker
+needs**, which is why it should be decided before `wrangler secret put` is run,
+not after.
+
+**The objection, now established rather than suspected.** The full operation
+list was enumerated: that token reaches message read/search/attachments, single,
+bulk and **whole-folder delete**, folder CRUD and full webhook management.
+**Hostinger's Email API publishes no send-only scope.** SMTP credentials are no
+narrower - they are the mailbox's own password, so they imply IMAP and webmail
+too. It is a wash on exposure, and the swap was decided on verifiability, not
+security. Two things follow that are NOT yet done:
+
+1. **The Worker's token must be issued separately from the founder's
+   `HOSTINGER_MAIL_TOKEN`.** Not because it is narrower - it isn't - but because
+   revoking a shared token breaks the founder's own tooling, so the revoke gets
+   deferred, which is how a suspected compromise becomes a real one. Needs the
+   founder in hPanel. *Unverified: whether Hostinger issues multiple tokens.*
+2. **Revoking a token does not remove a webhook created with it.** On any
+   suspicion: revoke AND enumerate the mailbox's webhooks.
+
+One mitigation the API's own docs make cheaper than feared: `403` is documented
+as "token is not authorized to manage the requested mailbox", so tokens are
+authorized per-mailbox - a mailbox added later is not automatically reachable by
+an existing token. A dedicated send-only mailbox therefore remains a live option,
+but the argument for it is **deliverability, not security**: automated mail from
+`contact@` means a spam complaint takes out sign-in and the address customers
+write to as one incident. Its cost is unknown because
+`departments/accounting/ledger.md` still records the Hostinger row as "split
+unknown / Annual (assumed - unconfirmed)".
+
+**The 100/day global cap stays at 100, and its stated basis was rewritten.** The
+`X-Ratelimit-Limit: 300` header is NOT a send cap and must not be mistaken for
+one - measured 2026-09-16, the counter reset between two calls four minutes apart
+while decrementing 299 -> 298 within four seconds, so it is a short-window budget
+on API *calls*. It bounds 429s, not mailbox suspension, and does not constrain
+100 sends/day at all. The cap is now argued from the demand side, which is
+observable: zero enrolled producers, launch volume in single digits per day, so
+100 is ~20x headroom. Review trigger recorded in the file: ~10 active producers,
+or the first send Hostinger rejects.
+
+## The deploy sequence, and the one ordering that breaks it
+
+`POST /sign-in` **fails closed with a 503 when its rate-limit table is missing.**
+So the migration has to be applied BEFORE the Worker ships, or sign-in answers
+503 to everyone until it runs.
+
+1. Apply `20260916143000_add_rate_limit` (`npx prisma migrate deploy` from
+   `counterscent-producers/`) — needs `neon link` credentials.
+2. `wrangler secret put DATABASE_URL`, plus whichever mail secrets the decision
+   above lands on.
+3. ~~**Re-run the catalogue build.**~~ **CONFIRMED 2026-09-16, independently.**
+   After `@prisma/client`, `prisma`, `@neon/config` and `@neon/env` were removed
+   from `fragrance-dupes/package.json`, `npm run build` exits 0 at exactly **620**
+   affiliate redirects (`grep -c '^/go/' public/_redirects`) and **248** route
+   outputs (244 HTML + `icon.svg`, `index.txt`, `robots.txt`, `sitemap.xml`). The
+   earlier subagent figure was right; it is now measured rather than relayed.
+   Note `wc -l` on `_redirects` reads 626 - six of those lines are the generated
+   header's comments.
+4. Founder reviews the diff, then commit.
+5. Deploy. The first "email me a sign-in link" click is also the first real proof
+   the mail path works at all, whichever rail it ends up on.
+
+## Open, small, and still undecided
+
+- ~~**`Session.expires` carries the same timezone bug.**~~ **FIXED 2026-09-16.**
+  `createSession()` now computes the expiry in SQL with `now() + interval`, the
+  same shape as the verification-token fix. The cookie deliberately keeps a
+  Worker-computed `Date`, because a cookie's `Expires` is read by the *browser's*
+  clock - feeding it a value read back out of a zoneless column would reintroduce
+  the exact coercion the fix removes. Both mean "30 days from now"; they are said
+  in two clocks' languages on purpose, and the code says so.
+- **A signed-in producer lands in an empty room.** Step 5 is sign-in only —
+  `/console` and `/review` still hardcode "signed out" for everyone by design.
+  Whether a working login should sit on a public origin before step 6 gives it
+  anything to do is a founder call, not a technical blocker.
+- **Sessions are not bound to IP** (checked: the lookup keys on the cookie token
+  and its expiry, nothing else), so a dynamic-IP reset does not sign anyone out.
+  The rate limiter *is* IP-keyed, so a reset hands out a fresh allowance — which
+  is precisely why the global send cap earns its place, and worth remembering
+  that Turkish ISPs also put many subscribers behind one address.
+- **CSRF is adequate now and will not be at step 6.** `SameSite=Lax` plus
+  `form-action 'self'` and a POST-only sign-out covers today's two writes. Real
+  state-changing actions (withdraw a listing) need actual CSRF tokens.
+
+## ~~Hostinger Email MCP — configured, needs a VS Code restart~~ — WORKING 2026-09-16
+
+Added as a 10th server in `.mcp.json` as `hostinger-email`, HTTP transport,
+`Authorization: Bearer ${HOSTINGER_MAIL_TOKEN}`. The token is a **user-level env
+var set with `setx`** and is not in the repo (verified: the literal appears in no
+file).
+
+It returned 401 on first use and **the token was not the problem** — a direct
+probe with the same token returns HTTP 200 and a clean MCP handshake. The
+variable simply was not in the running process's environment, so `${...}`
+expanded to nothing. See the root `CLAUDE.md` for the durable version of this:
+restarting the Claude session is NOT enough inside VS Code.
+
+**The restart happened and both Hostinger credentials now work from inside the
+MCP layer**, proven by real calls rather than `claude mcp list`:
+`hostinger-email` `GET /api/v1/me` returns 200 with the one mailbox
+(`contact@counterscent.com`, `AC9278a32f3d4ca8bd1119f31c2d1c`, order
+`OR73daa96936ee6ec5f961040c38f7`), and `hostinger-domains` returns the two-domain
+portfolio. Note the second one is a *change*: `HOSTINGER_API_TOKEN` was rejected
+on this machine earlier the same day because the 2026-09-14 rotation had only been
+applied on `win10`. It has since been applied here too. **This does not unblock
+the invoice question** — that token is scoped, and `/renewal` and
+`/api/billing/...` still answer 401.
+
+## THE MAIL RAIL IS PROVEN — first email ever sent, 2026-09-16
+
+**`POST /api/v1/mailboxes/AC9278a32f3d4ca8bd1119f31c2d1c/send` returned `204 No
+Content`** — the exact status `src/lib/mailer.ts` treats as success — and the
+message is in `INBOX.Sent` (uid 1, `From: Counterscent
+<contact@counterscent.com>`, subject "Sign in to Counterscent"). Sent to the
+sending mailbox itself, with the same endpoint, payload shape and display name
+the Worker uses.
+
+Three things this closes:
+
+- **The port-465 question is moot forever.** It was the single largest unproven
+  piece of step 5 and the reason the hand-rolled SMTP client was deleted. It can
+  no longer be asked.
+- **The "test it from a laptop before setting a secret" argument for choosing
+  HTTP over SMTP is now demonstrated, not just asserted.** This is the payoff the
+  rewrite was for; it is worth remembering next time a wire protocol looks
+  tempting.
+- **`INBOX.Sent` is confirmed as the place to look.** The API really does save a
+  copy of everything it sends, which SMTP-from-a-Worker would not have done.
+
+Note this proves the *rail*, not the *Worker*. The Worker has still never sent
+anything.
+
+## Secrets set on the Worker, 2026-09-16
+
+Two of the three are set, verified with `npx wrangler secret list`:
+`HOSTINGER_MAIL_API_TOKEN` and `HOSTINGER_MAILBOX_ID`. `DATABASE_URL` is NOT set
+(blocked on Neon, below). Setting these did not change live behaviour — the
+deployed code is still the pre-auth skeleton, which never reads them.
+
+**`HOSTINGER_MAIL_API_TOKEN` currently holds the founder's own
+`HOSTINGER_MAIL_TOKEN` value, by an explicit founder decision to get a working
+end-to-end test today and rotate afterwards.** This is the thing `src/lib/env.ts`
+and `.dev.vars.example` argue at length against, and the argument still stands —
+it is not about exposure (the two tokens reach exactly the same operations) but
+about revocation cost: **if this Worker is ever suspected of leaking, revoking its
+token also kills the founder's `hostinger-email` MCP server mid-incident.**
+**OPEN ACTION: issue a separate token in hPanel and `wrangler secret put` over
+this value.** Until that happens the shared-token hazard is live.
+
+## Two machine-specific gaps confirmed on `Semih`, 2026-09-16
+
+Checked rather than assumed, because both decide whether the deploy sequence below
+can even be started from this machine:
+
+- **The `neon` MCP does not exist here.** It is a USER-level install that lives in
+  `C:\Users\win10\.claude.json`; this machine's `C:\Users\Semih\.claude.json` has
+  an empty `mcpServers`. There is also no `.dev.vars`, no `.env` and no
+  `DATABASE_URL` in the environment. **Step 3 (apply the migration) has no
+  credential on this machine** — it needs `neon link`, the MCP re-installed here,
+  or to be run from `win10`.
+- **Cloudflare auth, by contrast, is live here.** Proven with a real API call, not
+  `wrangler whoami` (which reads from cache and has lied about exactly this):
+  `npx wrangler secret list` in `counterscent-producers/` returns `[]` — the call
+  succeeded, and the empty array independently confirms **no secret has been set on
+  the Worker yet**, matching step 4 below being untouched.
+
+---
+
 # 2026-09-14/15 — the producer programme got its plumbing, and a second origin
 
-Read this section first; everything below it predates these two days and some of
-it is superseded here. The short version: **a listing submitted by a producer now
+Read the 2026-09-16 section above this one first, then this; everything below it
+predates these two days and some of it is superseded here. The short version: **a listing submitted by a producer now
 has a route onto the live site, four guards stop it arriving dishonestly, and
 `producers.counterscent.com` exists.** No producer exists yet, nothing on the
 public site changed for a reader except two new surfaces, and no score moved.
@@ -36,14 +388,45 @@ supersedes it.
    by hand, create an API token (dashboard → My Profile → API Tokens → "Edit
    Cloudflare Workers") and set `CLOUDFLARE_API_TOKEN`; it needs no browser and
    does not lapse nightly.
-3. **`HOSTINGER_API_TOKEN` was rotated on 2026-09-14** and set as a user-level
-   env var on this machine only. The new value is NOT in the repo and must not
-   be — this repo is public. Ask the founder, then `setx`, then start a **new**
-   session (MCP servers read the environment at startup, and a Bash call in the
-   session that ran `setx` still sees the old value — read it back with
-   `[Environment]::GetEnvironmentVariable("HOSTINGER_API_TOKEN","User")` rather
-   than `$env:`). Verified working against
-   `https://developers.hostinger.com/api/domains/v1/portfolio`.
+3. **`HOSTINGER_API_TOKEN` was stale on this machine (`Semih`) and was
+   REPLACED 2026-09-16.** The founder supplied the rotated value and it is now
+   set as a user-level env var here, verified with a real call against
+   `https://developers.hostinger.com/api/domains/v1/portfolio` (returns both
+   domains). The value is NOT in the repo and must not be - this repo is
+   public.
+
+   **The four MCP servers that read it (`hosting`, `domains`, `dns`, `vps`)
+   will keep failing until VS Code itself is relaunched**, because they read
+   the environment at startup and a Claude session inside VS Code inherits VS
+   Code's environment, not the freshly-written user environment. The fifth,
+   `hostinger-email`, was unaffected throughout: it reads a separate
+   credential (`HOSTINGER_MAIL_TOKEN`), which is exactly why the two are kept
+   apart.
+
+   **Worth recording, because it inverts the documented diagnosis.** The root
+   CLAUDE.md says a 401 from a header-credential MCP server usually means the
+   variable never expanded. Here it had expanded fine - present in both the
+   user and process environment at the correct length - and the token itself
+   was genuinely dead, because the 2026-09-14 rotation was applied on `win10`
+   only. Both diagnoses look identical from the 401. The rule that actually
+   discriminates is the one already in the root file: prove the credential
+   with a direct call outside the MCP layer, then check the process
+   environment - not one or the other.
+
+   **This token is scoped, tested 2026-09-16:** domain portfolio reads
+   succeed, while `/portfolio/{domain}/renewal` and `/api/billing/v1/...`
+   both answer 401 with the same header. So `departments/accounting/
+   ledger.md`'s standing claim that no agent can retrieve the 1,680.00 TRY
+   invoice split **is confirmed rather than merely asserted** - it needs the
+   invoice, and auto-renew status is not exposed either. The domain detail
+   endpoint does return registration facts: both domains registered
+   2026-08-27, both expiring 2027-08-27, both still delegated to Cloudflare
+   nameservers - which corroborates the root CLAUDE.md's note that
+   `parfumoza.com`'s NS delegation is a loose end rather than a live risk.
+
+   **`CLOUDFLARE_API_TOKEN` is still unset here**, in both user and process
+   env. That is the credential item 2 above recommends precisely so a deploy
+   does not depend on an OAuth token that lapses overnight.
 4. **`TWENTY_FIRST_API_KEY`**, `gh auth login`, and Claude Code's own login —
    per-machine as before.
 5. **`.agents/` skills** — re-run the `npx skills@latest add` commands in
@@ -66,19 +449,17 @@ opened first try on mobile data. If the other machine is on a different network
 this may not apply — but never conclude a Worker is down from a `workers.dev`
 check alone.
 
-## The one action still pending
+## ~~The one action still pending~~ — DONE 2026-09-16
 
-**`producers.counterscent.com` is running yesterday's single-page placeholder.**
-The five-screen version is committed and pushed; it has never been deployed,
-because the token expired mid-attempt. Nothing was partially applied — the
-deploy failed at asset upload before writing anything, verified from outside.
-
-    cd products/affiliate-sites/counterscent-producers
-    npx wrangler login     # or set CLOUDFLARE_API_TOKEN
-    npx wrangler deploy
-
-That deploy also carries the robots.txt fix (`Allow` rather than `Disallow` —
-see below for why that is deliberate).
+The five-screen version of `producers.counterscent.com` **was deployed by the
+founder on 2026-09-16** and verified from outside: HTTP 200, serving the console
+shell (`<title>Producer console | Counterscent producers</title>`, `noindex`
+meta) rather than the previous single-page placeholder. The robots.txt fix
+(`Allow` rather than `Disallow` — see below for why that is deliberate) shipped
+with it. Nothing about this item is outstanding; it is kept struck through
+rather than deleted because the section below it still explains *why* the
+deploy had failed the first time, which is a live lesson about `wrangler
+whoami` lying from cache.
 
 ## What now runs end to end (empty, on purpose)
 
@@ -721,11 +1102,65 @@ this repo already lost 91 links to a shared key prefix.
 
 ### Build order
 **Progress report for the founder: `products/affiliate-sites/fragrance-dupes/SUBSCRIPTION-PROGRESS.md`.**
-Steps 1, 2, 3 and 4 below are DONE. 1, 3 and 4 landed 2026-09-11 (the three
-that needed no database); **step 2, the database itself, landed 2026-09-14** -
-a Neon Postgres project in aws-us-east-2, ten tables and eight enums applied
-from prisma/migrations/ and read back out of information_schema to confirm.
-**Steps 5, 6 and 7 are therefore unblocked and not started.** Step 8's safety
+Steps 1-5 below are DONE. 1, 3 and 4 landed 2026-09-11 (the three that needed
+no database); step 2, the database, landed 2026-09-14 - a Neon Postgres
+project in aws-us-east-2, ten tables and eight enums applied from
+prisma/migrations/ and read back out of information_schema to confirm.
+**Step 5, auth on the producer origin, landed 2026-09-16.** Real, not a
+layout preview: `POST /sign-in` stores an expiring single-use token and
+emails a magic link (Hostinger's HTTP Email API via `fetch()` - see
+`products/affiliate-sites/counterscent-producers/src/lib/mailer.ts`; the
+hand-rolled SMTP client this originally shipped with was deleted 2026-09-16),
+`GET /verify` consumes it once and starts a 30-day session (`__Host-`
+cookie, this origin only), and `POST /sign-out` ends it. Two architecture
+calls were made and written down where each was decided: hand-rolled
+sessions on the existing User/Account/Session/VerificationToken tables
+rather than `@auth/core` (`src/lib/auth.ts`), and raw SQL over
+`@neondatabase/serverless` rather than Prisma Client (`src/lib/db.ts`,
+Prisma itself stays as the migration tool only). `prisma/schema.prisma` and
+`neon.ts` moved from `fragrance-dupes/` into that project alongside this
+work - both files' own headers explain why and fragrance-dupes/ carries no
+Prisma tooling any more (nothing there ever imported `@prisma/client`).
+**What is real vs. what still needs the founder:** the flow above is built,
+typechecked, and exercised end to end against a local Worker (every route,
+every gated/degraded state) - what was NOT verified is a real email actually
+landing in an inbox, because that needs the `HOSTINGER_MAIL_API_TOKEN` /
+`HOSTINGER_MAILBOX_ID` secrets, which are still unset. The outbound-TCP
+question that used to sit here - whether Workers permit SMTP's port 465 -
+is gone along with the SMTP client, deleted 2026-09-16; see the step-5 entry
+in SUBSCRIPTION-PROGRESS.md, which records the false vendor claim that
+justified writing it in the first place.
+"signed out" for everyone, including a request with a valid session cookie -
+wiring the session-check helper (`getAuthContext`, also in auth.ts) into
+those two pages is step 6/7's job, not step 5's; `src/routes/verify.ts`
+explains why it redirects to `/` instead of `/console` in the meantime.
+**Rate limiting was added the same day, before anything deployed.** Step 5
+first shipped `POST /sign-in` with no limit of any kind, which on an
+unauthenticated endpoint that emails whatever address is typed into it makes
+`contact@counterscent.com` a spam relay and puts the mailbox customers write
+to inside Hostinger's own volume and abuse limits - the same risk, twice.
+Three limits now sit in front of the send: one live token per address (15
+minutes, no new storage - it asks about the `VerificationToken` row the flow
+already writes), **five POSTs per ten minutes per `CF-Connecting-IP`** (a 429
+with `Retry-After`; a request with no such header shares one bucket rather
+than skipping the check), and **100 sends a day across the whole origin** (an
+honest 503 that says nothing was sent, never a fake "check your inbox"). The
+counters live in **Postgres** - no new binding, and an eventually-consistent
+store like KV under-counts during exactly the burst it exists to stop;
+reasoning in `counterscent-producers/src/lib/rate-limit.ts`. Expired
+verification tokens are now purged on the same path, so that table cannot
+grow off refused attempts either. **This adds one migration,
+`20260916143000_add_rate_limit`, which is NOT applied** - run `npx prisma
+migrate deploy` from that project BEFORE deploying the Worker, because
+sign-in fails closed (503, saying so) when it cannot reach its limit table.
+That work also found and fixed a real bug in the step-5 code: token expiry
+was written from the Worker's clock into a `TIMESTAMP` column with no zone
+and then compared against Postgres `now()`, so with the database session's
+TimeZone anywhere east of UTC every magic link is born expired and `/verify`
+answers 410 for everyone. Reproduced against a real Postgres at
+`Europe/Istanbul`; Neon defaulting to UTC is the only reason it worked. Both
+sides use `now()` now.
+**Steps 6 and 7 are therefore unblocked and not started.** Step 8's safety
 layer is done; the rest of it needs step 6.
 
 
@@ -771,7 +1206,9 @@ layer is done; the rest of it needs step 6.
    **append-only audit event table**. Change `Submission.producer` from
    `onDelete: Cascade` to `Restrict`, and give `ClickEvent` a denormalised
    listing key so click history survives a removal.
-5. Auth on the new origin (magic link, per the commitment in `login-form.tsx`).
+5. ~~Auth on the new origin (magic link, per the commitment in `login-form.tsx`).~~
+   **DONE 2026-09-16.** See the paragraph above this list for what is real
+   and what still needs a live SMTP test.
 6. Producer console v1: submit, list, unpublish, request an edit, see status.
 7. Admin queue v1: review, approve, reject with reason, author the verdict.
 8. Export + publish path, including the exporter's refuse-to-emit guard.

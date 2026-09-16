@@ -1,4 +1,6 @@
 import { json } from "../lib/http";
+import { mailConfigured } from "../lib/mailer";
+import type { Env } from "../lib/env";
 
 /**
  * A trivial endpoint that proves the WORKER is what answered, rather than a
@@ -9,17 +11,22 @@ import { json } from "../lib/http";
  * old IP. "Is it actually up" needs an answer that cannot be a false
  * positive.
  *
- * Deliberately says nothing about the database, because this Worker has no
- * database connection. A health check that reports on a dependency it does
- * not have is worse than none.
+ * Updated for step 5 (2026-09-16): this Worker now does hold a database
+ * connection (src/lib/db.ts) and account/sign-in flow (src/lib/auth.ts), so
+ * `accounts` flips to true. `mailConfigured` is reported separately rather
+ * than folded into `accounts`, because the two are independently true or
+ * false - a Worker can have a database connection with no mail secret set,
+ * which is an expected interim state, not a failure, and collapsing them
+ * into one boolean would hide which half is missing.
  */
-export function health(): Response {
+export function health(_request: Request, env: Env): Response {
   return json({
     ok: true,
     service: "counterscent-producers",
     // Honest, machine-readable version of what every page says in prose.
     programmeOpen: false,
-    accounts: false,
+    accounts: true,
+    mailConfigured: mailConfigured(env),
     submissions: false,
   });
 }

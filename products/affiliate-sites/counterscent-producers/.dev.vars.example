@@ -1,0 +1,63 @@
+# Copy to .dev.vars (gitignored, never commit the real values) for local
+# `wrangler dev`. In production these are set with `wrangler secret put
+# <NAME>` from this directory - wrangler.jsonc carries no `vars`/`secrets`
+# block on purpose, because a secret typed into a committed config in a
+# PUBLIC repo is the exact failure this file exists to avoid.
+#
+# Both .dev.vars and .dev.vars.example are wrangler's own convention (the
+# Workers analogue of .env / .env.example), distinct from Next.js's .env
+# files in the catalogue project - this Worker reads NEITHER of those.
+
+# Postgres, POOLED connection (hostname contains "-pooler"). This Worker only
+# ever runs short application queries, never `prisma migrate`, so it needs
+# only the pooled string - DATABASE_URL_UNPOOLED (migrations only) stays a
+# local-machine concern for prisma/schema.prisma in this project and is never
+# a Worker secret.
+#
+# DO NOT TYPE THIS BY HAND. Run, from this directory:
+#   neon link --project-id holy-sunset-91521586 --branch production -y
+# which writes it (and DATABASE_URL_UNPOOLED, for local `prisma migrate`) into
+# .env in this directory - copy the pooled value across into .dev.vars by
+# hand once, since wrangler and the Prisma CLI read two different files here.
+DATABASE_URL=postgresql://USER:PASSWORD@ep-xxxx-pooler.REGION.aws.neon.tech/neondb?sslmode=require
+
+# Hostinger's HTTP Email API, for sending the magic link from
+# contact@counterscent.com (mailbox already live - MX/DKIM/SPF confirmed in
+# departments/web-development/counterscent-dns-migration.md). This replaced a
+# hand-written SMTP client on 2026-09-16; src/lib/mailer.ts explains why, and
+# why that client was deleted rather than kept as a fallback.
+#
+# THE TOKEN MUST BE ISSUED SEPARATELY FOR THIS WORKER. Do not paste in the
+# value of the machine-level HOSTINGER_MAIL_TOKEN that the founder's own
+# hostinger-email MCP server uses. They reach the same mailbox and neither is
+# narrower - the point is that revoking this one on suspicion must not break
+# the founder's own tooling, because a revocation with a cost attached is one
+# that gets put off. Same rule the root CLAUDE.md records for keeping
+# HOSTINGER_MAIL_TOKEN off the shared HOSTINGER_API_TOKEN.
+#
+# Be clear-eyed about what this grants: send, and also read, search, delete
+# (including whole-folder) and webhook management on that mailbox. Hostinger's
+# Email API publishes no send-only scope - that was checked against its full
+# operation list, not assumed. If this value ever escapes, revoke it AND
+# enumerate the mailbox's webhooks, because revocation alone does not remove a
+# webhook created with it.
+HOSTINGER_MAIL_API_TOKEN=
+
+# Which mailbox the token above sends from. Discover it with
+# `GET /api/v1/me`, whose data.mailboxes[] is the only way to list them (there
+# is no standalone list-mailboxes endpoint). The value below is the real,
+# non-secret resource id for contact@counterscent.com - an identifier, not a
+# credential, and useless without the token.
+HOSTINGER_MAILBOX_ID=AC9278a32f3d4ca8bd1119f31c2d1c
+
+# NEVER COMMIT THE REAL VALUES. This repo is public. .dev.vars is gitignored
+# at the repo root; verify with `git check-ignore .dev.vars` before assuming
+# it, the same rule the root CLAUDE.md states for any downloaded/licensed
+# data landing somewhere unexpected.
+#
+# All of the above are read with a presence check at request time
+# (src/lib/env.ts) - a missing secret degrades the affected page to
+# `notShipped()` rather than failing silently or lying about success. Setting
+# none of them is a valid, expected state, not a bug: this Worker was built
+# with the mail token possibly still unset (see SUBSCRIPTION-PROGRESS.md, the
+# step 5 entry, for whether it was set at the time).

@@ -1,6 +1,9 @@
 import { html } from "../lib/html";
 import { CATALOGUE, layout } from "../ui/layout";
-import { card, section, stateRow } from "../ui/components";
+import { button, card, section, stateRow } from "../ui/components";
+import type { Env } from "../lib/env";
+import { getAuthContext } from "../lib/auth";
+import { page } from "../lib/http";
 
 /**
  * "/" - what this origin is, what it will do, and the one distinction the
@@ -11,9 +14,46 @@ import { card, section, stateRow } from "../ui/components";
  * are linked from here and labelled as previews rather than hidden. When the
  * programme opens, this page becomes the signed-out landing page and that
  * section comes out.
+ *
+ * SINCE STEP 5 (2026-09-16) THIS IS THE ONE PAGE ON THE ORIGIN THAT SHOWS
+ * REAL SESSION STATE. Not /console: that page's own file explains why it
+ * still hardcodes "signed out" for everyone, including a request carrying a
+ * valid session cookie, until step 6 wires the session-check helper in. This
+ * page is where "did sign-in actually work" is checkable in the meantime,
+ * and where the sign-out form lives, because there is nowhere else on the
+ * origin that currently renders a signed-in state to hang one off of.
  */
-export function overview() {
+export async function overview(request: Request, env: Env) {
+  const auth = await getAuthContext(request, env);
+
+  const accountStrip = auth
+    ? card(html`
+        <p><strong>Signed in as ${auth.email}.</strong></p>
+        <p class="muted">
+          ${
+            auth.producerId
+              ? "Attached to a producer record."
+              : "Not attached to a producer yet - that is a separate, editorial step, not something signing in does on its own."
+          }
+        </p>
+        <form method="post" action="/sign-out" class="actions">
+          ${button("Sign out", { variant: "ghost" })}
+        </form>
+      `)
+    : card(html`
+        <p><strong>Signed out.</strong></p>
+        <p class="muted">
+          <a href="/sign-in">Request a sign-in link</a> to check that the account system works. It will not
+          put you anywhere useful yet - see "The screens, as they stand" below.
+        </p>
+      `);
+
   const body = html`
+    ${section({
+      heading: "Account",
+      body: accountStrip,
+    })}
+
     ${section({
       heading: "What a producer will do here",
       lede: html`Four verbs, from the brief this was designed against. Each one is a
@@ -200,23 +240,25 @@ export function overview() {
 
     ${section({
       heading: "The screens, as they stand",
-      lede: html`Layout previews. They read real state vocabulary and no real data,
-        because this Worker has no database connection at all: it cannot read a listing
-        and it cannot write one.`,
+      lede: html`Sign in is real now (step 5, 2026-09-16). The other two are still layout
+        previews that read real state vocabulary and no real data.`,
       body: html`
         <div class="grid-2">
           ${card(html`
             <h3><a href="/sign-in">Sign in</a></h3>
             <p class="muted">
-              Where an email sign-in link will be requested. The fields are disabled and
-              there is no form to submit.
+              Where an email sign-in link is requested - a real form, gated on whether the
+              database and mail-sending secrets are both configured on this Worker. See
+              that page for which, if either, is still missing.
             </p>
           `)}
           ${card(html`
             <h3><a href="/console">The producer console</a></h3>
             <p class="muted">
               The listing table and the four actions, with the empty state that is
-              currently the only honest thing to show.
+              currently the only honest thing to show. Still says "signed out"
+              unconditionally, even to a signed-in request - that page is not wired to a
+              session yet, on purpose, until step 6.
             </p>
           `)}
           ${card(html`
@@ -252,19 +294,24 @@ export function overview() {
     })}
   `;
 
-  return layout({
-    title: "Producer console",
-    heading: "The producer console",
-    showBackLink: false,
-    status: {
-      label: "Not open yet",
-      note: html`There are no producer accounts, nothing to sign in to, and no submission
-        can be stored. Every screen here says so where it would matter.`,
-    },
-    standfirst: html`This is where a fragrance producer will list an alternative on
-      counterscent.com, follow it through review, and take it down again. It is being
-      built, and the pages below are what has been designed rather than what is
-      running.`,
-    body,
-  });
+  return page(
+    layout({
+      title: "Producer console",
+      heading: "The producer console",
+      showBackLink: false,
+      status: {
+        label: "Not open yet",
+        note: html`Signing in is real (see "Account" above); there is still nothing to do
+          once signed in and no way to submit anything. Every screen here says so where it
+          would matter.`,
+      },
+      standfirst: html`This is where a fragrance producer will list an alternative on
+        counterscent.com, follow it through review, and take it down again. It is being
+        built, and the pages below are what has been designed rather than what is
+        running.`,
+      body,
+    }),
+    200,
+    { allowForms: Boolean(auth) },
+  );
 }

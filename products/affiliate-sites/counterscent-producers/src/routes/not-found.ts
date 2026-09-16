@@ -22,7 +22,7 @@ export function notFound() {
       body: html`
         <ul class="plain-list">
           <li><a href="/">The overview</a>, which explains what this console is for.</li>
-          <li><a href="/sign-in">Sign in</a>, which does not work yet and says so.</li>
+          <li><a href="/sign-in">Sign in</a>, where a real sign-in link can be requested.</li>
           <li><a href="/console">The producer console</a>.</li>
           <li><a href="/review">The review queue</a>.</li>
         </ul>

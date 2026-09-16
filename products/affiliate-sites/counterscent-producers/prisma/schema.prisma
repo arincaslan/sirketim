@@ -1,25 +1,57 @@
 // COUNTERSCENT marketplace schema.
 //
-// STATUS: MIGRATED AND CONNECTED as of 2026-09-14. A Neon Postgres project
-// (aws-us-east-2, branch `production`) holds all ten tables and eight enums,
-// applied from prisma/migrations/ and verified by querying
-// information_schema rather than by trusting the migration's exit code.
+// MOVED HERE FROM fragrance-dupes/prisma/schema.prisma on 2026-09-16, as part
+// of build step 5 (auth). The two projects' own comments had said this move
+// would happen "when the console is built" - the console's origin
+// (products/affiliate-sites/counterscent-producers/) now exists and step 5 is
+// the first code in it that actually talks to the database, so this is where
+// the schema belongs. fragrance-dupes/ keeps no Prisma tooling: nothing there
+// ever imported @prisma/client, and prisma/schema.prisma's old location is
+// gone. See fragrance-dupes/SUBSCRIPTION-PROGRESS.md for the dated account of
+// what moved and why.
 //
-// WHAT IS STILL NOT TRUE: no running code connects to it. The producer
-// console does not exist (build steps 5-7), and the PUBLIC SITE MUST NEVER
-// READ THIS DATABASE - `output: "export"` gives it no server, and a paused
-// or rotated database would otherwise fail the whole catalogue's deploy.
-// See HANDOFF.md, "Run the export as a commit, not inside CI".
+// STATUS: MIGRATED AND CONNECTED as of 2026-09-14; a real query runs against
+// it as of 2026-09-16 (src/lib/db.ts, this project - a hand-written SQL layer
+// over @neondatabase/serverless, NOT Prisma Client; see db.ts for why). A Neon
+// Postgres project (aws-us-east-2, branch `production`) holds ten of the
+// eleven tables below and all eight enums, applied from prisma/migrations/ and
+// verified by querying information_schema rather than by trusting the
+// migration's exit code.
+//
+// THE ELEVENTH TABLE, `RateLimit`, IS NOT IN THE DATABASE YET. It was added
+// here on 2026-09-16 with migration 20260916143000_add_rate_limit, which was
+// deliberately NOT applied in the session that wrote it - that session had no
+// database credentials and the founder had not reviewed the change. The
+// migration is additive (one new table, no alteration to anything existing),
+// and it has to be applied BEFORE the Worker carrying that code is deployed:
+// POST /sign-in refuses to send mail when it cannot reach its rate-limit
+// table, on purpose, so deploying first means a 503 on sign-in until the
+// migration runs. Apply with `npx prisma migrate deploy` from this directory
+// (DATABASE_URL_UNPOOLED, per the datasource note below).
+//
+// WHAT IS STILL NOT TRUE: the PUBLIC SITE (fragrance-dupes/) MUST NEVER READ
+// THIS DATABASE - `output: "export"` gives it no server, and a paused or
+// rotated database would otherwise fail the whole catalogue's deploy. See
+// HANDOFF.md, "Run the export as a commit, not inside CI".
 //
 // Connection strings come from `neon link`, never typed by hand - see
-// .env.example. MARKETPLACE-PLAN.md §4 and PRODUCER-PROGRAM.md §8 carry the
-// surrounding plan.
+// .dev.vars.example in this project, and `wrangler secret put DATABASE_URL`
+// for the deployed Worker. MARKETPLACE-PLAN.md §4 and PRODUCER-PROGRAM.md §8
+// (both in fragrance-dupes/, where the surrounding plan was written) carry
+// the wider context.
 //
-// This models the producer side that lib/producers.ts and lib/dupes-data.ts
-// currently fake with static arrays. The fixtures stay as the site's data
-// source until a database exists; these tables are the shape they migrate
-// into, deliberately mirroring the existing TypeScript types so the swap is
-// mechanical rather than a redesign.
+// This models the producer side that fragrance-dupes/lib/producers.ts and
+// lib/dupes-data.ts currently fake with static arrays. The fixtures stay as
+// the public site's data source until an export script writes real rows out
+// (build step 8); these tables are the shape they migrate into, deliberately
+// mirroring the existing TypeScript types so the swap is mechanical rather
+// than a redesign.
+//
+// THIS FILE IS STILL THE ONLY PLACE THE SCHEMA IS DEFINED. Prisma is used
+// here for `prisma migrate` (schema + migrations) only - not for runtime
+// queries, and @prisma/client is not a dependency of this project. Run
+// `npx prisma migrate dev` / `npx prisma validate` from this directory
+// exactly as it was run from fragrance-dupes/ before the move.
 
 generator client {
   provider = "prisma-client-js"
@@ -631,4 +663,41 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Abuse limits
+// ---------------------------------------------------------------------------
+
+/// One counter per bucket, for rate limiting. Added 2026-09-16, after POST
+/// /sign-in shipped with no limit of any kind on an unauthenticated endpoint
+/// that emails whatever address is typed into it - see src/lib/rate-limit.ts
+/// in this project for the full reasoning, including why the counters live
+/// here rather than in KV or a Durable Object (no new binding, and a limiter
+/// on an eventually-consistent store under-counts during exactly the burst it
+/// exists to stop).
+///
+/// DELIBERATELY NOT AUTH-SPECIFIC. `key` is an opaque prefixed string
+/// ("signin-ip:1.2.3.4", "signin-send:global"), so a limit on some later
+/// endpoint is a new prefix rather than a second table and another migration.
+///
+/// THIS TABLE IS DISPOSABLE. Every row is a counter that expires; nothing here
+/// is a record of anything. Truncating it costs one window's worth of
+/// protection and nothing more, which is why the sweep that deletes stale rows
+/// is allowed to fail silently while the count itself is not.
+model RateLimit {
+  /// Opaque bucket id. The primary key IS the bucket - one row per key, and
+  /// the upsert that increments it locks that row, which is what makes
+  /// concurrent requests count correctly instead of racing.
+  key   String @id
+  count Int    @default(0)
+
+  /// When the current window opened. A window is fixed, not sliding: the
+  /// counter resets on the first request after the window lapses, which is
+  /// what makes this self-healing with no scheduled job.
+  windowStart DateTime @default(now())
+
+  /// For the opportunistic sweep of long-dead buckets. Without it that
+  /// delete is a sequential scan over a table an abuser gets to grow.
+  @@index([windowStart])
 }
