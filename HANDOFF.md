@@ -11,7 +11,7 @@ Machine setup is `SETUP.md`. This file is only about *what state the work is in*
 **Auth is live on `producers.counterscent.com` and a real magic link has been
 sent, received and used.** Everything below this block that says step 5 is
 unshipped describes the state before this session; it is kept for the reasoning,
-not the status. **Still uncommitted** - the deploy came from the working tree.
+not the status. **COMMITTED AND PUSHED** as `39857a0` (auth) and `a895358` (unrelated advertising assets, kept separate so they can be dropped alone). Working tree is clean.
 
 Version ID `9e5cd6a0-0f10-44c7-a9db-fa2df6b81fe9`. Migration
 `20260916143000_add_rate_limit` applied to Neon `production` BEFORE the deploy,
