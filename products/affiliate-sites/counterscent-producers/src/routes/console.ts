@@ -84,7 +84,9 @@ export async function producerConsole(request: Request, env: Env): Promise<Respo
     // allowForms, for the sign-out <form>. Granted per page rather than
     // origin-wide (src/lib/http.ts), so the grant tracks what the page
     // actually contains.
-    return page(noProducerAttached(auth), 200, { allowForms: true });
+    return page(noProducerAttached(auth, isAdminEmail(auth.email, env)), 200, {
+      allowForms: true,
+    });
   }
 
   const sql = db(env);
@@ -326,7 +328,26 @@ function signedOut(): Html {
  * (b) Signed in, no producer attached
  * ======================================================================== */
 
-function noProducerAttached(auth: AuthUser): Html {
+/**
+ * THIS PAGE CARRIES A NAV ONLY FOR AN ADMINISTRATOR, and the asymmetry is the
+ * point rather than an oversight.
+ *
+ * For a producer it still renders bare. Every producer item leads somewhere
+ * that would immediately refuse them for the reason this page is already
+ * explaining, so a nav here would be four ways to be told the same thing
+ * twice.
+ *
+ * For an admin it is the opposite. Administrative access does not depend on a
+ * Producer row at all - it is an address on a deployment secret - so an
+ * administrator in this state is not waiting on anything, they are simply
+ * someone whose inbox has never been attached to a company. Every account on
+ * production is in exactly this state today, including the founder's, which
+ * means without this the admin group was unreachable from /console for the
+ * only person who has it: the nav fix one commit earlier lives on the attached
+ * path and never ran. Found by checking the live database rather than by
+ * reading the code, after the deploy and before the founder hit it.
+ */
+function noProducerAttached(auth: AuthUser, isAdmin = false): Html {
   const body = html`
     ${section({
       heading: "Account",
@@ -406,6 +427,9 @@ function noProducerAttached(auth: AuthUser): Html {
   return layout({
     title: "Producer console",
     heading: "Your account is set up.",
+    // See the note above this function: rendered for an admin, omitted for a
+    // producer, because only one of the two has somewhere to go from here.
+    nav: isAdmin ? { current: "listings", showAdmin: true } : undefined,
     status: {
       label: "No producer attached",
       tone: "outline",
