@@ -4,7 +4,13 @@ export function ProsCons({ pros, cons }: { pros: string[]; cons: string[] }) {
   return (
     <div className="not-prose grid gap-4 sm:grid-cols-2">
       <div className="flex flex-col gap-2 rounded-frame border border-border p-5">
-        <span className="text-xs font-semibold uppercase tracking-wide text-dupe">Works well</span>
+        {/* The colour lives on the icon, not on the label. `text-dupe` is a chart
+            token - a badge ground for white text - and as text-xs foreground it
+            measures 2.77:1 in dark mode, below AA. Several components already
+            refuse it for exactly this; this was the last one still doing it. */}
+        <span className="text-xs font-semibold uppercase tracking-wide text-foreground">
+          Works well
+        </span>
         <ul className="flex flex-col gap-2">
           {pros.map((pro) => (
             <li key={pro} className="flex items-start gap-2 text-sm text-foreground/85">

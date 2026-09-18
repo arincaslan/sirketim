@@ -46,15 +46,27 @@ export function DataTableFallback({
             Facet-by-facet comparison of {referenceName} and {dupeName}, rated 0 to 10.
           </caption>
           <thead>
+            {/* Swatches rather than tinted header text. This table IS the
+                colour-blind and screen-reader fallback for the radar chart, so
+                it was the worst possible place to identify a column by hue
+                alone - and `text-reference`/`text-dupe` measure 2.77:1 and
+                4.03:1 on this surface in dark mode besides, both under AA.
+                A swatch is a non-text mark and owes 3:1, which both clear. */}
             <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
               <th scope="col" className="py-2 font-semibold">
                 Facet
               </th>
-              <th scope="col" className="py-2 font-semibold text-reference">
-                {referenceName}
+              <th scope="col" className="py-2 font-semibold text-foreground/80">
+                <span className="flex items-center gap-1.5">
+                  <span aria-hidden className="h-2 w-2 shrink-0 rounded-pill bg-reference-mark" />
+                  {referenceName}
+                </span>
               </th>
-              <th scope="col" className="py-2 font-semibold text-dupe">
-                {dupeName}
+              <th scope="col" className="py-2 font-semibold text-foreground/80">
+                <span className="flex items-center gap-1.5">
+                  <span aria-hidden className="h-2 w-2 shrink-0 rounded-pill bg-dupe-mark" />
+                  {dupeName}
+                </span>
               </th>
             </tr>
           </thead>

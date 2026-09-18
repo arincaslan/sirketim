@@ -16,10 +16,15 @@ export function ProducerFilter({
   producerSlugs,
   selected,
   onSelect,
+  className,
 }: {
   producerSlugs: string[];
   selected: string;
   onSelect: (slug: string) => void;
+  /** Spacing is the caller's business: this now sits inside the ranked list's
+   *  own header rather than floating above the results grid, so the margin
+   *  that separates it from the count belongs to that layout, not here. */
+  className?: string;
 }) {
   if (producerSlugs.length < 2) return null;
 
@@ -32,7 +37,7 @@ export function ProducerFilter({
   ];
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by producer">
+    <div className={cn("flex flex-wrap gap-2", className)} role="group" aria-label="Filter by producer">
       {options.map((option) => {
         const active = option.slug === selected;
         return (

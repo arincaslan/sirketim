@@ -119,7 +119,13 @@ export function BuyActions({
               <AffiliateLink
                 key={offer.affiliateLinkId!}
                 id={offer.affiliateLinkId!}
-                className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  /* Same wrap allowance as the fragrance page's buttons, and
+                     for the same reason: the size now travels with the price,
+                     and this column is narrower than that page's. */
+                  "h-auto min-h-11 max-w-full gap-2 whitespace-normal py-2.5 text-center"
+                )}
               >
                 {/* The retailer's own price, not `reference.priceUsd`. That field is
                     an approximate RETAIL figure and both these merchants are
@@ -128,7 +134,7 @@ export function BuyActions({
                     $21.95 page. A price beside a buy button has to be the price at
                     its far end, or no price at all. */}
                 {offer.priceUsd != null
-                  ? `${offer.merchantName} - $${offer.priceUsd}`
+                  ? `${offer.merchantName} - $${offer.priceUsd} / ${offer.priceMl}ml`
                   : `${offer.merchantName}`}
                 <ArrowUpRight className="h-4 w-4" aria-hidden />
               </AffiliateLink>

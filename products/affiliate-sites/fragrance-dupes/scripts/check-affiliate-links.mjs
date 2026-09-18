@@ -518,10 +518,28 @@ for (const entry of selected) {
   console.log();
 }
 
+// THE CONCLUSION COUNTS WHAT WAS REQUESTED, NOT WHAT IS KNOWN ABOUT.
+//
+// These two lines said `entries.length` - the total number of links in the
+// data - while the loop above only ever requests `selected`, which on a
+// default run is 12 per merchant. So a sampled run ended with "all 620 link(s)
+// reach a merchant with attribution intact", a sentence that is false about
+// 560 of them and is exactly the line a person quotes later.
+//
+// The repo already records this failure shape about this very script: a
+// checker covering a subset converts "we have not looked" into "we looked and
+// it was fine", and it drifts in the direction that flatters. The header line
+// was honest about sampling all along; the conclusion was not, and the
+// conclusion is the half anyone reads.
+const scope =
+  selected.length === entries.length
+    ? `all ${entries.length} link(s)`
+    : `${selected.length} of ${entries.length} link(s) (sampled; pass --all for the rest)`;
+
 console.log(
   failed === 0
-    ? `check-affiliate-links: all ${entries.length} link(s) reach a merchant with attribution intact.`
-    : `check-affiliate-links: ${failed} of ${entries.length} link(s) FAILED.`
+    ? `check-affiliate-links: ${scope} reach a merchant with attribution intact.`
+    : `check-affiliate-links: ${failed} of the ${selected.length} link(s) checked FAILED.`
 );
 if (outOfStock.length) {
   console.log(`check-affiliate-links: ${outOfStock.length} out of stock — ${outOfStock.join(", ")}`);

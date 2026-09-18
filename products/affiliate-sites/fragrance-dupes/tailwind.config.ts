@@ -54,6 +54,14 @@ const config: Config = {
         dupe: {
           DEFAULT: "hsl(var(--series-dupe))",
         },
+        // The literal chart-mark hexes, for non-text marks only (a swatch, a
+        // seam, a rule). `reference` above is the text-safe step and is
+        // deliberately mode-invariant, which makes it far too dark to read as
+        // a MARK on the dark theme - --series-reference has a per-mode value
+        // for exactly that. Never put text in these two; that is what
+        // `reference`/`dupe` are for.
+        "reference-mark": "hsl(var(--series-reference))",
+        "dupe-mark": "hsl(var(--series-dupe))",
       },
       borderRadius: {
         // Documented shape rule (DESIGN.md §3): frames/cards/tables/inputs

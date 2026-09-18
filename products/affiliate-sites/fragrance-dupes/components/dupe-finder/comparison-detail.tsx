@@ -3,6 +3,7 @@ import { Quotes } from "@phosphor-icons/react/dist/ssr";
 import { RadarChart } from "@/components/dupe-finder/radar-chart";
 import { DataTableFallback } from "@/components/dupe-finder/data-table-fallback";
 import { SpecPanel } from "@/components/dupe-finder/spec-panel";
+import { MatchRule } from "@/components/dupe-finder/match-rule";
 import { BuyActions } from "@/components/dupe-finder/buy-actions";
 import { HouseBadge } from "@/components/dupe-finder/house-badge";
 import { VerificationBadge } from "@/components/dupe-finder/verification-badge";
@@ -47,47 +48,70 @@ export function ComparisonDetail({
 
   return (
     <div className="flex flex-col gap-10 rounded-frame border border-border bg-card p-6 sm:p-8">
-      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <span className="mb-3 flex items-center gap-2">
-            <FragranceImage fragrance={reference} className="h-11 w-11 text-base" />
-            <span className="text-foreground/30" aria-hidden>
-              vs
-            </span>
-            <FragranceImage
-              fragrance={{
-                name: dupe.name,
-                brand: dupe.brand,
-                family: reference.family,
-                facets: dupe.facets,
-                imageUrl: dupe.imageUrl,
-              }}
-              className="h-11 w-11 text-base"
-            />
+      {/* RESTAGED 2026-09-18 to match the ranked card that opens it. Two
+          problems, both structural rather than decorative. The score was set
+          inside a sentence at body-adjacent scale while the card that selected
+          this panel prints it at 3xl over a rule, so the same number arrived in
+          two registers one click apart. And the verification description sat in
+          a right-aligned block floating in the header's top corner, aligned to
+          nothing; it is ordinary prose about the badge beside it and now runs
+          in normal flow underneath it. */}
+      <header className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <FragranceImage fragrance={reference} className="h-12 w-12 text-base" />
+          <span className="text-sm text-foreground/60" aria-hidden>
+            vs
           </span>
-          <p className="text-sm text-muted-foreground">
-            {reference.name} <span className="text-foreground/40">vs</span> {dupe.name} by {dupe.brand}
-          </p>
-          <p className="mt-1 font-display text-2xl">
-            {score}% note, facet{bothHaveIngredients ? ", ingredient" : ""} and family match
-          </p>
-          <span className="mt-3 flex flex-wrap items-center gap-2">
-            <VerificationBadge info={verification} />
-            {house && <HouseBadge />}
-            {house && (
-              <span className="text-xs text-muted-foreground">
-                Ranked by the same formula as every other listing, not floated to the top.
-              </span>
-            )}
+          <FragranceImage
+            fragrance={{
+              name: dupe.name,
+              brand: dupe.brand,
+              family: reference.family,
+              facets: dupe.facets,
+              imageUrl: dupe.imageUrl,
+            }}
+            className="h-12 w-12 text-base"
+          />
+
+          <span className="ml-auto flex flex-col items-end leading-none">
+            <span className="font-display text-4xl tabular-nums lining-nums text-dupe">
+              {score}
+              <span className="align-top text-xl">%</span>
+            </span>
+            <span className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              match
+            </span>
           </span>
         </div>
-        <p className="max-w-[30ch] text-right text-xs text-muted-foreground">
+
+        {/* Same rule, same length, same colour as the one on the card that
+            selected this panel. It is the number restated as a measure rather
+            than a second number to reconcile. */}
+        <MatchRule score={score} thickness="bold" delay={0.08} />
+
+        <div className="flex flex-col gap-1">
+          <h3 className="text-balance font-display text-2xl leading-snug">
+            {reference.name} <span className="text-foreground/60">vs</span> {dupe.name}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {dupe.brand}. Scored on notes, facets
+            {bothHaveIngredients ? ", ingredients" : ""} and family.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <VerificationBadge info={verification} />
+          {house && <HouseBadge />}
+        </div>
+
+        <p className="max-w-[60ch] text-xs leading-relaxed text-muted-foreground">
           {verification.description}{" "}
+          {house && "Ranked by the same formula as every other listing, not floated to the top. "}
           <a href="/about#methodology" className="underline underline-offset-2 hover:text-primary">
             How we calculate this
           </a>
         </p>
-      </div>
+      </header>
 
       <div className="grid gap-10 lg:grid-cols-2">
         <div className="flex flex-col items-center gap-4">

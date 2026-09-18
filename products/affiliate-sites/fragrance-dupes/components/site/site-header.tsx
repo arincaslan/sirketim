@@ -30,7 +30,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" onClick={() => setOpen(false)} aria-label="Counterscent — home">
+        <Link href="/" onClick={() => setOpen(false)}>
           <CounterscentLogo tagline />
         </Link>
 

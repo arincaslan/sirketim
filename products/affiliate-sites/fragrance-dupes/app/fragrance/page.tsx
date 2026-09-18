@@ -4,6 +4,8 @@ import { JsonLd } from "@/components/kit/JsonLd";
 import { FragranceImage } from "@/components/fragrance/fragrance-image";
 import { REFERENCES } from "@/lib/data/references";
 import { getCatalogCoverage, getListingCounts, getReferencesByBrand } from "@/lib/catalog";
+import { getNoteIndex, noteKey, notesOf } from "@/lib/notes";
+import { CatalogNoteFilter } from "@/components/fragrance/catalog-note-filter";
 import { catalogLastUpdated, formatListingDate } from "@/lib/listing-dates";
 import { itemListSchema } from "@/lib/jsonld";
 import { absoluteUrl } from "@/lib/site";
@@ -46,6 +48,28 @@ export default function FragranceCatalogPage() {
   const listingCounts = getListingCounts();
   const coverage = getCatalogCoverage(0);
   const lastUpdated = catalogLastUpdated();
+
+  // THE NOTE INDEX, BUILT HERE AND SENT AS THE ONLY CLIENT PAYLOAD. Cards are
+  // numbered in the exact order they render below, and each note maps to the
+  // numbers of the cards carrying it; the client filter hides by number rather
+  // than re-rendering, so this page keeps shipping all 216 links in its HTML.
+  // Built in the same pass as the markup, from the same `groups`, so the two
+  // orderings cannot drift - a mismatch here would hide the wrong cards, which
+  // is exactly the kind of bug that looks like a data problem for a day.
+  const noteIndex = getNoteIndex();
+  const noteMap: Record<string, number[]> = {};
+  const cardNumbers = new Map<string, number>();
+  let card = 0;
+  for (const group of groups) {
+    for (const ref of group.references) {
+      cardNumbers.set(ref.slug, card);
+      for (const note of notesOf(ref)) {
+        const key = noteKey(note);
+        (noteMap[key] ??= []).push(card);
+      }
+      card += 1;
+    }
+  }
 
   const itemList = itemListSchema(
     REFERENCES.map((ref, i) => ({
@@ -94,85 +118,107 @@ export default function FragranceCatalogPage() {
         </p>
       </div>
 
-      {/* Quick jump: 111 entries in one scroll is exactly the wall-of-cards
+      {/* Quick jump: 216 entries in one scroll is exactly the wall-of-cards
           problem reference-picker.tsx's doc comment already describes for
-          the Dupe Finder - here there's no client-side step-through, so a
-          static anchor row is the equivalent fix at zero JS cost. */}
-      <nav aria-label="Jump to a house" className="mb-10 flex flex-wrap gap-2">
-        {groups.map((group) => (
-          <a
-            key={group.brand}
-            href={`#${slugifyBrand(group.brand)}`}
-            className="rounded-full border border-border px-3.5 py-1.5 text-sm font-semibold text-foreground/75 transition-colors duration-150 hover:border-primary/50 hover:text-foreground"
-          >
-            {group.brand}
-            <span className="ml-1.5 text-xs text-muted-foreground">
-              {group.references.length}
-            </span>
-          </a>
-        ))}
-      </nav>
-
-      <div className="flex flex-col gap-14">
-        {groups.map((group) => (
-          <section key={group.brand} id={slugifyBrand(group.brand)} className="scroll-mt-24">
-            <h2 className="font-display text-2xl">
+          the Dupe Finder, and an anchor row answers "take me to Chanel".
+          It does NOT answer "show me the vanillas", which is why the note
+          filter above it exists and why this page is no longer the zero-JS
+          page this comment used to claim - it ships the filter and a note
+          index, and nothing else. Every card below is still server-rendered
+          and every link is still in the HTML. */}
+      <CatalogNoteFilter notes={noteIndex} noteMap={noteMap} total={REFERENCES.length}>
+        <nav aria-label="Jump to a house" className="mb-10 flex flex-wrap gap-2">
+          {groups.map((group) => (
+            <a
+              key={group.brand}
+              href={`#${slugifyBrand(group.brand)}`}
+              data-house-jump={slugifyBrand(group.brand)}
+              className="rounded-full border border-border px-3.5 py-1.5 text-sm font-semibold text-foreground/75 transition-colors duration-150 hover:border-primary/50 hover:text-foreground"
+            >
               {group.brand}
-              <span className="ml-2 text-base font-normal text-muted-foreground">
+              <span
+                data-house-count={slugifyBrand(group.brand)}
+                className="ml-1.5 text-xs text-muted-foreground"
+              >
                 {group.references.length}
               </span>
-            </h2>
-            <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {group.references.map((ref) => (
-                <li key={ref.slug}>
-                  <Link
-                    href={`/fragrance/${ref.slug}`}
-                    data-cursor="view"
-                    className="group flex items-center gap-3 rounded-frame border border-border bg-card p-4 transition-[border-color,transform] duration-150 ease-out hover:border-primary/50 active:scale-[0.99]"
+            </a>
+          ))}
+        </nav>
+
+        <div className="flex flex-col gap-14">
+          {groups.map((group) => (
+            <section
+              key={group.brand}
+              id={slugifyBrand(group.brand)}
+              data-house-section={slugifyBrand(group.brand)}
+              className="scroll-mt-24"
+            >
+              <h2 className="font-display text-2xl">
+                {group.brand}
+                <span
+                  data-house-count={slugifyBrand(group.brand)}
+                  className="ml-2 text-base font-normal text-muted-foreground"
+                >
+                  {group.references.length}
+                </span>
+              </h2>
+              <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {group.references.map((ref) => (
+                  <li
+                    key={ref.slug}
+                    data-card={cardNumbers.get(ref.slug)}
+                    data-house={slugifyBrand(group.brand)}
                   >
-                    <FragranceImage fragrance={ref} className="h-11 w-11 shrink-0 text-sm" />
-                    <div className="flex min-w-0 flex-col">
-                      {/* The name is the one thing on this card that must stay
-                          fully readable - line-clamp (wrap, don't clip) rather
-                          than truncate, so a longer real name (e.g. "Flora
-                          Gorgeous Gardenia") never loses a word to an ellipsis. */}
-                      <span className="line-clamp-2 font-semibold transition-colors group-hover:text-primary">
-                        {ref.name}
-                      </span>
-                      <span className="truncate text-xs text-muted-foreground">
-                        {ref.family} &middot; {ref.concentration}
-                      </span>
-                      {/* Absence is stated, not implied by a missing badge. A
-                          card that simply lacks a count reads as "we have not
-                          checked"; this says we have, and the answer is none. */}
-                      <span className="mt-1 truncate text-xs">
-                        {(listingCounts.get(ref.slug) ?? 0) > 0 ? (
-                          /* Weight, not hue, carries the emphasis: --series-dupe
-                             is a chart-mark token and measures 4.03:1 at 12px
-                             in dark mode, under the 4.5:1 floor for normal
-                             text. Its own comment in globals.css claims it
-                             clears 4.5:1, which holds in light mode only. */
-                          <span className="font-semibold text-foreground">
-                            {listingCounts.get(ref.slug)}{" "}
-                            {listingCounts.get(ref.slug) === 1 ? "alternative" : "alternatives"}
-                          </span>
-                        ) : (
-                          /* Plain muted-foreground, NOT a dimmed variant: at
-                             /70 this measured 3.36:1 on a 12px label, under
-                             the 4.5:1 floor. The green count beside it already
-                             carries the emphasis difference, so dimming this
-                             bought nothing and cost legibility. */
-                          <span className="text-muted-foreground">No alternative listed</span>
-                        )}
-                      </span>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-      </div>
+                    <Link
+                      href={`/fragrance/${ref.slug}`}
+                      data-cursor="view"
+                      className="group flex items-center gap-3 rounded-frame border border-border bg-card p-4 transition-[border-color,transform] duration-150 ease-out hover:border-primary/50 active:scale-[0.99]"
+                    >
+                      <FragranceImage fragrance={ref} className="h-11 w-11 shrink-0 text-sm" />
+                      <div className="flex min-w-0 flex-col">
+                        {/* The name is the one thing on this card that must stay
+                            fully readable - line-clamp (wrap, don't clip) rather
+                            than truncate, so a longer real name (e.g. "Flora
+                            Gorgeous Gardenia") never loses a word to an ellipsis. */}
+                        <span className="line-clamp-2 font-semibold transition-colors group-hover:text-primary">
+                          {ref.name}
+                        </span>
+                        <span className="truncate text-xs text-muted-foreground">
+                          {ref.family} &middot; {ref.concentration}
+                        </span>
+                        {/* Absence is stated, not implied by a missing badge. A
+                            card that simply lacks a count reads as "we have not
+                            checked"; this says we have, and the answer is none. */}
+                        <span className="mt-1 truncate text-xs">
+                          {(listingCounts.get(ref.slug) ?? 0) > 0 ? (
+                            /* Weight, not hue, carries the emphasis: --series-dupe
+                               is a chart-mark token and measures 4.03:1 at 12px
+                               in dark mode, under the 4.5:1 floor for normal
+                               text. Its own comment in globals.css claims it
+                               clears 4.5:1, which holds in light mode only. */
+                            <span className="font-semibold text-foreground">
+                              {listingCounts.get(ref.slug)}{" "}
+                              {listingCounts.get(ref.slug) === 1 ? "alternative" : "alternatives"}
+                            </span>
+                          ) : (
+                            /* Plain muted-foreground, NOT a dimmed variant: at
+                               /70 this measured 3.36:1 on a 12px label, under
+                               the 4.5:1 floor. The green count beside it already
+                               carries the emphasis difference, so dimming this
+                               bought nothing and cost legibility. */
+                            <span className="text-muted-foreground">No alternative listed</span>
+                          )}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </CatalogNoteFilter>
 
       <p className="mt-14 border-t border-border pt-6 text-sm text-muted-foreground">
         Every name above is a trade mark of its own owner. We name each fragrance in order to

@@ -54,9 +54,15 @@ export function RadarChart({
         className="w-full max-w-[360px]"
       >
         <defs>
+          {/* --series-dupe, not --dupe. `--dupe` has never existed in
+              globals.css, so both stops resolved to an invalid colour and the
+              Dupe polygon has been rendering with no fill at all since this
+              chart was built. Nothing could catch it: an unparsable colour is
+              dropped silently by the browser, and tsc/lint cannot see inside a
+              CSS variable name. */}
           <radialGradient id={gradientId}>
-            <stop offset="0%" stopColor="hsl(var(--dupe))" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="hsl(var(--dupe))" stopOpacity="0.04" />
+            <stop offset="0%" stopColor="hsl(var(--series-dupe))" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="hsl(var(--series-dupe))" stopOpacity="0.04" />
           </radialGradient>
         </defs>
 
@@ -149,13 +155,19 @@ export function RadarChart({
         ))}
       </svg>
 
-      <figcaption className="flex items-center justify-center gap-6 text-xs font-semibold">
-        <span className="flex items-center gap-1.5">
-          <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-reference" />
+      {/* The swatch is a MARK, so it takes the chart-mark token and not the
+          darker text-safe step - otherwise the key beneath the chart is
+          painted in a different gold from the polygon it is keying, and on the
+          dark theme it is close to invisible. The NAMES beside them stay in
+          the ordinary foreground colour: a legend label has to clear 4.5:1 and
+          these two hues are the chart's, not the type's. */}
+      <figcaption className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold">
+        <span className="flex items-center gap-2">
+          <span aria-hidden className="h-2.5 w-2.5 rounded-pill bg-reference-mark" />
           {referenceName}
         </span>
-        <span className="flex items-center gap-1.5">
-          <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-dupe" />
+        <span className="flex items-center gap-2">
+          <span aria-hidden className="h-2.5 w-2.5 rounded-pill bg-dupe-mark" />
           {dupeName}
         </span>
       </figcaption>

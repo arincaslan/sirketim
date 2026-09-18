@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { ValueBar } from "@/components/dupe-finder/value-bar";
 import { describeValueMultiple, formatPricePerMl, pricePerMl, valueMultiple } from "@/lib/similarity";
 import { getOriginalPricing } from "@/lib/catalog";
@@ -68,9 +69,16 @@ export function SpecPanel({
         <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Value
         </h4>
+        {/* The bar runs off getOriginalPricing() like everything else here.
+            It used to read reference.priceUsd/bottleMl directly, which is the
+            hand-maintained approximate-retail figure - so on any reference a
+            retailer discounts hard (FragranceShop sells Obsession at $21.95
+            against our $76) the bar quoted one price-per-ml and the sentence
+            two lines below it quoted another, for the same bottle. Same
+            resolver, one number. */}
         <ValueBar
           label="Price per ml"
-          referenceValue={pricePerMl(reference.priceUsd, reference.bottleMl)}
+          referenceValue={pricePerMl(original.priceUsd, original.bottleMl)}
           dupeValue={pricePerMl(dupe.priceUsd, dupe.bottleMl)}
           formatValue={(n) => `$${n.toFixed(2)}`}
         />
@@ -130,7 +138,20 @@ function WearColumn({
 }) {
   return (
     <div className="flex flex-col gap-2 rounded-frame border border-border p-4 text-sm">
-      <span className={accent === "reference" ? "font-semibold text-reference" : "font-semibold text-dupe"}>
+      {/* Swatch plus plain text, not tinted text. `text-reference` measures
+          2.77:1 on this card in dark mode and `text-dupe` 4.03:1, both under
+          AA at this size - they are badge grounds, not foreground colours. The
+          swatch carries the same series identity as a non-text mark, where the
+          bar is 3:1, and a shape beside the word also means the two columns are
+          no longer told apart by hue alone. */}
+      <span className="flex items-center gap-2 font-semibold">
+        <span
+          aria-hidden
+          className={cn(
+            "h-2 w-2 shrink-0 rounded-pill",
+            accent === "reference" ? "bg-reference-mark" : "bg-dupe-mark"
+          )}
+        />
         {concentration}
       </span>
       <p>
