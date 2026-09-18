@@ -1,7 +1,7 @@
 /**
  * GENERATED FILE. DO NOT EDIT BY HAND.
  *
- * Produced by scripts/generate-constants.mjs on 2026-09-16.
+ * Produced by scripts/generate-constants.mjs on 2026-09-18.
  * Regenerate with `npm run generate`.
  *
  * SOURCE: the NETWORK_HOSTS array in

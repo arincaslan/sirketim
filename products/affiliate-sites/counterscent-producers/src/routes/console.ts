@@ -8,22 +8,25 @@ import {
   emptyState,
   identityBar,
   listingStates,
+  listingThumb,
   notShipped,
-  quotaLine,
   section,
   stateBadge,
   tableBlock,
+  listingStateFor,
   type ListingState,
   type TableRow,
 } from "../ui/components";
+import { NEVER_INCLUDED, PLANS } from "../generated/plans";
 import type { Env } from "../lib/env";
 import { db } from "../lib/db";
 import { getAuthContext, type AuthUser } from "../lib/auth";
 import {
-  allowanceForTier,
   countsAgainstAllowance,
+  enforcedAllowance,
   loadProducerConsole,
-  type Allowance,
+  planFor,
+  quotaGate,
   type ListingRow,
   type ProducerConsoleData,
 } from "../lib/producer";
@@ -116,6 +119,20 @@ export async function producerConsole(request: Request, env: Env): Promise<Respo
  * (a) Signed out
  * ======================================================================== */
 
+/**
+ * "Before you write to us", the closing section of the signed-out console.
+ *
+ * THE TWO CAPS USED TO BE SPELLED OUT IN IT and the founder cut them on
+ * 2026-09-18. The sentence read "...published in full, including the cap that
+ * stops any producer-declared listing reaching 90 per cent and the ceiling that
+ * stops anything at all publishing above 95." Both numbers are real and both
+ * are published - but reciting them on the way to a "write to us" link
+ * front-loads a stranger with two limits before they have any idea what the
+ * scale means or what it is computed from. The link says the formula is
+ * published in full; a producer who cares reads it there, next to the working.
+ * The same sentence on the signed-out overview never carried them, so this also
+ * settles a difference between two pages saying the same thing.
+ */
 function signedOut(): Html {
   const body = html`
     ${section({
@@ -189,9 +206,11 @@ function signedOut(): Html {
               is a control; a promise in a document is not.
             </li>
             <li>
-              <strong>We take no commission on a paid tier's sales</strong>, so we have
-              no financial interest in where a subscriber ranks or how much traffic they
-              get. That is what makes the line above worth anything.
+              <strong>We take no commission on your sales, on any tier</strong>, the
+              free one included. We have no financial interest in where any listing
+              ranks or how much traffic it gets, which is what makes the line above
+              worth anything. A subscription, if you take one, is the only thing you
+              ever pay us.
             </li>
             <li>
               <strong>Nothing is approved automatically</strong>, at any tier. Automation
@@ -272,9 +291,7 @@ function signedOut(): Html {
         <p>
           The part most likely to decide whether this is a fit is
           <a href="${CATALOGUE}/about#methodology">how we score</a>, not the price. It is
-          published in full, including the cap that stops any producer-declared listing
-          reaching 90 per cent and the ceiling that stops anything at all publishing
-          above 95.
+          published in full.
         </p>
         <p>
           Then:
@@ -405,9 +422,17 @@ function noProducerAttached(auth: AuthUser): Html {
 
 function attached(auth: AuthUser, data: ProducerConsoleData, withdrew: ListingRow | null = null): Html {
   const { producer, listings, inUse } = data;
-  const allowance: Allowance | null = producer.tier === null ? null : allowanceForTier(producer.tier);
   const hasListings = listings.length > 0;
-  const atAllowance = typeof allowance === "number" && inUse >= allowance;
+
+  // THIS SCREEN AND /console/submit MUST AGREE ABOUT BEING FULL, so both ask
+  // quotaGate rather than each deciding for themselves. They did not, and it
+  // showed: a producer with no Subscription row is enforced at the free
+  // allowance of one, but the old test here was `typeof allowance === "number"`,
+  // which is false when tier is null - so this page said there was nothing to be
+  // full of while the form said "1 of 1". That is every producer's state at
+  // launch, not an edge case, because there are zero Subscription rows.
+  const verdict = quotaGate({ tier: producer.tier, inUse });
+  const atAllowance = verdict.kind === "at-allowance";
 
   const body = html`
     ${
@@ -432,24 +457,18 @@ function attached(auth: AuthUser, data: ProducerConsoleData, withdrew: ListingRo
       heading: "Account",
       body: html`
         ${identityBar({
+            // PLAN AND LISTINGS ARE NOT IN THIS LIST ANY MORE. They moved into
+            // the aside panel on 2026-09-18, because four facts pinned to the
+            // left of a wide card left a third of the strip empty and the two
+            // that a producer actually scans for were the two being squeezed.
+            // Repeating them on both sides would have been the easy version
+            // and the wrong one: the same fact rendered twice is a fact that
+            // can disagree with itself.
             facts: [
               { label: "Producer", value: html`${producer.name}` },
               { label: "Signed in as", value: html`<span class="wrap-anywhere">${auth.email}</span>` },
-              {
-                label: "Plan",
-                // ABSENCE OF A Subscription ROW RENDERS "No plan on file",
-                // NEVER "Free plan". Subscription.tier defaults to "free", so
-                // a free producer is representable two ways and only one of
-                // them is a record that exists. This is every producer's state
-                // at launch, which makes it the common path rather than the
-                // fallback.
-                value:
-                  producer.tier === null
-                    ? html`No plan on file`
-                    : html`${producer.tier}${producer.status ? html` <span class="cell-sub">${producer.status.toLowerCase()}</span>` : ""}`,
-              },
-              { label: "Listings", value: quotaLine({ used: inUse, allowance, tier: producer.tier ?? undefined }) },
             ],
+            aside: planPanel(producer, inUse),
             action: html`<form method="post" action="/sign-out" class="actions">
               ${button("Sign out", { variant: "ghost" })}
             </form>`,
@@ -511,7 +530,7 @@ function attached(auth: AuthUser, data: ProducerConsoleData, withdrew: ListingRo
       `,
     })}
 
-    ${atAllowance ? exhaustedAllowance(allowance as number) : ""}
+    ${verdict.kind === "at-allowance" ? exhaustedAllowance(verdict.allowance) : ""}
 
     ${section({
       heading: "What each column means",
@@ -560,20 +579,114 @@ function attached(auth: AuthUser, data: ProducerConsoleData, withdrew: ListingRo
   return layout({
     title: "Producer console",
     heading: "Your listings",
+    // The main signed-in screen, so this is where the nav first appears.
+    // showReview is a session check standing in for a role check until User has
+    // one; see NavContext in ../ui/layout for why that is a stopgap and what
+    // has to land with it.
+    nav: { current: "listings", showReview: true },
     status: {
       label: "Console live",
       // The one solid pill on the origin. Solid means published on a listing
       // badge and it means the same thing here: the surface in front of you is
       // real and reading your own data.
       tone: "solid",
-      note: html`This screen is reading your producer record. Nothing on it can be
-        submitted, edited or withdrawn yet, and each disabled verb says which of those two
-        reasons applies to it.`,
+      // Phase 1 copy said nothing here could be submitted, edited or withdrawn.
+      // Two of those three shipped on 16 Sep and this line did not move with
+      // them, so the page spent two days telling a producer they could not do
+      // the thing the button above does. Say what is true per verb.
+      note: html`This screen is reading your producer record. Submitting a fragrance and
+        withdrawing one both work. Requesting an edit does not yet, and that button says so
+        itself rather than leaving you to find out by pressing it.`,
     },
     standfirst: html`Everything ${producer.name} has submitted, what state each listing is
       in, and what can be done about it today.`,
     body,
   });
+}
+
+/**
+ * The plan panel on the right of the account strip.
+ *
+ * FOUNDER INSTRUCTION 2026-09-18: the white strip was too wide, and the space
+ * should carry the plan - which tier, how many listed, how many more they can
+ * list. It answers the question a producer actually arrives with, and it takes
+ * the Plan and Listings facts OUT of the left-hand list rather than repeating
+ * them, which is what made the strip sparse in the first place.
+ *
+ * THE REMAINING COUNT READS enforcedAllowance(), THE SAME FUNCTION quotaGate
+ * USES. "Can list 3 more" and a live Submit button are two renderings of one
+ * fact, and a panel that computed its own subtraction would eventually offer
+ * a slot the form refuses. There are four honest answers here and each gets
+ * its own words, for the same reason quotaLine has four branches.
+ *
+ * NO Subscription ROW STILL SAYS SO. The heading reads the tier we enforce, so
+ * a producer is not left staring at "No plan on file" with no idea what they
+ * are allowed; the line underneath says the record does not exist. Both facts
+ * fit, and dropping either one would either confuse them or overstate what we
+ * hold.
+ */
+function planPanel(producer: ProducerConsoleData["producer"], inUse: number): Html {
+  const plan = planFor(producer.tier);
+  const allowance = enforcedAllowance(producer.tier);
+  const noRecord = producer.tier === null;
+
+  const heading = plan ? plan.name : noRecord ? "Free" : "Not recognised";
+
+  // EXACTLY ONE NOTE, and which one is a priority order rather than a
+  // preference. The first draft printed every caveat that applied, which ran
+  // to three small-type lines and made the panel taller than the whole left
+  // half of the strip - trading the founder's "too wide" for an equally odd
+  // "too tall". A panel whose job is to answer two questions at a glance
+  // cannot also be the place every rule is restated; the rules are on
+  // /console/plan, which is one click away and linked from the bottom of it.
+  let room: Html;
+  let note: Html | null = null;
+
+  if (allowance === "uncapped") {
+    room = html`No cap on this plan`;
+  } else if (allowance === "unknown") {
+    room = html`Allowance not known here`;
+    note = html`Your record says <code>${producer.tier ?? ""}</code>, which this console has
+      no allowance for. We will not guess one.`;
+  } else {
+    const left = Math.max(0, allowance - inUse);
+    room = left === 0 ? html`No room for another` : html`Can list ${String(left)} more`;
+    if (left === 0) note = html`Withdrawing one frees its slot, or move up a tier.`;
+  }
+
+  // The missing-record fact outranks the allowance notes: it is the only one
+  // that says something about the account rather than about the count, and a
+  // producer who does not know a record is absent cannot make sense of why
+  // the number is what it is.
+  if (noRecord) note = html`No subscription record exists yet. This is what we enforce.`;
+
+  return html`<div class="plan-panel">
+    <p class="plan-panel-label">Your plan</p>
+    <p class="plan-panel-name">${heading}</p>
+    <p class="plan-panel-count">
+      <span class="plan-panel-listed"
+        >${inUse === 1 ? "1 listed" : `${String(inUse)} listed`}</span
+      >
+      <span class="plan-panel-room">${room}</span>
+    </p>
+    ${note ? html`<p class="plan-panel-note">${note}</p>` : ""}
+    <p class="plan-panel-link"><a href="/console/plan">See plans and move tier</a></p>
+  </div>`;
+}
+
+/**
+ * How a stored tier is named to the producer who is on it.
+ *
+ * Three outcomes and they are deliberately distinct: no record at all, a
+ * recognised plan (named as the rest of the origin names it), and a recorded
+ * string this build has no plan for. The third prints the raw value, because
+ * the only useful thing to do with an unrecognised tier is show the producer
+ * exactly what we are storing so they can quote it back at us.
+ */
+function planLabel(tier: string | null): Html {
+  if (tier === null) return html`No plan on file`;
+  const plan = planFor(tier);
+  return plan ? html`${plan.name}` : html`${tier} <span class="cell-sub">not recognised</span>`;
 }
 
 /** The listing table's body rows. */
@@ -582,8 +695,17 @@ function listingRows(listings: ListingRow[]): TableRow[] {
     cells: [
       {
         rowHeader: true,
-        content: html`<span class="cell-title">${l.name}</span>
-          <span class="cell-sub">${l.brand}</span>`,
+        // The thumbnail lives INSIDE the name cell rather than in a column of
+        // its own. A seventh column would narrow every other one on a table
+        // that already carries six, and the picture is an attribute of the
+        // fragrance named beside it, not an independent fact about it.
+        content: html`<span class="cell-with-thumb"
+          >${listingThumb(l)}
+          <span
+            ><span class="cell-title">${l.name}</span>
+            <span class="cell-sub">${l.brand}</span></span
+          ></span
+        >`,
       },
       { content: html`<span class="wrap-anywhere">${l.referenceSlug}</span>` },
       {
@@ -624,33 +746,6 @@ function withdrawable(l: ListingRow): boolean {
   return l.publishState !== "WITHDRAWN_BY_PRODUCER" && l.publishState !== "REMOVED_BY_EDITOR";
 }
 
-/**
- * The two database columns, as the one label a producer reads.
- *
- * Both are Postgres enums, so an unrecognised value is not reachable without a
- * migration. The order of the tests is the part that matters: where the two
- * columns disagree, publishState wins, because it describes where the listing
- * actually IS and an editorial decision that has not taken effect is exactly
- * what the "approved, not yet live" badge exists to say.
- */
-function listingStateFor(l: { approvalStatus: string; publishState: string }): ListingState {
-  switch (l.publishState) {
-    case "LIVE":
-      return "live";
-    case "WITHDRAWN_BY_PRODUCER":
-      return "withdrawn";
-    case "REMOVED_BY_EDITOR":
-      return "removed";
-    case "DRAFT":
-      return l.approvalStatus === "CHANGES_REQUESTED" ? "changes-requested" : "draft";
-    default:
-      if (l.approvalStatus === "REJECTED") return "rejected";
-      if (l.approvalStatus === "CHANGES_REQUESTED") return "changes-requested";
-      if (l.approvalStatus === "APPROVED") return "approved";
-      return "in-review";
-  }
-}
-
 /* ======================================================================== *
  * The exhausted-allowance screen
  * ======================================================================== *
@@ -677,19 +772,18 @@ function exhaustedAllowance(allowance: number): Html {
     body: html`
       <div class="stack">
         ${notShipped({
-          what: "A second listing needs a paid tier, and no paid tier is open",
+          what: "A second listing needs a paid tier, and no paid tier can be bought here yet",
           reason: html`${lead} There is no checkout on this site, no payment provider
             connected to it, and no way for anyone to take money from you today. We are
             not showing you a Subscribe button that does nothing, because a button that
             cannot work is a slower way of saying this.`,
         })}
         <p>
-          <strong>What actually moves this:</strong> write to
-          <a href="mailto:contact@counterscent.com">contact@counterscent.com</a> and tell
-          us how many fragrances you would list and which originals they go against. A
-          person reads it. What the paid tiers cost and contain is waiting on exactly
-          that, because nobody has listed here yet and we would rather price against real
-          catalogues than a guess. We cannot give you a date and we will not invent one.
+          <strong>What actually moves this:</strong>
+          <a href="/console/plan">your plan page</a> lists what each tier covers and what it
+          will cost, and the action on each one writes to us with your company and the tier
+          you want already filled in. A person reads it and moves you. That is the whole
+          process today, and we cannot give you a date for the automated version.
         </p>
         <p class="muted">
           Withdrawing a listing frees its slot. A withdrawn listing keeps its record and
@@ -712,28 +806,68 @@ function exhaustedAllowance(allowance: number): Html {
  * fact of the table rather than a claim printed underneath it. Three cards
  * cannot do that, and the catalogue already owns the card version.
  *
- * NO CURRENCY FIGURES, DELIBERATELY. This project has no import path to the
- * catalogue's lib/plans.ts, so any number typed here is a third hand-written
- * copy sitting behind that file's constants and, eventually, a payment
- * provider's own price objects, with no build step anywhere that could catch a
- * mismatch. A producer seeing one figure here and a different one on the
- * pricing page is worse than one seeing no figure here. What the table carries
- * instead is capability, which is a fact we enforce ourselves.
+ * THE FIGURES ARE HERE AND THEY ARE GENERATED. This comment used to say the
+ * table carried no currency figures at all, on the argument that this project
+ * has no import path to the catalogue's lib/plans.ts so any number typed here
+ * would be a third hand-written copy that could drift with nothing able to
+ * catch it. The founder overruled the conclusion on 2026-09-16 and upheld the
+ * objection: the console shows real figures, and they come from
+ * src/generated/plans.ts rather than from a typist. `npm run generate --check`
+ * is what says the copy is stale. The comment then sat here asserting the
+ * opposite of what the founder had decided for two days, which is its own
+ * small lesson about a stated reason outliving the decision behind it.
  *
- * There is also no monthly/yearly toggle: it is client state, there is no
+ * THE PRICES ARE STILL PLACEHOLDERS AT THE SOURCE, and the cost row says so
+ * rather than leaving a reader to treat $12 as a commitment.
+ *
+ * There is still no monthly/yearly toggle: it is client state, there is no
  * JavaScript budget, and a toggle belongs at a point of purchase, which this
- * is not.
+ * is not. Both figures print instead.
  */
+/** One tier's cost cell: the free tier has no figure rather than a zero, and a
+ *  paid tier prints both figures because there is no toggle to choose between
+ *  them. */
+function costCell(p: { priceMonthlyUsd: number | null; priceYearlyUsd: number | null }): Html {
+  if (p.priceMonthlyUsd === null) return html`Nothing`;
+  return html`$${String(p.priceMonthlyUsd)} a month${p.priceYearlyUsd === null
+    ? ""
+    : html`<span class="cell-sub">or $${String(p.priceYearlyUsd)} a year</span>`}`;
+}
+
 function planTable(): Html {
   const cell = (content: Html) => ({ content });
   const label = (text: string) => ({ content: html`${text}`, rowHeader: true });
+
+  // THE COLUMN HEADERS ARE GENERATED AND THE CELLS ARE HAND-ORDERED, so the two
+  // only agree while PLANS stays in ladder order. Reordering or adding a tier in
+  // lib/plans.ts would relabel the columns and leave every row's values under
+  // the wrong heading: a producer would read the top tier's allowance as the
+  // free tier's, and nothing about the page would look broken. Fail loudly
+  // instead, at the one place that assumption lives.
+  const EXPECTED_TIERS = ["free", "standard", "unlimited"];
+  const actual = PLANS.map((p) => p.id);
+  if (actual.length !== EXPECTED_TIERS.length || actual.some((id, i) => id !== EXPECTED_TIERS[i])) {
+    throw new Error(
+      `planTable(): rows are hand-ordered for [${EXPECTED_TIERS.join(", ")}] but PLANS is ` +
+        `[${actual.join(", ")}]. Reorder the cells in this function to match, then update ` +
+        `EXPECTED_TIERS. Do not just silence this.`,
+    );
+  }
 
   return tableBlock({
     label: "What each tier covers",
     // The first column header labels the ROW axis, not a value column, and it
     // has to be true of every row in it. "What you get" was, until the cost row
     // and the "no tier buys" row, which are the two rows most worth reading.
-    columns: ["Item", "Free", "Standard", "Featured"],
+    // DERIVED, NOT TYPED. These read ["Item", "Free", "Standard", "Featured"]
+    // as four hand-written strings, which made them a fourth copy of the tier
+    // names in a project that generates its constants precisely so a copy
+    // cannot drift. The 2026-09-18 rename of "Featured" to "Unlimited" would
+    // have had to find this line by memory; now it cannot be missed, because
+    // the header comes from the same generated PLANS the rest of the origin
+    // reads. The row order below still assumes free, standard, top - which the
+    // assertion under this call enforces rather than trusts.
+    columns: ["Item", ...PLANS.map((p) => p.name)],
     rows: [
       {
         cells: [
@@ -743,10 +877,17 @@ function planTable(): Html {
           cell(html`No cap`),
         ],
       },
+      // THREE IDENTICAL CELLS, KEPT AS A ROW ON PURPOSE. Free read "A share of
+      // a sale, through an affiliate network" until the founder removed
+      // commission from the free tier on 2026-09-18. The row could now be a
+      // sentence, but a producer comparing tiers scans this column for exactly
+      // this question, and "None / None / None" answers it in the place they
+      // look. A row that is the same across every tier is also the strongest
+      // kind to leave standing: it cannot be read as an upsell.
       {
         cells: [
           label("Commission we take on your sales"),
-          cell(html`A share of a sale, through an affiliate network`),
+          cell(html`None`),
           cell(html`None`),
           cell(html`None`),
         ],
@@ -759,6 +900,19 @@ function planTable(): Html {
           cell(html`Always`),
         ],
       },
+      // ADDED 2026-09-18, when self-serve withdrawal became a real tier
+      // difference rather than a line on a pricing page nothing enforced. The
+      // free cell says what actually happens instead of just "No": a free
+      // producer is not stuck, they ask us, and the one place they would
+      // otherwise discover that is by pressing a button that refuses.
+      {
+        cells: [
+          label("Withdraw a listing yourself"),
+          cell(html`Ask us and we do it`),
+          cell(html`Yes, any time`),
+          cell(html`Yes, any time`),
+        ],
+      },
       {
         cells: [
           label("Priority in the review queue"),
@@ -767,22 +921,36 @@ function planTable(): Html {
           cell(html`Yes`),
         ],
       },
+      // GENERATED CELLS, for the same reason the column headers are. Typing
+      // "$12" here would recreate exactly the hand-copied figure the old
+      // version of this function refused to carry, one tier to the left of
+      // where the headers now come from.
       {
         cells: [
           label("What it costs"),
-          cell(html`Nothing`),
+          ...PLANS.map((p) => cell(costCell(p))),
+        ],
+      },
+      {
+        cells: [
+          label("What that price is"),
           {
-            colSpan: 2,
+            colSpan: 3,
             content: html`<span class="table-span"
-              >Not printed on this screen. The only figures that exist are indicative
-              rather than final, they live on
-              <a href="${CATALOGUE}/producers/pricing">plans and pricing</a> with that
-              said plainly, and we would rather you read them there once than see a
-              number here that has drifted away from them.</span
+              >Indicative, not final, and nothing here can take a payment: no checkout, no
+              card form, no payment provider connected to this site. The figures are
+              published so you can decide whether this is worth your time. They also appear
+              on <a href="${CATALOGUE}/producers/pricing">plans and pricing</a>, and the two
+              cannot disagree because both are generated from one file.</span
             >`,
           },
         ],
       },
+      // THE LIST IS THE GENERATED NEVER_INCLUDED, not four typed lines. It was
+      // typed here, which made it a fifth copy of a promise whose whole value
+      // is that it says the same thing everywhere it appears - and the copy
+      // most likely to be edited in isolation, because it reads as body text
+      // rather than as a constant.
       {
         rule: true,
         cells: [
@@ -791,10 +959,7 @@ function planTable(): Html {
             colSpan: 3,
             content: html`<div class="table-span">
               <ul class="plain-list">
-                <li>A better match score.</li>
-                <li>A higher rank, at any tier.</li>
-                <li>A premium or featured slot in results.</li>
-                <li>Approval over the verdict we write.</li>
+                ${NEVER_INCLUDED.map((line) => html`<li>${line}.</li>`)}
               </ul>
               <p>
                 The first two are not only promised. The modules that compute and order

@@ -23,7 +23,13 @@ import {
  *
  * Never on this form, and the reason is structural rather than cautious: the
  * six facet fields, `family`, `verdict`, the match score, `verificationStatus`,
- * `pyramidSource`, `affiliateLinkId`, and all three `founderOverride*` fields.
+ * and `pyramidSource`.
+ *
+ * `affiliateLinkId` is no longer on this list because it is no longer on any
+ * list: no tier takes commission since 2026-09-18, so nothing writes it at all.
+ * The three `founderOverride*` fields left the same day, dropped outright
+ * (migration 20260918120000_drop_founder_override) when the founder removed the
+ * one exception to the 95% ceiling.
  *
  * The catalogue's copy-detection check flags a listing only when the notes AND
  * the facets both match the reference, and it has a second independent input

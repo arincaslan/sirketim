@@ -239,25 +239,20 @@ export interface DupeCandidate {
      *  claim is "this was published on this date", never "this is published". */
     checkedOn: string;
   };
-  /**
-   * A rare, human, editorial override of the published score - the ONLY way
-   * a listing can publish above the 95% structural ceiling in
-   * lib/verification.ts. `note` must be non-empty (mirrors the required
-   * "what's genuinely different" prose already on the submission form) and
-   * is shown on the page, because an unexplained number above the site's
-   * own stated ceiling is exactly the backdoor /about#methodology exists to
-   * rule out. Bypasses the -10 imputed-pyramid penalty and both the 90%/95%
-   * ceilings entirely - but never the isVerbatimCopy publish gate, which
-   * runs in getRankedDupesFor before a score is ever computed, and never a
-   * house-producer listing (enforced by the module-load guard in
-   * lib/dupes-data.ts) - self-certifying our own product past the ceiling
-   * is exactly the hole getPublishedScore already closes for `verified`.
+  /*
+   * `founderOverride?: { score; note; date }` WAS HERE, REMOVED 2026-09-18.
+   *
+   * It was a human editorial override of the published score and the only way
+   * a listing could publish above the 95% structural ceiling. The founder
+   * removed it while it was still unused, so no data migration was needed and
+   * no published number changes.
+   *
+   * Do not reintroduce it as a field on the candidate. If a personally-worn
+   * opinion is ever worth publishing, it is a piece of WRITING with a byline -
+   * the verdict prose already on every listing - not a number that silently
+   * outranks the formula the methodology page publishes. The moment it is a
+   * number, a reader has no way to tell it from a computed one.
    */
-  founderOverride?: {
-    score: number;
-    note: string;
-    date: string;
-  };
   longevityHoursRange: [number, number];
   sillageLabel: SillageLabel;
   priceUsd: number;

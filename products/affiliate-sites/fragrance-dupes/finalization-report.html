@@ -1,0 +1,1081 @@
+
+<title>Counterscent Finalization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  /* ── Light palette: the complete token set ─────────────────────────── */
+  :root {
+    --paper:        #EDECF1;
+    --surface:      #F6F5F8;
+    --surface-2:    #E3E2EA;
+    --ink:          #15171E;
+    --ink-2:        #3A3F4C;
+    --slate:        #5A6474;
+    --rule:         #C9C7D4;
+    --rule-soft:    #DCDAE4;
+
+    --brass:        #A9662B;
+    --brass-soft:   #F0E2D2;
+    --brass-ink:    #7C4A1C;
+
+    --blocker:      #A32846;
+    --blocker-soft: #F7DDE3;
+    --warn:         #8A6206;
+    --warn-soft:    #F6E9C8;
+    --done:         #40663C;
+    --done-soft:    #DDEBD9;
+
+    --shadow: 0 1px 2px rgb(21 23 30 / .05), 0 8px 24px -12px rgb(21 23 30 / .18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:        #121319;
+      --surface:      #191B23;
+      --surface-2:    #23262F;
+      --ink:          #ECEBF1;
+      --ink-2:        #C3C2CE;
+      --slate:        #9095A3;
+      --rule:         #33363F;
+      --rule-soft:    #262932;
+
+      --brass:        #D9954F;
+      --brass-soft:   #38291A;
+      --brass-ink:    #EFC392;
+
+      --blocker:      #E8788F;
+      --blocker-soft: #3A1E25;
+      --warn:         #DDB458;
+      --warn-soft:    #332912;
+      --done:         #8FC087;
+      --done-soft:    #1E2A1C;
+
+      --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 10px 28px -14px rgb(0 0 0 / .7);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:        #121319;
+    --surface:      #191B23;
+    --surface-2:    #23262F;
+    --ink:          #ECEBF1;
+    --ink-2:        #C3C2CE;
+    --slate:        #9095A3;
+    --rule:         #33363F;
+    --rule-soft:    #262932;
+
+    --brass:        #D9954F;
+    --brass-soft:   #38291A;
+    --brass-ink:    #EFC392;
+
+    --blocker:      #E8788F;
+    --blocker-soft: #3A1E25;
+    --warn:         #DDB458;
+    --warn-soft:    #332912;
+    --done:         #8FC087;
+    --done-soft:    #1E2A1C;
+
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 10px 28px -14px rgb(0 0 0 / .7);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Newsreader", Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.6;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px 120px;
+  }
+
+  h1, h2, h3, .mono, .chip, .eyebrow, th {
+    font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  }
+  .mono, .chip, .eyebrow, .num, td.c, .metric-v {
+    font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  /* ── Masthead ──────────────────────────────────────────────────────── */
+  header.mast {
+    border-bottom: 1px solid var(--rule);
+    padding: 64px 0 34px;
+    margin-bottom: 44px;
+  }
+  .mast-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+  h1 {
+    font-size: clamp(38px, 6.4vw, 68px);
+    font-weight: 800;
+    line-height: .98;
+    letter-spacing: -.028em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h1 .thin { font-weight: 500; color: var(--slate); display: block; font-size: .52em; letter-spacing: -.01em; margin-top: 12px; }
+  .lede {
+    font-size: 20px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 62ch;
+    margin: 0;
+  }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  /* ── Readout: the honest snapshot ──────────────────────────────────── */
+  .readout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+    gap: 1px;
+    background: var(--rule-soft);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 40px 0 14px;
+  }
+  .metric { background: var(--surface); padding: 16px 16px 14px; }
+  .metric-k { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--slate); font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .metric-v { font-size: 27px; font-weight: 600; line-height: 1.15; margin-top: 7px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .metric.bad .metric-v { color: var(--blocker); }
+  .metric.warn .metric-v { color: var(--warn); }
+  .metric.ok .metric-v { color: var(--done); }
+  .metric-n { font-size: 12.5px; color: var(--slate); margin-top: 5px; line-height: 1.4; font-family: "Newsreader", serif; }
+
+  .callout {
+    border-left: 3px solid var(--brass);
+    background: var(--brass-soft);
+    color: var(--ink);
+    padding: 15px 20px;
+    border-radius: 0 3px 3px 0;
+    margin: 26px 0;
+    font-size: 16px;
+  }
+  .callout.stop { border-left-color: var(--blocker); background: var(--blocker-soft); }
+  .callout strong { font-weight: 600; }
+  .callout p { margin: 0; }
+  .callout p + p { margin-top: 9px; }
+
+  /* ── Sticky phase nav ──────────────────────────────────────────────── */
+  nav.phases {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter: blur(9px);
+    border-bottom: 1px solid var(--rule);
+    margin: 0 -28px 40px;
+    padding: 9px 28px;
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  nav.phases a {
+    flex: none;
+    text-decoration: none;
+    color: var(--slate);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 11px;
+    border-radius: 2px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  nav.phases a:hover { color: var(--ink); background: var(--surface-2); }
+  nav.phases a.on { color: var(--brass-ink); border-color: var(--brass); background: var(--brass-soft); }
+  nav.phases a:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+  h2.sec {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 9px;
+    margin: 64px 0 26px;
+  }
+
+  /* ── Phase blocks ──────────────────────────────────────────────────── */
+  .phase {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 28px;
+    padding: 34px 0;
+    border-top: 1px solid var(--rule);
+    scroll-margin-top: 62px;
+  }
+  .phase:first-of-type { border-top: none; }
+
+  .spine { position: relative; }
+  .spine-inner { position: sticky; top: 74px; }
+  /* the number grows across phases: baby steps → giant strides */
+  .num {
+    font-weight: 600;
+    line-height: .82;
+    color: var(--brass);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.04em;
+    display: block;
+  }
+  .stride {
+    height: 3px;
+    background: var(--brass);
+    border-radius: 2px;
+    margin-top: 14px;
+    opacity: .8;
+  }
+  .p0 .num { font-size: 30px; }  .p0 .stride { width: 16%; }
+  .p1 .num { font-size: 38px; }  .p1 .stride { width: 30%; }
+  .p2 .num { font-size: 46px; }  .p2 .stride { width: 48%; }
+  .p3 .num { font-size: 54px; }  .p3 .stride { width: 66%; }
+  .p4 .num { font-size: 62px; }  .p4 .stride { width: 84%; }
+  .p5 .num { font-size: 70px; }  .p5 .stride { width: 100%; }
+
+  .phase-body { min-width: 0; }
+  h3 {
+    font-size: clamp(24px, 3vw, 33px);
+    font-weight: 700;
+    letter-spacing: -.022em;
+    line-height: 1.1;
+    margin: -4px 0 14px;
+    text-wrap: balance;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .chip {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .04em;
+    padding: 4px 9px;
+    border-radius: 2px;
+    border: 1px solid var(--rule);
+    color: var(--slate);
+    background: var(--surface);
+    white-space: nowrap;
+  }
+  .chip.owner { color: var(--ink); border-color: var(--ink-2); }
+  .chip.cost  { color: var(--done); border-color: var(--done); background: var(--done-soft); }
+  .chip.cost.high { color: var(--warn); border-color: var(--warn); background: var(--warn-soft); }
+  .chip.block { color: var(--blocker); border-color: var(--blocker); background: var(--blocker-soft); }
+  .chip.free  { color: var(--brass-ink); border-color: var(--brass); background: var(--brass-soft); }
+
+  .why { color: var(--ink-2); margin: 0 0 20px; max-width: 68ch; }
+  .why strong { color: var(--ink); font-weight: 600; }
+
+  /* ── Task checklist ────────────────────────────────────────────────── */
+  .tasks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-soft); }
+  .tasks li {
+    display: grid;
+    grid-template-columns: 26px 46px 1fr;
+    gap: 12px;
+    align-items: start;
+    padding: 13px 4px 13px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .tasks input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 17px; height: 17px;
+    margin: 4px 0 0;
+    border: 1.5px solid var(--slate);
+    border-radius: 2px;
+    background: var(--surface);
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+    flex: none;
+  }
+  .tasks input[type="checkbox"]::after {
+    content: "";
+    width: 9px; height: 5px;
+    border-left: 2px solid var(--paper);
+    border-bottom: 2px solid var(--paper);
+    transform: rotate(-45deg) translate(1px, -1px);
+    opacity: 0;
+  }
+  .tasks input[type="checkbox"]:checked { background: var(--done); border-color: var(--done); }
+  .tasks input[type="checkbox"]:checked::after { opacity: 1; }
+  .tasks input[type="checkbox"]:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .tasks li.is-done .t-title, .tasks li.is-done .t-note { opacity: .45; text-decoration: line-through; text-decoration-thickness: 1px; }
+  .t-id { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--brass); font-weight: 500; padding-top: 4px; font-variant-numeric: tabular-nums; }
+  .t-title { font-weight: 600; font-size: 16.5px; line-height: 1.4; }
+  .t-note { color: var(--slate); font-size: 15px; line-height: 1.5; margin-top: 4px; max-width: 74ch; }
+  .t-note code, .why code, td code, .callout code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .87em;
+    background: var(--surface-2);
+    padding: 1px 5px;
+    border-radius: 2px;
+    color: var(--ink-2);
+  }
+  .tag {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: .06em;
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin-left: 7px;
+    vertical-align: 2px;
+    font-weight: 500;
+  }
+  .tag.f { background: var(--blocker-soft); color: var(--blocker); border: 1px solid var(--blocker); }
+  .tag.top { background: var(--brass-soft); color: var(--brass-ink); border: 1px solid var(--brass); }
+
+  .done-when {
+    margin-top: 18px;
+    font-size: 15px;
+    color: var(--slate);
+    border-left: 2px solid var(--rule);
+    padding-left: 14px;
+  }
+  .done-when b { color: var(--ink-2); font-weight: 600; font-family: "Bricolage Grotesque", sans-serif; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; display: block; margin-bottom: 3px; }
+
+  /* ── Tables ────────────────────────────────────────────────────────── */
+  .tscroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; min-width: 520px; }
+  th {
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--slate);
+    font-weight: 600;
+    padding: 11px 15px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  td { padding: 13px 15px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; color: var(--ink-2); }
+  tr:last-child td { border-bottom: none; }
+  td strong, td b { color: var(--ink); font-weight: 600; }
+  td.c { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ── Handoff columns ───────────────────────────────────────────────── */
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 20px 22px 22px;
+  }
+  .card h4 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: 12px; letter-spacing: .11em; text-transform: uppercase;
+    color: var(--brass-ink); margin: 0 0 12px; font-weight: 700;
+  }
+  .card ul { margin: 0; padding-left: 17px; color: var(--ink-2); font-size: 15.5px; }
+  .card li { margin-bottom: 7px; }
+  .card li:last-child { margin-bottom: 0; }
+
+  .prose { max-width: 68ch; color: var(--ink-2); }
+  .prose p { margin: 0 0 14px; }
+  .prose strong { color: var(--ink); font-weight: 600; }
+  .prose em { font-style: italic; }
+
+  ol.founder { counter-reset: f; list-style: none; padding: 0; margin: 0; max-width: 74ch; }
+  ol.founder li {
+    counter-increment: f;
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 14px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  ol.founder li::before {
+    content: counter(f);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--brass);
+    line-height: 1.25;
+  }
+  ol.founder b { display: block; font-family: "Bricolage Grotesque", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+  ol.founder span { color: var(--slate); font-size: 15px; }
+
+  .skip { font-size: 15.5px; color: var(--ink-2); max-width: 78ch; }
+  .skip b { color: var(--ink); }
+
+  footer.end {
+    margin-top: 74px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-size: 14px;
+    color: var(--slate);
+    display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between;
+  }
+
+  .reset {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--slate);
+    padding: 5px 11px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .reset:hover { color: var(--ink); border-color: var(--slate); }
+  .reset:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+  @media (max-width: 720px) {
+    .phase { grid-template-columns: 1fr; gap: 14px; }
+    .spine-inner { position: static; display: flex; align-items: center; gap: 14px; }
+    .stride { margin-top: 0; height: 3px; flex: 1; }
+    .tasks li { grid-template-columns: 24px 1fr; }
+    .t-id { display: none; }
+    .wrap { padding: 0 18px 90px; }
+    nav.phases { margin: 0 -18px 32px; padding: 9px 18px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+  html { scroll-behavior: smooth; }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="mast-top">
+      <div class="eyebrow">Sirketim · Board synthesis · updated 18 Sep 2026 · tenth pass</div>
+      <div class="eyebrow">Web Dev · Comms · Content · Accounting · COO · CFO</div>
+    </div>
+    <h1>Counterscent
+      <span class="thin">One ordered path from where the site is to where it earns.</span>
+    </h1>
+    <p class="lede" style="margin-top:26px">
+      <strong>The producer console is real, and the loop is half open.</strong>
+      Phases 0&ndash;2 are done, Phase 3 is done bar one founder check, Phase 4 is done bar research.
+      <strong>The empty room is furnished:</strong> the console this page last described as hardcoding
+      &ldquo;signed out&rdquo; now has three states, a listings table, a quota line, a submit form and a withdraw
+      flow &mdash; all live, all refusing an unauthenticated request. <strong>What is missing is the other
+      half.</strong> A producer can sign in, submit and withdraw, and the submission lands <code>PENDING</code>
+      with <em>nothing in existence able to move it out of that state</em>. The review queue does not exist,
+      <code>/review</code> is still inert, and it answers <strong>200 to anyone</strong> &mdash; safe only while it
+      stays inert. <strong>Two deferred decisions were taken on 18 Sep:</strong> how a submitted listing gets
+      checked, and the tier name that contradicted our own promise.
+    </p>
+
+    <div class="readout">
+      <div class="metric ok"><div class="metric-k">Live at</div><div class="metric-v">$0<span style="font-size:.42em;letter-spacing:0">/mo</span></div><div class="metric-n">counterscent.com · Cloudflare Workers</div></div>
+      <div class="metric ok"><div class="metric-k">Originals</div><div class="metric-v">216</div><div class="metric-n">Hand-researched pyramids · was 68</div></div>
+      <div class="metric ok"><div class="metric-k">Dupe listings</div><div class="metric-v">79</div><div class="metric-n">Across 65 originals · every pairing cited</div></div>
+      <div class="metric ok"><div class="metric-k">Buy links</div><div class="metric-v">620</div><div class="metric-n">Was 252 · Perfumania added 368</div></div>
+      <div class="metric ok"><div class="metric-k">Images</div><div class="metric-v">407</div><div class="metric-n">Licensed · the 29 gaps are licence-bound</div></div>
+      <div class="metric ok"><div class="metric-k">Merchants earning</div><div class="metric-v">5</div><div class="metric-n">3 Awin dupe-side · 2 CJ originals</div></div>
+      <div class="metric ok"><div class="metric-k">Content</div><div class="metric-v">12</div><div class="metric-n">11,996 words &mdash; target met</div></div>
+      <div class="metric ok"><div class="metric-k">Invented data</div><div class="metric-v">None</div><div class="metric-n">All of it removed</div></div>
+      <div class="metric ok"><div class="metric-k">Score ceiling</div><div class="metric-v">95%</div><div class="metric-n">Reformed 8 Sep · 90% unverified</div></div>
+      <div class="metric ok"><div class="metric-k">Producer sign-in</div><div class="metric-v">Live</div><div class="metric-n">16 Sep · magic link, proven end to end</div></div>
+      <div class="metric ok"><div class="metric-k">Producer console</div><div class="metric-v">Live</div><div class="metric-n">16 Sep · submit + withdraw · 401 unauth</div></div>
+      <div class="metric bad"><div class="metric-k">Review queue</div><div class="metric-v">None</div><div class="metric-n">Submissions land PENDING and stay there</div></div>
+      <div class="metric bad"><div class="metric-k">Producer billing</div><div class="metric-v">None</div><div class="metric-n">No rail · Stripe/PayPal exclude Turkey</div></div>
+      <div class="metric warn"><div class="metric-k">CJ sub-ID</div><div class="metric-v">Unchecked</div><div class="metric-n">One founder look at CJ&rsquo;s click report</div></div>
+      <div class="metric"><div class="metric-k">Revenue</div><div class="metric-v">$0</div><div class="metric-n">Links live · no commission yet</div></div>
+    </div>
+
+    <div class="callout">
+      <p><strong>The affiliate build is finished; the product build has started.</strong> <code>affiliateLinks</code>
+      holds <b>620 resolving ids</b> across five merchants, imagery is done at 407 files, and the scoring reform is
+      deployed. The last merchant on the critical path closed on 9 Sep &mdash; and the lesson is the reusable part:
+      <b>Perfumania&rsquo;s CJ feed was 66 rows of its own house dupe line and zero designer stock, while its storefront
+      carries 4,380 products across 480 vendors.</b> Chasing the feed, which this page told the founder to do, would
+      never have worked. <b>Do not judge a merchant by the feed it happens to send you.</b></p>
+      <p style="margin-top:10px"><strong>The honest read on revenue is unchanged: the machine works and nothing has
+      sold yet.</strong> Five merchants track, 620 links resolve, and the commission column is still <b>$0</b>. One
+      <code>sid</code> confirmation still needs a human in CJ&rsquo;s click report.</p>
+      <p style="margin-top:10px"><strong>The empty room is furnished &mdash; and the exit is still bricked up.</strong>
+      The console is real as of 16 Sep, so the caution this paragraph used to carry is retired. The replacement is
+      narrower and sharper: <b>a submission has nowhere to go.</b> It lands <code>PENDING</code>, and there is no
+      queue, no approver, and no way to mark a listing anything else. <code>/review</code> makes no database calls
+      and <b>returns 200 to anyone</b> &mdash; harmless only because it is inert, which is precisely why access
+      control has to ship in the <em>same change</em> as its first query rather than after it.</p>
+      <p style="margin-top:10px"><strong>Unchanged:</strong> there is <b>no payment rail</b>. Stripe, PayPal and
+      Gumroad do not serve Turkey, and the $19/$49 plan prices remain, in the pricing module&rsquo;s own words,
+      &ldquo;a considered guess, not a price.&rdquo; <b>The top tier is being renamed</b> <code>Featured</code>
+      &rarr; <code>Unlimited</code>, because it was named after the one thing we promise it does not buy.</p>
+    </div>
+  </header>
+
+  <nav class="phases" aria-label="Phases">
+    <a href="#p0">00 · Make it safe</a>
+    <a href="#p1">01 · Get it online</a>
+    <a href="#p2">02 · Make it findable</a>
+    <a href="#p3">03 · Turn money on</a>
+    <a href="#p4">04 · Scale the catalog</a>
+    <a href="#p5">05 · Producers pay</a>
+    <a href="#handoffs">Handoffs</a>
+    <a href="#founder">Founder-only</a>
+    <a href="#board">Board review</a>
+    <a href="#scoring">Scoring reform</a>
+  </nav>
+
+  <h2 class="sec">Decisions &mdash; four reversed on 27 August</h2>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th style="width:19%">Decision</th><th style="width:21%">Current call</th><th>Why it changed</th></tr></thead>
+      <tbody>
+        <tr><td><strong>The 37 listings</strong></td><td><b style="color:var(--blocker)">All removed</b></td>
+        <td>Reversed from &ldquo;keep + banner&rdquo;. Checking the producers&rsquo; own storefronts showed the <em>product names themselves</em> were invented and attributed to real companies. <b>&ldquo;Dossier Ambrosia&rdquo; does not exist</b> &mdash; Dossier&rsquo;s Baccarat Rouge 540 product is <em>Ambery Saffron</em>. Nor do ALT.&rsquo;s <b>&ldquo;Bright&rdquo;</b> or <b>&ldquo;Blue Cedar&rdquo;</b> &mdash; their range is <em>Crystal, Executive, Farouche, Fleur Noire</em>. Not fixable by correcting prices, and not something a disclaimer covers.</td></tr>
+        <tr><td><strong>Illustrative banner</strong></td><td><b>Never built</b></td><td>Follows from the above. With no invented data there is nothing to disclaim.</td></tr>
+        <tr><td><strong>Amazon Associates</strong></td><td><b style="color:var(--warn)">Payoneer only &mdash; and still invite-gated</b></td>
+        <td><b>Corrected 27 Aug against Amazon&rsquo;s own help page.</b> Direct-deposit eligibility is by <b>country, not account currency</b>: United States (USD), United Kingdom (GBP/EUR), 51 Eurozone/EEA countries (EUR) &mdash; <b>52 in total, Turkey absent</b>. This matters because we previously wrote it as &ldquo;by account currency (USD/GBP/EUR)&rdquo;, and the founder holds a <b>USD account</b> and reasonably read that as clearing the blocker. It does not: a USD account <em>held in Turkey</em> is ineligible. <b>Payoneer works precisely because it supplies a US-<em>domiciled</em> account</b> &mdash; a different thing from a USD-denominated one. Remaining gates: <b>amazon.com.tr is invite-only</b>, whether a TR resident may join amazon.com (US) is <em>unverified</em>, and the redirect-terms question stands. Economics unchanged: 3% most Beauty, 24-hour cookie, 180-day/3-sale clock starting <em>at application</em>.</td></tr>
+        <tr><td><strong>Awin</strong></td><td><b>Free &mdash; &euro;100 was the wrong page</b></td>
+        <td>The &euro;100 is Awin&rsquo;s <b>advertiser</b> pricing (&pound;99+VAT/mo + 3.5%), what a <em>brand</em> pays to run a programme. The publisher side reads &ldquo;Free to join, no hidden fees&rdquo;. Not a cost reason to exclude it &mdash; useful as a backup so Amazon is not a single point of failure.</td></tr>
+        <tr><td><strong>Payee</strong></td><td><b style="color:var(--brass-ink)">Reversed &rarr; the A.&#350;.</b></td>
+        <td>Was &ldquo;personal account&rdquo;. The invoicing requirement settled it, exactly as this doc&rsquo;s own escape clause predicted: Awin does <b>not</b> self-bill Turkish tax residents (Turkey is an explicit exception in Awin&rsquo;s policy), so the publisher issues their own invoice per payout &mdash; and a Turkish individual cannot casually issue a <em>fatura</em>. Founder, 27 Aug: <em>&ldquo;for invoice we need company account.&rdquo;</em> <b>The clause said to revisit this &ldquo;only if Awin is added&rdquo; &mdash; but Awin was already the plan.</b> A conditional deferral whose condition is already true is not a deferral; it is an unnoticed decision.</td></tr>
+        <tr><td><strong>Payee receiving account</strong></td><td><b style="color:var(--done)">Open &mdash; resolved 29 Aug</b></td>
+        <td>The founder opened <b>company USD and EUR (<em>d&ouml;viz</em>) accounts</b> on 29 Aug, closing the entity/account mismatch this row used to warn about &mdash; the A.&#350;. can now be named as payee cleanly on any application. Awin was applied to and verified 30 Aug with payment configured against the USD account.</td></tr>
+        <tr><td><strong>Payment rail</strong></td><td><b style="color:var(--done)">Payoneer open</b></td>
+        <td>Stripe cannot serve a Turkish business; its integration has now been deleted from the codebase. A producer subscription rail is not needed until a producer agrees to pay.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="sec">The sequence</h2>
+
+  <!-- PHASE 0 -->
+  <section class="phase p0" id="p0">
+    <div class="spine"><div class="spine-inner"><span class="num">00</span><div class="stride"></div></div></div>
+    <div class="phase-body">
+      <h3>Make it safe to show anyone <span style="color:var(--done)">&check;</span></h3>
+      <div class="chips">
+        <span class="chip owner">Web Development</span>
+        <span class="chip cost">$0</span>
+        <span class="chip cost">DONE 27 Aug &mdash; all 9 items</span>
+      </div>
+      <p class="why"><strong>Complete.</strong> Every fabrication is gone, the legal pages exist, and the dead Stripe code is deleted. Build clean, lint clean, every route 200 &mdash; and the removals were verified absent from <em>served HTML</em>, not just from source. Buy buttons now also refuse to render unless a link resolves to a real enrolled programme.</p>
+      <ul class="tasks" data-phase="0">
+        <li><input type="checkbox" id="t01" aria-labelledby="t01l" checked><span class="t-id">0.1</span><div>
+          <div class="t-title" id="t01l">Empty the fabricated customer reviews<span class="tag top">DO FIRST</span></div>
+          <div class="t-note">Six invented reviews with human names, star ratings and dates, about <b>real, named, operating companies</b> — including a 2-star review of MicroPerfumes. They render with an aggregate star average and no fixture label. The file's own header says not to do this. FTC Fake Reviews Rule plus trade libel against a named third party. The empty state already exists, so this is a one-line data change.</div></div></li>
+        <li><input type="checkbox" id="t02" aria-labelledby="t02l" checked><span class="t-id">0.2</span><div>
+          <div class="t-title" id="t02l">All 37 fixture listings removed — <em>banner never built</em></div>
+          <div class="t-note"><b>This item reversed itself.</b> The plan was a sitewide “illustrative data” banner. Checking the producers' own storefronts showed the <em>product names themselves</em> were invented and attributed to real companies, which is not something a banner covers — so the listings went instead, and with no invented data left there was nothing to disclaim.</div></div></li>
+        <li><input type="checkbox" id="t03" aria-labelledby="t03l" checked><span class="t-id">0.3</span><div>
+          <div class="t-title" id="t03l">Fix three false first-hand claims</div>
+          <div class="t-note"><code>about/page.tsx:21</code> and <code>chapter-standards.tsx:66</code> both say “a bottle we bought”. We did not buy them. This directly contradicts the banner — claiming first-hand testing beside a notice saying the data is illustrative is worse than either alone.</div></div></li>
+        <li><input type="checkbox" id="t04" aria-labelledby="t04l" checked><span class="t-id">0.4</span><div>
+          <div class="t-title" id="t04l">Remove “This is a template build” from the footer</div>
+          <div class="t-note">Honest today, wrong the moment it is public.</div></div></li>
+        <li><input type="checkbox" id="t05" aria-labelledby="t05l" checked><span class="t-id">0.5</span><div>
+          <div class="t-title" id="t05l">Delete the dead Stripe code</div>
+          <div class="t-note">Its user-facing 503 says “No Stripe account is connected to this site” — implying one <em>could</em> be. It never can. Move <code>PaidTier</code>/<code>BillingInterval</code> into <code>lib/plans.ts</code>. The valuable part is the architecture, already recorded in the Prisma schema.</div></div></li>
+        <li><input type="checkbox" id="t06" aria-labelledby="t06l" checked><span class="t-id">0.6</span><div>
+          <div class="t-title" id="t06l">Write <code>/privacy</code></div>
+          <div class="t-note">Hard blocker — no affiliate network approves a site without one. Also required before GA4 fires a single event (KVKK / GDPR).</div></div></li>
+        <li><input type="checkbox" id="t07" aria-labelledby="t07l" checked><span class="t-id">0.7</span><div>
+          <div class="t-title" id="t07l">Add <code>/contact</code> with a monitored inbox</div>
+          <div class="t-note">Affiliate managers reply there. A dead contact page reads as a silent rejection.</div></div></li>
+        <li><input type="checkbox" id="t08" aria-labelledby="t08l" checked><span class="t-id">0.8</span><div>
+          <div class="t-title" id="t08l">Add a LICENSE</div>
+          <div class="t-note">The repo is public and has none.</div></div></li>
+        <li><input type="checkbox" id="t09" aria-labelledby="t09l" checked><span class="t-id">0.9</span><div>
+          <div class="t-title" id="t09l">Commit the ~44 uncommitted paths</div>
+          <div class="t-note">Otherwise the deploy ships the old site.</div></div></li>
+      </ul>
+      <p class="done-when"><b>Done when</b> the site contains no claim we cannot defend, and <code>/privacy</code> and <code>/contact</code> both resolve.</p>
+    </div>
+  </section>
+
+  <!-- PHASE 1 -->
+  <section class="phase p1" id="p1">
+    <div class="spine"><div class="spine-inner"><span class="num">01</span><div class="stride"></div></div></div>
+    <div class="phase-body">
+      <h3>Get it online <span style="color:var(--done)">&check;</span></h3>
+      <div class="chips">
+        <span class="chip owner">Founder → Web Development</span>
+        <span class="chip cost">$0/mo actual</span>
+        <span class="chip cost">LIVE 27 Aug</span>
+      </div>
+      <div class="callout">
+        <p><strong>The biggest cost unknown in this plan resolved to zero.</strong> Vercel Pro (~$255/yr) was the feared
+        outcome; Cloudflare Workers' free plan permits commercial use and serves static assets free and unlimited, so the
+        site hosts for nothing. <b>Four builds failed first</b> — and the fix was a root <code>postinstall</code> hook, not
+        a dashboard setting, because Cloudflare's automatic dependency install is the only hook that reliably fires.
+        Only the domain and mailbox cost money, and <b>those amounts are still not in the ledger.</b></p>
+      </div>
+
+      <h4 style="margin:26px 0 10px">Which host — comparison done 27 Aug, against each vendor's own pricing page</h4>
+      <p style="margin:0 0 14px">Two things this project previously assumed turned out to be <b>wrong</b>, and both change the answer:</p>
+      <ul style="margin:0 0 18px 18px">
+        <li style="margin-bottom:6px">Hostinger's ordinary shared plans <b>now run Node.js web apps</b> — the old “shared hosting can't run <code>/go/[slug]</code>” reasoning is retired.</li>
+        <li>Cloudflare is <b>no longer a drop-in</b>: <code>@opennextjs/cloudflare</code> ended Next.js 14 support in Q1 2026 and the current path targets Next 16. This project is pinned to <b>14.2.35</b>.</li>
+      </ul>
+      <div class="tablewrap" style="overflow-x:auto">
+      <table>
+        <thead><tr><th></th><th>Hostinger Cloud Startup</th><th>Hostinger Unlimited</th><th style="color:var(--done)">Cloudflare Workers &check;</th></tr></thead>
+        <tbody>
+          <tr><td>Advertised</td><td>$7.99/mo</td><td>$3.99/mo</td><td>$0</td></tr>
+          <tr><td><b>Real commitment</b></td><td><b>48 mo, $383.52 upfront</b></td><td><b>48 mo, $191.52 upfront</b></td><td>none</td></tr>
+          <tr><td><b>Renewal</b></td><td><b>$25.99/mo</b> ($311.88/yr)</td><td><b>$16.99/mo</b> ($203.88/yr)</td><td>$0</td></tr>
+          <tr><td>Runs this code as written</td><td>yes</td><td>yes</td><td>needed a static export</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p style="margin:14px 0 0"><b>Chosen: Cloudflare Workers via static export — not Pages.</b> Cloudflare no longer
+      creates Pages projects for new sites, and the distinction is load-bearing: a <code>functions/</code> directory does
+      nothing on Workers, and <code>_redirects</code> rules are not applied to requests served by Worker code. A grep of
+      <code>app/</code> and <code>lib/</code> found <b>no dynamic server surface at all</b>. The single route handler
+      (<code>/go/[slug]</code>) became a build-time generated <code>_redirects</code> file, so <b>the project now has zero
+      route handlers.</b> Cloud Startup's 4 CPU / 4 GB would have been serving a folder of HTML.</p>
+      <p style="margin:10px 0 0"><b>Verified 27 Aug: Cloudflare's free plan permits commercial use.</b> Worth recording
+      because it was nearly missed — Vercel Hobby was rejected on exactly this clause, and the same question was never
+      asked of the host we then chose. Ask it of every free tier, every time.</p>
+      <p style="margin:10px 0 0"><b>Email was not a reason to buy hosting:</b> it is attached to the domain, not the plan —
+      <code>contact@counterscent.com</code> resolves with no hosting plan on the account.</p>
+
+      <ul class="tasks" data-phase="1" style="margin-top:22px">
+        <li><input type="checkbox" id="t11" aria-labelledby="t11l" checked><span class="t-id">1.1</span><div>
+          <div class="t-title" id="t11l">Payee entity decided — <b>the A.Ş.</b><span class="tag f">FOUNDER</span></div>
+          <div class="t-note"><b>Revised 27 Aug from &ldquo;personal&rdquo;, receiving account resolved 29 Aug.</b> Awin does <b>not</b> self-bill Turkish tax residents, so we issue our own invoice per payout, and a Turkish individual cannot casually issue a <em>fatura</em>. The founder opened company USD and EUR accounts 29 Aug, so the invoice issuer and the payee are now the same legal person.</div></div></li>
+        <li><input type="checkbox" id="t12" aria-labelledby="t12l" checked><span class="t-id">1.2</span><div>
+          <div class="t-title" id="t12l">Payoneer open<span class="tag f">FOUNDER</span></div>
+          <div class="t-note">27 Aug. Note the Payoneer&rarr;bank link is a <em>separate</em> step from the account existing, and is the part the founder flagged as not done.</div></div></li>
+        <li><input type="checkbox" id="t13" aria-labelledby="t13l" checked><span class="t-id">1.3</span><div>
+          <div class="t-title" id="t13l">Domain + inbox live<span class="tag f">FOUNDER</span></div>
+          <div class="t-note"><code>counterscent.com</code> (apex) and <code>contact@counterscent.com</code>, 27 Aug. <code>drydown.com</code> was taken, so the brand was renamed to <b>Counterscent</b> in the same change — carefully, since “drydown” is also the perfumery term for the base-note phase and appears legitimately throughout the copy.</div></div></li>
+        <li><input type="checkbox" id="t14" aria-labelledby="t14l" checked><span class="t-id">1.4</span><div>
+          <div class="t-title" id="t14l">Deployed and live — Cloudflare Workers, $0/mo<span class="tag f">FOUNDER</span></div>
+          <div class="t-note">27 Aug. HTTPS valid, email intact through the DNS migration with DKIM verified. <b>Four builds failed first</b>, and the log never said what was wrong — it showed an empty tool-detection line and skipped the build entirely. The fix was a root <code>postinstall</code> hook. <b>Verifying a change here with <code>npm run build</code> proves little</b>; the real rehearsal is <code>WORKERS_CI=1 npm install</code>, which is the path Cloudflare actually takes.</div></div></li>
+        <li><input type="checkbox" id="t15" aria-labelledby="t15l" checked><span class="t-id">1.5</span><div>
+          <div class="t-title" id="t15l">GA4 + Google Search Console live</div>
+          <div class="t-note">27 Aug. GA4 <code>G-4Q54ZJKVW1</code> collecting; Search Console verified by DNS TXT with the sitemap submitted. <b>This started the 2–4 week clock, which is now the pacing item for the entire revenue path</b> — not any remaining build work.</div></div></li>
+      </ul>
+      <p class="done-when"><b>Done when</b> the real domain serves the site over HTTPS and analytics is collecting.</p>
+    </div>
+  </section>
+
+  <!-- PHASE 2 -->
+  <section class="phase p2" id="p2">
+    <div class="spine"><div class="spine-inner"><span class="num">02</span><div class="stride"></div></div></div>
+    <div class="phase-body">
+      <h3>Make it findable <span style="color:var(--done)">&check;</span></h3>
+      <div class="chips">
+        <span class="chip owner">Web Development + Content</span>
+        <span class="chip cost">$0</span>
+        <span class="chip cost">DONE 27 Aug &mdash; all items, content included</span>
+      </div>
+      <ul class="tasks" data-phase="2">
+        <li><input type="checkbox" id="t21" aria-labelledby="t21l" checked><span class="t-id">2.1</span><div>
+          <div class="t-title" id="t21l">Per-fragrance routes built<span class="tag top">HIGHEST LEVERAGE</span></div>
+          <div class="t-note"><code>/fragrance/[slug]</code>, 68 static pages via <code>generateStaticParams</code>. The catalog generated <b>zero</b> indexable URLs before this — the Dupe Finder was a single client-state page. Sitemap went from ~11 to 78.</div></div></li>
+        <li><input type="checkbox" id="t22" aria-labelledby="t22l" checked><span class="t-id">2.2</span><div>
+          <div class="t-title" id="t22l">Canonical URLs on every page</div>
+          <div class="t-note"><b>Finished 27 Aug — the first pass had missed three routes.</b> <code>/comparison/[slug]</code>, <code>/guide/[slug]</code> and <code>/review/[slug]</code> emitted <b>no canonical at all</b>, and built their structured-data URL from a hardcoded <code>example-placeholder.com</code> fallback instead of the shared site module — the exact drift that module was created to eliminate. All three now resolve properly and carry article OpenGraph. Verified: zero occurrences of the placeholder host in served HTML.</div></div></li>
+        <li><input type="checkbox" id="t23" aria-labelledby="t23l" checked><span class="t-id">2.3</span><div>
+          <div class="t-title" id="t23l">Per-page OpenGraph <em>and</em> a real share image</div>
+          <div class="t-note">Every page previously shared a block with <b>no image</b>, so a link pasted into Slack or WhatsApp rendered as a bare title — an affiliate manager reviewing an application sees that too. Now ships a 1200×630 card on every page, rendered once from the site's own display face and palette, then committed as a static asset. No bottle imagery, and there cannot be: perfume bottles are protected trade dress.</div></div></li>
+        <li><input type="checkbox" id="t24" aria-labelledby="t24l" checked><span class="t-id">2.4</span><div>
+          <div class="t-title" id="t24l">Organization, WebSite and Breadcrumb structured data</div></div></li>
+        <li><input type="checkbox" id="t25" aria-labelledby="t25l" checked><span class="t-id">2.5</span><div>
+          <div class="t-title" id="t25l">Homepage metadata</div></div></li>
+        <li><input type="checkbox" id="t26" aria-labelledby="t26l" checked><span class="t-id">2.6</span><div>
+          <div class="t-title" id="t26l"><code>lastModified</code> on every sitemap entry</div>
+          <div class="t-note">Verified present across all three entry groups — static routes, references, content.</div></div></li>
+        <li><input type="checkbox" id="t27" aria-labelledby="t27l" checked><span class="t-id">2.7</span><div>
+          <div class="t-title" id="t27l">Publish 10–12 real content pieces — <b>12 done, target met</b></div>
+          <div class="t-note"><b>11,996 words, up from 1 piece / 434 words.</b> The last three took the board's steer and changed shape: <b>original-anchored</b> rather than generic — <em>Baccarat Rouge 540 alternatives</em>, <em>Aventus alternatives</em>, <em>Sauvage alternatives</em>, the three highest-demand dupe queries in the category. All 21 internal links verified resolving against the built site.</div></div></li>
+        <li><input type="checkbox" id="t28" aria-labelledby="t28l" checked><span class="t-id">2.8</span><div>
+          <div class="t-title" id="t28l">Every sitemap URL was a redirect — found by the board, fixed</div>
+          <div class="t-note"><code>trailingSlash: true</code> makes <code>/about</code> a 307 to <code>/about/</code>, but every sitemap entry was emitted <b>without</b> the slash while every canonical carried one. <b>The sitemap advertised 86 explicitly non-canonical URLs on the day Google began crawling.</b> Verified live before fixing: the sitemap's own URLs returned 307. All 86 now match.</div></div></li>
+        <li><input type="checkbox" id="t29" aria-labelledby="t29l" checked><span class="t-id">2.9</span><div>
+          <div class="t-title" id="t29l">The build now refuses to ship a link to a 404</div>
+          <div class="t-note">The comparison and review routes were deleted in the export migration, so writing one comparison would have shipped a card pointing at a dead URL — the first thing an affiliate reviewer clicks. The loader now fails the build if a content type has no route, checking the filesystem rather than a hand-maintained list, because keeping a list in step is exactly the step that gets missed. <b>Verified by hiding the guide route and watching the build fail.</b></div></div></li>
+        <li><input type="checkbox" id="t210" aria-labelledby="t210l" checked><span class="t-id">2.10</span><div>
+          <div class="t-title" id="t210l">Nine pages were telling Google not to index them &mdash; found live, fixed 16 Sep</div>
+          <div class="t-note">Search Console reported four indexing states; <b>two were real defects and one was correct behaviour that must not be &ldquo;fixed&rdquo;</b>. (1) Nine pages &mdash; <code>/about</code>, <code>/library</code>, <code>/privacy</code>, <code>/disclosure</code>, <code>/producers</code>, <code>/producers/pricing</code> and three more &mdash; set no <code>alternates</code>, so each <b>inherited the layout&rsquo;s homepage canonical</b> and declared itself an alternate of the homepage. They could not rank, whatever was on them. Audited against the <em>built output</em> rather than the source, because the inheritance is invisible in a page file: <b>242 of 244 pages now self-canonicalise</b>, the two exceptions being <code>/404/</code>. (2) 33 internal links omitted the trailing slash against <code>trailingSlash: true</code>, each serving a 307. Now zero. <b>Neither touched the fragrance pages or the guides</b> &mdash; the real SEO surface was always correct, so this was a leak, not a flood. <b>&ldquo;Blocked by robots.txt&rdquo; is the 620 <code>/go/</code> links and is correct</b>: it will be reported forever and must never be &ldquo;validated&rdquo;.</div></div></li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>The content constraint nobody had written down.</strong> <b>Comparison and review pieces cannot honestly
+        be written yet</b>, and it is structural rather than a matter of effort: the content schema requires a product
+        reference with a mandatory affiliate link ID on every comparison (min 2 products) and every review (exactly 1).
+        <b>That constraint is now satisfied</b> — 77 dupe links across three merchants, on 79 listings covering 65
+        originals, so a comparison or review can finally name a real product with a real link. <b>What still blocks
+        them is a route, not data:</b> the comparison and review pages were deleted in the static-export migration
+        because they generated zero pages, and the content loader <em>refuses to build</em> if a piece has no route —
+        by design, since the alternative was shipping a card that 404s. Restore them from git history first.</p>
+        <p style="margin-top:10px">Meanwhile <b>guide</b> pieces remain the workhorse: guides about the
+        <b>216 real, researched originals</b> need no affiliate link and internally link to the fragrance pages 2.1
+        created, which is what makes those pages rank. <b>This phase's old target — “every merchant appears
+        in ≥2 pieces with real prices and a working link” — belongs to Phase 3, not here.</b></p>
+      </div>
+
+      <p style="margin:0 0 8px"><b>Published so far</b> — all guides:</p>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Piece</th><th>Words</th></tr></thead>
+        <tbody>
+          <tr><td>How to Actually Find a Fragrance Dupe That Works</td><td class="c">954 <span style="color:var(--slate)">— was 434, expanded</span></td></tr>
+          <tr><td>EDT, EDP, Extrait: What Fragrance Concentration Actually Changes</td><td class="c">1,166</td></tr>
+          <tr><td>Why a Fragrance Smells Different on You Than in Every Review</td><td class="c">1,227</td></tr>
+          <tr><td>Top, Heart, Base: How to Actually Read a Note Pyramid</td><td class="c">1,169</td></tr>
+          <tr><td>How to Make a Fragrance Last Longer</td><td class="c">1,051</td></tr>
+          <tr><td>Are Fragrance Dupes Legal and Safe?</td><td class="c">1,036</td></tr>
+          <tr><td>Fragrance Families Explained</td><td class="c">879</td></tr>
+          <tr><td>Designer vs Niche vs Dupe</td><td class="c">919</td></tr>
+          <tr><td>How to Buy Fragrance Online</td><td class="c">908</td></tr>
+          <tr><td><b>Total</b></td><td class="c"><b>9,309</b></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <p><strong>The board's verdict was: right work, wrong shape &mdash; and it has been acted on.</strong> Nine
+        informational guides compete in the most saturated vertical online and convert nobody. The three new pieces are
+        <b>original-anchored</b> and land directly on the fragrance pages that will later hold affiliate links.</p>
+        <p style="margin-top:10px"><b>The honesty problem, and how it was solved.</b> An &ldquo;alternatives&rdquo; piece
+        normally names dupe products &mdash; and we have none verified, because the previous listings named products that
+        did not exist. So each piece anchors on the <em>original</em> instead, which we do have real researched data for:
+        it analyses the actual note structure, explains <b>why</b> that original is easy or hard to copy, says what to
+        check before buying, then links to genuinely adjacent originals in the catalog. Baccarat Rouge 540 is six notes
+        built on freely-available amberwood, which is precisely why it is the most copied fragrance of the decade; Aventus
+        is twelve notes whose character is an <em>interaction</em>, and whose own batches vary &mdash; so any precise match
+        percentage claims more precision than the target itself supports. Each piece states plainly that we list no
+        alternative products yet, and why. <b>That analysis stays true whichever bottle the reader buys, and needs no
+        rewrite when real listings land.</b></p>
+      </div>
+      <p style="margin:14px 0 0"><b>One dishonest default fixed along the way.</b> The disclosure block reads “This piece
+      contains affiliate links” — untrue on every piece published, since none contain any. The schema defaults it on and
+      the pre-existing guide had it set. All nine are now off, and flip back per-piece as real links land in Phase 3.</p>
+
+      <p class="done-when"><b>Done when</b> 10–12 pieces are published and Search Console shows the catalog indexed.</p>
+    </div>
+  </section>
+
+  <!-- PHASE 3 -->
+  <section class="phase p3" id="p3">
+    <div class="spine"><div class="spine-inner"><span class="num">03</span><div class="stride"></div></div></div>
+    <div class="phase-body">
+      <h3>Turn the money on</h3>
+      <div class="chips">
+        <span class="chip owner">Communication</span>
+        <span class="chip cost">~$5, refundable</span>
+        <span class="chip cost">5 merchants earning &mdash; all wired</span>
+      </div>
+      <ul class="tasks" data-phase="3">
+        <li><input type="checkbox" id="t31" aria-labelledby="t31l" checked><span class="t-id">3.1</span><div>
+          <div class="t-title" id="t31l">Apply to Awin — one application, not two <span style="color:var(--done)">&check; done 30 Aug</span></div>
+          <div class="t-note">ShareASale migrated into Awin on 15 Aug 2025 and its platform closed 6 Oct 2025. <s>ALT. Fragrances and Dossier are both merchants <em>inside</em> Awin.</s> <b>Stale as of 30 Aug: ALT. Fragrances&rsquo; Awin programme closed</b> (vanished from Pending and from the advertiser search, not a rejection) <b>and Dossier was never found there either.</b></div></div></li>
+        <li><input type="checkbox" id="t32" aria-labelledby="t32l" checked><span class="t-id">3.2</span><div>
+          <div class="t-title" id="t32l">Apply to merchants inside Awin <span style="color:var(--done)">&mdash; three now earn</span></div>
+          <div class="t-note"><b>Opulensi</b> (123248) wired 1 Sep, <b>Clone of Perfume</b> (117395) 3 Sep &mdash; the first actual <em>dupe house</em>, every product declaring its own designer inspiration &mdash; and <b>AromaPassions</b> (34989) across two batches, 4&ndash;5 Sep, which took coverage from 27 originals to 65. All three are mined out: two full hand-scans of Opulensi&rsquo;s 610 rows found nothing further, and what is left at AromaPassions needs a newly researched original first. <b>My Perfume Shop (106089) is approved and earns nothing</b> &mdash; its programme is <em>closed for tracking</em>, every link dead-ending at <code>closedMerchant.html</code> while payment status shows green. That distinction &mdash; joined versus able to earn &mdash; is why all 77 dupe links were traced end to end before shipping.</div></div></li>
+        <li><input type="checkbox" id="t33" aria-labelledby="t33l" checked><span class="t-id">3.3</span><div>
+          <div class="t-title" id="t33l">Apply to CJ, then its advertisers <span style="color:var(--done)">&mdash; FragranceShop.com wired 7 Sep</span><span class="tag top">PERFUMANIA WIRED 9 SEP</span></div>
+          <div class="t-note"><b>The feed arrived 7 Sep and the whole originals rail shipped with it:</b> 5,802 rows, <b>87 columns</b> (the format sample said 66 &mdash; read the delivered header, never a sample), and <b>103 buy links</b> covering the founder&rsquo;s scope: EDP or Parfum, over $100, never EDT or EDC. Three traps worth keeping: <b>21% of this originals merchant&rsquo;s own rows are dupe oils</b> (<code>&lt;Real Fragrance&gt; - Type Perfume Oil</code>, $7.95&ndash;$13.95), and matching one would link a $9 knock-off as the genuine article; the merchant&rsquo;s title grammar puts the word <b>&ldquo;Cologne&rdquo; in its gender tag</b>, which silently swallowed it when it was part of a product <em>name</em> and linked <b>Viking Cologne as Viking</b>, Aventus Cologne as Aventus, Eternity Cologne as Eternity; and the site <b>returns 403 to Node&rsquo;s fetch on TLS fingerprint alone</b>, any user-agent, so image fetching shells out to curl and the link checker reports these destinations <b>inconclusive, explicitly not a pass</b>. <b>PERFUMANIA (17335854) WAS WIRED 9 SEP &mdash; AND NOT FROM ITS FEED.</b> Its CJ export was <b>66 rows of its own house dupe line with zero designer stock</b>; the storefront carries <b>4,380 products across 480 vendors</b>. <b>123 references matched, 91 now show two retailers with their own prices</b>, <code>/originals</code> became a two-merchant page of <b>348 products</b>, and <code>/go/</code> went <b>252 &rarr; 620</b>. Two traps it added: both merchants keyed their ids the same way and <b>collided on 91 of 123</b>, where spread order silently decided which retailer survived and the other&rsquo;s links vanished with no error anywhere &mdash; namespace per source; and its <b>note pyramids are captured but deliberately unused</b>, agreeing with our researched ones only <b>0.57</b> of the time, with 59% of its own duplicate SKUs disagreeing with each other. Worth applying to <b>FragranceX</b> (1024283) still: it fits the niche houses no current merchant carries.</div></div></li>
+        <li><input type="checkbox" id="t34" aria-labelledby="t34l" checked><span class="t-id">3.4</span><div>
+          <div class="t-title" id="t34l">Populate the affiliate links; make a missing one fail loudly <span style="color:var(--done)">&mdash; 252 resolve</span></div>
+          <div class="t-note">From 18 placeholders producing <code>example.com</code> URLs, to <b>252 real ids across two networks</b> &mdash; 77 hand-written dupe entries plus 116 <code>original-*</code> and 59 <code>shop-*</code> generated from the CJ feed. The entry carries <code>network</code> + <code>merchantId</code> + <code>deepLink</code> + <code>subId</code> and composes its own destination, so a hand-edited entry cannot disagree with itself. <b>Buy buttons refuse to render unless a link resolves</b>, and the redirect generator <b>fails the build</b> on a missing sub-ID or an unknown network &mdash; an untagged click is unattributable forever, so it must never ship quietly.</div></div></li>
+        <li><input type="checkbox" id="t35" aria-labelledby="t35l" checked><span class="t-id">3.5</span><div>
+          <div class="t-title" id="t35l">Sub-ID scheme, before the first real click<span class="tag top">CANNOT RETROFIT</span></div>
+          <div class="t-note">Done 1 Sep: <code>&lt;listingSlug&gt;__&lt;referenceSlug&gt;</code>, emitted as Awin <code>clickref</code> and CJ <code>sid</code>, baked into the destination at build time because a static export cannot compose one per request. <b>Awin is confirmed</b> &mdash; and the check itself had to be corrected: it originally asserted the sub-ID must survive into the <em>destination</em> URL, which is one merchant&rsquo;s Shopify theme echoing a parameter, not an Awin guarantee. It falsely condemned nine working links. Attribution can live in the network&rsquo;s own click cookie instead, and the checker now traces the hops and accepts either channel. <b>CJ is not yet confirmed:</b> it obfuscates the query it forwards, so only the <code>cjevent</code> token is checkable from here &mdash; one founder-side look at CJ&rsquo;s click report closes it.</div></div></li>
+      </ul>
+
+      <div class="callout" style="border-color:var(--brass);">
+        <p><strong>3.6 — the parallel path that does <em>not</em> wait on Awin.</strong> Founder proposal, 27 August.
+        Everything above is blocked on a third party approving us. <b>One route is not:</b> most dupe houses run their own
+        Shopify store, so a paying subscriber can link straight at it with no network in between.</p>
+        <p style="margin-top:10px">This matters because it <b>breaks the Phase 3 &rarr; Phase 4 dependency the rest of this
+        plan is built around.</b> A subscribing producer supplies the same three things the affiliate feed was going to:
+        real product names, real prices, and <b>imagery they own the rights to</b> — which is the other thing blocking the
+        site, since every reference has an empty image field because bottles are protected trade dress. It also removes the
+        subscription-<em>and</em>-commission double-dip for those listings: we take the subscription <b>instead of</b>
+        commission, which decouples our revenue from ranking outcomes entirely.</p>
+      </div>
+
+      <div style="overflow-x:auto;margin-top:14px">
+      <table>
+        <thead><tr><th style="width:26%">Condition</th><th>Why it is not optional</th></tr></thead>
+        <tbody>
+          <tr><td><b><code>rel="sponsored"</code> on every paid link</b></td><td>Verified against Google's own spam policy: links bought through a subscription <em>are</em> paid links, and unmarked dofollow paid links are a link scheme. <b>The penalty lands on our domain, not the producer's.</b></td></tr>
+          <tr><td><b>&ldquo;Unlimited&rdquo; = originals covered, not rows</b></td><td>One listing per producer&ndash;reference pair, which caps naturally at 68 today. Otherwise a producer blankets the catalog with 40 near-identical variants to crowd out competitors. <b>As of 18 Sep this is also the tier&rsquo;s name</b> &mdash; see the row below.</td></tr>
+          <tr><td><b>It buys coverage, never placement</b></td><td>The unverified score cap applies to these exactly as to any other listing. Listing volume is a legitimate tier lever; rank is not. Keep them separate in the pricing copy as well as in the code.</td></tr>
+          <tr><td><b>Stop promising conversion data</b></td><td>With no network there is no conversion report — we would see clicks and nothing else. The top tier currently promises conversion data; that must be qualified or the promise breaks on day one. <b>Still open</b>, and deliberately <em>not</em> folded into the rename below &mdash; a name change does not make an undeliverable promise deliverable.</td></tr>
+          <tr><td><b>&ldquo;Featured&rdquo; &rarr; &ldquo;Unlimited&rdquo;</b> <span style="color:var(--done)">decided 18 Sep</span></td><td>The tier was named after the one thing <code>NEVER_INCLUDED</code> promises it does not buy: <em>&ldquo;a premium or featured slot in results.&rdquo;</em> Every honest explanation of it had to open by explaining the contradiction. <b>The promise wording stays and the name gives</b>, because the promise is the load-bearing half — it is what makes &ldquo;no tier buys rank&rdquo; structural rather than asserted. <b>Not yet built:</b> <code>featured</code> is the tier <em>id</em>, not a label — source of truth in <code>lib/plans.ts</code>, generated into the producer Worker, switched on in <code>producer.ts</code>, and stored in <code>Producer.plan</code>. Zero producers exist, so there is no data migration, which is exactly why it is cheap now.</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p class="done-when"><b>Done when</b> one real commission appears in a network dashboard — <b>or</b> one producer pays for store-direct listings, whichever comes first.</p>
+    </div>
+  </section>
+
+  <!-- PHASE 4 -->
+  <section class="phase p4" id="p4">
+    <div class="spine"><div class="spine-inner"><span class="num">04</span><div class="stride"></div></div></div>
+    <div class="phase-body">
+      <h3>Every original on the market</h3>
+      <div class="chips">
+        <span class="chip owner">Web Development</span>
+        <span class="chip cost">$0</span>
+        <span class="chip block">Needs phase 3 — and that is the point</span>
+      </div>
+      <p class="why"><strong>Mostly done, and the remaining half is deliberate.</strong> Three feeds are ingested and imagery is finished at <b>407 licensed files</b>. What a feed <em>cannot</em> supply is the note pyramid every score is computed from &mdash; the CJ feed&rsquo;s description column is byte-identical to its title on all 5,802 rows &mdash; so the 216 references stay hand-researched. Hand-authoring thousands of pyramids would mean fabricating data at scale, the exact failure this project already corrected once.</p>
+      <div class="tscroll" style="margin-bottom:20px">
+        <table>
+          <thead><tr><th style="width:34%">Enrolling in Awin unlocks</th><th>Why it matters</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Real affiliate links</strong></td><td>The obvious one.</td></tr>
+            <tr><td><strong>Legally usable product imagery</strong></td><td><code>imageUrl</code> is empty on all 68 references <em>by design</em> — perfume bottles are protected trade dress. There are exactly two lawful sources, and <b>affiliate-supplied imagery is one of them.</b> Every surface already routes through one component, so populating it lights up the whole site with <b>no component changes.</b></td></tr>
+            <tr><td><strong>A real product feed</strong></td><td>Real prices and names at scale — the only honest route to catalog breadth. Prices today are hand-maintained constants feeding a user-facing “Nx cheaper” claim.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="tasks" data-phase="4">
+        <li><input type="checkbox" id="t41" aria-labelledby="t41l" checked><span class="t-id">4.1</span><div>
+          <div class="t-title" id="t41l">Build a feed ingest path <span style="color:var(--done)">&mdash; four feeds through it</span></div>
+          <div class="t-note">The first non-hand-written data source in the project: ingest, pairing proposal, image fetch and link tracing, now serving two networks with different schemas. <b>The durable lesson is that a feed is a list of ids, not a source of truth</b> &mdash; one merchant&rsquo;s prices were stale on more than half its range, four of its deep links 404, and <em>every</em> image URL was dead because the shop re-uploaded its photography onto content-addressed CDN paths. Everything real came from the merchant&rsquo;s own live product JSON.</div></div></li>
+        <li><input type="checkbox" id="t42" aria-labelledby="t42l"><span class="t-id">4.2</span><div>
+          <div class="t-title" id="t42l">Import real prices; retire the hand-maintained constants <span style="color:var(--warn)">&mdash; half done, deliberately</span></div>
+          <div class="t-note">Each offer now carries the merchant&rsquo;s own price in the merchant&rsquo;s own currency, never converted, and since 7 Sep the &ldquo;Nx cheaper&rdquo; comparison runs on <b>the retailer&rsquo;s actual price</b> where we have one. The old button read <b>&ldquo;Buy the original &mdash; $76&rdquo; while linking a page charging $21.95</b>. Fixing it turned <b>6 dupe claims from savings into &ldquo;no cheaper&rdquo; or &ldquo;Nx more expensive&rdquo;</b>, shipped uncompensated because that is the honest outcome of comparing against a discounter. The hand-maintained figure survives as the fallback for the 119 references no merchant here stocks.</div></div></li>
+        <li><input type="checkbox" id="t43" aria-labelledby="t43l" checked><span class="t-id">4.3</span><div>
+          <div class="t-title" id="t43l">Populate product imagery from the feeds <span style="color:var(--done)">&mdash; 407 files, finished</span></div>
+          <div class="t-note">190 of 216 references, 77 of 79 dupes, 102 of 103 shop originals. <b>The 29 gaps are licence-bound, not a backlog</b>, each checked 7 Sep: two dupes exist only in a closed programme, so there is no live relationship to justify hosting their photograph; 26 references are houses no merchant we hold carries at all (Chanel, Parfums de Marly, By Kilian, Xerjoff, Initio, Roja, Amouage, Jo Malone); one merchant offered only a shared stock photo, recorded as null &mdash; and <b>null means &ldquo;no image&rdquo;, never &ldquo;use a placeholder&rdquo;</b>. <b>The licence rides on the affiliate relationship, not on the picture.</b></div></div></li>
+        <li><input type="checkbox" id="t44" aria-labelledby="t44l"><span class="t-id">4.4</span><div>
+          <div class="t-title" id="t44l">Expand the reference catalog <span style="color:var(--warn)">&mdash; 216, and a feed cannot finish this</span></div>
+          <div class="t-note">17 were added 7 Sep with hand-researched pyramids. <b>Four more were researched and then dropped rather than guessed</b> &mdash; sources gave marketing prose instead of a tiered pyramid, or openly disagreed on the heart and base. <b>~32 originals remain worth researching</b>, each unlocking exactly one waiting listing. The ceiling is on the <em>dupe</em> side, not ours: dupe houses clone bestsellers, so roughly half of any 200-strong catalog is simply outside the category&rsquo;s target list.</div></div></li>
+        <li><input type="checkbox" id="t45" aria-labelledby="t45l" checked><span class="t-id">4.5</span><div>
+          <div class="t-title" id="t45l">Re-check the house-product ranking <span style="color:var(--done)">&mdash; and the score reform went further</span></div>
+          <div class="t-note">The scoring half was fixed 27 Aug and <b>extended 8 Sep</b>: a 95% ceiling on every score including verified ones, a 10-point penalty where the note-tier split is ours rather than the seller&rsquo;s, the family-match bug fixed, and an ingredient component added. <b>The founder override is barred from house products by a build-time guard.</b> See the integrity section at the foot of this page.</div></div></li>
+      </ul>
+      <p class="done-when"><b>Done when</b> the catalog carries real prices and real imagery from a feed, not hand-typed constants. <b>Prices and imagery: done.</b> Pyramids: never, by design.</p>
+    </div>
+  </section>
+
+  <!-- PHASE 5 -->
+  <section class="phase p5" id="p5">
+    <div class="spine"><div class="spine-inner"><span class="num">05</span><div class="stride"></div></div></div>
+    <div class="phase-body">
+      <h3>Producers pay</h3>
+      <div class="chips">
+        <span class="chip owner">Web Development + Founder</span>
+        <span class="chip cost high">~10.2% of subscription revenue</span>
+        <span class="chip free">Deliberately last</span>
+      </div>
+      <p class="why">There are still <strong>zero producers</strong> &mdash; but this phase moved further in three days than in the four weeks before it. <b>Postgres, Prisma, authentication and the console all shipped 14&ndash;16 Sep</b>, most of it ahead of its own trigger. <b>The remaining gap is not billing and not the dashboard &mdash; it is the approver.</b> A producer can now sign in, submit a listing and withdraw one, and every submission lands <code>PENDING</code> where it stays forever, because nothing exists that can approve or reject it. <b>Billing remains correctly unbuilt:</b> a free tier needs no rail, no producer has agreed to pay, and no rail serves Turkey without a decision first.</p>
+      <div class="callout">
+        <p><strong>Sign-in is live, and it was proven rather than asserted.</strong> A real link was requested, delivered, followed, and refused on replay with a <b>410</b>. The session cookie lands <b>30 days out</b> &mdash; which is the observable proof that a timezone bug found in the same build is genuinely fixed, because under it every session was born already <em>expired</em> and sign-in would have worked for nobody while looking correct.</p>
+        <p style="margin-top:10px"><b>Mail goes over Hostinger&rsquo;s HTTP Email API with a plain <code>fetch()</code>.</b> A hand-written SMTP client was deleted rather than kept as a fallback: it had never touched a live mail server and rested on an untested assumption that outbound port 465 is open on this Workers plan &mdash; <b>an assumption only a deploy could ever have settled</b>, where an HTTP call can be exercised from a laptop before a secret is set. Two rails would also mean both credentials living on the Worker, and would keep an untested path alive for exactly the moment things are already going wrong.</p>
+      </div>
+      <ul class="tasks" data-phase="5">
+        <li><input type="checkbox" id="t51" aria-labelledby="t51l"><span class="t-id">5.1</span><div>
+          <div class="t-title" id="t51l">Ship the free tier — no billing code</div>
+          <div class="t-note">Ungate the free path, keep every field and the live verbatim-copy warning, swap the dead submit handler for a prefilled email. Zero accounts, works today.</div></div></li>
+        <li><input type="checkbox" id="t52" aria-labelledby="t52l"><span class="t-id">5.2</span><div>
+          <div class="t-title" id="t52l">Email Paddle about its marketplace acceptable-use policy</div>
+          <div class="t-note">In parallel — gates nothing. Paddle is confirmed open to Turkish sellers, but its policy is reportedly restrictive toward marketplaces, and we are one.</div></div></li>
+        <li><input type="checkbox" id="t53" aria-labelledby="t53l" checked><span class="t-id">5.3</span><div>
+          <div class="t-title" id="t53l">Postgres, Prisma migration, real authentication <span style="color:var(--done)">&mdash; SHIPPED 14&ndash;16 Sep, ahead of its trigger</span></div>
+          <div class="t-note">Neon Postgres and a <b>703-line Prisma schema</b> that already models <code>Producer</code>, <code>Submission</code>, <code>SubmissionRevision</code>, <code>AuditEvent</code> and the full approval/publish state machine &mdash; which makes the dashboard below a <b>wiring job, not a data-modelling job</b>. Auth is <b>hand-written, not Auth.js</b>, to keep the Worker&rsquo;s no-framework premise. Three rate limits guard sign-in, because the endpoint is unauthenticated and sends from the business&rsquo;s own inbox: <b>5 per 10 min per IP, one live token per address, and 100 sends per day origin-wide</b>. The migration was applied <em>before</em> the deploy on purpose &mdash; the route fails closed with a 503 when its limit table is missing, so the reverse order answers 503 to everyone until it runs.</div></div></li>
+        <li><input type="checkbox" id="t55" aria-labelledby="t55l" checked><span class="t-id">5.5</span><div>
+          <div class="t-title" id="t55l">The producer console <span style="color:var(--done)">&mdash; SHIPPED 16 Sep</span></div>
+          <div class="t-note">Three states, a listings table, a quota line, <code>/console/submit</code> with <code>&lt;datalist&gt;</code> note selectors drawn from our own vocabulary, and <code>/console/withdraw</code>. Both answer <b>401 unauthenticated</b>, verified from outside. <b>&ldquo;Delete&rdquo; is Withdraw, and that is decided rather than open:</b> it sets <code>WITHDRAWN_BY_PRODUCER</code> and keeps the row, because a click inside a network&rsquo;s cookie window can still pay out after a listing is gone, because the record of a listing pulled after a complaint is the one pattern most worth being able to see, and because <code>affiliateLinkId</code> is mandatory in the content schema. The confirmation page says so plainly rather than labelling a button one thing and doing another. <b>Two failure modes cost real time and are worth carrying:</b> the delegated run wrote ~2,400 correct lines across seven files and <b>wired none of them into the router</b>, so nothing it built could be called &mdash; verifying that a file <em>exists</em> is not verifying it is <em>reachable</em>. And the design review caught a <b>silent success</b>: withdrawal redirected to a page that ignored the result, so a producer performed an irreversible act and landed somewhere that looked unchanged.</div></div></li>
+        <li><input type="checkbox" id="t56" aria-labelledby="t56l" checked><span class="t-id">5.6</span><div>
+          <div class="t-title" id="t56l">How a submitted listing gets checked <span style="color:var(--done)">&mdash; DECIDED 18 Sep</span></div>
+          <div class="t-note"><b>Advisory flags into a human queue, plus mechanical checks moved into the form.</b> Two things were never in play, and reading the question without them produces a false choice: auto-approval and auto-publish are prohibited outright, and the direction of travel is asymmetric &mdash; automation may flag, weaken, cap and take down; it may never put something up. <b>Mechanical, unambiguous checks become form validation at submission time, not a rejection after it</b> &mdash; a missing required field, a <code>storeUrl</code> that is not https or is a shortener or a tracking link, an original not in our catalogue, a duplicate producer&ndash;reference pair. The producer is stopped <em>before</em> the submission exists, so there is no wrong verdict to appeal, only an incomplete form. <b>Everything requiring judgement flags into the queue and never auto-refuses.</b> The evidence is already in this repo and it is the strongest available: the copy gate landed differently on two near-identical merchant listings &mdash; one withheld, one shipped &mdash; on the strength of two orthographic differences, correctly recorded at the time as the gate working at its boundary. <b>A check with a known boundary is the wrong instrument for telling a real, operating company no with no person reading it.</b> The honest cost, stated rather than hidden: this does not reduce how many submissions the founder reads, only the effort per item. <b>One invariant it must not break:</b> the party being measured must never supply both inputs to the check that measures them &mdash; the copy gate compares a producer&rsquo;s notes <em>and</em> facets, and works only because the facets are ours.</div></div></li>
+        <li><input type="checkbox" id="t57" aria-labelledby="t57l"><span class="t-id">5.7</span><div>
+          <div class="t-title" id="t57l">Build the review queue &mdash; the next build<span class="tag top">NOW</span></div>
+          <div class="t-note"><b>The loop stays half open until this lands.</b> A producer can sign in, submit and withdraw; the submission lands <code>PENDING</code> and nothing in existence can move it. Three parts, and they belong in <em>one</em> change rather than in sequence. <b>(a) A staff role, which is a migration.</b> <code>User</code> has no <code>role</code> or <code>isStaff</code> column &mdash; <code>ActorType.STAFF</code> exists in the enum, so the audit trail already anticipates staff acting while nothing can identify one. <b>(b) Access control on <code>/review</code>, in the same change as its first database call and never after it</b> &mdash; that route is publicly reachable and returns 200 today, which is harmless only while it reads nothing. <b>(c) The queue itself:</b> <code>PENDING</code> oldest first with a paid tier prioritised within the same day, approve and reject with a written reason, every action recorded as an <code>AuditEvent</code>. Priority changes how soon something is <em>read</em> and nothing about where it lands. <b>The migration goes before the deploy</b> &mdash; the same ordering that made sign-in fail closed with a 503 when its table was missing.</div></div></li>
+        <li><input type="checkbox" id="t54" aria-labelledby="t54l"><span class="t-id">5.4</span><div>
+          <div class="t-title" id="t54l">Write the Paddle adapter</div>
+          <div class="t-note">Only when a producer says yes to paying. <b>Economics:</b> ~10.2% all-in at $300/month — a flat ~$15 wire fee per <em>payout</em> dominates at low volume, so the first one or two paying producers are roughly net-zero. Batch payouts quarterly, not monthly.</div></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <h2 class="sec" id="handoffs">Where the departments hand off</h2>
+  <div class="cols">
+    <div class="card">
+      <h4>Communication needs from Web Dev</h4>
+      <ul>
+        <li>Live apex-domain URL</li>
+        <li><code>/privacy</code>, and a corrected <code>/disclosure</code></li>
+        <li><code>/contact</code> with a <em>monitored</em> inbox</li>
+        <li>Working redirects with real destinations</li>
+        <li>Click logging live before the first real click</li>
+        <li>Analytics collecting 2–4 weeks before applying</li>
+        <li>Real prices on every linked product</li>
+        <li>Visible site-operator identity</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Web Dev needs from Communication</h4>
+      <ul>
+        <li>Final disclosure wording per network, and where it sits inline</li>
+        <li>Link format per network — the shape change in 3.4</li>
+        <li>The sub-ID scheme</li>
+        <li>Which merchants get wired first</li>
+        <li>The condition for flipping placeholders to hard failure</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Accounting owns</h4>
+      <ul>
+        <li>The manual invoice to Awin per payout — Turkey is an exception to self-billing</li>
+        <li>A new <em>Subscription revenue</em> income category</li>
+        <li>Payoneer payouts as <b>one row updated in place</b> — Payoneer is our own account, not a counterparty; only the ~2% withdrawal fee gets its own expense row</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="sec" id="founder">Founder-only, in order</h2>
+  <ol class="founder">
+    <li style="opacity:.55"><div><b><s>Decide payee</s> — the A.Ş.</b><span>Done 27 Aug, <em>revised</em> from “personal” once the Awin invoicing constraint was actually faced.</span></div></li>
+    <li style="opacity:.55"><div><b><s>Open Payoneer</s></b><span>Done 27 Aug.</span></div></li>
+    <li style="opacity:.55"><div><b><s>Register the apex domain</s></b><span>Done 27 Aug — <code>counterscent.com</code>, plus <code>contact@counterscent.com</code>.</span></div></li>
+    <li style="opacity:.55"><div><b><s>Choose a host and deploy</s></b><span>Done 27 Aug — Cloudflare Workers, $0/mo, live with email intact.</span></div></li>
+    <li style="opacity:.55"><div><b><s>Confirm the USD account / open a company one</s></b><span>Resolved 29 Aug &mdash; company USD and EUR accounts opened. Was the top blocker.</span></div></li>
+    <li><div><b>Supply the Hostinger receipt</b><span>Amount, currency, and whether auto-renew is on for <code>counterscent.com</code>. <b>Tested 16 Sep rather than assumed:</b> the API token is scoped so <code>/renewal</code> and the billing endpoints both answer <b>401</b> while portfolio reads work fine — so this genuinely cannot be retrieved, and a 401 on one endpoint does not mean the credential is dead. The ledger still records <b>nothing</b> about this project, and the <b>1,680.00 TRY invoice split</b> is what blocks the CFO, and therefore the dedicated-sending-mailbox decision.</span></div></li>
+    <li><div><b>Decide on producer store-direct links</b><span>See 3.6. This is the one path to a populated catalog that does not wait on a network approving us &mdash; and it is now also the shape the reformed score was built to receive, since a subscribing producer submits the same self-reported data the ceilings and penalties exist to price.</span></div></li>
+    <li style="opacity:.55"><div><b><s>Decide GA4 cookies vs KVKK</s></b><span>Cookieless GA4 chosen and shipped &mdash; no consent banner needed. Trade-off: <em>Users</em> inflates toward <em>Sessions</em>, so never quote it on an affiliate application; use Cloudflare Web Analytics instead.</span></div></li>
+    <li style="opacity:.55"><div><b><s>Apply to Awin</s></b><span>Applied and verified 30 Aug. <b>Three merchants now earn through it</b> &mdash; Opulensi, Clone of Perfume, AromaPassions.</span></div></li>
+    <li style="opacity:.55"><div><b><s>Apply to CJ</s></b><span>Approved, and <b>FragranceShop.com fully wired 7 Sep</b> &mdash; 103 buy links, 116 photographs, the <code>/originals</code> page.</span></div></li>
+    <li><div><b>Confirm the CJ sub-ID, once, in CJ&rsquo;s own click report</b><span>CJ obfuscates the query it forwards, so the <code>sid</code> cannot be read from the redirect chain here &mdash; only the <code>cjevent</code> token is checkable. <b>Same one-off check already done for Awin.</b> Until it is confirmed, we know the clicks are attributed to us but not which page earned them.</span></div></li>
+    <li style="opacity:.55"><div><b><s>Chase Perfumania for the product feed</s></b><span><b>Closed 9 Sep — but not by chasing the feed, and the feed would never have worked.</b> Its CJ export held 66 rows of its own house dupe line and <em>zero</em> designer stock; the storefront holds 4,380 products across 480 vendors and was read directly instead. 123 references matched and 368 <code>/go/</code> ids were added. The reusable lesson: <b>do not judge a merchant by the feed it happens to send you.</b> <b>FragranceX (CJ 1024283) is still unapplied</b> and still costs nothing extra.</span></div></li>
+    <li style="opacity:.55"><div><b><s>Remove the dead <code>parfumoza.com</code> domain</s></b><span><b>Done 2026-09-10</b>, verified from outside: no A/AAAA record and nothing answers on either protocol. One loose end remains — the registrar&rsquo;s NS delegation still points at Cloudflare, so the zone still answers SOA. Tidy at the registrar when convenient; nothing is served either way.</span></div></li>
+    <li><div><b>Issue the producer Worker its own Hostinger mail token</b><span><b>Opened 16 Sep and live right now.</b> To get a working end-to-end test the same day, the Worker was given <em>your own</em> <code>HOSTINGER_MAIL_TOKEN</code> value rather than a separately issued one. It is not a narrower-vs-wider question — Hostinger publishes <b>no send-only scope</b>, and both tokens reach message read, search, bulk and whole-folder delete, and webhook management on <code>contact@counterscent.com</code>. It is a <b>revocation-cost</b> question: if this Worker is ever suspected of leaking, revoking its token <b>also kills your own MCP tooling mid-incident</b>, so the revoke gets deferred — which is exactly how a suspected compromise becomes a real one. Also note that revoking a token does <em>not</em> remove a webhook created with it.</span></div></li>
+    <li><div><b>Record which affiliate applications are still pending</b><span>Nine are outstanding and <b>tracked nowhere in the repo</b>, so the next session cannot tell what has already been applied for and risks re-applying or re-researching the same programmes.</span></div></li>
+  </ol>
+
+  <h2 class="sec" id="board">Board review, 27 August — what the COO and CFO found</h2>
+  <p style="margin:0 0 18px;max-width:72ch">Both ran <b>read-only and text-return-only</b>, verifying every claim against the real files rather than asserting — a shape adopted after a board member once reported writing a file that did not exist. Nothing could be fabricated as &ldquo;written&rdquo; because nothing was to be written.</p>
+
+  <div class="cards">
+    <div class="card">
+      <h4 style="color:var(--done)">Found and fixed</h4>
+      <ul>
+        <li><b>Every sitemap URL was a redirect.</b> 86 non-canonical URLs advertised to Google on day one.</li>
+        <li><b>The score cap did not protect against us.</b> The cap keyed on the <em>verified</em> status — and we are the only party who grants it, while also selling a fragrance line here. Nothing structural stopped us publishing an uncapped score at #1 on our own comparison. Proven with two probe listings identical but for producer: <b>90% house vs 92% third party</b>.</li>
+        <li><b>A second defect the probe exposed, that nobody had reported.</b> Ranking sorted on the raw score while display showed the capped one, so our bottle sat at <b>#1 showing 90%, above a listing showing 92%</b>. Now sorts published &rarr; raw &rarr; price.</li>
+        <li><b>Two files gave opposite instructions</b> on the one path that will carry every affiliate click — one said &ldquo;Cloudflare Pages Function&rdquo; on a Workers deploy, where it would do nothing.</li>
+        <li><b>The library page advertised an empty catalog</b> with permanent &ldquo;Comparisons (0)&rdquo; and &ldquo;Reviews (0)&rdquo; tabs.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="color:var(--blocker)">The ledger does not know this project exists</h4>
+      <ul>
+        <li>It holds <b>one row</b> — OpenArt, $29/mo, itself unconfirmed since 19 Aug. Running balance &minus;$29.00, <b>100% of it unconfirmed</b>.</li>
+        <li>The domain and mailbox were paid and are <b>not logged</b>, and no agent can retrieve the amounts. This recurs at every renewal.</li>
+        <li><b>&ldquo;Costs sit in the A.Ş., revenue lands personally.&rdquo;</b> The entity half is now resolved; the <em>account</em> half is the sharper version of the same problem and blocks Phase 3.</li>
+        <li>Two docs disagree on the Awin signup fee (~$5 refundable vs &ldquo;free to join&rdquo;), unverified either way.</li>
+        <li>Also unchecked: whether the 21st.dev key is a paid tier, whether Payoneer charged an opening fee, and whether the <em>mali müşavir</em> billed for the consultation.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="sec">Not worth doing yet</h2>
+  <p class="skip"><s>Postgres migration</s> <b>(shipped 14 Sep)</b> · <s>sign-in</s> <b>(shipped 16 Sep, hand-written rather than Auth.js)</b> · billing on any rail · <s>approval-queue UI</s> <b>(now next — 5.7)</b> · <s>producer dashboard</s> <b>(shipped 16 Sep — 5.5)</b> · <s>review submission backend</s> <b>(shipped 16 Sep)</b> · click logging to a database before a network is chosen · <s>the latent <code>familyBonus</code> bug</s> <b>&mdash; fixed 8 Sep, inside the score reform; it was never worth doing alone, which is exactly why it waited for a change that moved every score anyway</b> · <b>more front-end polish</b> (three passes have landed — what fails review is data honesty and missing legal pages, not build quality) · Amazon and everything Amazon-specific · Impact and Rakuten · verifying prices for all 68 references · approaching ALT. and Dossier as <em>producers</em> (same company, same contact, wrong door — affiliate first) · paid traffic · a second domain · Stripe Atlas (~$2k/yr, and Form 5472 carries a $25,000 penalty for non-filing).</p>
+
+  <h2 class="sec" id="scoring">The integrity problem — reformed 8 September</h2>
+  <div class="prose">
+    <p><strong>The formula rewarded a merchant&rsquo;s copywriter.</strong> Two dupe houses, within two days of each other, published the original&rsquo;s own note pyramid as their product&rsquo;s &mdash; and a formula that is half declared-note overlap read that as a near-perfect composition match. It is not a match; it is marketing copy. One listing&rsquo;s declared notes were the original&rsquo;s <em>note for note</em>, scoring 99 raw. The existing defences caught only that extreme end: a copy-detector needing notes <em>and</em> facets to match, and a 90% cap on anything unverified. Scores of 85&ndash;89 published untouched.</p>
+    <p><strong>Fixing it became urgent because of what comes next.</strong> The producer subscription (Phase 5) would make outside producers a second and much larger source of exactly this self-reported data &mdash; and unlike a merchant, a producer whose revenue depends on rank has a reason to do it deliberately.</p>
+    <p><strong>Four changes shipped as one commit</strong>, because each moves scores and staging them would mean explaining three different numbers to the same reader:</p>
+  </div>
+  <div class="tscroll" style="margin:18px 0 20px">
+    <table>
+      <thead><tr><th style="width:24%">Change</th><th>What it does, and what it measured</th></tr></thead>
+      <tbody>
+        <tr><td><b>95% structural ceiling</b></td><td>Applies to <em>every</em> published score, including editorially verified ones, which were previously uncapped to 100. <b>Two fragrances can declare identical notes and still not contain them in the same proportions</b> &mdash; a note list says what went in, never how much &mdash; so no number built on declared notes should claim otherwise.</td></tr>
+        <tr><td><b>&minus;10 where the pyramid is ours</b></td><td>Some merchants publish one flat note list and no tiers at all, so <em>we</em> decide which notes are top, heart and base &mdash; and that choice alone can move a score 12 points. <b>47 of 79 listings</b> are in this position. The penalty prices our own uncertainty rather than pretending it away, and the badge says so on the page.</td></tr>
+        <tr><td><b>Family bug fixed</b></td><td>The family term had been hardcoded to full credit since the formula was written. A <b>no-op for all 79 current listings</b> by construction &mdash; every one shares its reference&rsquo;s family &mdash; so it only starts discriminating for a future cross-family listing.</td></tr>
+        <tr><td><b>Ingredient overlap, 15%</b></td><td>A fourth component comparing published INCI lists as one flat set. <b>Inert until both sides have a list, and none do yet</b> &mdash; a missing list is never scored as a mismatch. Backfilling it across the catalog (~144 lookups) is the open follow-on.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <p><strong>One exception, and it is human rather than formulaic.</strong> The founder may set a listing&rsquo;s score personally &mdash; the only way past 95 &mdash; with a written justification shown on the page, its own badge (never conflated with &ldquo;editorially verified&rdquo;: one is an independent check, the other is one person&rsquo;s disclosed opinion), no use on our own fragrance line, and no power to rescue a listing flagged as a copy. A build-time guard enforces all three. <b>No listing currently uses it.</b></p>
+    <p><strong>Measured against the shipped functions, before and after.</strong> The 32 listings whose sellers publish real pyramids moved by <b>exactly zero</b>. Of the 47 whose split was ours, 41 fell exactly 10 and six fell less because they already sat at the cap. <b>One ranking changed anywhere on the site:</b> on Aventus, the listing this project had already flagged as suspiciously #1 dropped to #3, behind two whose sellers publish their own tiering. That is the penalty doing precisely the job it was added for.</p>
+    <p><strong style="color:var(--blocker)">&times; What is still not solved, stated plainly.</strong> The penalty prices a <em>missing</em> pyramid, not copying. A merchant who copies the original&rsquo;s pyramid and publishes it as three proper tiers is still scored at face value, and the copy-detector &mdash; which needs the facets to match too, and we author those &mdash; remains the only defence against that case. <b>And the older data-authorship problem is unchanged and unfixable in code:</b> a listing whose declared notes are written to sit close to the reference legitimately out-ranks honest ones, because the formula only ever sees the data it is given. That is why there are still <b>no house products</b>, and why adding one is a board decision rather than a code change.</p>
+  </div>
+
+  <footer class="end">
+    <div>Canonical copy: <code>products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md</code> &middot; tenth pass, 18 September 2026</div>
+    <button class="reset" id="reset" type="button">Clear all checkmarks</button>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var KEY = "drydown-finalization-v1";
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; }
+      catch (e) { return {}; }
+    }
+    function save(state) {
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    var state = load();
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('.tasks input[type="checkbox"]'));
+
+    function paint(box) {
+      var li = box.closest("li");
+      if (li) li.classList.toggle("is-done", box.checked);
+    }
+
+    boxes.forEach(function (box) {
+      if (state[box.id]) box.checked = true;
+      paint(box);
+      box.addEventListener("change", function () {
+        state[box.id] = box.checked;
+        save(state);
+        paint(box);
+      });
+    });
+
+    var reset = document.getElementById("reset");
+    if (reset) {
+      reset.addEventListener("click", function () {
+        boxes.forEach(function (b) { b.checked = false; paint(b); });
+        state = {};
+        save(state);
+      });
+    }
+
+    // Highlight the phase currently in view.
+    var links = Array.prototype.slice.call(document.querySelectorAll("nav.phases a"));
+    var sections = links
+      .map(function (a) { return document.querySelector(a.getAttribute("href")); })
+      .filter(Boolean);
+
+    if ("IntersectionObserver" in window && sections.length) {
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          links.forEach(function (a) {
+            a.classList.toggle("on", a.getAttribute("href") === "#" + entry.target.id);
+          });
+        });
+      }, { rootMargin: "-15% 0px -70% 0px", threshold: 0 });
+      sections.forEach(function (s) { obs.observe(s); });
+    }
+  })();
+</script>
+

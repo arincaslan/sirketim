@@ -1,10 +1,18 @@
 import { html } from "../lib/html";
 import { page, redirect } from "../lib/http";
 import { layout } from "../ui/layout";
-import { button, card, csrfInput, emptyState, section, stateBadge } from "../ui/components";
+import {
+  button,
+  card,
+  csrfInput,
+  emptyState,
+  listingStateFor,
+  section,
+  stateBadge,
+} from "../ui/components";
 import type { Env } from "../lib/env";
 import { CSRF_FIELD, csrfToken, verifyCsrf } from "../lib/csrf";
-import type { ListingRow } from "../lib/producer";
+import { mayWithdrawSelf, type ListingRow } from "../lib/producer";
 import {
   bumpRateLimit,
   PRODUCER_WRITE_MAX,
@@ -47,12 +55,26 @@ import {
  * detectable rather than merely disapproved of. A verb a producer cannot undo
  * for themselves earns one screen.
  *
- * THE FREE TIER MAY USE THIS. Founder decision, 2026-09-16, which also settled
- * a contradiction between lib/plans.ts and PRODUCER-TERMS section 10 about
- * whether it could: it can, and because countsAgainstAllowance() excludes
- * withdrawn listings, doing so frees the slot. That is what makes the free
- * tier's single listing a choice a producer can revisit rather than one
- * irreversible shot.
+ * THE FREE TIER MAY NOT USE THIS. Founder decision, 2026-09-18, which REVERSES
+ * the 2026-09-16 ruling that it could. Self-serve withdrawal is a paid feature;
+ * a free producer asks us and we do it.
+ *
+ * The paragraph here used to say the opposite, and the history is worth keeping
+ * because the contradiction has now been settled in both directions. On 16 Sep
+ * the founder ruled the free tier MAY withdraw and this file was written to say
+ * so, but lib/plans.ts kept selling it as a Standard feature and was never
+ * updated - so for two days the pricing page charged for something the code
+ * gave away. Today the founder resolved it the other way and the CODE is what
+ * moved. The two now agree, which is the part that was missing before.
+ *
+ * WHAT IT COSTS, accepted deliberately rather than overlooked: because
+ * countsAgainstAllowance() excludes withdrawn listings, withdrawing used to
+ * free the free tier's single slot, and that is what made its one listing a
+ * choice a producer could revisit alone. It no longer is. So the refusal below
+ * is not a locked door - it explains itself and gives them the way through, and
+ * the button is left visible rather than hidden, because a producer who cannot
+ * find the control learns nothing and a producer who presses it learns exactly
+ * where they stand.
  */
 
 const COPY: GateCopy = { verb: "withdraw a listing", title: "Withdraw a listing" };
@@ -74,6 +96,14 @@ export async function withdrawPage(request: Request, env: Env): Promise<Response
   if (!listing) return page(notYours(gate.auth.email), 404);
 
   if (!withdrawable(listing)) return page(alreadyGone(gate.auth.email, listing), 409);
+
+  // TIER GATE, CHECKED ON BOTH VERBS. Here it stops us rendering a form the
+  // producer is not allowed to submit; the identical check in the POST below is
+  // the one that actually enforces it, because this screen is not the only way
+  // to reach that handler.
+  if (!mayWithdrawSelf(gate.data.producer.tier)) {
+    return page(askUsInstead(gate.auth.email, listing), 403);
+  }
 
   const token = await csrfToken(request, "withdraw-listing");
   // A null token means no session cookie to bind against, which requireProducer
@@ -113,6 +143,15 @@ export async function withdrawSubmit(request: Request, env: Env): Promise<Respon
   const listing = id ? gate.data.listings.find((l) => l.id === id) : undefined;
   if (!listing) return page(notYours(gate.auth.email), 404);
   if (!withdrawable(listing)) return page(alreadyGone(gate.auth.email, listing), 409);
+
+  // THE ENFORCEMENT. The GET refuses too, but a hidden button is not a control:
+  // this handler is reachable by a direct POST with a valid CSRF token, which a
+  // free producer's own browser can mint from any console page. Checked before
+  // the rate limiter so a refused attempt cannot spend the producer's write
+  // budget, and before any write so nothing is half-done.
+  if (!mayWithdrawSelf(gate.data.producer.tier)) {
+    return page(askUsInstead(gate.auth.email, listing), 403);
+  }
 
   const limit = await bumpRateLimit(gate.sql, {
     key: producerWriteKey(gate.data.producer.id),
@@ -163,6 +202,7 @@ function confirm(email: string, listing: ListingRow, token: string) {
   return layout({
     title: COPY.title,
     heading: "Withdraw this listing?",
+    nav: { current: "listings", showReview: true },
     status: {
       label: "Nothing has happened yet",
       tone: "outline",
@@ -173,7 +213,7 @@ function confirm(email: string, listing: ListingRow, token: string) {
       ${section({
         heading: `${listing.brand} ${listing.name}`,
         lede: html`Against <strong>${listing.referenceSlug}</strong> &middot;
-          ${stateBadge(listing.publishState as never)}`,
+          ${stateBadge(listingStateFor(listing))}`,
         body: html`
           ${card(html`
             <h3>What withdrawing does</h3>
@@ -219,6 +259,7 @@ function notYours(email: string) {
   return layout({
     title: COPY.title,
     heading: "No such listing",
+    nav: { current: "listings", showReview: true },
     status: {
       label: "Nothing was changed",
       tone: "outline",
@@ -233,10 +274,60 @@ function notYours(email: string) {
   });
 }
 
+/**
+ * The free tier's answer: not a locked door, a different door.
+ *
+ * 403 RATHER THAN 404 OR A REDIRECT, on purpose. The listing exists and it is
+ * theirs; the action is what they are not entitled to. Answering 404 would lie
+ * about their own data, and bouncing them to /console would leave them pressing
+ * the same button again, having learned nothing.
+ *
+ * It names the listing, says plainly who can do it, and gives them the one
+ * thing that actually gets it done: a prefilled mail link. The repo convention
+ * is that a feature a user cannot reach must say so at the point of use with a
+ * real reason, never a dead control or a fake success.
+ */
+function askUsInstead(email: string, listing: ListingRow) {
+  const subject = `Withdraw listing: ${listing.brand} ${listing.name}`;
+  return layout({
+    title: COPY.title,
+    heading: "We will withdraw this for you",
+    nav: { current: "listings", showReview: true },
+    status: {
+      label: "Nothing was changed",
+      tone: "outline",
+      note: html`Your listing is still published. Withdrawing it yourself is part of a paid
+        plan, so this one goes through us instead.`,
+    },
+    standfirst: html`You are signed in as ${email}.`,
+    body: html`
+      ${emptyState({
+        headline: `${listing.brand} ${listing.name} is still live.`,
+        because: html`Taking a listing down yourself is a Standard feature. On the free plan we
+          do it for you, and we do not make you give a reason. Write to
+          <a href="mailto:contact@counterscent.com?subject=${encodeURIComponent(subject)}"
+            >contact@counterscent.com</a
+          >
+          and a person will take it down. <a href="/console">Back to your listings</a>.`,
+      })}
+      ${card(html`
+        <h3>Why it comes down rather than disappearing</h3>
+        <p class="muted">
+          Whoever withdraws it, the row is kept and marked withdrawn rather than deleted.
+          A click inside a network's cookie window can still pay out after a listing is
+          gone, and a record that can be erased by the party it describes is not a record.
+          That is the same for every plan.
+        </p>
+      `)}
+    `,
+  });
+}
+
 function alreadyGone(email: string, listing: ListingRow) {
   return layout({
     title: COPY.title,
     heading: "Already withdrawn",
+    nav: { current: "listings", showReview: true },
     status: {
       label: "Nothing was changed",
       tone: "outline",
@@ -256,6 +347,7 @@ function writeFailed(email: string) {
   return layout({
     title: COPY.title,
     heading: "We could not withdraw it",
+    nav: { current: "listings", showReview: true },
     status: {
       label: "Nothing was changed",
       tone: "outline",

@@ -6,11 +6,29 @@
  * expectation; see FINALIZATION-GUIDE.md phase 5 and prisma/schema.prisma's
  * PaymentProvider enum).
  */
-export type PaidTier = "standard" | "featured";
+/**
+ * RENAMED 2026-09-18: the top tier was `featured`, and it is now `unlimited`.
+ *
+ * The old name was the one thing the programme promises the tier does NOT buy.
+ * NEVER_INCLUDED at the foot of this file still reads "A premium or featured
+ * slot in results" - that line is the promise and it does not move - so the
+ * tier and the disclaimer were using the same word for opposite things, and
+ * every honest explanation of the tier had to open by untangling it.
+ *
+ * `unlimited` names what the tier actually buys, which is the allowance, and
+ * cannot be misread as placement. FINALIZATION-GUIDE 3.6b already uses the word
+ * in exactly this sense: unlimited ORIGINALS COVERED, one listing per
+ * (producer, reference) pair, never unlimited rows.
+ *
+ * This is the tier ID, not just a label, so it is stored in `Producer.plan` and
+ * switched on in the Worker. Zero producers exist, so there is no data to
+ * migrate - which is why it was cheap today and would not have been later.
+ */
+export type PaidTier = "standard" | "unlimited";
 export type BillingInterval = "monthly" | "yearly";
 
 export function isPaidTier(value: string): value is PaidTier {
-  return value === "standard" || value === "featured";
+  return value === "standard" || value === "unlimited";
 }
 
 export function isBillingInterval(value: string): value is BillingInterval {
@@ -26,11 +44,21 @@ export function isBillingInterval(value: string): value is BillingInterval {
  * bearing one. This settles PRODUCER-PROGRAM.md §8 item 1, which had gated
  * every other item in that list.
  *
+ * AMENDED 2026-09-18, founder: THE FREE TIER TOO. There is now no commission
+ * anywhere in the producer programme, so `takesCommission` is false on all
+ * three tiers and the subscription is the only thing a producer ever pays us.
+ * What that costs and what it buys is argued at `takesCommission`. The one
+ * consequence to carry everywhere else: the free tier is now a funnel with no
+ * revenue of its own, so "how many free listings do we carry" is a cost
+ * question, not a revenue-mix question, and the answer stays ONE listing.
+ *
  * ====================== THE NUMBERS ARE STILL PLACEHOLDERS ===============
  * The founder set the SHAPE and asked for the paid tiers to come down; the
  * board's recommendation on model was accepted with that one change. What
  * nobody has done is §3's actual research into what these houses currently
- * spend on customer acquisition, so 19/49 are a considered guess, not a price.
+ * spend on customer acquisition, so 12/49 are a considered guess, not a price.
+ * (Standard was 19 until 2026-09-18; the founder cut it to 12 because the jump
+ * from one listing to twenty-five is a large first step to ask money for.)
  *
  * They must not be shown to a real producer as final. Today that risk is
  * contained because the programme is not open and every producer page says so
@@ -65,19 +93,37 @@ export interface Plan {
    * Whether COUNTERSCENT earns affiliate commission on sales from this tier's
    * listings.
    *
-   * FOUNDER DECISION, 2026-09-10: false on every PAID tier. A subscriber pays
-   * a fee and we take nothing on their sales; the free tier is commission-only.
-   * This is the "subscription instead of commission, not alongside" option from
-   * PRODUCER-PROGRAM.md §2, applied to the paid tiers.
+   * IT IS FALSE ON ALL THREE TIERS AND THAT IS THE POINT. The field survives as
+   * a field, rather than collapsing into a constant, because the publish path
+   * reads it to decide whether a listing gets an affiliate link or a direct
+   * store link — and because a per-tier flag is where someone would reach first
+   * to reintroduce commission quietly. Leaving it visible per tier makes that
+   * a diff somebody can see.
    *
-   * It is not only a pricing choice, it is the strongest integrity property the
-   * programme has. §2 names it directly: it "decouples our revenue from ranking
-   * outcomes". Once we earn nothing per click or per sale from a paying
-   * producer, we have no financial interest in where their listing ranks or how
-   * much traffic it gets — which is exactly the conflict a marketplace that
-   * charges AND takes commission has to keep explaining away. Do not quietly
-   * reintroduce commission on a paid tier to lift revenue; it would cost the
-   * one claim that makes the rest of §7 believable.
+   * FOUNDER DECISION, 2026-09-10: false on every PAID tier. A subscriber pays a
+   * fee and we take nothing on their sales. This is the "subscription instead
+   * of commission, not alongside" option from PRODUCER-PROGRAM.md §2.
+   *
+   * FOUNDER DECISION, 2026-09-18: false on the FREE tier as well. The earlier
+   * split left the claim needing an asterisk — "we take no commission" was true
+   * of subscribers and false of everyone else, which is the version a producer
+   * on the free tier reads as a bait. It also put us in the position the whole
+   * policy exists to avoid: on the free tier our revenue rose with a listing's
+   * traffic, so the tier with the LEAST scrutiny was the only one we had a
+   * financial reason to favour. Now the sentence is unqualified, and the
+   * ranking formula has nothing behind it to be suspicious of at any tier.
+   *
+   * WHAT IT COSTS, stated plainly so nobody rediscovers it as a surprise: the
+   * free tier now earns nothing at all. It is a funnel and a cost, justified by
+   * conversion to a paid tier, not by its own sales. If that conversion never
+   * materialises, the answer is to change the free ALLOWANCE or close the tier
+   * — not to put commission back on it. Reintroducing it would cost the one
+   * claim that makes the rest of PRODUCER-PROGRAM §7 believable, and it would
+   * now be a visible reversal of a published promise rather than a tweak.
+   *
+   * None of this touches the catalogue's OWN affiliate revenue from merchants
+   * (FragranceShop, Perfumania, the dupe houses). That is a different
+   * counterparty and it is what funds the site; see app/disclosure.
    */
   takesCommission: boolean;
 }
@@ -96,7 +142,27 @@ export const PLANS: Plan[] = [
     listings: "1 listing",
     features: [
       "Appears in ranked comparisons",
+      // MOVED HERE FROM STANDARD on 2026-09-18, when it stopped being an
+      // upgrade. Leaving it on Standard under "Everything in Free" would have
+      // gone on selling, as a $19 benefit, something the free tier now has.
+      "We take no commission on your sales",
       "Total click count",
+      // SELF-SERVE WITHDRAWAL IS NOT A FREE-TIER FEATURE. Founder decision,
+      // 2026-09-18, which reverses the 2026-09-16 ruling that it was.
+      //
+      // The history matters because the contradiction has now been settled in
+      // both directions and someone will find the older note. On 16 Sep the
+      // founder ruled the free tier MAY withdraw, and src/routes/withdraw.ts
+      // was written to say so in its header; lib/plans.ts was never updated to
+      // match, so for two days the pricing page sold it as a paid feature while
+      // the code gave it away. Today the founder resolved the mismatch the
+      // other way: the feature is Standard's, and the CODE is what changes.
+      //
+      // The cost, which is real and was accepted: a free producer's single
+      // listing is no longer a choice they can revisit on their own. They ask
+      // us. That has to be said where they would otherwise press a button and
+      // find out, which is why /console/withdraw refuses with an explanation
+      // and a mail link rather than hiding the control.
       // NOT a review-time promise. This said "Reviewed within 3 business
       // days", which nobody measured - no submission has ever been reviewed,
       // so there is no figure, and PRODUCER-TERMS §5 commits us to publishing
@@ -108,16 +174,31 @@ export const PLANS: Plan[] = [
       // floor of the whole programme, not a service level.
       "Reviewed by a person, never auto-approved",
     ],
-    // The free tier is how the site earns from a non-subscriber: their listing
-    // carries our affiliate link and we take commission on sales.
-    takesCommission: true,
+    // FALSE SINCE 2026-09-18. This said "the free tier is how the site earns
+    // from a non-subscriber: their listing carries our affiliate link and we
+    // take commission on sales" - which was the whole revenue case for the
+    // tier, and the founder has withdrawn it. A free listing now links straight
+    // to the producer's own store, with no network in the middle, exactly like
+    // a subscriber's.
+    takesCommission: false,
   },
   {
     id: "standard",
     name: "Standard",
     tagline: "For a catalog that covers a range of originals.",
-    priceMonthly: 19,
-    priceYearly: 190,
+    // PRICE CUT 19 -> 12, founder, 2026-09-18, and the reason is the SHAPE of
+    // the ladder rather than the market: free carries one listing and this
+    // carries twenty-five, which is a twenty-fivefold jump in what you get for
+    // the first money you spend. $12 is what the founder judged that first step
+    // should cost. Yearly keeps the same ten-months-for-twelve ratio the old
+    // pair had (190/19 = 10, 120/12 = 10), so the annual discount did not
+    // silently change with the headline number.
+    //
+    // STILL A PLACEHOLDER. Section 3's research into what these houses actually
+    // spend on acquisition has not been done, and the header's warning applies
+    // to 12 exactly as it applied to 19.
+    priceMonthly: 12,
+    priceYearly: 120,
     listings: "25 listings",
     // TWO FEATURES WERE REMOVED HERE, and both were being SOLD on a live
     // pricing page for things the repo has decided not to build.
@@ -138,19 +219,26 @@ export const PLANS: Plan[] = [
     // What replaces them are two things the schema already models and the
     // terms already commit to: SubmissionRevision (PRODUCER-TERMS §4) and
     // publishState WITHDRAWN_BY_PRODUCER (§10).
+    // "We take no commission on your sales" WAS HERE and moved to Free on
+    // 2026-09-18. It is now true at every tier, so as a Standard bullet sitting
+    // above "Everything in Free" it would have been charging for it twice.
     features: [
       "Everything in Free",
-      "We take no commission on your sales",
       "Per-listing and per-original click data",
+      // Does not exist yet at any tier. The console's own button says so.
       "Request an edit to a published listing",
+      // A REAL PAID FEATURE AS OF 2026-09-18, not an aspirational one: the
+      // free tier is now gated out of it in withdraw.ts, so this line and the
+      // code agree. That was not true for the two days the line sat here
+      // unenforced.
       "Withdraw a listing yourself, any time",
     ],
     highlighted: true,
     takesCommission: false,
   },
   {
-    id: "featured",
-    name: "Featured",
+    id: "unlimited",
+    name: "Unlimited",
     tagline: "For a full catalog and conversion data.",
     priceMonthly: 49,
     priceYearly: 490,

@@ -71,9 +71,13 @@ here.
 > 1. **No buyer money passes through us, ever.** A subscriber pays me for access to a
 >    tool. Their customers buy from the subscriber's own website through their own
 >    checkout. Paddle would never be in the path of a consumer purchase.
-> 2. **The subscription buys no commercial outcome.** Paid tiers pay no commission to
->    me and buy no ranking, score or placement advantage. I earn nothing from a paying
->    subscriber's sales or traffic. It is access to software, priced as software.
+> 2. **The subscription buys no commercial outcome, and I take no commission from
+>    anyone.** No tier pays me a commission — not the paid ones and not the free one —
+>    and no tier buys a ranking, score or placement advantage. I earn nothing from any
+>    listed producer's sales or traffic, at any tier. It is access to software, priced
+>    as software. The site's own revenue comes from retailer affiliate links on the
+>    public catalogue, which is a different counterparty entirely and nothing to do
+>    with what I would be selling through Paddle.
 > 3. **No physical goods.** I do not intend to process any physical product sale
 >    through Paddle, now or later.
 >
@@ -109,10 +113,18 @@ here.
   for exactly that reason — it is enough for Paddle to classify the product without
   committing us to a number.
 - **Everything in the draft is true today.** No checkout on the site, five live
-  retailers, human review with no auto-approval, no commission on paid tiers — each of
+  retailers, human review with no auto-approval, no commission on any tier — each of
   those is a shipped decision, not an intention. If any of them changes before you
   send, the email has to change with it, because a policy answer given against a
   description we later break is worth nothing.
+- **Point 2 got stronger on 2026-09-18 and the redraft is deliberate.** It used to say
+  "paid tiers pay no commission", which invited the obvious follow-up — *what about the
+  free tier?* — and the honest answer was that the free tier WAS commission-bearing.
+  That is the single fact most likely to make Paddle read this as a marketplace, and it
+  would have surfaced after their answer rather than before it. The founder removed
+  commission from the free tier, so the claim is now unqualified and there is no
+  follow-up hiding behind it. **This is exactly the "if any of them changes, the email
+  changes with it" case, applied in the direction that helps.**
 - **Log the reply somewhere durable when it arrives.** If the answer is yes, it
   closes the largest unverified risk on the subscription rail and
   `payment-rails-investigation.md` §10 should record it the way it recorded the

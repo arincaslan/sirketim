@@ -84,8 +84,91 @@ const STATE_LABEL: Record<ListingState, string> = {
   removed: "Removed by us",
 };
 
+/**
+ * A listing's photograph, or an honest stand-in for the one it does not have.
+ *
+ * BUILT BEFORE THERE IS ANYTHING TO SHOW, deliberately. Photograph upload is
+ * not written, so `imageUrl` is null on every row that exists. The founder's
+ * instruction on 2026-09-18 was to wire and exercise the path now so that the
+ * day a real producer supplies an image is not also the day we find out the
+ * render breaks. Proven locally against a fixture asset.
+ *
+ * THE FALLBACK SURVIVES A BROKEN IMAGE WITH NO JAVASCRIPT. The obvious way to
+ * handle a dead URL is an `onerror` attribute, and this origin's CSP forbids
+ * inline handlers. So the tile is painted on the WRAPPER as a background plus a
+ * letter, and the `<img>` sits on top of it: if the file 404s, is blocked, or is
+ * never set, the tile underneath is what the producer sees. No script, no layout
+ * shift, and the row stays readable.
+ *
+ * WHAT IT DOES NOT DO, stated because it was measured rather than assumed:
+ * Chrome still paints its own small broken-image glyph over the tile when a URL
+ * is set and fails. There is no CSS-only way to suppress that - `:broken` does
+ * not exist - and the two alternatives are both worse here. A dynamic
+ * `background-image` would need an inline `style` attribute, which `style-src
+ * 'self'` blocks; dropping the width and height would trade the glyph for the
+ * layout shift they exist to prevent. So the glyph stays, and it is arguably
+ * the honest outcome: a dead imageUrl means OUR storage lost OUR file, and a
+ * visible mark is better than silently showing a placeholder as though nothing
+ * were wrong. A missing image, which is the common case, shows the clean tile
+ * because no `<img>` is emitted at all.
+ *
+ * `width` and `height` are set on the element rather than only in CSS so the
+ * row reserves its space before the image arrives. A table that reflows as
+ * thumbnails load is the CLS problem, and it would arrive exactly when the
+ * feature starts working.
+ *
+ * `alt=""` and `aria-hidden` are correct rather than lazy: the fragrance name
+ * and brand sit immediately beside this, so announcing the picture as well
+ * would read the same listing twice.
+ */
+export function listingThumb(l: { name: string; imageUrl: string | null }): Html {
+  const initial = (l.name.trim()[0] ?? "?").toUpperCase();
+  return html`<span class="thumb" data-initial="${initial}" aria-hidden="true"
+    >${
+      l.imageUrl
+        ? html`<img src="${l.imageUrl}" alt="" width="40" height="40" loading="lazy" decoding="async" />`
+        : ""
+    }</span
+  >`;
+}
+
 export function stateBadge(state: ListingState): Html {
   return html`<span class="pill state state-${state}">${STATE_LABEL[state]}</span>`;
+}
+/**
+ * The two database columns, as the one label a producer reads.
+ *
+ * IT LIVES HERE, BESIDE ListingState AND STATE_LABEL, BECAUSE TWO ROUTES NEED
+ * IT AND ONLY ONE OF THEM HAD IT. While this was private to /console, the
+ * withdraw page reached for `stateBadge(publishState as never)` instead - and
+ * that cast is exactly why nobody noticed: publishState is the Postgres enum
+ * (PENDING, WITHDRAWN_BY_PRODUCER), STATE_LABEL is keyed by the UI union
+ * ("in-review", "withdrawn"), so the lookup returned undefined and the page
+ * rendered an EMPTY badge next to a dangling separator. A cast to `never`
+ * silences the one check that would have caught it.
+ *
+ * Both columns are Postgres enums, so an unrecognised value is not reachable
+ * without a migration. The order of the tests is the part that matters: where
+ * the two disagree, publishState wins, because it describes where the listing
+ * actually IS, and an editorial decision that has not taken effect is exactly
+ * what the "approved, not yet live" badge exists to say.
+ */
+export function listingStateFor(l: { approvalStatus: string; publishState: string }): ListingState {
+  switch (l.publishState) {
+    case "LIVE":
+      return "live";
+    case "WITHDRAWN_BY_PRODUCER":
+      return "withdrawn";
+    case "REMOVED_BY_EDITOR":
+      return "removed";
+    case "DRAFT":
+      return l.approvalStatus === "CHANGES_REQUESTED" ? "changes-requested" : "draft";
+    default:
+      if (l.approvalStatus === "REJECTED") return "rejected";
+      if (l.approvalStatus === "CHANGES_REQUESTED") return "changes-requested";
+      if (l.approvalStatus === "APPROVED") return "approved";
+      return "in-review";
+  }
 }
 
 /** One row of the state reference: the badge, what it means, who moved it. */
@@ -210,17 +293,32 @@ export function identityBar(opts: {
   facts: { label: string; value: Html }[];
   /** Trailing control, today the sign-out form. */
   action?: Html;
+  /**
+   * A panel on the right of the strip.
+   *
+   * ADDED because the strip was mostly empty. Four facts sat crammed against
+   * the left edge of an 1104px card with 115px of nothing before the sign-out
+   * button, which read as a rendering fault rather than as breathing room. The
+   * fix is not to shrink the card: it is to put the reader's plan and their
+   * remaining allowance in the space, which is the question they come to this
+   * screen with. Facts that belong to the plan move OUT of `facts` and into
+   * here, so the strip does not say the same thing twice.
+   */
+  aside?: Html;
 }): Html {
-  return html`<div class="identity-bar">
-    <dl class="identity-facts">
-      ${opts.facts.map(
-        (f) => html`<div class="identity-fact">
-        <dt>${f.label}</dt>
-        <dd>${f.value}</dd>
-      </div>`,
-      )}
-    </dl>
-    ${opts.action ? html`<div class="identity-action">${opts.action}</div>` : ""}
+  return html`<div class="identity-bar${opts.aside ? " has-aside" : ""}">
+    <div class="identity-main">
+      <dl class="identity-facts">
+        ${opts.facts.map(
+          (f) => html`<div class="identity-fact">
+          <dt>${f.label}</dt>
+          <dd>${f.value}</dd>
+        </div>`,
+        )}
+      </dl>
+      ${opts.action ? html`<div class="identity-action">${opts.action}</div>` : ""}
+    </div>
+    ${opts.aside ? html`<div class="identity-aside">${opts.aside}</div>` : ""}
   </div>`;
 }
 
@@ -266,8 +364,8 @@ export function quotaLine(opts: {
     return html`<span class="quota">
       <span class="quota-figure">No plan on file</span>
       <span class="quota-note">
-        No subscription record exists for this producer, so there is no allowance to
-        count against. ${listings} on file.
+        No subscription record exists for this producer. Until one does, the free
+        allowance of one active listing is what we enforce. ${listings} on file.
       </span>
     </span>`;
   }

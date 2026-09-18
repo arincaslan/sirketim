@@ -1,4 +1,4 @@
-import { Certificate, Signature, Warning, WarningOctagon } from "@phosphor-icons/react/dist/ssr";
+import { Certificate, Warning, WarningOctagon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import type { VerificationBadgeInfo } from "@/lib/verification";
 
@@ -22,19 +22,19 @@ export function VerificationBadge({
   compact?: boolean;
   className?: string;
 }) {
+  // A "founder-override" branch stood in all three of these until 2026-09-18,
+  // with its own Signature icon and accent styling, deliberately unlike
+  // "verified" so one person's disclosed opinion could not read as an
+  // independent check. The status went with the mechanism; there are three
+  // badges now, and BadgeStatus no longer has a member this could match.
   const Icon =
     info.status === "verified"
       ? Certificate
       : info.status === "flagged"
         ? WarningOctagon
-        : info.status === "founder-override"
-          ? Signature
-          : Warning;
+        : Warning;
 
-  // Deliberately NOT styled like "verified": a founder override is one
-  // person's disclosed opinion, not an independent check, and the two must
-  // not read as the same kind of assurance at a glance.
-  const compactLabel = info.status === "founder-override" ? "Founder" : info.status[0].toUpperCase() + info.status.slice(1);
+  const compactLabel = info.status[0].toUpperCase() + info.status.slice(1);
 
   return (
     <span
@@ -44,7 +44,6 @@ export function VerificationBadge({
         info.status === "verified" && "border-primary/40 bg-secondary/60 text-foreground/80",
         info.status === "declared" && "border-border bg-card text-muted-foreground",
         info.status === "flagged" && "border-destructive/50 bg-destructive/10 text-destructive",
-        info.status === "founder-override" && "border-accent/50 bg-accent/10 text-foreground/80",
         className
       )}
     >

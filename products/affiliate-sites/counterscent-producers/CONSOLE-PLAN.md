@@ -12,17 +12,48 @@ rather than a specification of what to build.
    is produced by `scripts/generate-constants.mjs` from `fragrance-dupes/lib/plans.ts`,
    so the figures are generated, not a third hand-typed copy.
 2. **Free tier takes no money and allows exactly ONE active listing.**
-3. **Free-tier producers MAY withdraw**, and withdrawing frees the slot. This
-   closes the contradiction this plan flagged between `plans.ts` and
-   `PRODUCER-TERMS` section 10.
+3. ~~**Free-tier producers MAY withdraw**~~ **REVERSED 2026-09-18: they may
+   not.** Self-serve withdrawal is now a paid feature; a free producer writes to
+   us and a person takes it down, with no reason asked and no delay. This plan
+   flagged a contradiction between `plans.ts` and `PRODUCER-TERMS` section 10,
+   and on 16 Sep it was closed in the free tier's favour **in the code only** -
+   `plans.ts` was never updated and went on selling withdrawal as a Standard
+   feature for two days. The founder has now closed it the other way, and this
+   time all three moved together: `plans.ts`, `PRODUCER-TERMS` section 10, and
+   `mayWithdrawSelf()` in `src/lib/producer.ts`, which gates **both** the
+   confirmation page and the POST. The cost, accepted rather than overlooked: a
+   free producer's single listing is no longer a choice they can revisit alone,
+   so the refusal screen explains itself and carries a prefilled mail link
+   instead of hiding the control.
 4. **`/review` access control is deferred.** It stays inert - `notShipped()`,
    no database calls - and was not touched.
-5. **The Featured-tier naming point is NOT decided** and nothing was renamed.
-   The founder said they did not understand it; it is explained to them
-   directly rather than acted on.
-6. **How listings get checked is STILL NOT DECIDED** (section 5). A submission
-   therefore lands as `PENDING` and waits for a person. No automated verdict of
-   any kind was built.
+5. ~~**The Featured-tier naming point is NOT decided**~~ **DECIDED 2026-09-18:
+   the tier is renamed `Featured` -> `Unlimited`, and the `NEVER_INCLUDED`
+   wording is kept unchanged.** The promise is the load-bearing half - it is what
+   makes "no tier buys rank" structural rather than a claim - so the name gave way
+   instead. `Unlimited` names the allowance, which is what the tier actually buys,
+   and section 3.6b of the finalization guide already uses the word in exactly that
+   sense (unlimited *originals covered*, one listing per (producer, reference) pair,
+   never unlimited rows). **BUILT 2026-09-18.** `featured` was the tier **id**, not
+   a display label, so the rename ran through all of it: Source of truth is
+   `fragrance-dupes/lib/plans.ts`; `src/generated/plans.ts` is generated from it, so
+   run `npm run generate` rather than hand-editing; `scripts/generate-constants.mjs`
+   hardcodes `["free","standard","unlimited"]` (it read `"featured"` until the
+   2026-09-18 rename); `src/lib/producer.ts` switches on it;
+   `src/routes/console.ts` no longer hardcodes it as a column header at all - the
+   headers are now derived from the generated `PLANS`, with an assertion that the
+   hand-ordered row cells still match, because four hand-typed tier names were a
+   fourth copy waiting to drift; `app/producers/page.tsx` renders it; and
+   `Producer.plan` stores it. **No migration was needed**, because that column was
+   deliberately a `String` rather than an enum for exactly this reason - a call
+   made months earlier that paid off here. Zero producers existed, so no row
+   carried the old id, and `allowanceForTier` deliberately does NOT accept
+   `featured` as an alias: an unrecognised tier returns `unknown`, which refuses
+   to guess an allowance rather than granting one.
+6. ~~**How listings get checked is STILL NOT DECIDED**~~ **DECIDED 2026-09-18:
+   section 5.3's recommendation, adopted.** Advisory flags into a human queue,
+   plus the mechanical checks moved into the form as validation. See section 5,
+   which now records this as settled rather than open.
 
 ## What was finished at the top level rather than by the department
 
@@ -93,7 +124,7 @@ over from a previous session's summary.
 | `prisma/schema.prisma` | 703 lines. `Producer`, `Subscription`, `Submission`, `SubmissionRevision`, `AuditEvent`, `ClickEvent`, `RateLimit`, plus the Auth.js four. **This is a wiring job against an existing schema. No new table is proposed anywhere in this document.** |
 | Producers in the database | **Zero.** |
 | Payment provider | **None wired.** Paddle is the board's recommendation and is not integrated. Stripe, PayPal and Gumroad do not serve Turkey. |
-| Prices | Free (1 listing), Standard ($19/mo, $190/yr, 25), Featured ($49/mo, $490/yr, unlimited). `lib/plans.ts` says in its own header these are **"a considered guess, not a price."** |
+| Prices | Free (1 listing), Standard ($12/mo, $120/yr, 25), Unlimited ($49/mo, $490/yr, uncapped). **Both changed 2026-09-18:** Standard was $19/$190 and the founder cut it, and the top tier was called `Featured` until it was renamed after the one thing it does not buy. `lib/plans.ts` says in its own header these are **"a considered guess, not a price."** |
 
 Two facts about the platform that constrain every proposal below: this is a
 hand-written Cloudflare Worker with a routing table in `src/index.ts`, no
@@ -253,7 +284,7 @@ eventually, the payment provider's own price objects, with no build step
 anywhere that could catch a mismatch. `plans.ts` already carries an instruction
 that these must be kept in step with the provider. A third uncheckable copy is
 the same shape as the link checker that fell two source files behind its
-generator and reported a clean pass. A producer seeing $19 here and $24 on the
+generator and reported a clean pass. A producer seeing one figure here and another on the
 pricing page is worse than one seeing no figure here.
 
 The secondary argument: quoting a number to a signed-in, identified business is
@@ -261,8 +292,11 @@ closer to a quote than publishing it on a marketing page, and it anchors the
 conversation that the pricing research is supposed to inform.
 
 So the table carries what is a **capability fact** rather than a guess:
-allowance (1 / 25 / no cap), commission or no commission, and the shared
-`NEVER_INCLUDED` rows. The price cell says the price is not set here, in one
+allowance (1 / 25 / no cap), the commission row, and the shared `NEVER_INCLUDED`
+rows. *The commission row used to be the contrast between tiers and since
+2026-09-18 it reads "None" in all three columns — kept as a row anyway, because
+a producer scans that column for exactly this question and a row that is
+identical across every tier cannot be misread as an upsell.* The price cell says the price is not set here, in one
 sentence with its reason, and links to `/producers/pricing`, which already shows
 the figures with its own "indicative rather than final" disclaimer. Saying the
 absence out loud is a different act from silently omitting it: omission reads as
@@ -491,8 +525,13 @@ buyer and a reviewer check the claims against), and optionally
 `pairingSource` / `pairingQuote` / `pairingUrl`.
 
 **Never on the form, and this is load-bearing rather than cautious:** the six
-facet fields, `family`, `verdict`, the match score, `verificationStatus`,
-`pyramidSource`, `affiliateLinkId`, and all three `founderOverride*` fields.
+facet fields, `family`, `verdict`, the match score, `verificationStatus`, and
+`pyramidSource`.
+
+*Two entries left this list on 2026-09-18 by ceasing to exist rather than by
+becoming safe.* `affiliateLinkId` is written by nothing now that no tier takes
+commission, and the three `founderOverride*` columns were dropped outright with
+the mechanism behind them (migration `20260918120000_drop_founder_override`).
 
 The reason is structural. `isVerbatimCopy()` flags a copy only when the notes
 **and** the facets both match the reference, and that test has a second
@@ -575,11 +614,14 @@ Surfaced here rather than decided:
    than theirs, since a stale price is a false "Nx cheaper" claim on our page.
    If it stays a paid feature, the terms clause changes first.
 2. **"Conversion data, not just clicks" (Featured) is not merely unbuilt, it is
-   contradicted by the design.** Paid tiers take no commission, so the listing
-   links directly to the producer's store with no network and no sub-ID.
-   Conversion data for a subscriber could only come from the producer's own store
-   reporting back to us, which is a pixel or postback nobody has designed. Sales
-   recommends removing it from `plans.ts`.
+   contradicted by the design.** No tier takes commission (free included, since
+   2026-09-18), so every listing links directly to the producer's store with no
+   network and no sub-ID. Conversion data could only come from the producer's own
+   store reporting back to us, which is a pixel or postback nobody has designed.
+   Sales recommends removing it from `plans.ts`. **The 09-18 change makes this
+   worse, not better:** there is no longer any tier whose clicks pass through a
+   network, so there is no listing anywhere on the site for which a network could
+   supply the conversion figure this bullet sells.
 3. **Click data is not built for anyone**, and the current mechanism structurally
    cannot supply it: `/go/<id>` is served by `public/_redirects`, a static
    Cloudflare file, and the route handler was deleted in the static-export
@@ -607,7 +649,11 @@ Surfaced here rather than decided:
 
 ## 5. The deferred decision: how listings get checked
 
-**The founder deferred this explicitly and this section does not settle it.**
+> **SETTLED 2026-09-18. The founder adopted 5.3 below.** What follows is kept
+> because it records the reasoning and the rejected options, which the decision
+> alone does not. Read 5.3 as policy now, not as a proposal.
+
+~~**The founder deferred this explicitly and this section does not settle it.**~~
 Options, real trade-offs, a recommendation, and then a stop.
 
 ### 5.1 First, narrowing what is actually being decided
@@ -692,8 +738,12 @@ it becomes real is also the volume at which hiring a reviewer is affordable. If
 that trade stops holding, the thing to revisit is option 2 for a *named, small*
 list of checks with an explicit appeal path, not a general grant.
 
-**This is a recommendation and nothing in Phase 1 implements any of it.** The
-decision is the founder's.
+~~**This is a recommendation and nothing in Phase 1 implements any of it.**~~
+**ADOPTED 2026-09-18.** Nothing implements it yet - it is built as part of the
+review queue (finalization guide 5.7), where the form-validation half and the
+flags-into-the-queue half land together. Building only the flags, with the
+mechanical checks still arriving as post-hoc rejections, would recreate exactly
+the false-positive problem this decision removes.
 
 ---
 
@@ -729,6 +779,7 @@ six open questions in 4.7. Those are founder calls.
   writing. Sections 1 to 6 are a plan.
 - No agent involved in producing this document has Bash or git access at the top
   level, and no build, lint, typecheck or deploy was run to produce it.
-- The listing-check decision in section 5 is open. If a later session finds this
-  document and treats section 5.3 as settled policy, that is a misreading:
-  it is a recommendation awaiting a founder decision.
+- ~~The listing-check decision in section 5 is open.~~ **It was closed on
+  2026-09-18 and 5.3 IS settled policy now.** The original warning said the
+  opposite and is struck rather than deleted, because a reader who remembers the
+  old wording needs to see that it changed rather than quietly disagree with it.

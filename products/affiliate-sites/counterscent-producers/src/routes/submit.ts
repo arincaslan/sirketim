@@ -674,6 +674,7 @@ async function renderForm(
     layout({
       title: COPY.title,
       heading: "Submit a fragrance",
+      nav: { current: "submit", showReview: true },
       status: {
         label: errors.length ? "Not submitted" : "Console live",
         tone: errors.length ? "outline" : "solid",
@@ -720,6 +721,7 @@ function allowanceFull(auth: AuthUser, data: ProducerConsoleData, allowance: num
   return layout({
     title: COPY.title,
     heading: allowance === 1 ? "Your free listing is in use" : "This plan's listings are all in use",
+    nav: { current: "submit", showReview: true },
     status: {
       label: "Allowance full",
       tone: "outline",
@@ -771,6 +773,7 @@ function unknownTier(auth: AuthUser, data: ProducerConsoleData, tier: string): H
   return layout({
     title: COPY.title,
     heading: "We do not know what your plan allows",
+    nav: { current: "submit", showReview: true },
     status: {
       label: "Allowance not known",
       tone: "outline",
@@ -808,6 +811,7 @@ function writeFailed(auth: AuthUser): Html {
   return layout({
     title: COPY.title,
     heading: "That did not save",
+    nav: { current: "submit", showReview: true },
     status: {
       label: "Not saved",
       tone: "outline",
@@ -858,6 +862,7 @@ function received(auth: AuthUser, data: ProducerConsoleData, receipt: Submission
   return layout({
     title: "Submitted",
     heading: "Recorded, and waiting for a person",
+    nav: { current: "listings", showReview: true },
     status: {
       label: "Console live",
       tone: "solid",

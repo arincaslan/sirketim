@@ -54,9 +54,16 @@ const UNVERIFIED_SCORE_CAP = 90;
  * raw score uncapped, up to 100. Rationale: even a dupe declaring the exact
  * same notes as the original never contains them in the same proportions,
  * and no formula built on presence/absence data can certify otherwise - so
- * no displayed number should claim to. The only listing allowed to exceed
- * it is one carrying a `founderOverride`, which is a human, not a formula,
- * making the claim.
+ * no displayed number should claim to.
+ *
+ * IT HAS NO EXCEPTIONS AS OF 2026-09-18. There used to be exactly one: a
+ * `founderOverride`, a personally-worn, personally-stated figure that replaced
+ * the computed score and bypassed both ceilings. The founder removed the
+ * mechanism, unused, before any listing carried one. What that buys is a claim
+ * that needs no asterisk - nothing on this site publishes above 95, and the
+ * sentence stops there. An exception only the site's owner can invoke is the
+ * hardest kind for a reader to check, and its existence did more damage to the
+ * ceiling's credibility than any single use of it would have been worth.
  */
 const STRUCTURAL_CEILING = 95;
 
@@ -123,16 +130,19 @@ export function applyPyramidPenalty(rawScore: number, dupe: DupeCandidate): numb
 }
 
 /**
- * The raw score after every adjustment EXCEPT the two ceilings: a
- * founderOverride replaces the number outright (a human override is not
- * "the formula, penalized" - it is a different claim entirely), otherwise
- * the imputed-pyramid penalty above applies. This is what
+ * The raw score after every adjustment EXCEPT the two ceilings - which today
+ * means the imputed-pyramid penalty and nothing else. This is what
  * getRankedDupesFor's tie-break sorts on, so a listing cannot rank ahead of
  * an honestly-tiered one merely because its self-imputed split happened to
  * maximise overlap.
+ *
+ * It is now a thin wrapper around applyPyramidPenalty and it is kept as its own
+ * function anyway: the two names mean different things to a reader (one is "an
+ * adjustment", the other is "everything before the ceilings"), and collapsing
+ * them would make the next adjustment land in whichever one the author happened
+ * to be looking at.
  */
 export function getPreCeilingScore(rawScore: number, dupe: DupeCandidate): number {
-  if (dupe.founderOverride) return dupe.founderOverride.score;
   return applyPyramidPenalty(rawScore, dupe);
 }
 
@@ -142,20 +152,20 @@ export function getPreCeilingScore(rawScore: number, dupe: DupeCandidate): numbe
  * merely capped - it does not get a published score at all, because it should
  * not be live to begin with (see the flagged branch in getVerificationBadge).
  *
- * Order of operations, decided 2026-09-08 (PRODUCER-PROGRAM.md §7):
- *  1. founderOverride, if present, is the published score outright - it
- *     bypasses the imputed-pyramid penalty AND both ceilings below. It is
- *     the ONLY way a score may exceed STRUCTURAL_CEILING. It does NOT bypass
- *     isVerbatimCopy, which runs upstream in getRankedDupesFor - a flagged
- *     copy never reaches this function at all.
- *  2. Otherwise, IMPUTED_PYRAMID_PENALTY is subtracted when the listing's
- *     note-tier split was ours, not the seller's.
- *  3. That result is capped: STRUCTURAL_CEILING (95) for everyone, tightened
+ * Order of operations, decided 2026-09-08 (PRODUCER-PROGRAM.md §7) and
+ * shortened on 2026-09-18 when the founder-override step was removed:
+ *  1. IMPUTED_PYRAMID_PENALTY is subtracted when the listing's note-tier split
+ *     was ours, not the seller's.
+ *  2. That result is capped: STRUCTURAL_CEILING (95) for everyone, tightened
  *     to UNVERIFIED_SCORE_CAP (90) for anything that is not editorially
  *     "verified" - earned by review, never a default - or that is a house
  *     product. The Math.min of both constants (rather than assuming 90 < 95
- *     numerically) keeps "nothing but a founder override exceeds 95" true
- *     even if either constant is edited later.
+ *     numerically) keeps "nothing exceeds 95" true even if either constant is
+ *     edited later.
+ *
+ * THERE IS NO STEP THAT SKIPS THE CAP. The function has exactly one exit and
+ * it goes through Math.min. That is worth more than the comment saying so: a
+ * reader can check it in four lines.
  *
  * That is deliberately independent of subscription tier: no tier in
  * PRODUCER-PROGRAM.md §3 may buy rank, and a cap a higher tier could pay
@@ -168,17 +178,13 @@ export function getPreCeilingScore(rawScore: number, dupe: DupeCandidate): numbe
  * bottle verified and publishing an uncapped score at #1 on a page branded
  * "Independent Fragrance Comparisons" - self-certification wearing the badge
  * of editorial review. A house listing can still rank first on merit; it just
- * cannot show a number that only an independent check is allowed to earn. The
- * same reasoning is why a founderOverride can never be set on a house
- * listing - see the module-load guard in lib/dupes-data.ts.
+ * cannot show a number that only an independent check is allowed to earn.
  *
  * Takes the whole candidate rather than a bare status so this cannot be
  * bypassed by a call site that has the status to hand but not the producer.
  */
 export function getPublishedScore(rawScore: number, dupe: DupeCandidate): number {
   const preCeiling = getPreCeilingScore(rawScore, dupe);
-  if (dupe.founderOverride) return preCeiling;
-
   const verified = dupe.verificationStatus === "verified" && !isHouseProducer(dupe.producerSlug);
   const cap = verified ? STRUCTURAL_CEILING : Math.min(UNVERIFIED_SCORE_CAP, STRUCTURAL_CEILING);
   return Math.min(preCeiling, cap);
@@ -214,10 +220,11 @@ export function getNoteDiff(reference: ReferenceFragrance, dupe: DupeCandidate):
   };
 }
 
-/** "founder-override" is not a VerificationStatus a listing can declare on
- *  itself - it is derived purely from whether `founderOverride` is set, the
- *  same way "flagged" is derived from isVerbatimCopy rather than stored. */
-export type BadgeStatus = NonNullable<DupeCandidate["verificationStatus"]> | "founder-override";
+/** Every badge a listing can wear. "flagged" is the one that is derived rather
+ *  than stored - it comes from isVerbatimCopy, not from anything a producer can
+ *  declare about itself. A "founder-override" member was removed on 2026-09-18
+ *  with the mechanism behind it. */
+export type BadgeStatus = NonNullable<DupeCandidate["verificationStatus"]>;
 
 export interface VerificationBadgeInfo {
   status: BadgeStatus;
@@ -227,9 +234,7 @@ export interface VerificationBadgeInfo {
 
 /** Appended to a badge description when the listing's pyramid was ours, not
  *  the seller's - see DupeCandidate.pyramidSource and
- *  IMPUTED_PYRAMID_PENALTY. Not shown on the founder-override branch: an
- *  override replaces the whole score, penalty included, so citing a penalty
- *  that was never applied would be misleading. */
+ *  IMPUTED_PYRAMID_PENALTY. */
 function pyramidSourceNote(dupe: DupeCandidate): string {
   return dupe.pyramidSource === "imputed"
     ? " Its note-tier split was assigned by us, not the seller, so 10 points are subtracted before any cap applies."
@@ -241,12 +246,9 @@ function pyramidSourceNote(dupe: DupeCandidate): string {
  * "declared," not "verified" - see the field's doc comment in lib/types.ts.
  * A verbatim copy always reads as "flagged," overriding whatever the listing
  * claims, because the flag is a property of the data itself, not something a
- * producer's own status field could opt out of. This check runs BEFORE
- * founderOverride below for the same reason: a copy-cheat flag must never be
- * silently overridable by a founder note, or the override becomes exactly
- * the undisclosed backdoor STRUCTURAL_CEILING's disclosure on /about exists
- * to rule out. In practice isVerbatimCopy already excludes a flagged listing
- * from getRankedDupesFor before a badge is ever requested, but
+ * producer's own status field could opt out of. It is checked FIRST and stays
+ * first: in practice isVerbatimCopy already excludes a flagged listing from
+ * getRankedDupesFor before a badge is ever requested, but
  * components/content/embedded-comparison.tsx resolves a dupe directly and
  * calls this function without that upstream gate, so the ordering here has
  * to be defensive on its own.
@@ -254,11 +256,7 @@ function pyramidSourceNote(dupe: DupeCandidate): string {
  * A house listing never reads "Editorially verified" either, for the reason in
  * getPublishedScore: we would be certifying our own product. It says so on the
  * badge rather than quietly capping the number and leaving the buyer to wonder
- * why our bottle scores lower than its data implies. A founderOverride can
- * never be set on a house listing (see the module-load guard in
- * lib/dupes-data.ts), so this branch and the founder-override branch below
- * never actually compete in practice - the ordering is defence in depth, not
- * a real decision point.
+ * why our bottle scores lower than its data implies.
  */
 export function getVerificationBadge(reference: ReferenceFragrance, dupe: DupeCandidate): VerificationBadgeInfo {
   if (isVerbatimCopy(reference, dupe)) {
@@ -267,14 +265,6 @@ export function getVerificationBadge(reference: ReferenceFragrance, dupe: DupeCa
       label: "Flagged for review",
       description:
         "This listing's declared notes and facet scores match the original too closely to publish as an independent assessment. Held for manual review.",
-    };
-  }
-
-  if (dupe.founderOverride) {
-    return {
-      status: "founder-override",
-      label: "Founder's personal assessment",
-      description: `The founder's own judgement, not independent verification: "${dupe.founderOverride.note}" This is the only way a score can exceed the ${STRUCTURAL_CEILING}% structural ceiling — see /about#methodology.`,
     };
   }
 
@@ -303,23 +293,14 @@ export function getVerificationBadge(reference: ReferenceFragrance, dupe: DupeCa
   };
 }
 
-/**
- * Throws if a listing's founderOverride is malformed - called at module load
- * from lib/dupes-data.ts, mirroring the duplicate-slug guard in
- * lib/data/references.ts. A no-op today (zero listings use founderOverride),
- * but fails the build loudly the moment one is added incorrectly - including
- * the specific integrity hole the founder override mechanism exists to avoid
- * creating: a house-brand listing quietly self-certifying past the ceiling.
+/*
+ * validateFounderOverride WAS HERE and went with the mechanism on 2026-09-18.
+ * It was a module-load guard that fired if an override was added without a
+ * justification, on a house product, or with an out-of-range score - a no-op
+ * for its whole life, because no listing ever carried one.
+ *
+ * Nothing replaces it, and nothing needs to: the guard existed to police an
+ * exception, and there is no longer an exception to police. getPublishedScore
+ * now has a single exit through Math.min, which is a stronger guarantee than
+ * any amount of validation around a bypass.
  */
-export function validateFounderOverride(dupe: DupeCandidate): void {
-  if (!dupe.founderOverride) return;
-  if (!dupe.founderOverride.note.trim()) {
-    throw new Error(`founderOverride on "${dupe.slug}" has an empty note - a justification is required.`);
-  }
-  if (isHouseProducer(dupe.producerSlug)) {
-    throw new Error(`founderOverride on "${dupe.slug}" is a house product - never permitted, see getPublishedScore.`);
-  }
-  if (dupe.founderOverride.score < 0 || dupe.founderOverride.score > 100) {
-    throw new Error(`founderOverride on "${dupe.slug}" has an out-of-range score: ${dupe.founderOverride.score}.`);
-  }
-}

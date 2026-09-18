@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FIXTURE. NOT A PRODUCT PHOTOGRAPH, and deliberately incapable of passing for
+  one: flat colour, a diagonal hatch and the word FIXTURE across it.
+
+  WHY IT EXISTS. Photograph upload is not built, so no Submission row carries an
+  imageUrl and the <img> branch in listingThumb() would otherwise never execute
+  until the first real producer supplied a file. The founder asked on 2026-09-18
+  for the path to be exercised now so that day is not also the day we find out
+  it is broken. This is what the local fixture row points at.
+
+  IT IS SAFE TO SHIP. It is served from this origin, so it satisfies the
+  img-src 'self' CSP, and nothing renders it unless a row's imageUrl names it.
+  No production row does. If this ever appears on a real listing, that is a bug
+  and the picture says so in words rather than quietly looking like a bottle.
+
+  WHEN REAL UPLOAD LANDS this file stays: it remains the cheapest way to prove
+  the render path without a real producer's copyrighted photograph in the repo.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80"
+     role="img" aria-label="Fixture placeholder, not a product photograph">
+  <defs>
+    <pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#1f4f3d"/>
+      <rect width="4" height="8" fill="#2b6b53"/>
+    </pattern>
+  </defs>
+  <rect width="80" height="80" fill="url(#h)"/>
+  <rect x="4" y="30" width="72" height="20" fill="#0f2a21" opacity="0.88"/>
+  <text x="40" y="44" text-anchor="middle"
+        font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+        font-size="11" letter-spacing="1.5" fill="#e8efe9">FIXTURE</text>
+</svg>

@@ -1,4 +1,42 @@
-# 2026-09-16 (END OF DAY) - SWITCHING TO THE `win10` MACHINE
+# 2026-09-18 - STILL ON `Semih`. THE MACHINE SWITCH NEVER HAPPENED.
+
+**Read this before the `win10` section below it.** The founder did not move to the
+other machine, and work resumed here on 2026-09-18. **So the whole "THE PART THAT
+DOES NOT TRAVEL" section is moot** - Neon credentials, Cloudflare auth and both
+`npm install`s are already on this machine and were never re-done. Verified at the
+start of that session: working tree clean, `main` == `origin/main`, no unmerged
+remote branches, and all four origins answering (`counterscent.com` 200,
+`producers.counterscent.com/sign-in` 200, `/console/submit` 401, `/review` 200).
+
+## What 2026-09-18 changed
+
+- **Three deferred decisions were taken.** (1) Finalization guide **5.6 is closed**:
+  advisory flags into a human queue, plus mechanical checks moved into the form as
+  validation - `CONSOLE-PLAN.md` section 5.3 adopted as policy. (2) The **`Featured`
+  tier is renamed `Unlimited`**, promise wording unchanged; decided but NOT yet
+  built, and `featured` is the tier *id*, so see `CONSOLE-PLAN.md` item 5 for the
+  full blast radius before starting. (3) The session's own priority: docs and the
+  dashboard before any new build.
+- **The dashboard task list was updated** - open item 6 below is closed. Fourteen
+  tasks added (186-199) covering everything from Perfumania through the console,
+  in *both* `internal/dashboard/design/` files, with the JS re-parsed afterwards to
+  prove it: 99 tasks, no duplicate ids, every status and dept valid. One trap worth
+  keeping: the task array's **last element carried no trailing comma**, so appending
+  to it silently produced a file that would have rendered a blank board. A diff will
+  not show you that; only parsing it will.
+- **The finalization guide is at a tenth pass** and the "producer lands in an empty
+  room" row is gone.
+
+## What is next, and it is one thing
+
+**The review queue.** The loop is half open: a producer can sign in, submit and
+withdraw, and the submission lands `PENDING` with nothing able to move it out of
+that state. See finalization guide **5.7** for the three parts that must land in one
+change (staff role migration, access control on `/review`, the queue itself).
+
+---
+
+# 2026-09-16 (END OF DAY) - the `win10` handoff that was written but never used
 
 **Everything is committed, pushed and deployed. `main` is at `6d903b3` and the
 working tree is clean, so a `git pull` on the other machine gets all of it.**
@@ -45,15 +83,20 @@ calls. The 2026-09-14 rotation is now applied on both machines.
 
 ## OPEN, and every one of them is a founder decision
 
-1. **The `Featured` tier is named after the one thing we promise it does not
-   buy.** `NEVER_INCLUDED` says "A premium or featured slot in results". The
-   founder was asked twice, said they did not understand the point the first
-   time, and it has been explained but not decided. **Nothing was renamed.**
-   Either rename the tier or reword that line.
-2. **How listings get checked** - human queue vs automated rule-checking.
-   Deferred deliberately. Until it is taken, a submission lands `PENDING` and
-   waits for a person; no automated verdict exists. Options and a recommendation
-   are in `counterscent-producers/CONSOLE-PLAN.md` section 5.
+1. ~~**The `Featured` tier is named after the one thing we promise it does not
+   buy.**~~ **DECIDED 2026-09-18: rename the tier to `Unlimited`, keep the
+   `NEVER_INCLUDED` wording.** The promise is the load-bearing half. **Decided,
+   not built** - and `featured` is the tier *id*, not a label, so read
+   `CONSOLE-PLAN.md` item 5 for every place it lives before starting. Zero
+   producers exist, so there is no data migration yet.
+2. ~~**How listings get checked**~~ **DECIDED 2026-09-18: `CONSOLE-PLAN.md`
+   section 5.3, adopted.** Mechanical, unambiguous checks become **form
+   validation at submission time** (missing field, non-https/shortener/tracking
+   `storeUrl`, unknown original, duplicate `(producerId, referenceSlug)`), so the
+   producer is stopped before a submission exists and there is no wrong verdict
+   to appeal. Everything requiring judgement - above all `isVerbatimCopy()` -
+   **flags into the human queue and never auto-refuses.** Built as part of the
+   review queue, both halves together.
 3. **`/review` has no access control and no role model to build one from** - no
    `role` or `isStaff` column on `User`. Harmless only while it stays inert.
    Founder deferred it: "we will take a look at review later".
@@ -64,9 +107,11 @@ calls. The 2026-09-14 rotation is now applied on both machines.
 5. **The 1,680.00 TRY Hostinger invoice split**, which blocks the CFO. Tested,
    not assumed: the API token is scoped so `/renewal` and billing both answer
    401 while portfolio reads work. No agent can retrieve it.
-6. **The dashboard task list was not updated today**, twice flagged and twice
-   skipped. It needs a full read of the live artifact (~786 lines), so give it a
-   deliberate slot rather than tacking it onto the end of a session.
+6. ~~**The dashboard task list was not updated today**~~ **DONE 2026-09-18.**
+   Tasks 186-199 added to both `internal/dashboard/design/` files and the JS
+   re-parsed to prove the board still renders. The advice that earned it a
+   deliberate slot still holds for the *republish*: the tool refuses until the
+   live copy has been read in full.
 
 ## Two traps found today that cost real time
 
@@ -921,17 +966,23 @@ Five of the last fourteen listings scored 83–87 because the merchant restated 
 
 **Still open, and worth being precise about:** the penalty prices a *missing pyramid*, not copying. A merchant who copies the reference's pyramid and publishes it as three proper tiers is still scored at face value, and `isVerbatimCopy()` — which needs facets to match too — remains the only defence against that.
 
-## Two published artifacts live outside the repo — one is a pass behind
+## Three published artifacts — all current as of 2026-09-18
 
 These are account-scoped, not machine-scoped: they travel with the founder's Claude login, so **nothing needs re-publishing just because you switched machines.** Both URLs are here because a republish must target the existing URL — publishing without one silently creates a *duplicate* artifact and the founder's bookmark keeps pointing at the stale one.
 
 | Artifact | URL | State |
 |---|---|---|
-| **Counterscent Finalization** | `https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96` | **Current** — republished 2026-09-16 as the **ninth pass** (version 10): producer auth recorded live, Perfumania recorded as WIRED (off its storefront, not its feed), buy links 252 → 620, Phase 5.3 ticked and 5.5/5.6 added, the canonical/trailing-slash fix added as 2.10, and the shared mail token added as a founder action. Mirrors `products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md`. |
+| **Counterscent Finalization** | `https://claude.ai/artifact/7s9JRAb7WiuC28AJpUM69b` | **Current** — republished 2026-09-18 as the **tenth pass** (version 11): 5.5 ticked (console shipped), 5.6 closed with the decision written out, **5.7 added as the next build** (review queue), the `Featured`→`Unlimited` rename recorded in the 3.6 conditions table, a Review-queue metric added, and the "lands in an empty room" claim removed everywhere — it was false as of 16 Sep. **Now has a repo source: `products/affiliate-sites/fragrance-dupes/finalization-report.html`**, so the next pass edits a versioned file instead of reconstructing one. Mirrors `FINALIZATION-GUIDE.md`. |
 | **Perfumania Coverage** | `https://claude.ai/code/artifact/6f979f92-1253-46ca-87f8-1f6ccc46566b` | **Current** — published 2026-09-09. The 123 references Perfumania stocks, which 32 are new coverage, the 6 image gaps closed, the 6 concentration disagreements, and the 20 it cannot reach. |
-| **Sirketim Dashboard** | `https://claude.ai/code/artifact/e2e47262-d56d-4ca9-8e6f-cdb07955e025` | **One pass behind.** `internal/dashboard/design/sirketim-dashboard.html` and `Main.dc.html` both carry task 185 and the "Sep 8" labels in the repo, but the *published* page still shows the previous snapshot. Not urgent: the dashboard's Finalization Guide link URL did not change, so clicking it from the stale dashboard still opens the current report. |
+| **Sirketim Dashboard** | `https://claude.ai/artifact/V22LECAZn447xxgeXgVpUU` | **Current** — republished 2026-09-18 (version 21). It had been further behind than this file claimed: the live page was at **Aug 30, task 179**, not one pass. Now **99 tasks through id 199**, both `design/` files updated together, JS re-parsed to prove the board still renders. |
 
-**The reason it is a pass behind, which will bite the next session too:** republishing an artifact this conversation did not itself publish is refused until you have `Read` **every line** of the live copy the tool hands you. The dashboard is ~786 lines and ~140 KB, most of it very long task-note strings, so that read is a real context cost for a file the repo already holds a newer copy of. Budget for it deliberately — do the read early in a session, or accept the artifact lagging until a session has room. Do not work around it by publishing without the `url`.
+**Why these lag, and it will bite the next session too:** republishing an artifact this conversation did not itself publish is refused until you have `Read` **every line** of the live copy the tool hands you. That is ~786 lines for the dashboard and **~1,074 for the finalization report**, most of it very long prose strings — a real context cost, and it is why both had drifted. **Budget the read deliberately, early in a session.** Do not work around it by publishing without the `url`: that creates a duplicate and the founder's bookmark keeps opening the stale page.
+
+**Three traps found doing exactly this on 2026-09-18, all cheap to avoid and expensive to miss:**
+
+1. **The URLs recorded here were not the ones the tool returns.** A listing gives `claude.ai/artifact/<short-id>`; this file had `claude.ai/code/artifact/<uuid>`. Same artifacts, different form. **Get the URL from `action: "list"` rather than from a doc**, and note the dashboard's own HTML still links the Finalization report by the `/code/artifact/<uuid>` form.
+2. **The stored copy is wrapped.** The service returns the page inside its own `<html><body>`; republishing that verbatim nests a second wrapper every pass. Strip line 1 and the trailing `</body></html>` before editing.
+3. **The dashboard's task array had no trailing comma on its last element**, so appending to it produced a file that parses as a syntax error and renders a **blank board** — invisible in a diff, and neither `git diff` nor a careful read catches it. **Parse the `<script>` block before publishing**; a five-line check turned a silent breakage into a caught one.
 
 ## Work queue, in the order it makes sense
 
@@ -1111,17 +1162,27 @@ This section is the plan; read it before touching anything under
 
 ### What was decided
 
-- **Revenue model: free tier of ONE listing, paid upgrade, NO COMMISSION on any
-  paid tier.** Shipped in `lib/plans.ts` (`takesCommission` per tier, prices
-  19/49). This closed `PRODUCER-PROGRAM.md` section 8 item 1, which had gated
-  everything else in that list.
+- **Revenue model: free tier of ONE listing, paid upgrade, NO COMMISSION ON ANY
+  TIER — the free one included since 2026-09-18.** Shipped in `lib/plans.ts`
+  (`takesCommission` now `false` on all three tiers, prices 19/49). This closed
+  `PRODUCER-PROGRAM.md` section 8 item 1, which had gated everything else.
 - **The no-commission part was the founder's own change** to the board's
   "commission on all tiers", and it is the stronger position. It is section 2's
-  third option - subscription *instead of* commission - applied to paid tiers
-  only, and it buys what that option was credited with: **we have no financial
-  interest in a subscriber's rank or traffic.** Do not quietly reintroduce
-  commission on a paid tier to lift revenue; it costs the one claim that makes
-  the rest of section 7 believable.
+  third option - subscription *instead of* commission - and as of 2026-09-18 it
+  applies to every tier rather than the paid ones only, so **we have no
+  financial interest in ANY producer's rank or traffic.** Do not quietly
+  reintroduce commission anywhere to lift revenue; it costs the one claim that
+  makes the rest of section 7 believable.
+- **The free tier now earns nothing at all**, which is the deliberate cost of
+  the above and the thing most likely to be "fixed" by someone who does not know
+  it was chosen. It is a funnel to paid and nothing else. If it does not convert,
+  change the allowance or close the tier - do not put commission back on it.
+- **The 95% score ceiling has NO exceptions as of 2026-09-18.** The founder
+  override (`DupeCandidate.founderOverride`, the "Founder's personal assessment"
+  badge, and the three `founderOverride*` columns) is gone entirely - unused for
+  its whole life, zero rows on any branch, so nothing published changed.
+  Migration `20260918120000_drop_founder_override` is **applied to the `local-dev`
+  branch only; production has not run it.**
 - **"Listeners" means automated checks plus a HUMAN approval decision**, the
   founder confirmed. The control floor: **automation may always take something
   down or make a claim weaker; it may never put something up or make a claim

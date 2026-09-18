@@ -260,6 +260,161 @@ p {
   gap: 0.75rem;
 }
 
+/* -------------------------------------------------------------------------
+   Listing thumbnail, and the tile that stands in for the one that is missing.
+
+   THE TILE IS ON THE WRAPPER, THE IMAGE IS ON TOP OF IT. That is not a styling
+   preference, it is how the fallback survives a broken URL without JavaScript:
+   this origin's CSP forbids inline handlers, so there is no `onerror` to hook.
+   An image that 404s, is blocked, or was never set leaves the lettered tile
+   underneath as what remains, and the row stays readable.
+
+   Chrome does still draw its own small broken-image glyph over the tile when a
+   URL is set and fails. That was measured, not assumed. `:broken` does not
+   exist, a dynamic background-image would need an inline style attribute that
+   `style-src 'self'` blocks, and dropping the dimensions would trade the glyph
+   for the layout shift they prevent. The common case, no image at all, emits no
+   <img> and shows the clean tile.
+
+   Sized in the markup as well as here, so a row reserves its space before any
+   image loads. The alternative is a table that reflows as thumbnails arrive,
+   which would start happening on the day the feature starts working.
+   ------------------------------------------------------------------------- */
+.thumb {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--secondary));
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+/* The stand-in: the fragrance's own initial, not a generic icon. It says "no
+   photograph yet" without pretending to be one. */
+.thumb::before {
+  content: attr(data-initial);
+}
+
+.thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cell-with-thumb {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+/* -------------------------------------------------------------------------
+   The signed-in navigation.
+
+   RENDERED ONLY WHEN THERE IS A SESSION, which is what makes it allowed at
+   all: the header carried a comment for two days saying a persistent nav
+   would "present two areas as places you can go and work, which is the exact
+   claim this origin must not make yet", ending "this is where real navigation
+   goes once there is a session to render it for". There is one now. A
+   signed-out visitor still gets no nav, so the claim is still not made to a
+   stranger.
+
+   IT IS NOT A PILL AND IT IS NOT A BUTTON. The shape rule in this file's
+   header gives pills to tags and badges and 8px to buttons. A nav item is
+   neither: it is a link, so the current item is marked with weight and a 2px
+   underline in the primary colour rather than a filled chip. Using a pill here
+   would collide with the listing state badges, which are the one thing on this
+   origin that pill shape currently means.
+   ------------------------------------------------------------------------- */
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.site-nav-link {
+  position: relative;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  border-radius: var(--radius-button);
+  transition: color 0.15s var(--ease-out), background-color 0.15s var(--ease-out);
+}
+
+.site-nav-link:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--secondary));
+}
+
+/* The current page is marked twice, never by colour alone: heavier weight and
+   a rule beneath it. aria-current="page" carries it to a screen reader. */
+.site-nav-link.is-current {
+  color: hsl(var(--foreground));
+  font-weight: 650;
+}
+
+.site-nav-link.is-current::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.125rem;
+  height: 2px;
+  background: hsl(var(--primary));
+}
+
+/* THE HEADER ALREADY OVERFLOWED AT 390px BEFORE THIS NAV EXISTED - see the
+   note below about the catalogue link being clipped. Three more items would
+   make that far worse, so under 48rem the nav drops to its own full-width row
+   and scrolls horizontally rather than competing for the first row.
+
+   scroll-padding-top IS COUPLED TO THE HEADER HEIGHT and is raised here to
+   match. The base value (5rem) is documented at the top of this file as being
+   kept in step with .header-inner's min-height; a second row makes the header
+   about 116px, so an anchor jump would otherwise land under it. */
+@media (max-width: 48rem) {
+  .header-inner {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .site-nav {
+    order: 3;
+    width: 100%;
+    margin: 0 -1rem;
+    padding: 0 1rem 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .site-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* MEASURED, NOT ESTIMATED. The two-row header comes to 82px at this width,
+     and the base rule pairs a 68px header with 5rem (80px) of padding, so it
+     carries about 12px of clearance. 82 + 12 rounds to 6rem. The first guess
+     here was 7.5rem, taken from an estimated 116px header, which overshot by
+     38px and would have parked every anchor jump in a band of empty space. */
+  html {
+    scroll-padding-top: 6rem;
+  }
+}
+
 /* THE HEADER OVERFLOWED THE DOCUMENT AT 390px. The lockup, the catalogue link
    and the theme toggle came to about 376px of content inside 342px of shell,
    so the toggle was clipped by the viewport edge and the whole page gained a
@@ -795,6 +950,116 @@ a.btn:hover {
   background: hsl(var(--card));
 }
 
+/* THE STRIP WAS MOSTLY EMPTY, which is what the founder saw on 2026-09-18:
+   four facts crammed against the left edge of an 1104px card, then 115px of
+   nothing before the sign-out button. Shrinking the card would have been the
+   wrong fix - the space is worth having, it just needed to carry something.
+   The plan and the remaining allowance now live in it, because that is the
+   question a producer opens this screen with.
+
+   ONE COLUMN UNTIL 52rem, deliberately later than the 40rem the facts alone
+   needed: the aside is a panel rather than a label, so it wants real width
+   before it sits beside anything, and a squeezed two-column version reads
+   worse than an honest stack. */
+.identity-bar.has-aside {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+.identity-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  min-width: 0;
+}
+@media (min-width: 52rem) {
+  .identity-bar.has-aside {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
+  }
+  /* THE LEFT COLUMN IS TOP-ALIGNED, NOT STRETCHED. Stretching it and pushing
+     sign-out to the floor with space-between filled the horizontal gap the
+     founder objected to and opened a vertical one in its place: two facts, a
+     void, then a lone button. The two facts stay on one row and sign-out sits
+     directly under them, so the left reads as a compact block beside a taller
+     panel rather than as a column with something missing from its middle. */
+  .identity-main {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-self: start;
+    gap: 1.5rem;
+  }
+  .identity-bar.has-aside .identity-action {
+    margin-left: 0;
+  }
+}
+
+/* Tinted rather than outlined, so it reads as a panel INSIDE the card rather
+   than as a second card butting against the first. */
+.identity-aside {
+  background: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  padding: 1rem 1.125rem;
+}
+
+.plan-panel > * {
+  margin: 0;
+}
+.plan-panel-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(var(--muted-foreground));
+}
+.plan-panel-name {
+  margin-top: 0.125rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+/* ONE ROW, NOT TWO LINES. "1 listed" and "Can list 24 more" are one thought
+   read left to right - what you have, then what you can still do - and
+   stacking them made the panel a line taller than the entire left half of the
+   strip. They wrap to two lines on their own when the panel is narrow, which
+   is the only width where the stack is worth its height. */
+.plan-panel-count {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid hsl(var(--border));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+/* The separator is decoration, so it is generated rather than marked up, and
+   it disappears with the element it separates rather than being stranded. */
+.plan-panel-room::before {
+  content: "·";
+  margin-right: 0.375rem;
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+}
+/* The two figures are the panel's point, so they are the only bold things in
+   it. "1 listing" is what they have, "Can list 24 more" is what they can do
+   next, and that ordering is the one a producer reads in. */
+.plan-panel-listed,
+.plan-panel-room {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+.plan-panel-note {
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
+.plan-panel-link {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+}
+
 .identity-facts {
   display: grid;
   grid-template-columns: 1fr;
@@ -885,6 +1150,22 @@ a.btn:hover {
 .table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  /* CONTAINS THE ABSOLUTELY-POSITIONED .visually-hidden SPANS INSIDE THE TABLE,
+     and without it the page scrolled sideways 242px at 430px wide.
+
+     The .visually-hidden rule itself is correct - 1px box, overflow hidden,
+     clip-path: inset(50%), the standard recipe. The trap is that it sets
+     `position: absolute` with no `left` or `top`, so the box keeps its STATIC
+     position and resolves against the nearest POSITIONED ancestor. There was
+     none, so its containing block was the initial one: it escaped this
+     scroller's clipping entirely and sat at x=729 inside a 727px table,
+     extending the document to 730px. body.scrollWidth stayed clean at 487,
+     which is why it did not look like a layout bug from the outside.
+
+     One `position: relative` here makes this element the containing block, so
+     those spans are clipped and scrolled with the table like everything else
+     in it. Anything absolutely positioned inside a scroller needs this. */
+  position: relative;
 }
 
 .data-table {
@@ -1133,4 +1414,131 @@ html[data-theme-switching] *::after {
 }
 .notice-done p:last-child {
   margin-bottom: 0;
+}
+
+/* -------------------------------------------------------------------------
+   /console/plan - the tier cards.
+
+   THREE CARDS HERE, ONE TABLE ON /console, AND THAT IS NOT AN INCONSISTENCY.
+   The table exists so the "no tier buys" rows can span the tier columns under
+   a rule, which makes the promise a structural fact of the comparison rather
+   than a claim printed beneath it. Cards cannot do that. But a producer
+   ARRIVING AT THIS PAGE has already decided to compare tiers and wants the one
+   they would move to, and a card carries one tier's whole story - price,
+   allowance, what it includes, the action - in a block you read top to bottom.
+   Different question, different shape. The never-included list is still on
+   this page, as its own band under the cards, so the promise is not lost.
+
+   THE CURRENT TIER IS MARKED IN THREE CHANNELS, NEVER COLOUR ALONE: the word
+   "Your plan" in text, a heavier border, and a filled background. Same rule
+   the nav's is-current state follows.
+   ------------------------------------------------------------------------- */
+.grid-3 {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 60rem) {
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--card));
+  padding: 1.5rem;
+}
+.plan-card.is-current {
+  border-width: 2px;
+  border-color: hsl(var(--foreground));
+  background: hsl(var(--secondary));
+}
+
+.plan-card-tier {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  font-size: 1.0625rem;
+}
+/* Pill, per the shape rule: tags and badges are full-radius. */
+.plan-card-flag {
+  border: 1px solid hsl(var(--foreground));
+  border-radius: 999px;
+  padding: 0.0625rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.plan-card-price {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 2rem;
+  line-height: 1.15;
+}
+.plan-card-per,
+.plan-card-yearly {
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+.plan-card-per {
+  font-family: "Public Sans", system-ui, sans-serif;
+}
+.plan-card-yearly {
+  font-family: "Public Sans", system-ui, sans-serif;
+  margin: 0.125rem 0 0;
+}
+
+.plan-card-listings {
+  margin: 0.75rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid hsl(var(--border));
+  font-weight: 600;
+}
+
+/* The action sits on the card's floor whatever the feature list above it
+   weighs, so three cards of different heights still line their buttons up.
+   Without this the top tier's shorter list pulls its button halfway up the
+   card and the row reads as broken. */
+.plan-card .door-action {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.plan-card .btn {
+  width: 100%;
+  text-align: center;
+}
+.plan-card-oncurrent {
+  display: block;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
+.plan-now-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.plan-now-name {
+  margin: 0.125rem 0 0.5rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 2rem;
+  line-height: 1.15;
+}
+.plan-now-quota {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid hsl(var(--border));
 }

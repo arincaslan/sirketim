@@ -174,10 +174,16 @@ model Subscription {
   /// not silently reinterpret existing rows.
   interval BillingInterval
   status   SubscriptionStatus @default(INCOMPLETE)
-  /// Plan tier. See PRODUCER-PROGRAM.md §3 - free/standard/featured. Kept as a
+  /// Plan tier. See PRODUCER-PROGRAM.md §3 - free/standard/unlimited. Kept as a
   /// string rather than an enum because tier names are a business decision
   /// still open, and a migration to rename an enum value is more painful than
   /// it is worth for something expected to change.
+  ///
+  /// THAT CALL PAID OFF ON 2026-09-18, which is worth recording because the
+  /// reasoning above reads as speculative until it does. "featured" was renamed
+  /// to "unlimited" that day (it was named after the one thing the programme
+  /// promises no tier buys). Because this is a string and not an enum, the
+  /// rename touched no migration at all.
   tier String @default("free")
 
   currentPeriodStart DateTime?
@@ -387,14 +393,26 @@ model Submission {
   /// and a reviewer can check the price and the claims against.
   storeUrl String
 
-  /// Key into `affiliateLinks`, set ONLY when we take commission on this listing.
+  /// Key into `affiliateLinks`. NOTHING WRITES IT ANY MORE AND THAT IS A POLICY,
+  /// NOT AN OVERSIGHT.
   ///
-  /// This is where the 2026-09-10 revenue decision lands in the data. Paid tiers pay
-  /// a fee and we take nothing on their sales (see `takesCommission` in
-  /// lib/plans.ts), so a subscriber's listing links DIRECTLY to storeUrl and this
-  /// stays null. Only free-tier listings carry an affiliate link. The consequence
-  /// worth knowing: a direct link has no /go/ sub-ID, so a subscriber's click data
-  /// can only come from our own logging, never from a network's reporting.
+  /// This is where the revenue decision lands in the data, and the decision moved
+  /// twice. On 2026-09-10 paid tiers stopped carrying commission, so a subscriber's
+  /// listing linked DIRECTLY to storeUrl and this stayed null; only free-tier
+  /// listings carried an affiliate link. On 2026-09-18 the founder removed
+  /// commission from the free tier too (see `takesCommission` in lib/plans.ts), so
+  /// EVERY producer listing now links directly to the producer's own store and this
+  /// column is null on every row, at every tier.
+  ///
+  /// It is kept rather than dropped because the column is the honest record of that
+  /// shape: a listing that ever did carry a network link needs somewhere to say so,
+  /// and re-adding a column is a migration while leaving a null one costs nothing.
+  /// Do not read "unused" as "free to populate" - writing it would put commission
+  /// back on producer sales without anyone deciding to.
+  ///
+  /// The consequence worth knowing: a direct link has no /go/ sub-ID, so producer
+  /// click data can only come from our own logging, never from a network's
+  /// reporting. That is now true of every tier rather than just the paid ones.
   affiliateLinkId String?
 
   /// Whether it was in stock at the last automated re-check. False suppresses the
@@ -424,16 +442,17 @@ model Submission {
   /// the bad ones is invisible without this, and no single removal looks wrong.
   scoreAtRemoval Int?
 
-  /// Editorial-only escape hatch, mirroring DupeCandidate.founderOverride -
-  /// the ONLY way a published score exceeds the 95% structural ceiling in
-  /// lib/verification.ts. NEVER set by a producer submission: an editor sets
-  /// it, the same workflow as rejectionReason/reviewedBy above. All three
-  /// null, or all three non-null - an override without its written
-  /// justification is exactly the unexplained backdoor the mechanism is
-  /// disclosed on /about#methodology to avoid being.
-  founderOverrideScore Int?
-  founderOverrideNote  String?
-  founderOverrideDate  DateTime?
+  /// founderOverrideScore / founderOverrideNote / founderOverrideDate WERE HERE
+  /// and were dropped on 2026-09-18 (migration 20260918_drop_founder_override).
+  /// They stored an editorial escape hatch: the only way a published score could
+  /// exceed the 95% structural ceiling in the catalogue's lib/verification.ts.
+  /// The founder removed the mechanism while it was still unused - zero rows
+  /// carried a value on either branch, checked before the migration was written
+  /// - so nothing published changes and no data was lost.
+  ///
+  /// The ceiling now has no exceptions at all, which is why the columns are gone
+  /// rather than left nullable: a column whose doc comment describes a feature
+  /// that no longer exists is how the next person concludes the feature exists.
 
   /// Prices go stale and a stale price is a misleading "Nx cheaper" claim on
   /// a live comparison - see PRODUCER-PROGRAM.md §4 step 6.
@@ -593,12 +612,17 @@ model ClickEvent {
   linkId        String
   /// The per-listing sub-ID sent to the affiliate network.
   ///
-  /// NULL IS A REAL AND EXPECTED VALUE NOW. Paid tiers take no commission
-  /// (lib/plans.ts `takesCommission`), so a subscriber's listing links directly to
-  /// their store with no network in the middle and no sub-ID to send. For those
-  /// listings this table is the ONLY source of click data - there is no network
-  /// report to fall back on - which makes logging a product feature rather than
-  /// only a reconciliation tool.
+  /// NULL IS THE NORMAL VALUE ON A PRODUCER LISTING, not an edge case. No tier
+  /// takes commission (lib/plans.ts `takesCommission`, free included since
+  /// 2026-09-18), so a producer's listing links directly to their store with no
+  /// network in the middle and no sub-ID to send. For those listings this table is
+  /// the ONLY source of click data - there is no network report to fall back on -
+  /// which makes logging a product feature rather than only a reconciliation tool,
+  /// and makes it the only thing we can show a producer about their own traffic.
+  ///
+  /// It stays non-null for buy-the-original clicks, which DO go through a network:
+  /// that is the catalogue's own affiliate revenue from retailers, a different
+  /// counterparty entirely, and it is untouched by any of the above.
   subId         String?
 
   referrer  String?

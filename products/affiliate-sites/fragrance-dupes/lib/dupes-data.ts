@@ -2,7 +2,6 @@ import { REFERENCES } from "@/lib/data/references";
 import { DUPE_IMAGES } from "@/lib/data/dupe-images.generated";
 import { PRODUCER_LISTINGS } from "@/lib/data/producer-listings.generated";
 import { isSubscriberProducer } from "@/lib/producers";
-import { validateFounderOverride } from "@/lib/verification";
 import type { DupeCandidate, ReferenceFragrance } from "@/lib/types";
 
 export { REFERENCES };
@@ -3893,16 +3892,9 @@ for (const dupe of DUPES) {
   seenDupeSlugs.add(dupe.slug);
 }
 
-// Fails the build loudly if a founderOverride is ever added incorrectly,
-// mirroring the duplicate-slug guard in lib/data/references.ts. A no-op today
-// (no listing carries one) - it exists so the one mechanism allowed to publish
-// above the structural ceiling cannot land unjustified, or on our own product.
-// Runs over DUPES rather than LISTINGS so an exported producer row is held to
-// the same rule: the override is barred on a house product for the direct
-// financial interest, and a paying subscriber's listing is the same conflict.
-for (const dupe of DUPES) {
-  validateFounderOverride(dupe);
-}
+// The founderOverride module-load guard stood here until 2026-09-18 and went
+// with the mechanism it policed. Nothing may publish above the structural
+// ceiling now, so there is no exception left for a guard to check.
 
 export function getReference(slug: string): ReferenceFragrance | undefined {
   return REFERENCES.find((r) => r.slug === slug);

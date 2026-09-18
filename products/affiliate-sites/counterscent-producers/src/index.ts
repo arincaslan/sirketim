@@ -84,6 +84,7 @@ import { health } from "./routes/health";
 import { notFound } from "./routes/not-found";
 import { overview } from "./routes/overview";
 import { producerConsole } from "./routes/console";
+import { producerPlan } from "./routes/plan";
 import { reviewQueue } from "./routes/review";
 import { robots } from "./routes/robots";
 import { signIn, signInSubmit } from "./routes/sign-in";
@@ -128,7 +129,16 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
     GET: (req, env) => withdrawPage(req, env),
     POST: (req, env) => withdrawSubmit(req, env),
   },
-  "/review": { GET: () => page(reviewQueue()) },
+  // GET only, and that is the honest shape rather than an omission. Moving
+  // tier is a mailto today because no payment provider is connected, so there
+  // is nothing here to POST to; see the header comment in routes/plan.ts for
+  // why a request table was rejected. When billing lands this gains a POST and
+  // the `allowForms` grant arrives with it.
+  "/console/plan": { GET: (req, env) => producerPlan(req, env) },
+  // Async now, because it reads the session to decide whether to render the
+  // console nav. That is a navigation affordance, NOT a guard - see the header
+  // comment in routes/review.ts before assuming this route is protected.
+  "/review": { GET: async (req, env) => page(await reviewQueue(req, env)) },
   "/robots.txt": { GET: robots },
   "/health": { GET: health },
 };

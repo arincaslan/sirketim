@@ -117,11 +117,16 @@ export default function AboutPage() {
               title="Flagged, not published"
               body="If a submission's notes and facet ratings are simply the original's own, restated, we hold it for manual review and it does not appear in comparisons at all. Copying the reference is not evidence of a close match, and our formula on its own cannot tell the two apart."
             />
-            <ScoreComponent
-              weight="Founder"
-              title="Founder's personal assessment"
-              body="The one exception to the 95% ceiling: our founder has worn both and states a figure personally, with the reason written on the listing. It is a named human opinion, not an independent check and not a measurement — which is exactly why it carries its own badge instead of borrowing the 'verified' one. It can never be applied to our own fragrance line, and it cannot rescue a listing flagged above. No listing currently uses it."
-            />
+            {/*
+              A fourth card, "Founder's personal assessment", was removed on
+              2026-09-18 along with the mechanism. It described the one
+              exception to the 95% ceiling, which now has none. Note what its
+              removal does to the paragraph above: "No score can publish above
+              95%, whatever the calculation returns" was already written as an
+              absolute and this card was the asterisk contradicting it three
+              paragraphs later, on the same page, under a heading about how the
+              data is sourced. The page is now consistent with itself.
+            */}
           </div>
 
           <p className="mt-8 text-sm text-muted-foreground">

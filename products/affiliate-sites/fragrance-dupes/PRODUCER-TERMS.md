@@ -152,27 +152,36 @@ or a more favourable verdict. This is enforced in the code and not only
 promised: the modules that compute and order scores are barred from importing
 anything that knows what you pay, and the build fails if that changes.
 
-We take no commission on sales from a paid tier's listings. We have no financial
-interest in where your listing ranks or how much traffic it gets, and that is
-deliberate — it is what makes the sentence above worth anything.
+**We take no commission on your sales, on any tier, including the free one.**
+Your listing links straight to your own store. We have no financial interest in
+where it ranks or how much traffic it gets, and that is deliberate — it is what
+makes the sentence above worth anything.
+
+A subscription, where you have one, is the only thing you ever pay us. The site
+is funded by commissions from the retailers we link to on the catalogue side,
+which is a different counterparty and never your sales.
 
 A paid tier may buy priority in the review queue, which affects how quickly we
 look at your submission and nothing about where it lands.
 
 ## 10. Removing a listing, and what we keep
 
-You may withdraw a listing at any time from the console. Withdrawal takes it out
-of the catalogue at the next build and stops its link resolving.
+**You may take a listing down at any time.** How you do it depends on your plan:
+on a paid plan you withdraw it yourself from the console, and on the free plan
+you write to contact@counterscent.com and a person does it for you. We do not
+ask you for a reason either way, and we do not delay it.
+
+Withdrawal takes the listing out of the catalogue at the next build and stops
+its link resolving.
 
 **Withdrawal is a change of state, not a deletion.** We retain the listing's
 history — what was submitted, what was published, when, and the click record
-attached to it. We keep it because a commission or a dispute can arrive weeks
-after a listing comes down, and because a record that can be erased by the party
-it describes is not a record.
+attached to it. We keep it because a dispute, a rights complaint, or a question
+about what was claimed can arrive weeks after a listing comes down, and because
+a record that can be erased by the party it describes is not a record.
 
 **We do not reuse a withdrawn listing's link identifier.** Reassigning it would
-misattribute clicks still inside an affiliate network's cookie window to a
-different product.
+attribute one product's click history to a different product.
 
 We may also remove a listing ourselves — for a breach of these terms, for a
 rights complaint, for data we cannot reconcile, or because your account has

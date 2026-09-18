@@ -243,7 +243,7 @@ function readPlans() {
   if (!Array.isArray(plans) || plans.length !== 3) {
     fail(`lib/plans.ts exported ${Array.isArray(plans) ? plans.length : "no"} plans, expected 3`);
   }
-  for (const id of ["free", "standard", "featured"]) {
+  for (const id of ["free", "standard", "unlimited"]) {
     if (!plans.some((p) => p.id === id)) fail(`lib/plans.ts has no "${id}" plan`);
   }
   if (!Array.isArray(never) || never.length < 3) {
@@ -288,7 +288,20 @@ function readNetworkHosts() {
  * Emitting
  * ---------------------------------------------------------------------- */
 
-const TODAY = "2026-09-16";
+/**
+ * The date stamped into every generated header. HAND-MAINTAINED, AND IT HAS TO
+ * BE: `--check` regenerates and compares, so a `new Date()` here would report
+ * drift every single day and train everyone to ignore the one signal that says
+ * the constants are stale.
+ *
+ * The cost of pinning is that the line goes quietly false between bumps - it
+ * said 2026-09-16 on a file regenerated on the 18th, which is the stale-doc
+ * failure the root CLAUDE.md describes, in a file that announces itself as
+ * generated. It was called TODAY, which is what made forgetting it easy: the
+ * name reads as "now" and the value is a constant. Bump it when you change what
+ * the generator emits.
+ */
+const GENERATED_ON = "2026-09-18";
 const COMMAND = "npm run generate";
 
 /** THE HOUSE STYLE IS WRITTEN HERE, NOT COPIED THROUGH FROM THE SOURCE.
@@ -330,7 +343,7 @@ function buildCatalogueFile(cat) {
     header([
       "GENERATED FILE. DO NOT EDIT BY HAND.",
       "",
-      `Produced by scripts/generate-constants.mjs on ${TODAY}.`,
+      `Produced by scripts/generate-constants.mjs on ${GENERATED_ON}.`,
       `Regenerate with \`${COMMAND}\`; check for drift with`,
       "`node scripts/generate-constants.mjs --check`.",
       "",
@@ -399,7 +412,7 @@ function buildPlansFile({ plans, never }) {
     header([
       "GENERATED FILE. DO NOT EDIT BY HAND.",
       "",
-      `Produced by scripts/generate-constants.mjs on ${TODAY}.`,
+      `Produced by scripts/generate-constants.mjs on ${GENERATED_ON}.`,
       `Regenerate with \`${COMMAND}\`.`,
       "",
       "SOURCE: products/affiliate-sites/fragrance-dupes/lib/plans.ts",
@@ -464,7 +477,7 @@ function buildHostsFile(hosts) {
     header([
       "GENERATED FILE. DO NOT EDIT BY HAND.",
       "",
-      `Produced by scripts/generate-constants.mjs on ${TODAY}.`,
+      `Produced by scripts/generate-constants.mjs on ${GENERATED_ON}.`,
       `Regenerate with \`${COMMAND}\`.`,
       "",
       "SOURCE: the NETWORK_HOSTS array in",

@@ -173,9 +173,9 @@ export async function overview(request: Request, env: Env) {
             is not.
           </li>
           <li>
-            We take no commission on sales from a paid tier's listings, so we have no
-            financial interest in where a subscriber ranks or how much traffic they get.
-            That is what makes the line above worth anything.
+            We take no commission on a producer's sales, on any tier, the free one
+            included. We have no financial interest in where any listing ranks or how
+            much traffic it gets, which is what makes the line above worth anything.
           </li>
           <li>
             A paid tier may buy priority in the review queue. That changes how soon we

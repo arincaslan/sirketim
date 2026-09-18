@@ -1,5 +1,7 @@
 import { html } from "../lib/html";
 import { layout } from "../ui/layout";
+import type { Env } from "../lib/env";
+import { getAuthContext } from "../lib/auth";
 import {
   card,
   deadButton,
@@ -22,8 +24,20 @@ import {
  * readers of this origin are the people deciding whether the shape is right.
  * When accounts exist, this route goes behind the session and stops being
  * linked from a public page.
+ *
+ * IT NOW READS THE SESSION, AND THAT IS NOT ACCESS CONTROL. The read exists so
+ * a signed-in editor arriving from the console nav keeps the nav and has a way
+ * back; a signed-out visitor still gets the page, exactly as before. Nothing is
+ * refused to anyone and nothing here queries a producer's data.
+ *
+ * DO NOT MISTAKE THIS FOR THE GUARD. The page is still inert and still
+ * unprotected, which the root CLAUDE.md flags as safe ONLY while it stays
+ * inert. The real check needs a role on `User` (there is none; `ActorType.STAFF`
+ * exists in the schema but nothing maps a user to it) and it has to land in the
+ * SAME change as this route's first real query. Not after it.
  */
-export function reviewQueue() {
+export async function reviewQueue(request: Request, env: Env) {
+  const auth = await getAuthContext(request, env);
   const body = html`
     ${section({
       heading: "Waiting for a decision",
@@ -195,6 +209,9 @@ export function reviewQueue() {
   return layout({
     title: "Review queue",
     heading: "Review queue",
+    // Only for a signed-in reader. A signed-out visitor gets the page with no
+    // nav, the same as every other public screen here.
+    nav: auth ? { current: "review", showReview: true } : undefined,
     status: {
       label: "Nothing in the queue",
       note: html`And no way for anything to enter it. This is the editor's side of the

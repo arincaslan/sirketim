@@ -58,6 +58,18 @@ It also removes the double-dip risk this section was written about, which was th
 
 The consequence for the build, recorded here because it is easy to miss: a subscriber's listing does not carry an affiliate link at all. It carries a direct store link. `lib/plans.ts` exposes `takesCommission` per tier and `tiersWithoutCommission()` so the publish path can tell which kind of link to emit — and note that a direct link has no `/go/` sub-ID, so subscriber click data has to come from our own logging rather than from a network's reporting.
 
+### AMENDED 2026-09-18, founder: the free tier too
+
+**No commission on any tier at all.** The 09-10 decision above split the programme — subscribers paid a fee and kept their sales, free-tier producers paid nothing and gave up a commission. The founder has closed that split. `takesCommission` is now `false` on all three tiers, every producer listing carries a direct store link, and `tiersWithoutCommission()` returns every plan.
+
+Three things this changes that the 09-10 reasoning above does not cover:
+
+- **The claim loses its asterisk.** "We take no commission on your sales" was previously true of subscribers and false of everyone else, which is the version a free-tier producer reads as a bait. §7's whole argument is that our revenue is decoupled from ranking outcomes; that was only ever true of the paid tiers, and the free tier was the one with the *least* editorial scrutiny attached to it.
+- **The free tier now earns nothing at all.** It is a funnel and a cost, justified by conversion to a paid tier and by nothing else. If that conversion does not materialise, the answer is to change the free allowance or close the tier — **not** to put commission back on it, which would now be a visible reversal of a published promise rather than a quiet configuration change.
+- **`affiliateLinkId` on a producer submission is dead.** Not "null for subscribers" — null for everyone, always, on every tier. The column is kept (see its comment in `prisma/schema.prisma`) precisely so nobody reads "unused" as "free to populate".
+
+None of this touches the catalogue's own affiliate revenue from retailers (FragranceShop, Perfumania, the dupe houses). That is a different counterparty, it is what funds the site, and it is disclosed on `/disclosure`.
+
 ---
 
 ## 3. Tier shape (illustrative, not priced)
@@ -184,7 +196,15 @@ The producer-subscription program above makes outside producers a second, larger
 
 4. **A new penalty: flat -10 points, applied before any ceiling, on any listing whose note-pyramid tier split was invented by us rather than published by the source.** A new required `pyramidSource: "declared" | "imputed"` field carries the distinction. Of the 79 live listings, 47 are imputed (AromaPassions 38 + Clone of Perfume/"the-clone" 9) and 32 are declared (the remaining nine merchant slugs, all Opulensi-sourced).
 
-5. **A new founder-override mechanism**: a new optional field letting the founder personally set a listing's published score directly (with a mandatory written justification note), bypassing the -10 penalty and both the 90%/95% ceilings entirely - the only way a score may exceed 95%. It cannot override the verbatim-copy publish gate (a flagged copy never publishes regardless of override), and it can never be used on the site's own house-brand products, enforced by a build-time guard. It must render as its own distinct badge, "Founder's personal assessment," never conflated with "Editorially verified" (verified means checked against independent sources; founder-override means the founder's own disclosed subjective call). At the time of this decision, zero listings use it - the founder described the mechanism using a hypothetical example, not a real pairing that exists in the catalog today.
+5. ~~**A new founder-override mechanism**~~ — **REVERSED 2026-09-18, founder. The mechanism is removed and the 95% ceiling now has no exceptions at all.**
+
+   What it was, kept because a reversal is only legible next to what it reversed: an optional field letting the founder personally set a listing's published score directly (with a mandatory written justification note), bypassing the -10 penalty and both the 90%/95% ceilings entirely - the only way a score may exceed 95%. It could not override the verbatim-copy publish gate, could never be used on the site's own house-brand products, and rendered as its own distinct badge, "Founder's personal assessment," never conflated with "Editorially verified".
+
+   It shipped ahead of its first use and never had one: **zero listings carried an override for its entire life**, on any branch, verified by query before the columns were dropped. So the removal changes no published number and cost no data.
+
+   Why it went, and this is the part worth keeping: the mechanism was carefully fenced — a build-time guard, a mandatory justification, its own badge, barred from house products — and every one of those fences was an admission that the thing inside them was dangerous. The site's central claim is a published formula with a published ceiling. An exception that only the site's owner can invoke is the one part of that claim a reader has no way to check, and it sat three paragraphs below a sentence on `/about` that already read "No score can publish above 95%, whatever the calculation returns." Removing it costs the ability to say "I have worn both and I think it is a 97", which was never worth the asterisk on everything else. If that judgement is ever worth publishing it belongs in the verdict prose, with a byline, where a reader can tell it from a computed number.
+
+   Removed in: `lib/verification.ts` (the branch, the badge status, `validateFounderOverride`), `lib/types.ts` (the field), `lib/dupes-data.ts` (the module-load guard), `components/dupe-finder/verification-badge.tsx` (icon + styling), `app/about/page.tsx` (the fourth methodology card), and the producer schema's three `founderOverride*` columns (migration `20260918120000_drop_founder_override`).
 
 All five ship together as one atomic change, not staged separately, because they are mutually dependent and the project's own established convention is to bundle every score-affecting change into one considered release rather than drift through several - this exact bundling, including fixing `familyBonus` in the same pass, was already flagged as the right approach in this repo's HANDOFF.md before this decision was made.
 
@@ -194,7 +214,7 @@ All five ship together as one atomic change, not staged separately, because they
 
 In dependency order. **Updated 2026-09-10 after a board round — items 1 and 9 are closed, and item 4 no longer says what it used to.**
 
-1. ~~**Revenue model decision**~~ — **DECIDED 2026-09-10.** Free tier of one listing, paid upgrade, no commission on paid tiers. See the decision block in §2. This had gated every other item here.
+1. ~~**Revenue model decision**~~ — **DECIDED 2026-09-10, amended 2026-09-18.** Free tier of one listing, paid upgrade, and no commission on *any* tier including the free one. See both blocks in §2. This had gated every other item here.
 2. **Postgres provisioned** — Neon or Supabase, neither exists yet. Founder-side account work; nothing downstream moves without it. Note the schema's `String[]` columns rule out Cloudflare D1 without a change.
 3. **Producer accounts and auth**, on the producer origin.
 4. **Payment processor** — **NOT Stripe.** This item used to read "Stripe is the obvious default"; that was false, and `lib/stripe.ts` was deleted 2026-08-27 because Stripe does not serve a Turkey-based business. The board's recommendation is **Paddle** (merchant of record, so it owes US state sales tax and EU/UK VAT rather than Sirketim, and our counterparty becomes one company with one document per payout), confirmed 2026-08-26 to onboard Turkish sellers. **Not iyzico either** — it can do recurring billing, but subscribers here are US businesses, and a Turkish PSP means FX friction on their side plus every tax and invoicing obligation landing on us. iyzico stays right for Turkish direct-invoice clients. Still founder-side: real business entity, tax details, payout setup. See `departments/accounting/reports/payment-rails-investigation.md`.

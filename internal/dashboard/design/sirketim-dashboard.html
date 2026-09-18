@@ -8,289 +8,733 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; }
 
+  /* ---------------------------------------------------------------- tokens */
   :root {
-    --bg: hsl(240 20% 98%);
+    /* System stack only - this file is opened as file:// and republished as an
+       Artifact, so it must never reach the network for a font. */
+    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --ease: cubic-bezier(.22,.8,.28,1);
+    --ease-out: cubic-bezier(.16,1,.3,1);
+    --header-h: 62px;
+
+    --bg: hsl(240 32% 97%);
+    --bg-tint-a: hsl(243 80% 62% / 0.13);
+    --bg-tint-b: hsl(190 80% 55% / 0.10);
+    --dot: hsl(240 20% 60% / 0.16);
     --surface: hsl(0 0% 100%);
-    --surface-2: hsl(240 20% 96%);
-    --border: hsl(240 10% 90%);
-    --text: hsl(240 10% 14%);
-    --text-muted: hsl(240 6% 46%);
-    --text-faint: hsl(240 6% 62%);
-    --primary: hsl(243 75% 59%);
-    --primary-strong: hsl(243 70% 50%);
-    --primary-soft: hsl(243 75% 96%);
+    --surface-2: hsl(240 26% 96.5%);
+    --surface-3: hsl(240 26% 93%);
+    --surface-glass: hsl(0 0% 100% / 0.82);
+    --border: hsl(240 15% 89%);
+    --border-strong: hsl(240 15% 80%);
+    --hairline: hsl(0 0% 100% / 0);
+    --text: hsl(240 14% 11%);
+    --text-muted: hsl(240 7% 42%);
+    --text-faint: hsl(240 7% 56%);
+    --primary: hsl(243 75% 58%);
+    --primary-strong: hsl(243 72% 48%);
+    --primary-soft: hsl(243 80% 96%);
     --primary-soft-text: hsl(243 70% 40%);
-    --green: hsl(155 55% 38%);
-    --green-soft: hsl(155 55% 94%);
-    --red: hsl(0 65% 52%);
-    --red-soft: hsl(0 65% 95%);
-    --shadow-sm: 0 1px 2px hsl(240 20% 20% / 0.05);
-    --shadow-md: 0 6px 20px -6px hsl(240 30% 20% / 0.10), 0 2px 6px -2px hsl(240 30% 20% / 0.06);
+    --green: hsl(158 62% 34%);
+    --green-soft: hsl(158 55% 94%);
+    --amber: hsl(36 92% 42%);
+    --amber-soft: hsl(38 92% 94%);
+    --red: hsl(354 68% 50%);
+    --red-soft: hsl(354 80% 96%);
+    --slate: hsl(240 9% 52%);
+    --slate-soft: hsl(240 20% 94%);
+    --shadow-sm: 0 1px 2px hsl(240 30% 20% / 0.06), 0 1px 1px hsl(240 30% 20% / 0.04);
+    --shadow-md: 0 10px 24px -12px hsl(243 40% 22% / 0.22), 0 2px 6px -2px hsl(243 40% 22% / 0.08);
+    --shadow-lg: 0 28px 60px -24px hsl(243 45% 20% / 0.30), 0 8px 20px -10px hsl(243 40% 22% / 0.16);
+    --scrim: hsl(240 25% 14% / 0.42);
   }
+
+  /* Dark tokens are a deliberate re-pick, not an inversion. Declared twice on
+     purpose: once for the system preference, once for the explicit toggle. */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: hsl(240 18% 8%); --surface: hsl(240 15% 11%); --surface-2: hsl(240 14% 15%);
-      --border: hsl(240 12% 20%); --text: hsl(240 15% 95%); --text-muted: hsl(240 8% 65%); --text-faint: hsl(240 8% 48%);
-      --primary: hsl(243 90% 71%); --primary-strong: hsl(243 95% 76%); --primary-soft: hsl(243 45% 20%); --primary-soft-text: hsl(243 90% 80%);
-      --green: hsl(155 50% 52%); --green-soft: hsl(155 45% 16%); --red: hsl(0 70% 65%); --red-soft: hsl(0 45% 18%);
-      --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3); --shadow-md: 0 10px 30px -8px hsl(0 0% 0% / 0.45), 0 2px 8px -2px hsl(0 0% 0% / 0.3);
+      --bg: hsl(243 26% 7%);
+      --bg-tint-a: hsl(250 90% 62% / 0.30);
+      --bg-tint-b: hsl(185 85% 45% / 0.16);
+      --dot: hsl(250 60% 78% / 0.10);
+      --surface: hsl(243 20% 11.5%);
+      --surface-2: hsl(243 18% 15.5%);
+      --surface-3: hsl(243 17% 19%);
+      --surface-glass: hsl(243 22% 10% / 0.78);
+      --border: hsl(243 15% 22%);
+      --border-strong: hsl(243 15% 32%);
+      --hairline: hsl(0 0% 100% / 0.05);
+      --text: hsl(240 30% 96%);
+      --text-muted: hsl(243 14% 68%);
+      --text-faint: hsl(243 12% 52%);
+      --primary: hsl(250 95% 76%);
+      --primary-strong: hsl(250 100% 84%);
+      --primary-soft: hsl(250 45% 23%);
+      --primary-soft-text: hsl(250 95% 85%);
+      --green: hsl(158 65% 55%);
+      --green-soft: hsl(158 45% 17%);
+      --amber: hsl(40 95% 62%);
+      --amber-soft: hsl(38 55% 18%);
+      --red: hsl(356 85% 70%);
+      --red-soft: hsl(356 45% 20%);
+      --slate: hsl(243 14% 62%);
+      --slate-soft: hsl(243 16% 20%);
+      --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.4);
+      --shadow-md: 0 12px 28px -14px hsl(0 0% 0% / 0.7), 0 2px 8px -3px hsl(0 0% 0% / 0.45);
+      --shadow-lg: 0 34px 70px -28px hsl(0 0% 0% / 0.8), 0 10px 26px -12px hsl(0 0% 0% / 0.55);
+      --scrim: hsl(243 40% 4% / 0.62);
     }
   }
   :root[data-theme="dark"] {
-    --bg: hsl(240 18% 8%); --surface: hsl(240 15% 11%); --surface-2: hsl(240 14% 15%);
-    --border: hsl(240 12% 20%); --text: hsl(240 15% 95%); --text-muted: hsl(240 8% 65%); --text-faint: hsl(240 8% 48%);
-    --primary: hsl(243 90% 71%); --primary-strong: hsl(243 95% 76%); --primary-soft: hsl(243 45% 20%); --primary-soft-text: hsl(243 90% 80%);
-    --green: hsl(155 50% 52%); --green-soft: hsl(155 45% 16%); --red: hsl(0 70% 65%); --red-soft: hsl(0 45% 18%);
-    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3); --shadow-md: 0 10px 30px -8px hsl(0 0% 0% / 0.45), 0 2px 8px -2px hsl(0 0% 0% / 0.3);
+    --bg: hsl(243 26% 7%);
+    --bg-tint-a: hsl(250 90% 62% / 0.30);
+    --bg-tint-b: hsl(185 85% 45% / 0.16);
+    --dot: hsl(250 60% 78% / 0.10);
+    --surface: hsl(243 20% 11.5%);
+    --surface-2: hsl(243 18% 15.5%);
+    --surface-3: hsl(243 17% 19%);
+    --surface-glass: hsl(243 22% 10% / 0.78);
+    --border: hsl(243 15% 22%);
+    --border-strong: hsl(243 15% 32%);
+    --hairline: hsl(0 0% 100% / 0.05);
+    --text: hsl(240 30% 96%);
+    --text-muted: hsl(243 14% 68%);
+    --text-faint: hsl(243 12% 52%);
+    --primary: hsl(250 95% 76%);
+    --primary-strong: hsl(250 100% 84%);
+    --primary-soft: hsl(250 45% 23%);
+    --primary-soft-text: hsl(250 95% 85%);
+    --green: hsl(158 65% 55%);
+    --green-soft: hsl(158 45% 17%);
+    --amber: hsl(40 95% 62%);
+    --amber-soft: hsl(38 55% 18%);
+    --red: hsl(356 85% 70%);
+    --red-soft: hsl(356 45% 20%);
+    --slate: hsl(243 14% 62%);
+    --slate-soft: hsl(243 16% 20%);
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 12px 28px -14px hsl(0 0% 0% / 0.7), 0 2px 8px -3px hsl(0 0% 0% / 0.45);
+    --shadow-lg: 0 34px 70px -28px hsl(0 0% 0% / 0.8), 0 10px 26px -12px hsl(0 0% 0% / 0.55);
+    --scrim: hsl(243 40% 4% / 0.62);
   }
 
+  /* ------------------------------------------------------------------ base */
   html, body { margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
   body {
-    background: var(--bg); color: var(--text);
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
     -webkit-font-smoothing: antialiased;
     font-variant-numeric: tabular-nums;
+    overflow-x: hidden;
+    transition: background-color .3s var(--ease), color .3s var(--ease);
+  }
+  /* Ambient depth: two soft colour fields + a fine dot grid, fixed so the page
+     scrolls over them. Pure CSS - no image, nothing to fetch. */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    background:
+      radial-gradient(900px 620px at 12% -8%, var(--bg-tint-a), transparent 62%),
+      radial-gradient(760px 520px at 92% 2%, var(--bg-tint-b), transparent 60%);
+    transition: opacity .3s var(--ease);
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image: radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 0);
+    background-size: 26px 26px;
+    mask-image: linear-gradient(to bottom, hsl(0 0% 0% / 0.9), transparent 70%);
+    -webkit-mask-image: linear-gradient(to bottom, hsl(0 0% 0% / 0.9), transparent 70%);
   }
   a { color: var(--primary); text-decoration: none; }
   a:hover { color: var(--primary-strong); }
   button { font-family: inherit; cursor: pointer; }
-  button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
-    outline: 2px solid var(--primary); outline-offset: 2px;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  svg { font-family: var(--font); }
+  ::selection { background: var(--primary-soft); color: var(--primary-soft-text); }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 6px; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      transition-duration: .001ms !important;
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+
+  /* ---------------------------------------------------------------- header */
   .header {
-    position: sticky; top: 0; z-index: 20;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 28px; background: var(--surface);
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 12px 30px;
+    background: var(--surface-glass);
     border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
   }
-  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
   .mark {
-    width: 34px; height: 34px; border-radius: 9px; background: var(--primary);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    box-shadow: var(--shadow-sm);
+    width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(145deg, var(--primary), hsl(280 80% 58%));
+    box-shadow: 0 6px 16px -6px hsl(250 80% 50% / 0.7), inset 0 1px 0 hsl(0 0% 100% / 0.35);
   }
-  .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-  .brand-name { font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
-  .brand-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-  .header-right { display: flex; align-items: center; gap: 14px; }
-  .header-date { font-size: 13px; color: var(--text-muted); font-weight: 500; }
-  .pulse { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
-  .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.18; min-width: 0; }
+  .brand-name { font-weight: 800; font-size: 16px; letter-spacing: -0.02em; }
+  .brand-sub { font-size: 11.5px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .header-date { font-size: 12.5px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+  .pulse {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 11.5px; color: var(--green); font-weight: 700; letter-spacing: 0.03em;
+    background: var(--green-soft); border-radius: 999px; padding: 4px 11px 4px 9px;
+  }
+  .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); position: relative; flex-shrink: 0; }
+  .pulse-dot::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--green);
+    animation: ping 2.4s var(--ease-out) infinite;
+  }
+  @keyframes ping { 0% { transform: scale(1); opacity: .6; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
   .icon-btn {
-    width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
-    color: var(--text-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    transition: border-color .12s ease, color .12s ease;
+    width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-muted); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color .18s var(--ease), color .18s var(--ease), transform .18s var(--ease), box-shadow .18s var(--ease);
   }
-  .icon-btn:hover { border-color: var(--primary); color: var(--text); }
+  .icon-btn:hover { border-color: var(--primary); color: var(--text); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .icon-btn:active { transform: translateY(0); }
+  .icon-btn svg { transition: transform .4s var(--ease-out); }
+  .icon-btn:hover svg { transform: rotate(18deg); }
   .icon-btn svg .moon { display: none; }
   :root[data-theme="dark"] .icon-btn svg .sun { display: none; }
   :root[data-theme="dark"] .icon-btn svg .moon { display: block; }
-
-  .container { max-width: 1320px; margin: 0 auto; padding: 26px 28px 64px; }
-
-  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
-  .stat-tile {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-    padding: 16px 18px; box-shadow: var(--shadow-sm);
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
-  }
-  .stat-label { font-size: 12.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
-  .stat-value { font-size: 25px; font-weight: 800; letter-spacing: -0.02em; }
-  .stat-sub { font-size: 10.5px; color: var(--text-faint); font-weight: 600; margin-top: 3px; }
-  .stat-icon {
-    width: 34px; height: 34px; border-radius: 9px; background: var(--primary-soft); color: var(--primary-soft-text);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .icon-btn svg .sun { display: none; }
+    :root:not([data-theme="light"]) .icon-btn svg .moon { display: block; }
   }
 
-  .filter-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
-  .chips { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 260px; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 30px 72px; }
+
+  /* ------------------------------------------------------------------ hero */
+  .hero {
+    position: relative; overflow: hidden;
+    border: 1px solid var(--border); border-radius: 22px;
+    background:
+      linear-gradient(145deg, hsl(250 80% 60% / 0.14), transparent 46%),
+      linear-gradient(300deg, hsl(185 80% 50% / 0.10), transparent 40%),
+      var(--surface);
+    box-shadow: var(--shadow-md), inset 0 1px 0 var(--hairline);
+    padding: 22px 26px;
+    margin-bottom: 18px;
+    animation: riseIn .5s var(--ease-out) both;
+  }
+  .hero::before {
+    content: ""; position: absolute; top: -70%; right: -8%; width: 460px; height: 460px;
+    border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, hsl(250 90% 62% / 0.20), transparent 68%);
+  }
+  .hero-inner { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; flex-wrap: wrap; }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--primary-soft-text); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+  .hero-eyebrow::before { content: ""; width: 20px; height: 2px; border-radius: 2px; background: var(--primary); }
+  .hero-lead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .hero-number {
+    font-size: 58px; line-height: .92; font-weight: 800; letter-spacing: -0.045em;
+    background: linear-gradient(160deg, var(--text), var(--primary));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero-unit { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+  .hero-note { font-size: 12.5px; color: var(--text-muted); font-weight: 500; margin-top: 8px; }
+  .hero-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-stat {
+    min-width: 132px; border: 1px solid var(--border); border-radius: 14px;
+    background: var(--surface-2); padding: 11px 14px;
+    display: flex; flex-direction: column; gap: 2px;
+    transition: transform .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .hero-stat:hover { transform: translateY(-2px); border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+  .hero-stat-top { display: flex; align-items: center; gap: 8px; }
+  .hero-stat-ico { color: var(--text-faint); display: flex; }
+  .hero-stat-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .hero-stat-value { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+  .hero-stat-sub { font-size: 10.5px; color: var(--text-faint); font-weight: 600; }
+  .hero-progress { position: relative; margin-top: 20px; }
+  .hero-progress-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    font-size: 11.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 7px;
+  }
+  .hero-progress-head b { color: var(--text); font-size: 12.5px; }
+  .hero-track { height: 9px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+  .hero-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, hsl(250 85% 62%), var(--green));
+    box-shadow: 0 0 18px -4px hsl(158 70% 45% / 0.6);
+    transform-origin: left center;
+    animation: growX .9s var(--ease-out) both;
+  }
+  @keyframes growX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* -------------------------------------------------------------- controls */
+  .controls {
+    position: sticky; top: var(--header-h); z-index: 30;
+    margin: 0 -10px 16px; padding: 10px;
+    background: var(--surface-glass);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border-radius: 18px;
+    transition: box-shadow .25s var(--ease), border-color .25s var(--ease);
+    border: 1px solid transparent;
+  }
+  .controls.is-stuck { border-color: var(--border); box-shadow: var(--shadow-md); }
+  .controls-inner { display: flex; align-items: center; gap: 14px; flex-wrap: nowrap; }
+  .chips {
+    display: flex; gap: 7px; flex: 1 1 auto; min-width: 0;
+    overflow-x: auto; overflow-y: hidden; padding: 3px 2px;
+    scrollbar-width: none; scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 14px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 14px), transparent 100%);
+  }
+  .chips::-webkit-scrollbar { display: none; }
   .chip {
-    display: inline-flex; align-items: center; gap: 7px;
+    display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; scroll-snap-align: start;
     border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
-    border-radius: 999px; padding: 7px 13px 7px 11px; font-size: 12.5px; font-weight: 600;
-    transition: all .12s ease;
+    border-radius: 999px; padding: 7px 8px 7px 11px; font-size: 12.5px; font-weight: 650;
+    white-space: nowrap;
+    transition: background-color .18s var(--ease), color .18s var(--ease), border-color .18s var(--ease), transform .18s var(--ease), box-shadow .18s var(--ease);
   }
-  .chip:hover { border-color: var(--primary); color: var(--text); }
-  .chip.active { background: var(--text); color: var(--surface); border-color: var(--text); }
-  .chip-dot { width: 7px; height: 7px; border-radius: 50%; background: hsl(var(--h) 65% 50%); flex-shrink: 0; }
+  .chip:hover { color: var(--text); border-color: hsl(var(--h) 60% 55%); transform: translateY(-1px); }
+  .chip:active { transform: translateY(0) scale(.98); }
+  .chip.active {
+    color: hsl(var(--h) 72% 30%); border-color: hsl(var(--h) 65% 62%);
+    background: hsl(var(--h) 80% 95%);
+    box-shadow: 0 0 0 3px hsl(var(--h) 70% 60% / 0.16);
+  }
+  .chip.is-empty { opacity: .45; }
+  .chip-dot { width: 7px; height: 7px; border-radius: 50%; background: hsl(var(--h) 65% 52%); flex-shrink: 0; box-shadow: 0 0 0 3px hsl(var(--h) 65% 52% / 0.16); }
+  .chip-n {
+    font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 7px; min-width: 22px; text-align: center;
+    background: var(--surface-2); color: var(--text-faint);
+  }
+  .chip.active .chip-n { background: hsl(var(--h) 70% 88%); color: hsl(var(--h) 72% 28%); }
+  :root[data-theme="dark"] .chip.active { color: hsl(var(--h) 90% 82%); background: hsl(var(--h) 45% 22%); border-color: hsl(var(--h) 55% 44%); }
+  :root[data-theme="dark"] .chip.active .chip-n { background: hsl(var(--h) 45% 30%); color: hsl(var(--h) 90% 86%); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .chip.active { color: hsl(var(--h) 90% 82%); background: hsl(var(--h) 45% 22%); border-color: hsl(var(--h) 55% 44%); }
+    :root:not([data-theme="light"]) .chip.active .chip-n { background: hsl(var(--h) 45% 30%); color: hsl(var(--h) 90% 86%); }
+  }
 
-  .search-wrap { position: relative; width: 240px; flex-shrink: 0; }
-  .search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-faint); pointer-events: none; }
+  .controls-right { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+  .search-wrap { position: relative; width: 268px; flex-shrink: 0; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-faint); pointer-events: none; }
   .search-input {
     width: 100%; border: 1px solid var(--border); background: var(--surface); color: var(--text);
-    border-radius: 999px; padding: 8px 13px 8px 32px; font-size: 12.5px; font-family: inherit;
-    transition: border-color .12s ease;
+    border-radius: 11px; padding: 9px 62px 9px 34px; font-size: 13px; font-family: inherit;
+    transition: border-color .18s var(--ease), box-shadow .18s var(--ease), background-color .18s var(--ease);
   }
   .search-input::placeholder { color: var(--text-faint); }
-  .search-input:focus { border-color: var(--primary); }
-  .search-clear {
-    position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px;
-    border: none; background: var(--surface-2); border-radius: 50%; color: var(--text-muted);
-    display: none; align-items: center; justify-content: center;
+  .search-input:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 3px hsl(250 85% 62% / 0.18);
   }
+  .search-kbd {
+    position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+    font-family: var(--font); font-size: 10.5px; font-weight: 700; color: var(--text-faint);
+    background: var(--surface-2); border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 6px; padding: 2px 6px; pointer-events: none; white-space: nowrap;
+  }
+  .search-wrap.has-query .search-kbd, .search-wrap.is-focused .search-kbd { display: none; }
+  .search-clear {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 21px; height: 21px;
+    border: none; background: var(--surface-3); border-radius: 50%; color: var(--text-muted);
+    display: none; align-items: center; justify-content: center; padding: 0;
+    transition: background-color .15s var(--ease), color .15s var(--ease);
+  }
+  .search-clear:hover { background: var(--red-soft); color: var(--red); }
   .search-wrap.has-query .search-clear { display: flex; }
 
+  /* Debug affordance - deliberately the quietest control on the page. */
   .sample-toggle {
-    display: flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 600; color: var(--text-faint);
-    margin-bottom: 14px; user-select: none;
+    display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;
+    font-size: 12px; font-weight: 650; color: var(--text-faint); user-select: none;
+    border: 1px dashed var(--border-strong); border-radius: 11px; padding: 7px 11px;
+    transition: color .18s var(--ease), border-color .18s var(--ease), background-color .18s var(--ease);
   }
-  .sample-toggle input { accent-color: var(--primary); width: 13px; height: 13px; }
-
-  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 30px; }
-  .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-  .col-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 4px; gap: 8px; }
-  .col-title { font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-  .col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .col-count { font-size: 11.5px; font-weight: 700; color: var(--text-faint); background: var(--surface-2); border-radius: 6px; padding: 1px 7px; flex-shrink: 0; }
-  .col-hint { font-size: 10px; font-weight: 600; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* Each column scrolls independently once it outgrows the frame, instead of
-     stretching the whole page — the fulfilled column especially only ever grows. */
-  .col-body {
-    display: flex; flex-direction: column; gap: 9px; min-height: 90px;
-    max-height: 580px; overflow-y: auto; overflow-x: hidden; padding-right: 4px; margin-right: -4px;
-    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  .sample-toggle:hover { color: var(--text-muted); border-color: var(--primary); }
+  .sample-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .switch {
+    width: 28px; height: 16px; border-radius: 999px; background: var(--surface-3);
+    position: relative; flex-shrink: 0; transition: background-color .22s var(--ease);
   }
-  .col-body::-webkit-scrollbar { width: 6px; }
-  .col-body::-webkit-scrollbar-track { background: transparent; }
-  .col-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  .col-body::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--surface); box-shadow: var(--shadow-sm);
+    transition: transform .22s var(--ease);
+  }
+  .sample-toggle input:checked + .switch { background: var(--primary); }
+  .sample-toggle input:checked + .switch::after { transform: translateX(12px); }
+  .sample-toggle input:focus-visible + .switch { outline: 2px solid var(--primary); outline-offset: 3px; }
+  .sample-toggle:has(input:checked) { color: var(--primary-soft-text); border-color: var(--primary); border-style: solid; background: var(--primary-soft); }
+
+  .result-line {
+    display: flex; align-items: center; gap: 8px; min-height: 18px;
+    font-size: 12px; color: var(--text-muted); font-weight: 600; margin: 0 0 12px 2px;
+  }
+  .result-reset {
+    border: none; background: none; padding: 0; font-size: 12px; font-weight: 700; color: var(--primary);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  /* ----------------------------------------------------------------- board */
+  .board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 34px; align-items: start; }
+  .col {
+    display: flex; flex-direction: column; min-width: 0;
+    border: 1px solid var(--border); border-radius: 18px;
+    background: linear-gradient(180deg, var(--surface-2), transparent 160px);
+    padding: 10px;
+    box-shadow: inset 0 1px 0 var(--hairline);
+  }
+  .col-head {
+    display: flex; align-items: center; gap: 9px; padding: 4px 4px 11px; position: relative;
+  }
+  .col-head::after {
+    content: ""; position: absolute; left: 4px; right: 4px; bottom: 4px; height: 2px; border-radius: 2px;
+    background: var(--col-accent); opacity: .30;
+  }
+  .col-ico { display: flex; color: var(--col-accent); flex-shrink: 0; }
+  .col-title {
+    font-size: 12px; font-weight: 800; color: var(--text); text-transform: uppercase;
+    letter-spacing: 0.07em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .col-count {
+    margin-left: auto; font-size: 11.5px; font-weight: 800; color: var(--col-accent);
+    background: var(--col-soft); border-radius: 999px; padding: 2px 9px; flex-shrink: 0;
+  }
+  .col-count.bump { animation: bump .42s var(--ease-out); }
+  @keyframes bump {
+    0% { transform: scale(1); } 34% { transform: scale(1.22); } 100% { transform: scale(1); }
+  }
+  .col-body { display: flex; flex-direction: column; gap: 9px; min-height: 76px; }
 
   .task-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-    padding: 12px 13px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 8px;
-    transition: transform .12s ease, box-shadow .12s ease;
+    position: relative; width: 100%; text-align: left; font-family: inherit; color: inherit;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 13px;
+    padding: 12px 13px 12px 17px; box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column; gap: 8px; overflow: hidden;
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
   }
-  .task-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
-  .task-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
-  /* Clamped to a short preview by default — full notes (some multi-paragraph)
-     used to render at full length, which is what forced all the scrolling.
-     Fulfilled entries are historical/scannable, so they clamp tighter. */
-  .task-notes {
-    font-size: 12px; color: var(--text-muted); line-height: 1.45;
+  .task-card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: hsl(var(--h) 65% 55%);
+    transition: width .2s var(--ease);
+  }
+  .task-card::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: linear-gradient(105deg, hsl(var(--h) 80% 60% / 0.10), transparent 58%);
+    transition: opacity .25s var(--ease);
+  }
+  .task-card:hover {
+    transform: translateY(-3px); box-shadow: var(--shadow-lg);
+    border-color: hsl(var(--h) 55% 60% / 0.55);
+  }
+  .task-card:hover::before { width: 6px; }
+  .task-card:hover::after { opacity: 1; }
+  .task-card:active { transform: translateY(-1px); }
+  .card-title { display: block; font-size: 13.5px; font-weight: 650; line-height: 1.38; letter-spacing: -0.005em; overflow-wrap: anywhere; }
+  .card-notes {
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    font-size: 12px; color: var(--text-muted); line-height: 1.48; overflow-wrap: anywhere;
   }
-  .col[data-status="fulfilled"] .task-notes { -webkit-line-clamp: 2; }
-  .col[data-status="fulfilled"] .task-card { padding: 10px 12px; gap: 6px; }
-  .task-card.expanded .task-notes { -webkit-line-clamp: unset; overflow: visible; }
-  .notes-toggle {
-    align-self: flex-start; border: none; background: none; padding: 0; margin-top: -2px;
-    font-size: 11px; font-weight: 700; color: var(--primary);
-  }
-  .notes-toggle:hover { color: var(--primary-strong); }
-  .task-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .task-meta-right { display: flex; align-items: center; gap: 8px; }
+  .col[data-status="fulfilled"] .card-notes { -webkit-line-clamp: 2; }
+  .card-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .card-meta-right { display: inline-flex; align-items: center; gap: 7px; }
   .dept-tag {
-    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700;
-    padding: 3px 9px 3px 7px; border-radius: 999px;
-    background: hsl(var(--h) 70% 95%); color: hsl(var(--h) 70% 32%);
+    display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 750;
+    padding: 3px 9px 3px 7px; border-radius: 999px; white-space: nowrap;
+    background: hsl(var(--h) 75% 95%); color: hsl(var(--h) 70% 30%);
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .dept-tag, :root:not([data-theme="light"]) .dept-icon { background: hsl(var(--h) 35% 22%); color: hsl(var(--h) 75% 78%); }
-  }
-  :root[data-theme="dark"] .dept-tag, :root[data-theme="dark"] .dept-icon { background: hsl(var(--h) 35% 22%); color: hsl(var(--h) 75% 78%); }
   .dept-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: hsl(var(--h) 65% 48%); flex-shrink: 0; }
-  .task-due { font-size: 11px; color: var(--text-faint); font-weight: 600; }
-  .priority { display: flex; gap: 2px; align-items: center; }
-  .priority i { width: 4px; height: 10px; border-radius: 2px; background: var(--border); display: block; font-style: normal; }
-  .priority i.on { background: var(--primary); }
+  :root[data-theme="dark"] .dept-tag, :root[data-theme="dark"] .dept-icon { background: hsl(var(--h) 40% 22%); color: hsl(var(--h) 85% 80%); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .dept-tag, :root:not([data-theme="light"]) .dept-icon { background: hsl(var(--h) 40% 22%); color: hsl(var(--h) 85% 80%); }
+  }
+  .task-due {
+    font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  /* Priority is spelled out. The old three-bar glyph was unlabelled and
+     undecodable - the words cost the same pixels and need no legend. */
+  .prio {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 800;
+    letter-spacing: 0.05em; text-transform: uppercase; border-radius: 6px; padding: 2px 7px; white-space: nowrap;
+  }
+  .prio::before { content: ""; width: 5px; height: 5px; border-radius: 1.5px; background: currentColor; }
+  .prio-3 { color: var(--red); background: var(--red-soft); }
+  .prio-2 { color: var(--amber); background: var(--amber-soft); }
+  .prio-1 { color: var(--slate); background: var(--slate-soft); }
+
+  .col-more {
+    margin-top: 9px; width: 100%; border: 1px dashed var(--border-strong); background: transparent;
+    color: var(--text-muted); border-radius: 11px; padding: 9px 12px; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: color .18s var(--ease), border-color .18s var(--ease), background-color .18s var(--ease);
+  }
+  .col-more:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
+  .col-more svg { transition: transform .25s var(--ease); }
+  .col.is-expanded .col-more svg { transform: rotate(180deg); }
+  .col:not(.is-expanded) .task-card.is-beyond { display: none; }
 
   .col-empty {
-    border: 1.5px dashed var(--border); border-radius: 12px; padding: 22px 12px;
-    display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text-faint);
-    font-size: 12px; font-weight: 600; text-align: center;
+    border: 1.5px dashed var(--border); border-radius: 13px; padding: 24px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--text-faint);
+    font-size: 12px; font-weight: 650; text-align: center;
   }
 
-  .charts-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-bottom: 30px; }
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 22px; box-shadow: var(--shadow-sm); }
-  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .panel-title { font-size: 14px; font-weight: 700; }
-  .panel-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
-  .sample-tag { font-size: 10px; font-weight: 700; color: var(--primary-soft-text); background: var(--primary-soft); padding: 2px 7px; border-radius: 999px; }
-  .legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
-  .legend-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  /* Entrance is a deliberate-filter signal, not a keystroke effect: the class
+     is only added when the department/sample filter changes or on first paint. */
+  .board.animate .task-card { animation: cardIn .34s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 16ms); }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
+
+  /* --------------------------------------------------------------- panels */
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+  .section-title { font-size: 17px; font-weight: 800; letter-spacing: -0.025em; display: flex; align-items: center; gap: 9px; }
+  .section-title::before { content: ""; width: 4px; height: 17px; border-radius: 3px; background: linear-gradient(var(--primary), hsl(280 80% 62%)); }
+  .section-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+
+  .charts-row { display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px; margin-bottom: 34px; align-items: stretch; }
+  .panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 20px 22px; box-shadow: var(--shadow-sm), inset 0 1px 0 var(--hairline);
+    display: flex; flex-direction: column;
+  }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 3px; }
+  .panel-title { font-size: 14px; font-weight: 750; letter-spacing: -0.01em; }
+  .panel-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+  .sample-tag {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
+    color: var(--amber); background: var(--amber-soft); padding: 3px 8px; border-radius: 999px;
+  }
+  .legend { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-muted); font-weight: 650; }
   .legend-line { width: 14px; height: 2px; border-radius: 2px; flex-shrink: 0; }
+  .chart-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .chart-dot { transition: r .15s var(--ease); }
+  .chart-hit { fill: transparent; cursor: crosshair; }
+  .chart-hit:hover + .chart-dot { r: 5.5; }
 
   .empty-panel {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-    padding: 42px 16px; color: var(--text-faint); text-align: center;
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px;
+    padding: 34px 16px; color: var(--text-faint); text-align: center; position: relative;
   }
-  .empty-panel-title { font-size: 13px; font-weight: 700; color: var(--text-muted); }
-  .empty-panel-sub { font-size: 12px; max-width: 260px; }
+  .empty-ghost { opacity: .5; margin-bottom: 4px; }
+  .empty-panel-title { font-size: 13.5px; font-weight: 750; color: var(--text-muted); }
+  .empty-panel-sub { font-size: 12px; max-width: 320px; line-height: 1.55; }
+  .empty-panel-sub code { font-family: var(--mono); font-size: 11px; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
 
-  .donut-wrap { display: flex; align-items: center; gap: 20px; }
-  .donut { width: 128px; height: 128px; border-radius: 50%; flex-shrink: 0; position: relative; }
-  .donut-hole {
-    position: absolute; inset: 18px; border-radius: 50%; background: var(--surface);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  /* Status breakdown reads as labelled bars, not a donut: three of the four
+     shares are under 4% and vanish as slices. Colour never carries identity
+     alone - every row has an icon and a word. */
+  .status-rows { display: flex; flex-direction: column; gap: 13px; }
+  .status-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
+  .status-row-label { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .status-row-ico { display: flex; color: var(--sc); }
+  .status-row-val { font-size: 12.5px; font-weight: 800; color: var(--text); }
+  .status-row-val span { font-size: 11px; font-weight: 650; color: var(--text-faint); margin-left: 5px; }
+  .status-track { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .status-fill {
+    height: 100%; border-radius: 999px; background: var(--sc);
+    transform-origin: left center; animation: growX .8s var(--ease-out) both;
   }
-  .donut-hole b { font-size: 20px; font-weight: 800; }
-  .donut-hole span { font-size: 10.5px; color: var(--text-muted); font-weight: 600; }
-  .donut-legend { display: flex; flex-direction: column; gap: 9px; }
+  .status-total { margin-top: auto; padding-top: 16px; font-size: 11.5px; color: var(--text-faint); font-weight: 650; }
 
-  .dept-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  /* ----------------------------------------------------------- departments */
+  .dept-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
   .dept-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-    padding: 16px; box-shadow: var(--shadow-sm); cursor: pointer; text-align: left; font-family: inherit; color: inherit;
-    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    position: relative; overflow: hidden; text-align: left; font-family: inherit; color: inherit;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 16px; box-shadow: var(--shadow-sm), inset 0 1px 0 var(--hairline);
+    display: flex; flex-direction: column; gap: 0;
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
   }
-  .dept-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
-  .dept-card.active { border-color: hsl(var(--h) 65% 50%); box-shadow: 0 0 0 3px hsl(var(--h) 65% 50% / 0.15); }
-  .dept-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .dept-card::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(420px 160px at 0% 0%, hsl(var(--h) 80% 58% / 0.14), transparent 70%);
+    transition: opacity .25s var(--ease);
+  }
+  .dept-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: hsl(var(--h) 55% 58% / 0.5); }
+  .dept-card:hover::after { opacity: 1; }
+  .dept-card.active { border-color: hsl(var(--h) 65% 55%); box-shadow: 0 0 0 3px hsl(var(--h) 65% 55% / 0.18), var(--shadow-md); }
+  .dept-card.active::after { opacity: 1; }
+  .dept-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; position: relative; }
   .dept-icon {
-    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
-    background: hsl(var(--h) 70% 95%); color: hsl(var(--h) 70% 34%);
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    background: hsl(var(--h) 75% 95%); color: hsl(var(--h) 70% 34%);
     display: flex; align-items: center; justify-content: center;
   }
-  .dept-name { font-size: 13.5px; font-weight: 700; }
-  .dept-stats { display: flex; gap: 14px; margin-bottom: 12px; }
-  .dept-stat b { font-size: 17px; font-weight: 800; display: block; }
-  .dept-stat span { font-size: 10.5px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
-  .dept-report { font-size: 11px; font-weight: 700; margin-top: 10px; padding-top: 11px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 5px; text-decoration: none; }
-  .dept-report.has { color: var(--primary); }
-  .dept-report.none { color: var(--text-faint); }
-  a.dept-report.link { padding: 7px 9px; margin-top: 6px; border-top: none; border-radius: 8px; background: var(--primary-soft); }
-  a.dept-report.link:hover { background: hsl(var(--h) 70% 90%); color: hsl(var(--h) 70% 30%); }
-  :root[data-theme="dark"] a.dept-report.link:hover { background: hsl(var(--h) 35% 26%); color: hsl(var(--h) 80% 82%); }
+  .dept-name { font-size: 13.5px; font-weight: 750; letter-spacing: -0.01em; }
+  .dept-activity {
+    font-size: 11.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; position: relative;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+  }
+  .dept-bar { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-bottom: 9px; position: relative; display: flex; }
+  .dept-bar i { display: block; height: 100%; }
+  .dept-bar .done { background: var(--green); }
+  .dept-bar .open { background: hsl(var(--h) 65% 58%); }
+  .dept-stats { display: flex; gap: 16px; margin-bottom: 11px; position: relative; }
+  .dept-stat b { font-size: 18px; font-weight: 800; display: block; letter-spacing: -0.03em; line-height: 1.2; }
+  .dept-stat span { font-size: 10px; color: var(--text-muted); font-weight: 750; text-transform: uppercase; letter-spacing: 0.06em; }
+  .dept-report {
+    font-size: 11px; font-weight: 700; margin-top: auto; display: flex; align-items: center; gap: 6px;
+    text-decoration: none; position: relative;
+  }
+  .dept-report.none { color: var(--text-faint); padding-top: 11px; border-top: 1px solid var(--border); }
+  a.dept-report.link {
+    color: hsl(var(--h) 70% 32%); background: hsl(var(--h) 75% 95%);
+    padding: 8px 10px; border-radius: 10px;
+    transition: background-color .18s var(--ease), color .18s var(--ease), transform .18s var(--ease);
+  }
+  a.dept-report.link:hover { background: hsl(var(--h) 72% 90%); transform: translateX(2px); }
+  :root[data-theme="dark"] a.dept-report.link { background: hsl(var(--h) 40% 22%); color: hsl(var(--h) 85% 80%); }
+  :root[data-theme="dark"] a.dept-report.link:hover { background: hsl(var(--h) 42% 28%); color: hsl(var(--h) 90% 86%); }
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) a.dept-report.link:hover { background: hsl(var(--h) 35% 26%); color: hsl(var(--h) 80% 82%); }
+    :root:not([data-theme="light"]) a.dept-report.link { background: hsl(var(--h) 40% 22%); color: hsl(var(--h) 85% 80%); }
+    :root:not([data-theme="light"]) a.dept-report.link:hover { background: hsl(var(--h) 42% 28%); color: hsl(var(--h) 90% 86%); }
   }
 
-  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
-  .section-title { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
-  .section-sub { font-size: 12px; color: var(--text-muted); }
+  .footnote {
+    margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--border);
+    font-size: 11.5px; color: var(--text-faint); line-height: 1.65;
+  }
+  .footnote code { font-family: var(--mono); font-size: 11px; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+  .footnote kbd {
+    font-family: var(--font); font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+    background: var(--surface-2); border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 5px; padding: 1px 5px;
+  }
 
-  .footnote { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-faint); line-height: 1.6; }
+  /* ---------------------------------------------------------------- drawer */
+  .drawer-backdrop {
+    position: fixed; inset: 0; z-index: 60; background: var(--scrim);
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    opacity: 0; transition: opacity .28s var(--ease);
+  }
+  .drawer-backdrop.is-open { opacity: 1; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; z-index: 61;
+    width: min(520px, 100vw); display: flex; flex-direction: column;
+    background: var(--surface); border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(100%); transition: transform .34s var(--ease-out);
+  }
+  .drawer.is-open { transform: none; }
+  .drawer-head {
+    display: flex; align-items: center; gap: 8px; padding: 14px 16px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .drawer-pos { font-size: 11.5px; font-weight: 700; color: var(--text-faint); margin-right: auto; letter-spacing: 0.02em; }
+  .drawer-body { padding: 22px 26px 40px; overflow-y: auto; flex: 1; }
+  .drawer-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 999px;
+    color: var(--sc); background: var(--sc-soft);
+  }
+  .drawer-title { font-size: 21px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.28; margin: 0 0 16px; overflow-wrap: anywhere; }
+  .drawer-notes {
+    font-size: 13.5px; line-height: 1.68; color: var(--text-muted); white-space: pre-wrap;
+    overflow-wrap: anywhere; border-left: 3px solid var(--border); padding-left: 15px;
+  }
+  .drawer-notes.is-empty { color: var(--text-faint); font-style: italic; border-left-style: dashed; }
+  .drawer-facts {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+    margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
+  }
+  .fact { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .fact-k { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-faint); }
+  .fact-v { font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
+  .drawer-hint { margin-top: 22px; font-size: 11.5px; color: var(--text-faint); font-weight: 600; }
+  .drawer-hint kbd {
+    font-family: var(--font); font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+    background: var(--surface-2); border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 5px; padding: 1px 5px;
+  }
+  body.drawer-open { overflow: hidden; }
 
-  @media (max-width: 980px) {
-    .stat-row { grid-template-columns: repeat(2, 1fr); }
-    .board { grid-template-columns: repeat(2, 1fr); }
+  /* ------------------------------------------------------------ responsive */
+  @media (max-width: 1180px) {
+    .board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .charts-row { grid-template-columns: 1fr; }
-    .dept-grid { grid-template-columns: repeat(2, 1fr); }
-    .filter-row { flex-direction: column; align-items: stretch; }
-    .search-wrap { width: 100%; }
+    .dept-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 860px) {
+    .container { padding: 20px 18px 64px; }
+    .header { padding: 10px 18px; }
+    .controls-inner { flex-wrap: wrap; }
+    .controls-right { width: 100%; }
+    .search-wrap { flex: 1 1 auto; width: auto; min-width: 0; }
+    .hero-inner { align-items: flex-start; }
+    .hero-number { font-size: 48px; }
   }
   @media (max-width: 620px) {
-    .board { grid-template-columns: 1fr; }
-    .stat-row { grid-template-columns: 1fr 1fr; }
-    .dept-grid { grid-template-columns: 1fr; }
+    .container { padding: 16px 14px 56px; }
+    .header { padding: 10px 14px; }
+    .header-date { display: none; }
+    .hero { padding: 18px 16px; border-radius: 18px; }
+    .hero-number { font-size: 44px; }
+    .hero-stat { min-width: 0; flex: 1 1 calc(50% - 5px); }
+    .board { grid-template-columns: minmax(0, 1fr); }
+    .dept-grid { grid-template-columns: minmax(0, 1fr); }
+    .controls { margin-left: -6px; margin-right: -6px; padding: 8px 6px; }
+    .sample-toggle .sample-text { display: none; }
+    .drawer { width: 100vw; border-left: none; }
+    .drawer-facts { grid-template-columns: minmax(0, 1fr); }
   }
+
+  /* A card that filters and a link that navigates cannot be the same control -
+     the old markup nested an <a> inside a <button>, which is invalid and traps
+     keyboard users. Split: the hit area filters, the link is its own sibling. */
+  .dept-hit {
+    display: flex; flex-direction: column; width: 100%; text-align: left;
+    background: none; border: none; padding: 0; margin: 0; font: inherit; color: inherit;
+    position: relative; cursor: pointer;
+  }
+  .dept-hit:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 8px; }
+
+
+  /* Motion is opt-out at the source, not per-animation: every entrance and
+     transition below is decoration over content that is already there, so a
+     reader who has asked their OS for less motion loses nothing by having all
+     of it collapsed. The board's JS checks the same query before it re-adds
+     the entrance class, because a CSS-only override still pays the layout
+     cost of replaying it on every filter. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
 </style>
 </head>
 <body>
 
-<div class="header">
+<header class="header" id="header">
   <div class="brand">
     <div class="mark">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 16 C6 12 9 12 12 12 C15 12 18 12 18 8 M6 16 C6 19 9 20 12 20 M18 8 C18 5 15 4 12 4" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 16 C6 12 9 12 12 12 C15 12 18 12 18 8 M6 16 C6 19 9 20 12 20 M18 8 C18 5 15 4 12 4" stroke="white" stroke-width="2.1" stroke-linecap="round"/></svg>
     </div>
     <div class="brand-text">
       <div class="brand-name">Sirketim</div>
@@ -299,54 +743,82 @@
   </div>
   <div class="header-right">
     <div class="pulse"><span class="pulse-dot"></span>Live</div>
-    <div class="header-date">Updated Sep 8</div>
-    <button class="icon-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle color theme">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+    <div class="header-date">Updated Sep&nbsp;18</div>
+    <button class="icon-btn" id="theme-toggle" title="Toggle light / dark theme" aria-label="Toggle color theme">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <g class="sun"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12H5M19 12h2.5M4.2 19.8L6 18M18 6l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g>
         <path class="moon" d="M20 14.5A8.5 8.5 0 1 1 9.5 4 6.8 6.8 0 0 0 20 14.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
       </svg>
     </button>
   </div>
-</div>
+</header>
 
-<div class="container">
+<main class="container">
 
-  <div class="stat-row" id="stat-row"></div>
+  <section class="hero" id="stat-row" aria-label="Workload summary"></section>
 
-  <div class="filter-row">
-    <div class="chips" id="chips"></div>
-    <div class="search-wrap" id="search-wrap">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <input class="search-input" id="search-input" type="text" placeholder="Search tasks…">
-      <button class="search-clear" id="search-clear" aria-label="Clear search">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-      </button>
+  <div class="controls" id="controls">
+    <div class="controls-inner">
+      <div class="chips" id="chips" role="group" aria-label="Filter the board by department"></div>
+      <div class="controls-right">
+        <div class="search-wrap" id="search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input class="search-input" id="search-input" type="text" autocomplete="off" spellcheck="false" placeholder="Search titles, notes, departments" aria-label="Search tasks">
+          <span class="search-kbd" id="search-kbd" aria-hidden="true">/</span>
+          <button class="search-clear" id="search-clear" aria-label="Clear search">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <label class="sample-toggle" title="Preview with sample data - adds extra demo tasks and a sample financial curve. Real tasks always stay visible.">
+          <input type="checkbox" id="sample-toggle" aria-describedby="sample-desc">
+          <span class="switch" aria-hidden="true"></span>
+          <span class="sample-text">Sample data</span>
+          <span class="sr-only" id="sample-desc">Preview with sample data: extra demo tasks plus a sample financial curve. Real tasks always show.</span>
+        </label>
+      </div>
     </div>
   </div>
 
-  <label class="sample-toggle">
-    <input type="checkbox" id="sample-toggle">
-    Preview with sample data (extra demo tasks + a sample financial curve — real tasks always show)
-  </label>
+  <p class="result-line" id="result-line" role="status" aria-live="polite"></p>
 
-  <div class="board" id="board"></div>
+  <section class="board" id="board" aria-label="Task board"></section>
 
   <div class="section-head">
-    <div><div class="section-title">This month</div><div class="section-sub">Income, expenses and net — pulled from the ledger</div></div>
+    <div><h2 class="section-title">This month</h2><div class="section-sub">Income, expenses and net - pulled from the ledger</div></div>
   </div>
   <div class="charts-row">
-    <div class="panel" id="finance-panel"></div>
-    <div class="panel" id="status-panel"></div>
+    <section class="panel" id="finance-panel" aria-label="Financial overview"></section>
+    <section class="panel" id="status-panel" aria-label="Task status breakdown"></section>
   </div>
 
   <div class="section-head">
-    <div><div class="section-title">Departments</div><div class="section-sub">What each team is working on right now</div></div>
+    <div><h2 class="section-title">Departments</h2><div class="section-sub">What each team is working on right now - click a card to filter the board</div></div>
   </div>
   <div class="dept-grid" id="dept-grid"></div>
 
-  <div class="footnote">Hand-maintained static export of <code>internal/dashboard/design/Main.dc.html</code> — see that file for the source task list. Rebuild after editing it.</div>
+  <div class="footnote">
+    Hand-maintained static export of <code>internal/dashboard/design/Main.dc.html</code> - see that file for the source task list. Rebuild after editing it.<br>
+    Shortcuts: <kbd>/</kbd> or <kbd>Ctrl</kbd>+<kbd>K</kbd> to search · <kbd>Esc</kbd> to clear or close · <kbd>←</kbd> <kbd>→</kbd> to move between tasks while one is open.
+  </div>
 
-</div>
+</main>
+
+<div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+  <div class="drawer-head">
+    <span class="drawer-pos" id="drawer-pos"></span>
+    <button class="icon-btn" id="drawer-prev" title="Previous task" aria-label="Previous task">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="icon-btn" id="drawer-next" title="Next task" aria-label="Next task">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="icon-btn" id="drawer-close" title="Close (Esc)" aria-label="Close task details">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
 
 <script>
 (function () {
@@ -354,8 +826,8 @@
 
   var DEPARTMENTS = [
     { id: 'web',   name: 'Web Development', short: 'Web',       hue: 243, icon: 'M8 6 L3 12 L8 18 M16 6 L21 12 L16 18',
-      activity: 'Score reform deployed — 95% ceiling, −10 imputed-pyramid penalty, ingredient component',
-      report: { label: 'Finalization Guide · Sep 8', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
+      activity: 'Producer console live — sign-in, submit, withdraw. Review queue is the next build',
+      report: { label: 'Finalization Guide · Sep 18', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
     { id: 'arch',  name: 'Architecture', short: 'Arch',          hue: 205, icon: 'M3 11 L12 4 L21 11 M5 10 V19 H19 V10 M9 19 V14 M15 19 V14',
       activity: 'Plan-notes review — 377/1 paused pending founder decision',
       report: { label: 'CAD Tooling Gap Analysis · Aug 20', url: 'https://claude.ai/code/artifact/3dbf2aec-3ced-4352-b096-6dd81cb4956b' } },
@@ -364,15 +836,15 @@
     { id: 'ads',   name: 'Advertising', short: 'Ads',            hue: 28,  icon: 'M3 11 V13 A1 1 0 0 0 4 14 H7 L12 18 V6 L7 10 H4 A1 1 0 0 0 3 11 Z M15 8 A4 4 0 0 1 15 16 M18 5 A8 8 0 0 1 18 19',
       activity: 'Milena Dranka cadence — Fanvue piece still blocked', report: null },
     { id: 'comms', name: 'Communication', short: 'Comms',        hue: 325, icon: 'M4 4 H20 V16 H8 L4 20 Z',
-      activity: '4 merchants earning; Perfumania approved but waiting on them to send the feed',
-      report: { label: 'Finalization Guide · Sep 8', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
+      activity: '5 merchants earning — Perfumania wired off its storefront, not its feed',
+      report: { label: 'Finalization Guide · Sep 18', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
     { id: 'acct',  name: 'Accounting', short: 'Accounting',      hue: 45,  icon: 'M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 Z M12 7 V17 M15 9.5 C15 8.1 13.7 7 12 7 C10.3 7 9 8 9 9.2 C9 12.2 15 10.6 15 13.5 C15 14.9 13.7 16 12 16 C10.3 16 9 14.9 9 13.5',
-      activity: 'Company USD/EUR live; 4 merchants tracking, revenue still $0, Hostinger receipt unlogged',
-      report: { label: 'Finalization Guide · Sep 8', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
+      activity: '5 merchants tracking, revenue still $0 — the 1,680 TRY Hostinger split still blocks the books',
+      report: { label: 'Finalization Guide · Sep 18', url: 'https://claude.ai/code/artifact/379722bc-cf4f-431f-a2ac-3c9acd6ead96' } },
     { id: 'ctrl',  name: 'Control / Audit', short: 'Control',    hue: 275, icon: 'M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z M9 12 L11 14 L15 10',
-      activity: 'Standing checks — dashboard/report sync, cost cross-check', report: null },
+      activity: 'Standing checks — /review is public and inert, which is safe only while it stays inert', report: null },
     { id: 'content', name: 'Content', short: 'Content',          hue: 0,   icon: 'M6 3 H14 L19 8 V21 H6 Z M14 3 V8 H19 M9 12 H16 M9 16 H16 M9 19 H13',
-      activity: 'Library at 12 pieces; 77 links exist, comparison/review now gated on a deleted route', report: null },
+      activity: 'Library at 12 pieces; 620 /go/ ids exist, comparison/review still gated on a deleted route', report: null },
   ];
   var DEPT_BY_ID = {};
   DEPARTMENTS.forEach(function (d) { DEPT_BY_ID[d.id] = d; });
@@ -533,7 +1005,7 @@
       notes: 'Found by cross-referencing Dossier (about 90 products) and ALT. Fragrances (34) published storefront indexes against our 68 references: only about 23 overlapped with Dossier and 13 with ALT., leaving roughly 45 of 68 with NO counterpart at either merchant. Those pages can never hold a listing or earn a commission - not because listings are empty today, but because the product does not exist at the merchant. All 7 Jean Paul Gaultier entries had zero coverage; 10 of 11 Parfums de Marly; all 4 Chanel Les Exclusifs. Meanwhile Tom Ford is Dossier most-covered house at 13 products and the catalog carried exactly one Tom Ford entry. Root cause: the catalog was organised by HOUSE and the dupe market is organised by FRAGRANCE. Added 43 merchant-verified references - new house files for Tom Ford (8), YSL (5), Le Labo (4), Kilian (3), Byredo (3), Maison Margiela (3), Versace (3), plus Paco Rabanne and 15 singles folded into other.ts (18). Existing entries were consolidated into their new house files rather than left split. Sitemap 89 to 132 URLs. The 23 low-commercial-value existing entries were deliberately NOT deleted - they cost nothing and are honest; the fix is to stop expanding by house depth. YSL MYSLF was SKIPPED rather than guessed: confident public note-pyramid data could not be retrieved, and it is flagged in a code comment in ysl.ts rather than silently dropped. Zero invented note pyramids, zero invented prices, imageUrl left empty on every new entry (bottle photography is trade dress).' },
     { id: 178, title: 'Money rails: first Awin merchant approved (My Perfume Shop), CJ application submitted, Amazon last', dept: 'acct', status: 'assigned', priority: 1, due: null,
       notes: 'UPDATE 2026-08-31 (founder report): My Perfume Shop approved us on Awin - the first merchant-level approval. Checked 1 Sep against its Awin profile (ID 106089): it is a genuine-designer retailer (Australia-led, ships AU/NZ/UK), so it is originals-side like Escentual, NOT a dupe house - it backs buy-the-original links and price-anchoring, not the DUPES listings, which still have no merchant. The CJ Affiliate application is submitted and pending CJ review; FragranceX follows through CJ once in. No code has changed - affiliateLinks is still {} and no sub-ID scheme exists - but FINALIZATION-GUIDE sec 3.4/3.5 and the link-shape change are now live work, not hypothetical, and per sec 3.5 the sub-ID scheme must be built before the first real click or that traffic is unattributable forever. Next: pull My Perfume Shop deep-link/feed details, confirm the merchant name, wire it. --- Bank blocker fully cleared. Confirmed with VakifBank: Turkey is not in SEPA so the EUR account receives via SWIFT; no caps or limits on either company account; SWIFT fee 10 USD to 30 EUR per transaction depending on channel and amount. That fee is regressive on small payouts, so the Awin payment threshold should be set to about 500-600, not the default. Payout currency switched from EUR to USD late in signup - VakifBank charges 30 on EUR versus 10 on USD, a confirmed 20 per transaction saving that beats the earlier unverified assumption that EUR would avoid an internal Awin conversion. Mali musavir cleared the Amazon split: founder personally as payee via personal Payoneer is fine PROVIDED the company never issues an invoice against that income - Amazon does not require publisher self-billing, unlike Awin. That clearance is Amazon-specific and must not be extended to Awin or CJ, where the company does self-invoice per payout and the money must land in company accounts. Awin invoicing mechanics captured from their own Turkish-tax-resident modal and recorded in accounting CLAUDE.md: commissions are gross, invoice only after a payment notification, exact address AWIN Ltd 5th floor 2 Thomas More Square London E1W 1YN VAT GB766 0309 30, invoice must match notification on currency/amount/reference, paid within 14 days, and critically the payment goes to whatever bank account sits in Payment Details REGARDLESS of what the invoice says - so Payment Details is the real control point. A separate company Payoneer account is applied for and awaiting verification, intended for CJ; Awin needs no Payoneer account at all since its integration pays a bank account directly. Amazon stays last: approval needs 3 qualifying sales in 180 days and the clock starts at application, so applying before real traffic only shrinks the window.' },
-    { id: 179, title: 'Root CLAUDE.md cut 65 percent after it became a real context cost', dept: 'all', status: 'fulfilled', priority: 2, due: null,
+    { id: 179, title: 'Root CLAUDE.md cut 65 percent after it became a real context cost', dept: 'ctrl', status: 'fulfilled', priority: 2, due: null,
       notes: 'The founder flagged that checking CLAUDE.md burned an unreasonable amount of context, and was right: at 39,656 bytes it auto-loads into every session before any work starts. Cut to 14,004 bytes. What was removed: incident narration (exact dates, four builds failed, three separate down reports), and material that duplicated the fragrance-dupes project CLAUDE.md, which documents its own phase status, empty arrays, producer gate and static-export constraints more precisely than the root summary did - the root now points there instead of restating it. What was KEPT: every operational rule and every hard-won gotcha - the deploy shim and the correct rehearsal command, never build while dev is live, force-resolve before declaring the site up or down, the two-machine hardcoded path trap, Turkey payment-provider exclusions, verify subagent file writes, MCP timeout means fresh session not broken server, and the fixture-labelling and honesty conventions. The saving compounds since it loads every session. Considered and rejected: moving this to a memory tool, because board subagents and the two scheduled cloud routines only ever see git-committed files, so per-machine memory would recreate exactly the cross-session drift the git fetch rule exists to prevent.' },
     { id: 185, title: 'Match-score reform: 95% ceiling, imputed-pyramid penalty, ingredient component, founder override', dept: 'web', status: 'fulfilled', priority: 1, due: null,
       notes: 'THE PROBLEM, and why it became urgent now. computeSimilarity ran on self-reported data: notes*0.5 + facets*0.35 + familyBonus*0.15, with familyBonus hardcoded to 1. A merchant who restated the original note pyramid as their own product scored near-perfect - not theoretical, it happened twice in two days (Clone of Perfume Rouge Veil declared Baccarat Rouge 540 note for note, raw 99; AromaPassions Crystal Noir and Bright Crystal the same shape). Existing defences caught only the extreme end: isVerbatimCopy needs notes AND facets to match, and we author the facets, so raw 85-89 published untouched. It became urgent because the producer subscription (Phase 5) would make outside producers a second and much larger source of the same self-reported data - and unlike a merchant, a producer whose revenue depends on rank has reason to do it deliberately. FOUR CHANGES, ONE COMMIT, because each moves scores and staging them means explaining three different numbers to the same reader. (1) 95% STRUCTURAL CEILING on every published score including editorially verified ones, which were previously uncapped to 100 - two fragrances can declare identical notes and still not contain them in the same proportions, so no number built on declared notes should claim otherwise. (2) FLAT -10 before either ceiling on any listing whose note-tier split is ours rather than the seller published - 47 of 79 (AromaPassions 38, Clone of Perfume 9), the other 32 Opulensi-sourced and declared. (3) familyBonus FIXED to the real family check, which needed a new required DupeCandidate.family field - a no-op for all 79 by construction, since every listing shares its reference family. (4) INGREDIENT/INCI OVERLAP as a 4th component at 15% (40/30/15/15), flat and untiered, ACTIVE ONLY when both sides have a list; otherwise the original 50/35/15 applies unchanged. Two fixed weight sets deliberately, not one proportional redistribution - redistributing 15 points lands at ~47/35/18 and would have shifted every existing score on ship day. No listing has ingredient data yet, so it currently affects nothing. FOUNDER OVERRIDE is the only way past 95: a human number with a mandatory written justification, its own badge (never conflated with Editorially verified - one is an independent check, the other is one person disclosed opinion), never on a house product, and unable to rescue a flagged copy. validateFounderOverride runs at module load so a bad one fails the build. Zero listings use it. MEASURED against the shipped functions via esbuild before and after: the 32 declared listings moved by EXACTLY ZERO, 41 of 47 imputed fell exactly 10, six fell less because they already sat at the 90 cap (Rouge Veil raw 99 went 90 to 89). ONE RANKING CHANGED SITE-WIDE: on Aventus the Clone of Perfume listing this repo already called suspiciously #1 dropped to #3, behind two declared-pyramid listings - the penalty doing exactly its job. Verified live after deploy: Admire on chance-eau-tendre renders 75 (was 85), Aventus reads 80/79/79. STILL NOT SOLVED, stated in the docs so it is not read as closed: the penalty prices a MISSING pyramid, not copying. A merchant who copies the pyramid and publishes it as three proper tiers is still scored at face value, and isVerbatimCopy remains the only defence there. OPEN FOLLOW-ON: ingredient/INCI backfill across 65 originals + 79 dupes (~144 lookups) is what activates the 4th component. Decision record in PRODUCER-PROGRAM.md sec 7, written by board-coo; mechanics in the project CLAUDE.md; FINALIZATION-GUIDE and its published Artifact both updated to the eighth pass.' },
@@ -546,7 +1018,59 @@
     { id: 181, title: 'FragranceShop CJ feed wired: buy-the-original works for the first time, 101 of 200', dept: 'web', status: 'fulfilled', priority: 1, due: null,
       notes: 'Founder delivered the FragranceShop.com CJ feed (5,802 rows, 87 columns, tab-delimited). Before this, ALL 200 references declared affiliateLinkId original-<slug> and not one resolved, so hasRealAffiliateLink() suppressed the buy-the-original button site-wide. Now 101 resolve and the button renders on both the catalog page and the dupe comparison. Same pass took reference imagery from 156 to 174 (18 fragrances got a first photograph) and re-sourced 101 images off the DEAD My Perfume Shop programme onto a live tracking one, which closes most of the licensing question flagged in the project CLAUDE.md - the licence rides on the affiliate relationship, not the picture. Built: scripts/ingest-cj-feed.mjs, scripts/fetch-cj-images.mjs, scripts/lib/product-matching.mjs (shared matching rules), three generated files under lib/data/, and getOriginalOffer() in lib/catalog.ts. generate-redirects and check-affiliate-links now read BOTH link files; /go/ resolves 178 ids (101 original + 77 dupe). Verified against the built static export, not just tsc: the obsession page renders \'Buy for $21.95 at FragranceShop.com\' with the redirect present, Baccarat Rouge 540 renders the no-price variant correctly, and a reference the merchant does not stock renders no button at all. TRAPS FOUND, all documented: (1) our ORIGINALS merchant is also a dupe seller - 1,213 rows (21%) are its own \'Type Perfume Oil\' knock-offs at $7.95-13.95, and matching one as the original would be the exact failure the site exists to prevent; the strict matcher refuses them, which is why Green Irish Tweed and Oud Wood are unmatched rather than cheaply matched. (2) The CJ format sample said 66 columns; the real export has 87. (3) The WAF blocks on TLS FINGERPRINT - node fetch gets 403 with any User-Agent, curl gets 200 with our own bot UA - so the image fetcher shells out to curl and the link checker reports these destinations as inconclusive rather than passing them. (4) Two matcher bugs that failed silently: a cross-reference guard containing the word \'parfum\' (from our own \'Le Male Le Parfum\') rejected all 5,802 rows against all 200 references and matched ZERO; and BRAND_SYNONYMS held a raw value where every lookup compares normalised output, so Flowerbomb and Spicebomb had exact rows and failed the brand gate. (5) The merchant misspells \'Maison Francis Kurkdijan\', which hid Baccarat Rouge 540 - the site\'s highest-value reference, three dupe listings and its own guide - until the standing fuzz-the-leftovers step was run over BRANDS. OPEN, AND IT IS A FOUNDER CALL NOT A CODE TASK: FragranceShop is a grey-market discounter selling at ~0.3-0.6x our priceUsd \'approximate US retail\' figure; 34 of 80 comparable prices differ by more than 40% (Obsession: ours $76, theirs $21.95). The buy button now shows THEIR price because it links to their page, while the \'Nx cheaper\' comparison still runs off our retail figure - both labelled, and the comparison surface says so where they disagree. Only 2 dupe listings actually invert (Blossom vs Bloom becomes equal, Harmony vs Terre d\'Hermes becomes more expensive), so it is a small call: keep retail as the baseline, or adopt merchant prices and let describeValueMultiple() say \'no cheaper\' where true. Also open: confirm the sid once in CJ\'s click report (CJ obfuscates the forwarded query so only the cjevent token is checkable automatically), wire Perfumania as a second originals merchant, and commit the 101 new images.' },
     { id: 180, title: 'AromaPassions A2: 55 to 79 listings, 41 to 65 originals, and one offer per listing', dept: 'web', status: 'fulfilled', priority: 1, due: null,
-      notes: 'Founder asked for 100 listings from the AromaPassions feed, with the 50ml price as the listing value and the two-button 50/100ml split dropped. Delivered 24 new listings (55 to 79) covering 24 new originals (41 to 65), and collapsed the 14 existing A1 listings to a single 50ml offer - both buttons had pointed at the SAME affiliate link, so the second was a duplicate that also made buy-actions.tsx call one retailer two retailers. 100 is not reachable from this merchant: of 103 distinct products, 33 were already covered, 24 shipped, 3 name flankers (Acqua di Gio Profondo, Code Profumo, Delina Exclusif) and the remaining ~32 each need a real researched original first, which the feed cannot supply. First action of the session was moving the downloaded feed out of the repo root, where it was NOT gitignored and would have been committed to a public repo as licensed merchant data. The scoring problem got sharper and is still open: AromaPassions publishes ONE FLAT NOTE LIST and no pyramid, but the formula weights tiers 20/35/45, so WE choose the split and the split moves the score 70 to 82 percent on identical data - measured on FEMININITY vs Chanel No 5 with facets held constant. Splitting by perfumery convention instead was tried and is worse: it disagrees with 17.1 percent of our own reference notes (253 of 1476) because tier placement is a per-fragrance fact published by the house, not a property of the material - saffron is a top note in Baccarat Rouge 540 and a heart note elsewhere and both are correct. Founder chose to ship aligned and disclose in every verdict. SPICY (Spicebomb) withheld: its declared notes are Spicebombs set exactly, overlap 1.000, so notesAreVerbatim fires - same call as ILLUMINATE. SEDUCTIVE (Coco Mademoiselle) also withheld, different reason: that products list is not in pyramid order so every legal split prints patchouli as a top note. Two listings were nearly lost to feed misspellings (CHANEL COCO MADEMOISLLE, GIVNCHY LINTERDIT) and recovered by fuzzy-matching leftovers - AUDACIOUS shipped from it. Verified end to end, not just reviewed: tsc and lint clean, build succeeds, 84 redirect rules, all 77 affiliate links traced with attribution intact, all 38 AromaPassions listings confirmed visible via getRankedDupesFor and 0 flagged verbatim. Images deliberately NOT hand-set - fetch-dupe-images.mjs needs all three feeds and only aromapassions.csv was re-downloaded, so the 24 render the generated note mark until the other two are back. Uncommitted and undeployed pending founder review.' }
+      notes: 'Founder asked for 100 listings from the AromaPassions feed, with the 50ml price as the listing value and the two-button 50/100ml split dropped. Delivered 24 new listings (55 to 79) covering 24 new originals (41 to 65), and collapsed the 14 existing A1 listings to a single 50ml offer - both buttons had pointed at the SAME affiliate link, so the second was a duplicate that also made buy-actions.tsx call one retailer two retailers. 100 is not reachable from this merchant: of 103 distinct products, 33 were already covered, 24 shipped, 3 name flankers (Acqua di Gio Profondo, Code Profumo, Delina Exclusif) and the remaining ~32 each need a real researched original first, which the feed cannot supply. First action of the session was moving the downloaded feed out of the repo root, where it was NOT gitignored and would have been committed to a public repo as licensed merchant data. The scoring problem got sharper and is still open: AromaPassions publishes ONE FLAT NOTE LIST and no pyramid, but the formula weights tiers 20/35/45, so WE choose the split and the split moves the score 70 to 82 percent on identical data - measured on FEMININITY vs Chanel No 5 with facets held constant. Splitting by perfumery convention instead was tried and is worse: it disagrees with 17.1 percent of our own reference notes (253 of 1476) because tier placement is a per-fragrance fact published by the house, not a property of the material - saffron is a top note in Baccarat Rouge 540 and a heart note elsewhere and both are correct. Founder chose to ship aligned and disclose in every verdict. SPICY (Spicebomb) withheld: its declared notes are Spicebombs set exactly, overlap 1.000, so notesAreVerbatim fires - same call as ILLUMINATE. SEDUCTIVE (Coco Mademoiselle) also withheld, different reason: that products list is not in pyramid order so every legal split prints patchouli as a top note. Two listings were nearly lost to feed misspellings (CHANEL COCO MADEMOISLLE, GIVNCHY LINTERDIT) and recovered by fuzzy-matching leftovers - AUDACIOUS shipped from it. Verified end to end, not just reviewed: tsc and lint clean, build succeeds, 84 redirect rules, all 77 affiliate links traced with attribution intact, all 38 AromaPassions listings confirmed visible via getRankedDupesFor and 0 flagged verbatim. Images deliberately NOT hand-set - fetch-dupe-images.mjs needs all three feeds and only aromapassions.csv was re-downloaded, so the 24 render the generated note mark until the other two are back. Uncommitted and undeployed pending founder review.' },
+    { id: 186, title: 'Perfumania wired off its STOREFRONT, not its feed: /go/ ids 252 to 620', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'Perfumania (CJ 17335854) had been approved for days and sat unwired because everyone was waiting on its product feed. The feed was the wrong catalogue: its CJ export carried 66 rows of the merchant\'s own house dupe line and zero designer stock, which read as a dead end. Its public storefront carries 4,380 products across 480 vendors, reachable via /collections/all/products.json?page=N — note the bare /products.json caps at 250 and silently ignores since_id, and a search-suggest endpoint is too unstable to prove absence with. Read directly off the storefront instead: 123 references matched, 91 now show TWO retailers with their own prices, /originals became a two-merchant page of 348 products, and /go/ went from 252 to 620 ids. Finalization-guide founder action 12 is therefore closed, but by a route it did not predict — chasing the feed would never have worked. THE REUSABLE LESSON: do not judge a merchant by the feed it happens to send you; check the actual shop, and note that a public Shopify storefront can be a better source than the feed. One deliberate non-use: Perfumania publishes proper three-tier note pyramids on 1,829 products, which looked like a research shortcut. Measured against the 90 fragrances where we hold our own researched pyramid they agree on only 0.57 of the materials named, 59% of the merchant\'s own duplicate SKUs disagree with each other, and one product carries four different pyramids. Captured and deliberately unused — machine-readable is not the same as correct, and a vendor\'s structured data can contradict ITSELF. One bug caught on the way in: both originals merchants were keyed original-<slug> and collided on 91 of 123 ids, where spread order silently decided which retailer survived and the other\'s links vanished with no error anywhere. Namespaced per source.' },
+    { id: 187, title: 'parfumoza.com removed from Cloudflare and verified dead from outside', dept: 'web', status: 'fulfilled', priority: 2, due: null,
+      notes: 'Closing out the 2026-08-27 brand rename. parfumoza.com was removed from the Cloudflare account and from the Worker\'s Domains & Routes, and verified dead from OUTSIDE rather than assumed: no A record, no AAAA record, and nothing answers on either http or https. One loose end left deliberately: the registrar\'s NS delegation still points at Cloudflare, so the zone still answers SOA. That is tidiness at the registrar, not a live risk — nothing is served either way. Finalization-guide founder action 13 closed. The accounting side of this was already settled and needs no action: the domain and mailbox were shut down at Hostinger on 2026-08-27 with auto-renew off, so the sunk portion of the 1,680.00 TRY invoice is a one-off, not recurring.' },
+    { id: 188, title: 'producers.counterscent.com: a second origin, sharing nothing with the catalogue', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'The first deployable thing in this repo that is NOT the catalogue. producers.counterscent.com is its own Cloudflare Worker with its own wrangler.jsonc and its own package.json, deployed with npx wrangler deploy from inside products/affiliate-sites/counterscent-producers/ — it shares nothing with the catalogue and the root deploy shim knows nothing about it, which is the point. Two things that generalise to any future second site. (1) Its custom domain is declared IN ITS OWN CONFIG with custom_domain: true rather than clicked in the dashboard, which refused with "No zones match". (2) custom_domain rather than a ROUTE is load-bearing: a route pattern covering counterscent.com would put a Worker in front of the catalogue, and _redirects rules are NOT applied to requests served by Worker code, so all 620 affiliate links would die silently. Also learned the hard way and worth remembering before anyone debugs a deploy again: workers.dev is blocked wholesale on the founder\'s network — every *.workers.dev host fails TLS while cloudflare.com and counterscent.com are fine — so a preview URL is not a way to check whether a Worker is up. That produced a false "it is broken" reading that mobile data disproved in one try. Related credential trap from the same week: wrangler whoami reports from CACHE and printed the account, the email and the full scope list while the very next API call failed with Invalid access token [code: 9109], because the OAuth token had lapsed overnight. Only a real call proves a credential works.' },
+    { id: 189, title: 'Neon Postgres + a 703-line Prisma schema — the first real backend in this repo', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'Shipped ahead of its own trigger: "Postgres + Prisma migration" sat under Not worth doing yet in the finalization guide and is now live. Neon Postgres (project holy-sunset-91521586) plus a 703-line Prisma schema that already models Producer, Submission, SubmissionRevision, AuditEvent and the full approval/publish state machine. Choosing Neon over Supabase later prevented a self-inflicted outage, which is worth recording because the reasoning generalises: a keepalive was almost added to stop the database pausing after 7 days of inactivity, which is SUPABASE\'s behaviour — on Neon compute simply wakes on the next query. Worse, a timer firing often enough to prevent the 5-minute sleep would burn 182% of the 100 CU-hour monthly budget and suspend compute until the next billing month: a real, recurring, multi-day outage bought to prevent an imaginary one. Before automating around a limit, confirm the limit belongs to the provider you actually chose. The same request asked for dummy rows on a timer, and that was refused for a separate reason: AuditEvent is append-only precisely so "who changed this listing, and when" has one honest answer, and seeding it to solve a scheduling problem contaminates the record to fix something the record has nothing to do with. SELECT 1 proves liveness and writes nothing. Per-machine note that costs a session every time it is forgotten: Neon credentials do not travel — the neon MCP is a USER-level install that exists only on win10; on this machine it is npx neon auth then npx neon link --project-id holy-sunset-91521586 --branch production -y, and the current CLI writes .env.local while Prisma reads .env, so one has to be copied across.' },
+    { id: 190, title: 'Magic-link sign-in LIVE and proven end to end, plus the timezone bug it uncovered', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'Proven by observation, not inference: a real link was requested, delivered to the inbox at 14:34:22Z, followed, and refused on replay with a 410. A garbage token answers 410 identically, revealing nothing. Hand-written rather than Auth.js, to keep the Worker\'s no-framework premise. The cookie is __Host-session, HttpOnly, Secure, SameSite=Lax, expiring 30 days out — and that expiry is the OBSERVABLE PROOF of the bug this fixed. A naive TIMESTAMP written from application code and then compared against Postgres now() is a timezone bug that hides completely under a UTC-defaulting database: with the session TimeZone anywhere east of UTC every token is born already expired and /verify answers 410 to everyone. Neon defaulting to UTC was the only reason it ever appeared to work. The fix computes the instant on ONE side, in SQL, so the two coercions cancel — and deliberately does NOT do that for the cookie, whose Expires is read by the BROWSER and must stay on the application\'s clock. Feeding it a value read back out of the zoneless column would reintroduce the very coercion just removed. Three rate limits guard the endpoint because it is unauthenticated and sends from the business\'s own inbox — an endpoint that sends mail is a spam relay until it is limited: 5 per 10 minutes per IP, one live token per address, and 100 sends per day origin-wide. A per-IP cap alone is worthless against dynamic IPs. Exercised rather than reasoned about: the sixth request in a window answered 429 with Retry-After: 237, and the global cap was measured to count SENDS not requests (four POSTs hit the IP bucket while the global send counter read 1). One production bug found and fixed the same session: an unguarded request.formData() made a malformed POST answer a generic 500 — exactly the fake-failure shape the rest of that file goes to great lengths to avoid.' },
+    { id: 191, title: 'The hand-rolled SMTP client was DELETED for Hostinger\'s HTTP Email API', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'The producer console had shipped with a hand-written SMTP client over cloudflare:sockets that had never been tested against a live mail server, resting on an unconfirmed assumption that outbound port 465 is open on our Workers plan. Hostinger publishes an HTTP Email API — POST /api/v1/mailboxes/{id}/send, reachable with a plain fetch(). src/lib/smtp.ts was DELETED and the Worker now sends with fetch(). Two things worth carrying past this one change. The deciding argument was not elegance or security but WHAT CAN BE VERIFIED BEFORE SHIPPING: the SMTP assumption could only ever be tested by deploying, an HTTP call can be tested from a laptop. And the dead rail was deleted rather than kept as a fallback, because two rails means both credentials live on the service and keeps an untested path alive for exactly the moment things are already going wrong. Note that the false claim justifying the risky code — "there is no HTTP API behind it" — sat in a code comment for two days and nobody checked it. Before hand-rolling a wire protocol, check whether the vendor publishes an HTTP API. Exposure was ENUMERATED rather than assumed: the send token also reaches message read, search, attachments, single, bulk and WHOLE-FOLDER delete, folder CRUD and full webhook management, and Hostinger publishes no send-only scope. SMTP credentials are no narrower — they are the mailbox\'s own password, so IMAP and webmail too — so the choice was a wash on exposure and had to be decided on other grounds. Also measured rather than read into: X-Ratelimit-Limit: 300 is NOT a daily send budget. The counter moved 299 to 298 within four seconds but read 299 again four minutes later, so it is a short-window budget on API CALLS — it bounds 429s, not mailbox suspension, and does not constrain 100 sends a day at all. When the supply-side number is unknown, argue the limit from the demand side, which is observable.' },
+    { id: 192, title: 'Search Console: nine pages were telling Google not to index them', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'Two indexing defects, both found from the LIVE site rather than from the code. (1) Nine pages declared the HOMEPAGE as their canonical — /about, /library, /privacy, /disclosure, /producers, /producers/pricing and three more. None of them set alternates, so each inherited the layout\'s canonical: "/" and was telling Google, in its own markup, not to be indexed. (2) 33 internal links omitted the trailing slash against trailingSlash: true, so each served a 307. Both fixed and verified live. Worth keeping in proportion rather than alarm: NEITHER touched the fragrance pages or the guides, so the actual SEO surface was always correct — this was a leak, not a flood. Two other things Search Console reported are NOT defects, and were checked rather than fixed: the ?ref= URLs (those links were removed weeks ago) and the www variants (identical HTML, consolidated correctly by canonical). The durable trap is canonical INHERITANCE — a layout-level canonical silently becomes every child page\'s canonical unless the child overrides it, and nothing in the build warns you. Re-measure the sitemap with curl -s https://counterscent.com/sitemap.xml | grep -c "<loc>" rather than trusting a number written in a doc; it read 240 on 16 Sep.' },
+    { id: 193, title: 'Producer console is real: three states, a listings table, submit and withdraw', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'A producer who signed in used to land in an empty room — /console hardcoded "signed out" for everyone. Now real: three states, a listings table, a quota line, /console/submit (the listing form, with <datalist> note selectors drawn from our own vocabulary) and /console/withdraw. Both answer 401 unauthenticated, verified from outside. WITHDRAW IS NEVER A ROW DELETE — it sets WITHDRAWN_BY_PRODUCER and keeps the row, because a click inside a network\'s cookie window can still pay out after a listing is gone, because deleting destroys the record of a listing pulled after a complaint, and because affiliateLinkId is mandatory in content/schema.ts so a delete can break published comparison or review content. The confirmation page says so plainly rather than labelling a button one thing and doing another. Founder decisions taken in the same pass: the console SHOWS PRICES (the drift objection was answered rather than ignored — src/generated/plans.ts is generated from fragrance-dupes/lib/plans.ts by scripts/generate-constants.mjs, so it is not a third hand-typed copy), the free tier takes no money and allows exactly ONE active listing, and free-tier producers MAY withdraw, which frees the slot and closes a contradiction between plans.ts and PRODUCER-TERMS section 10. TWO FAILURE MODES RECORDED, both expensive. The delegated run stalled at 600s with no progress — the signature of a grep walking node_modules — after writing ~2,400 correct lines across seven files and wiring NONE of them into src/index.ts, so nothing it built could be called. It also left a parse error nobody would find without compiling: a backtick inside a tagged template literal, in a SQL comment. Verifying that a claimed file EXISTS is not verifying that it is REACHABLE — grep the router, run the typecheck, call the route. Separately the ui-ux-pro-max review caught a SILENT SUCCESS: withdrawal redirected to /console?withdrew=<slug> and the console ignored the parameter, so a producer performed an irreversible act and landed on a page that looked unchanged. There is now a role="status" confirmation naming the listing and the /go/ id that stops resolving, and the slug is read back out of the producer\'s own listings so a crafted URL cannot make the page claim a withdrawal that did not happen.' },
+    { id: 194, title: 'NEXT BUILD — the review queue: staff role, access control, approvals', dept: 'web', status: 'assigned', priority: 1, due: null,
+      notes: 'THE LOOP IS HALF OPEN UNTIL THIS LANDS. A producer can sign in, submit a listing and withdraw it — and the submission lands PENDING with nothing in existence able to move it out of that state. /review is still notShipped(): no database calls at all, and verified from outside on 2026-09-18 that it returns 200 to ANYONE with no access control, which is safe ONLY while it stays inert. Three things have to happen in ONE change, not sequentially. (1) A staff role. User has no role or isStaff column — ActorType.STAFF exists in the enum at prisma/schema.prisma:251, so the audit trail already anticipates staff acting, but there is no way to IDENTIFY one. That is a migration, and migrations go BEFORE the deploy here, not after: the same ordering rule that made /sign-in fail closed with a 503 when its rate-limit table was missing. (2) Access control on /review, mandatory in the same change as its first database call and never after it — the moment that route reads anything real, public 200 becomes a data leak rather than a harmless placeholder. (3) The queue itself: PENDING listings oldest first with a paid tier prioritised within the same day, approve and reject with a written reason, every action recorded as an AuditEvent. THE CONTROL FLOOR IS DECIDED AND NOT OPEN: automation may flag, weaken, cap a score and take a listing down; it may NEVER put something up or make a claim stronger. A person approves, always. See task 195 for what the automated half is now allowed to do. One caution from the same schema: priority changes how soon something is READ and nothing about where it lands.' },
+    { id: 195, title: 'DECIDED: how a submitted listing gets checked — advisory flags, not an automated gate', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'Open since 2026-09-16 and deferred twice by the founder. DECIDED 2026-09-18: advisory flags into a human queue, PLUS mechanical checks moved into the form. Two things were already settled and reading the question without them produces a false choice: auto-approval and auto-publish are prohibited outright, and the direction of travel is asymmetric — automation may flag, weaken, cap and take down, never put up. So what was genuinely open was narrower: when a deterministic check fails, does the submission bounce back to the producer without a person seeing it, or land in a human queue carrying the failure as an annotation? THE DECISION, concretely. Purely mechanical and unambiguous checks — a missing required field, a storeUrl that is not https or is a shortener or a tracking link, an original that is not in our catalogue, a duplicate (producerId, referenceSlug) pair — become FORM VALIDATION AT SUBMISSION TIME, not a rejection after it. The producer is stopped before the submission exists and fixes it in the same sitting, so there is no wrong verdict to appeal, only an incomplete form. Everything requiring JUDGEMENT, above all isVerbatimCopy() and "does the declared pyramid restate the original\'s", runs as a FLAG INTO THE HUMAN QUEUE and never as an automatic refusal. The evidence for that line is already in this repo and it is the strongest available: the copy gate landed at different points on two near-identical merchant listings — ILLUMINATE withheld, GLAMOROUS shipped, on the strength of two orthographic differences — and that was correctly recorded at the time as the gate working at its boundary rather than as an inconsistency to tidy. A check with a KNOWN boundary is exactly the wrong instrument for telling a real, operating company no without a person reading it. /review\'s table already carries an "Automated checks" column, which is evidence this was the anticipated shape. THE HONEST COST, stated rather than hidden: this does not reduce how many submissions the founder reads, only the effort per item. At zero producers that cost is zero, and the volume at which it becomes real is also the volume at which hiring a reviewer is affordable. If that trade stops holding, revisit the bouncing gate for a NAMED, SMALL list of checks with an explicit appeal path — never as a general grant. One structural invariant this must not break: the copy-detection gate compares a producer\'s notes AND facets against the original, and works only because the FACETS ARE OURS. Collecting both from the producer defeats it by construction.' },
+    { id: 196, title: 'DECIDED, not yet built: rename the Featured tier to Unlimited', dept: 'web', status: 'assigned', priority: 2, due: null,
+      notes: 'DECIDED 2026-09-18. The top tier was named after the one thing we promise it does not buy: NEVER_INCLUDED reads "A premium or featured slot in results" while the tier is called Featured, so every honest explanation of that tier had to begin by explaining the contradiction. Raised twice before and deferred twice. The founder chose to rename the TIER and keep the promise wording, because the promise is the load-bearing part — it is what makes "no tier buys rank" structural rather than a claim. NEW NAME: Unlimited, which names exactly what the tier buys (the allowance) and cannot be misread as placement. Finalization guide 3.6b already uses "unlimited" in this precise sense — unlimited ORIGINALS COVERED, one listing per (producer, reference) pair, never unlimited rows, which is what stops a producer blanketing the catalogue with 40 near-identical variants to crowd out competitors — so the name and the docs finally agree. SCOPE, because this is bigger than a label and a partial rename is worse than none: featured is the tier ID, not just its display name. fragrance-dupes/lib/plans.ts is the source of truth (the PaidTier union, the id, the name); counterscent-producers/src/generated/plans.ts is GENERATED from it, so regenerate with npm run generate rather than hand-editing — a hand-copied constant there is a third copy no build step can check; scripts/generate-constants.mjs hardcodes the id list ["free","standard","featured"]; src/lib/producer.ts switches on it; src/routes/console.ts uses it as a comparison-table column header; app/producers/page.tsx renders it; and prisma/schema.prisma stores Producer.plan as a string with a comment naming the three tiers. ZERO PRODUCERS EXIST, so there is no data migration — which is exactly why this is cheap now and expensive later. Separately still unresolved and NOT part of this rename: the tier promises "conversion data, not just clicks", which cannot be delivered for store-direct listings because with no network in the middle there is no conversion report. Qualify that promise or drop it.' },
+    { id: 197, title: 'Issue the Worker its OWN Hostinger mail token — it is using the founder\'s', dept: 'web', status: 'assigned', priority: 1, due: null,
+      notes: 'The Worker\'s HOSTINGER_MAIL_API_TOKEN currently holds THE FOUNDER\'S OWN HOSTINGER_MAIL_TOKEN value, by an explicit decision on 2026-09-16 to get a real end-to-end test done that day and rotate afterwards. That rotation has not happened. The consequence is narrow and only bites during an incident, which is exactly when it is worst: revoking the Worker\'s token on suspicion ALSO kills the founder\'s hostinger-email MCP server, mid-incident. That is the entire reason the two were meant to be distinct. THE PRINCIPLE, which generalises well past this credential: issue a service its own credential EVEN WHEN IT IS NOT NARROWER, because revoking a shared one breaks your own tooling and therefore gets deferred, which is how a suspected compromise becomes a real one. Two supporting facts already established rather than assumed: Hostinger publishes no send-only scope, so a separate token is not narrower — it is just separately revocable; and a 403 is documented as "token is not authorized to manage the requested mailbox", so tokens ARE authorized per-mailbox, which means a mailbox added later is not automatically reachable by an existing token. Needs the founder in hPanel, then wrangler secret put HOSTINGER_MAIL_API_TOKEN from counterscent-producers/. Still unverified: whether Hostinger issues multiple tokens at all. One more thing to remember on any suspicion — revoking a token does NOT remove a webhook created with it, so revoke AND enumerate the mailbox\'s webhooks. And when a token appears to fail, check BOTH causes before concluding: a 401 can mean the variable never expanded (setx writes the user environment and a session started inside VS Code inherits VS CODE\'s environment, so VS Code itself has to be relaunched) or that the token really is dead. Prove the credential with a direct call OUTSIDE the MCP layer.' },
+    { id: 198, title: 'Hostinger 1,680.00 TRY invoice split — the one item blocking the CFO', dept: 'acct', status: 'blocked', priority: 1, due: null,
+      notes: 'No agent can close this, and it has been open since 2026-08-27. departments/accounting/ledger.md records the Hostinger row as "split unknown / Annual (assumed — unconfirmed)": the founder supplied a single 1,680.00 TRY total covering FOUR items (two domains, two mailboxes) and Hostinger\'s per-item breakdown was never captured. Two unknowns follow, and the second matters more: how the total splits, and WHETHER AUTO-RENEW IS ON FOR counterscent.com — the domain being kept. departments/web-development/CLAUDE.md documents that Hostinger\'s renewal rates run well above the advertised first-term figure, so a domain that silently renews at a higher price is the live risk, not the historical split. TESTED on 2026-09-16 rather than assumed, so nobody retries it: the Hostinger API token is SCOPED such that /renewal and /api/billing/... both answer 401 while portfolio reads work perfectly — this is not a broken credential and not something a retry or a rotation fixes. hostinger-billing is also deliberately not configured as an MCP server because it exposes purchase operations. The founder has to read it off the invoice: amount per item, currency, and the auto-renew state. This recurs at every renewal. Do not apportion it by guessing. WHAT IT BLOCKS DOWNSTREAM: the dedicated-sending-mailbox decision, whose cost is unknown until this is known. The argument for that mailbox is DELIVERABILITY, not security — automated sign-in mail going out from contact@ means a spam complaint takes out sign-in and the address customers write to as ONE incident. Already settled and needing no action: parfumoza.com was shut down with auto-renew off, so its share is sunk and non-recurring, and there is no hosting charge at all — Cloudflare Workers\' free plan was verified to permit commercial use.' },
+    { id: 199, title: 'Register the 9 pending affiliate applications, and confirm the CJ sid once', dept: 'comms', status: 'assigned', priority: 2, due: null,
+      notes: 'Two small items from the finalization guide\'s founder-only list, both cheap and both quietly rotting. (1) FOUNDER ACTION 14: the nine pending affiliate applications are tracked NOWHERE in the repo, so a session cannot tell what has already been applied for and risks re-applying or re-researching a merchant. They need a registry file. The cost of not having one is already proven — ALT. Fragrances, The Fragrance Counter and the in-network ShareASale listing all VANISHED from Awin after we applied (their programmes closed; that reads as the advertiser leaving the network, not a rejection), and nothing in the repo records that we ever applied. (2) FOUNDER ACTION 11: confirm the CJ sid ONCE in CJ\'s own click report. CJ obfuscates the query it forwards, so the sub-ID is unreadable from the redirect chain on our side — only the cjevent token is checkable from here. The equivalent one-off check is already done for Awin 117395. NOTE WHAT IS NOT OUTSTANDING, so nobody re-opens it: deep linking on Perfumania is settled from CJ\'s own artifact (the include CJ generated for our publisher id is scoped to perfumania.com and carries the joined path segment, so 17335854 permits deep linking), clicks show in CJ\'s dashboard graphs, and the last unknown — does a purchase through one of these links actually pay — CANNOT be answered without a sale. No amount of further checking changes that; stop spending sessions on it. Also unapplied and still free: FragranceX (CJ 1024283), the better fit for the niche houses FragranceShop does not carry. One standing caution when any of this is picked up: identify a merchant by the DOMAIN in its account record, never by a name search — fragranceshop.com, thefragranceshop.com and thefragranceshop.co.uk are three different companies and the collision inverted a whole phase\'s plan for two days.' },
+    { id: 200, title: 'No commission on ANY tier, the free one included', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'FOUNDER DECISION 2026-09-18, extending the 2026-09-10 one. Commission was already off every PAID tier; it is now off the free tier too, so no producer pays us a commission at any tier and a subscription is the only thing a producer ever pays. WHY IT MATTERS MORE THAN A PRICING TWEAK: the claim "we take no commission on your sales" was true of subscribers and false of the free tier, so it could never be said without an asterisk, and the asterisk is the part a reader remembers. Worse, the free tier was the ONE tier where our revenue rose with a listing\'s traffic, and it is also the tier under the least scrutiny. The sentence is now unqualified. WHAT IT COSTS, accepted deliberately and recorded so nobody "fixes" it later: the free tier now earns nothing at all. It is a funnel and a cost, justified by conversion to paid and by nothing else. If that conversion never materialises the answer is to change the free ALLOWANCE or close the tier, never to put commission back on it, which would now be a visible reversal of a published promise. SHIPPED: lib/plans.ts takesCommission false on all three tiers; the "We take no commission on your sales" bullet MOVED from Standard to Free, because leaving it on Standard above "Everything in Free" would have gone on charging $19 for something free accounts now get; src/generated/plans.ts regenerated; the console\'s comparison table commission row now reads None/None/None; PRODUCER-TERMS section 9 and section 10 rewritten (section 10\'s retention rationale rested on "a commission can still arrive weeks later", which is no longer true of producer listings); prisma schema comments on Submission.affiliateLinkId and ClickEvent.subId rewritten — affiliateLinkId is now null on EVERY row forever, and the column is kept only so nobody reads "unused" as "free to populate". SEPARATE AND UNTOUCHED: the catalogue\'s own affiliate revenue from retailers (FragranceShop, Perfumania, the dupe houses). That is a different counterparty and it is what funds the site. The producer console footer said "funded by affiliate commissions" with no qualifier, which on THIS origin reads as the small print taking the promise back; it now names retailers explicitly.' },
+    { id: 201, title: 'Founder\'s personal assessment removed — the 95% ceiling now has no exceptions', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'FOUNDER DECISION 2026-09-18. The scoring ceiling had exactly one exception: a founder override that published a personally-worn, personally-stated figure past both the 90 and 95 caps, carrying its own "Founder\'s personal assessment" badge. It is gone entirely. THE ARGUMENT, worth keeping because it generalises: the mechanism was carefully fenced — a build-time guard, a mandatory written justification, its own badge deliberately unlike "verified", and a bar on house products — and every one of those fences was an admission that the thing inside them was dangerous. An exception only the site\'s owner can invoke is the one part of a published rule a reader has no way to check. It also sat three paragraphs below a sentence on /about that ALREADY read "No score can publish above 95%, whatever the calculation returns", so the page contradicted itself on one screen. NEVER USED: zero listings carried an override for its entire life, verified by query on both branches before anything was dropped, so no published number changed. REMOVED FROM: lib/verification.ts (the getPreCeilingScore branch, the getPublishedScore bypass, the founder-override BadgeStatus member, getVerificationBadge\'s branch, and validateFounderOverride outright); lib/types.ts (the field); lib/dupes-data.ts (the module-load guard loop and its import); components/dupe-finder/verification-badge.tsx (the Signature icon, the compact label and the accent styling); app/about/page.tsx (the fourth methodology card). getPublishedScore now has ONE exit, through Math.min, which is a stronger guarantee than any validation around a bypass and is checkable in four lines. DO NOT RE-ADD IT as a field: if a personally-worn opinion is ever worth publishing it belongs in the verdict prose with a byline, where a reader can tell it from a computed number.' },
+    { id: 202, title: 'Apply the founderOverride column drop to PRODUCTION', dept: 'web', status: 'assigned', priority: 2, due: null,
+      notes: 'Migration 20260918120000_drop_founder_override drops three columns from Submission (founderOverrideScore/Note/Date). IT IS APPLIED TO THE local-dev NEON BRANCH ONLY. Production has not run it and needs the founder\'s go-ahead, because a DROP COLUMN cannot be undone by re-adding the column. SAFETY ALREADY ESTABLISHED, recorded here so it is not re-litigated or, worse, assumed: production held 0 submissions and 0 rows with any override value at the time of writing, and local-dev held 2 submissions and 0 with a value. RE-RUN THAT COUNT IMMEDIATELY BEFORE APPLYING rather than trusting this line — SELECT COUNT(*), COUNT("founderOverrideScore"), COUNT("founderOverrideNote"), COUNT("founderOverrideDate") FROM "Submission"; and stop if the last three are not all zero, because the written justification is the part that could not be reconstructed. Order does not matter: no code path on either side of the change reads or writes these columns, so the migration is safe before or after the Worker deploys. Do NOT trust the APPLIED line in the migration\'s own header comment to tell you production\'s state — the rate-limit migration\'s header went stale exactly that way on 2026-09-16 and misled a subagent into reporting an applied migration as a deploy blocker. Confirm with npx prisma migrate status, or query _prisma_migrations.' },
+    { id: 203, title: 'Producer console redesign, phase 1: app shell and information architecture', dept: 'web', status: 'assigned', priority: 1, due: null,
+      notes: 'FOUNDER BRIEF 2026-09-18: two consoles saying overlapping things, too much information at once, no imagery, and navigation buried so far down that routing between console and review meant scrolling to the footer. Direction in CONSOLE-REDESIGN.md (written after running design-taste-frontend), task breakdown in CONSOLE-REDESIGN-TASKS.md (board-coo). ALREADY SHIPPED, ahead of the breakdown because it was the most-cited complaint and depended on no content decision: the persistent app shell nav. NavContext and navBar() in src/ui/layout.ts render only when a caller passes nav, so a signed-out visitor still gets none and the original no-nav objection stays honoured rather than overruled; wired into /console, /console/submit five screens, /console/withdraw four screens and /review; current item marked by weight plus a 2px primary underline plus aria-current, never colour alone; under 48rem it drops to its own scrollable row and scroll-padding-top rises 5rem to 6rem to match the MEASURED 82px two-row header (the first guess, 7.5rem, overshot by 38px). Verified 3 links signed in and 0 signed out on all four routes, no horizontal overflow at 1536 or narrow, zero em-dashes. STILL TO DO, itemised W0-W12 in the tasks doc: the Featured to Unlimited tier rename must ride this change or the new copy bakes in a retired name; the / and /console split so /console stops being a second explainer; removing the PUBLIC /review card from the overview, which the nav rule does not touch; progressive disclosure via native details/summary, which needs no JS and survives the strict CSP; a /standards page that LINKS rather than copies the catalogue\'s own producer pages; and the zero-listing empty state. ONE TRAP CARRIED FORWARD: deleting the signed-out /console must not remove the only place on the origin that says how to GET an account, because there is no self-serve signup and a bare redirect to /sign-in strands that person at a form with no route in.' },
+    { id: 204, title: 'Producer console redesign: page copy, merge map and a stale-claim sweep', dept: 'content', status: 'assigned', priority: 2, due: null,
+      notes: 'Content leads phase 1 of the console redesign, because web development cannot write the pages until it knows what goes on them. Four tasks, drafts landing in departments/content/projects/counterscent-producers/ and never directly in src/. C1: a copy inventory and merge map for the signed-out /console explainer that is being deleted, giving every section one of four dispositions (merge into /, move to /standards, collapse into a details element, delete as duplicate) WITH A REASON, so the deletion is auditable rather than a judgement call made once and forgotten. C2 and C3: the / public programme page and the /standards page. C4, and this is the one with a live cost: a stale-claim sweep. The origin still describes itself as unbuilt in at least six places, including the meta description on EVERY page and the overview\'s own review-queue card, which says nothing can be submitted and the form is the next piece of work. Sign-in, the console, submit and withdraw all shipped 2026-09-16, so those sentences have been false for two days on a public site. SALES gets one narrow review pass (S1) over C2 and C3 against seven commercial terms, not a rewrite: that material is sales\'s own from 2026-09-16 and it is being moved to new surfaces, which is exactly where an approved claim quietly changes wording.' },
+    { id: 205, title: 'Three founder decisions blocking the console redesign', dept: 'web', status: 'blocked', priority: 1, due: null,
+      notes: 'Raised by board-coo 2026-09-18; none can be settled by a department. (1) IMAGES IN PHASE 1, YES OR NO. The direction doc claimed reference bottle images were a data-plumbing job. That was wrong three ways, checked rather than argued: the generator emits GeneratedReference as slug/name/brand with NO image data; the catalogue\'s images live in six separately-keyed generated maps totalling about 605 entries, and merging them is the same key-prefix collision that already destroyed one merchant\'s links; and the CSP is img-src \'self\' data: while the binaries are served from counterscent.com, a different origin. Under all three, the decisive fact: ZERO producers and ZERO submissions, so listing-row images would render for nobody. Recommendation is to cut images from phase 1 except the empty state and wait for the photograph-upload work. Saying yes means widening the CSP, which is a founder decision because it loosens a security header for a cosmetic gain. (2) DOES THE FEATURED-TO-UNLIMITED RENAME RIDE THIS CHANGE? It was decided 2026-09-18 and is still unbuilt. The redesign rewrites copy on exactly the surfaces that render tier names, so doing it later means either retyping the copy or shipping a retired name. Zero producers means no data migration, which is why it is cheap now and expensive later. (3) THE /review ACCESS-CONTROL MODEL, env allowlist versus a User column. Cheap to choose now, and choosing late is what turns it into a rush. THE STANDING RULE, which is a condition and not a preference: the change that gives /review its first real query is the SAME change that gives it access control, never the commit after. It is inert and unprotected today, and that combination is safe only while the first half stays true.' },
+    { id: 206, title: 'Tier ladder reworked: Standard cut to $12, Featured renamed Unlimited', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'FOUNDER DECISIONS 2026-09-18, both shipped. (1) PRICE: Standard $19 to $12 monthly, $190 to $120 yearly. The founder\'s reason was the SHAPE of the ladder rather than the market: free carries one listing and Standard carries twenty-five, so the first money a producer spends buys a twenty-fivefold jump, and $12 is what that first step should cost. The yearly ratio was held deliberately at ten-months-for-twelve (190/19 = 10, 120/12 = 10) so the annual discount did not silently change with the headline number. STILL A PLACEHOLDER: section 3\'s research into what these houses actually spend on acquisition has not been done, and the header warning in lib/plans.ts applies to 12 exactly as it applied to 19. (2) RENAME: the top tier was called Featured, which is the one thing NEVER_INCLUDED promises no tier buys. That line still reads \'A premium or featured slot in results\' and did NOT move, because the promise is the load-bearing half. Unlimited names the allowance, which is what the tier actually buys. featured was the tier ID and not a display label, so the rename ran through lib/plans.ts (the PaidTier union, isPaidTier, the id and name), the regenerated src/generated/plans.ts, generate-constants.mjs\'s hardcoded id list, allowanceForTier\'s switch, and the schema comment. NO MIGRATION WAS NEEDED because Producer.plan was deliberately a String rather than an enum, a call made earlier precisely because tier names were expected to change; that comment now records that it paid off. allowanceForTier deliberately does NOT alias the old id: an unrecognised tier returns unknown, which refuses to guess an allowance rather than granting one. ONE EXTRA FIX FOUND ON THE WAY: the console\'s comparison table hardcoded Item/Free/Standard/Featured, a fourth hand-typed copy of the tier names in a project that generates constants precisely so copies cannot drift. The headers now derive from the generated PLANS, with an assertion that the hand-ordered row cells still match, because generated headers over hand-ordered rows would otherwise put every value under the wrong column with nothing looking broken.' },
+    { id: 207, title: 'Self-serve withdrawal is now a paid feature, enforced in code', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'FOUNDER DECISION 2026-09-18, reversing the 2026-09-16 ruling. Free-tier producers can no longer withdraw their own listing; they write to us and a person does it, no reason asked and no delay. WHY THIS NEEDED CODE AND NOT JUST COPY: the contradiction between lib/plans.ts and PRODUCER-TERMS section 10 was closed on 16 Sep in the free tier\'s favour, but only withdraw.ts was changed. plans.ts went on selling withdrawal as a $19 Standard feature for two days while the code gave it away to everyone. This time all three moved together: plans.ts (the bullet is back on Standard), PRODUCER-TERMS section 10 (now says how each plan takes a listing down rather than promising everyone a console button), and the new mayWithdrawSelf() in src/lib/producer.ts. THE GATE IS ON BOTH VERBS, which is the part that matters: the GET refuses so we never render a form the producer cannot submit, and the POST refuses independently because a hidden button is not a control. That handler is reachable by a direct POST with a valid CSRF token, which a free producer\'s own browser can mint. PROVEN, not assumed: captured a genuine 64-character CSRF token while the fixture producer was on Standard, dropped them to free, replayed the POST, and got 403 with the explanation screen rather than the CSRF-refusal screen, with the listing still LIVE afterwards. Then confirmed the paid path still works end to end: 303 redirect, publishState WITHDRAWN_BY_PRODUCER, audit event written. mayWithdrawSelf DERIVES from the plan\'s price rather than a hardcoded tier list, so it needed no change for the Featured-to-Unlimited rename and cannot drift; it fails closed on both a null tier (no Subscription row) and an unrecognised one. THE COST, accepted deliberately: countsAgainstAllowance excludes withdrawn listings, so withdrawing used to free the free tier\'s single slot, and that is what made its one listing a choice a producer could revisit alone. It no longer is. So the refusal is not a locked door. It names the listing, says plainly who can do it, and carries a prefilled mailto, and the control stays VISIBLE rather than hidden, because a producer who cannot find it learns nothing.' },
+    { id: 208, title: 'Listing thumbnails wired and proven before any real image exists', dept: 'web', status: 'fulfilled', priority: 2, due: null,
+      notes: 'FOUNDER INSTRUCTION 2026-09-18: use a dummy image for test right now, later when subscribers list I do not want to have any error, we need to be prepared. The COO\'s recommendation had been to cut images from phase 1 entirely, and its reasoning held (the generator emits no image data, the catalogue\'s images live in six separately-keyed maps, and img-src self data: blocks the cross-origin binaries) but the founder\'s point is different and correct: the render path should be exercised BEFORE the first real producer supplies a file, not on the day one arrives. BUILT: Submission.imageUrl is now selected into ListingRow and rendered by a new listingThumb() in the name cell rather than a seventh column, because a picture is an attribute of the fragrance named beside it and the table already carries six columns. THE FALLBACK SURVIVES A DEAD URL WITH NO JAVASCRIPT, which is the whole trick: the CSP forbids inline handlers so there is no onerror to hook, and a dynamic background-image would need an inline style attribute that style-src self also blocks. So the lettered tile is painted on the WRAPPER and the img sits on top; a missing or failed image leaves the tile. Dimensions are set in the markup as well as CSS so a row reserves its space before the image loads, because a table that reflows as thumbnails arrive would start doing so on the day the feature starts working. MEASURED, NOT ASSUMED, and the code comment was corrected to match: Chrome DOES still paint its own small broken-image glyph over the tile when a URL is set and 404s. There is no CSS-only fix, :broken does not exist, and both alternatives are worse, so the glyph stays and is arguably honest, since a dead imageUrl means our own storage lost our own file. The common case, no image at all, emits no img and shows the clean tile. Verified all three states in Chrome at 40x40 with no horizontal overflow. The fixture asset is public/assets/fixture-listing-image.svg: flat colour, diagonal hatch and the word FIXTURE across it, deliberately incapable of passing for a product photograph, and safe to ship because nothing renders it unless a row names it and no production row does.' },
+    { id: 209, title: 'Plan page in the console, with real prices and no fake checkout', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'FOUNDER INSTRUCTION 2026-09-18: the user should be able to upgrade its plan easily from console too. Built /console/plan plus a Your plan nav entry and a link on the account card\'s plan row, which is where a reader who wants to change tier is already looking. WHAT IT IS NOT: a Subscribe button. No payment provider is connected to this origin - Paddle is recommended, not integrated, and Stripe/PayPal/Gumroad do not serve a Turkey-based company - so the page leads with a Billing not connected pill and says in the first sentence that nothing on it can charge you. The action on every tier the producer is not on is a mailto prefilled with the company, the tier they are on and the tier they want, because a person really does set Subscription.tier by hand today and that is one click with nothing to type. A POST into a request table was considered and rejected: it needs a migration, and what it buys over mail is a row nobody reads, since the request has to reach a human either way. Keeping the page form-free also means it never asks for the allowForms CSP grant. EVERY FIGURE IS GENERATED from src/generated/plans.ts, never typed, so the console and the public pricing page cannot disagree; the yearly saving is derived from the ratio rather than written, so if the ten-months-for-twelve ratio ever changes the sentence changes with it instead of becoming a false claim about a real price. TWO STALE THINGS FIXED IN THE SAME CHANGE. (1) planTable\'s cost row still read \'Not printed on this screen\' and its doc comment still argued for carrying no figures, two days after the founder overruled exactly that on 16 Sep; it now prints $12/$120 and $49/$490 from the generated constants. (2) The never-included list inside that table was four typed lines, a fifth copy of a promise whose whole value is saying the same thing everywhere; it now maps over the generated NEVER_INCLUDED. TWO BUGS CAUGHT BY MEASURING RATHER THAN LOOKING: the free card rendered \'What we enforce\' above a button reading \'Move up to Free\', because the marking and the action were computed from two different flags; and the current-plan card printed \'No plan on file\' twice, once as its own heading and once from quotaLine. Verified in Chrome in both the no-record and Standard states, at 1440 and 390, zero console errors.' },
+    { id: 210, title: 'Dashboard rebuilt: hero, task drawer, collapsing columns, labelled priority', dept: 'web', status: 'fulfilled', priority: 1, due: null,
+      notes: 'FOUNDER INSTRUCTION 2026-09-18: make this dashboard more easy to use and more eye alluring. Started as a delegated web-developer run; that agent produced the CSS and markup and was then killed mid-task by an Anthropic session rate limit, having written nothing to the real files. Its scratchpad output was taken over and finished at the top level rather than re-spawning into the same limit. WHAT CHANGED AND WHY, problem by problem. (1) Four equal stat cards filled the first screen to deliver four numbers, one of them $0; now one hero leads with the single number that matters - 28 open - with a fulfilled-progress bar and the other figures demoted beside it. (2) Each column had its own inner scrollbar, so 80 fulfilled tasks hid behind a seven-word label and scrolling one column moved nothing else; columns now show six and collapse the rest behind a button that states the count, and the page scrolls as one. (3) Notes were walls of text with an inline Show more that expanded in place and shifted everything below it; a task now opens in a drawer with prev/next, arrow keys and Esc, so reading one task no longer moves the board. (4) Priority was an unlabelled three-bar glyph nobody could decode; it is now the word HIGH/MEDIUM/LOW, which costs the same pixels and needs no legend. (5) The status donut had three of four shares under 4%, which vanish as slices; it is labelled bars now, and colour never carries identity alone. (6) The sample-data checkbox held prime real estate above the board and is now a small switch beside search. (7) Search gained / and Ctrl+K, a live result count, and a Clear filters control. A REAL ACCESSIBILITY BUG WAS FIXED ON THE WAY: department cards nested an <a> inside a <button>, which is invalid HTML and traps keyboard users; the filter hit area and the report link are now siblings. THE TASK DATA WAS NEVER TOUCHED - the rewrite replaced the style block, the body markup and the render functions, and preserved the region between <script> and STATUS_META byte for byte. VERIFIED, NOT ASSUMED: all 108 cards in the DOM, column counts 23+2+80+3 and chip counts both summing to 108, hero reading 28 open / 80 fulfilled / 7 of 8 departments, filter, search, reset, sample toggle and drawer all exercised, both themes, 1440 and 390 with no horizontal page scroll, zero console errors, CRLF preserved at 1650 lines with no bare LF. One deliberate omission: Main.dc.html was NOT restyled, because the sync rule between the two files is about task data and this change carries none; the two now differ in presentation and still agree on every record.' },
+    { id: 211, title: 'Account strip rebuilt: plan and remaining allowance fill the empty right half', dept: 'web', status: 'fulfilled', priority: 2, due: null,
+      notes: 'FOUNDER OBSERVATION 2026-09-18: in the producer console the account section\'s white area is too wide, and the right side should carry the plan - which tier, how many listed, how many more they can list. The measurement backed it exactly: four facts crammed into the left of an 1104px card with 115px of dead space before the sign-out button, which reads as a rendering fault rather than as breathing room. THE FIX WAS NOT TO SHRINK THE CARD. The space is worth having; it needed to carry the question a producer actually opens the screen with. Plan and Listings moved OUT of the left fact list and into a tinted panel on the right reading YOUR PLAN / Standard / 1 listed - Can list 24 more / See plans and move tier. They were not duplicated on both sides, because the same fact rendered twice is a fact that can disagree with itself. THE REMAINING COUNT READS enforcedAllowance(), WHICH quotaGate NOW ALSO CALLS. The expression `tier === null ? 1 : allowanceForTier(tier)` was written out in two places and about to be in a third, and that exact shape had already caused a real bug where the console said there was nothing to be full of while the submit form said 1 of 1. One function now answers it, so Can list N more and a live Submit button cannot contradict each other. FOUR ALLOWANCE STATES, ALL EXERCISED AGAINST THE DATABASE rather than reasoned about: no Subscription row (Free, enforced, says the record does not exist), standard (1 listed - can list 24 more), unlimited (No cap on this plan), and a deliberately unrecognised tier written straight into the row (Not recognised / Allowance not known here / we will not guess one). TWO ITERATIONS WERE NEEDED AND BOTH WERE CAUGHT BY MEASURING. Filling the horizontal gap by stretching the left column and pushing sign-out to the floor opened a VERTICAL void in its place - two facts, 94px of nothing, then a lone button - so the left is top-aligned and compact instead. And the middle-dot separator was written as a CSS hex escape with no terminator, which Chrome painted as a replacement glyph followed by the literal characters B7; it is a literal character now. Card height went 319px to 212px. Verified at 1440 and 390, both themes, no horizontal page scroll, zero console errors.' },
   ];
 
   var SAMPLE_TASKS = [
@@ -559,226 +1083,562 @@
   ];
 
   var STATUS_META = {
-    assigned:    { label: 'Assigned',    dot: 'hsl(240 6% 60%)', color: 'var(--text-faint)' },
-    in_progress: { label: 'In Progress', dot: 'var(--primary)',  color: 'var(--primary)' },
-    fulfilled:   { label: 'Fulfilled',   dot: 'var(--green)',    color: 'var(--green)' },
-    blocked:     { label: 'Blocked',     dot: 'var(--red)',      color: 'var(--red)' }
+    assigned:    { label: 'Assigned',    c: 'var(--slate)',   soft: 'var(--slate-soft)',
+                   ico: '<circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2"/>' },
+    in_progress: { label: 'In progress', c: 'var(--primary)', soft: 'var(--primary-soft)',
+                   ico: '<circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2"/><path d="M12 12V7M12 12l3.5 2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+    fulfilled:   { label: 'Fulfilled',   c: 'var(--green)',   soft: 'var(--green-soft)',
+                   ico: '<circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2"/><path d="M8.5 12.2l2.4 2.4 4.6-4.9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' },
+    blocked:     { label: 'Blocked',     c: 'var(--red)',     soft: 'var(--red-soft)',
+                   ico: '<circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2"/><path d="M6.2 6.2l11.6 11.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' }
   };
   var STATUS_ORDER = ['assigned', 'in_progress', 'fulfilled', 'blocked'];
+  var PRIORITY_LABEL = { 3: 'High', 2: 'Medium', 1: 'Low' };
 
-  var state = { dept: 'all', query: '', sample: false };
+  // How many cards a column shows before it collapses the rest behind a
+  // "Show N more" button. The old board gave every column its own inner
+  // scrollbar, which hid 80 fulfilled tasks behind a 7-word label and meant
+  // scrolling one column moved nothing else. A collapsed tail is honest about
+  // how much is there (the count is in the button) and the page scrolls as one.
+  var COLLAPSE_AT = 6;
+
+  var REDUCED_MOTION = (function () {
+    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    catch (e) { return false; }
+  })();
+
+  // Illustrative only, and the shape of it matters: these six weeks are the
+  // ONLY numbers on the page that are not real, which is why nothing renders
+  // them unless the sample switch is on and why every surface that shows them
+  // is tagged. The net figure on the hero is COMPUTED from this series rather
+  // than typed beside it, so the chart and the stat cannot disagree.
+  var SAMPLE_FINANCE = {
+    weeks:   ['W1', 'W2', 'W3', 'W4', 'W5', 'W6'],
+    income:  [140, 1020, 2240, 1810, 4120, 6050],
+    expense: [95, 95, 690, 95, 520, 95]
+  };
+
+  var state = { dept: 'all', query: '', sample: false, expanded: {}, openId: null, animate: true };
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-
+  function money(n) {
+    return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  function deptOf(t) {
+    // An unknown dept must cost ONE TAG, never the whole board. This lookup
+    // feeds .map() calls that build every card into a single string, so a
+    // throw here renders an empty board while the counts above it stay
+    // correct - which is exactly how a dept typo once made the page look
+    // alive and empty at the same time.
+    return DEPT_BY_ID[t.dept] || { hue: 240, short: t.dept || 'Unassigned', name: t.dept || 'Unassigned' };
+  }
   function rawTasks() { return state.sample ? TASKS.concat(SAMPLE_TASKS) : TASKS; }
 
   function matchesQuery(t, q) {
     if (!q) return true;
-    var dept = DEPT_BY_ID[t.dept];
-    var hay = (t.title + ' ' + (t.notes || '') + ' ' + (dept ? dept.name : '')).toLowerCase();
-    return hay.indexOf(q) !== -1;
+    var d = deptOf(t);
+    return (t.title + ' ' + (t.notes || '') + ' ' + (d.name || '')).toLowerCase().indexOf(q) !== -1;
+  }
+  function visibleTasks() {
+    var q = state.query.trim().toLowerCase();
+    return rawTasks()
+      .filter(function (t) { return state.dept === 'all' || t.dept === state.dept; })
+      .filter(function (t) { return matchesQuery(t, q); });
+  }
+  function svg(size, inner, extra) {
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" aria-hidden="true"' +
+      (extra || '') + '>' + inner + '</svg>';
   }
 
-  function renderStats() {
+  /* ------------------------------------------------------------------ hero */
+
+  function renderHero() {
     var all = rawTasks();
     var open = all.filter(function (t) { return t.status !== 'fulfilled'; }).length;
     var done = all.filter(function (t) { return t.status === 'fulfilled'; }).length;
-    var activeDepts = new Set(all.map(function (t) { return t.dept; })).size;
-    var net = state.sample ? '$5,517' : '$0';
-    var tiles = [
-      { label: 'Open tasks', value: open, icon: '<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
-      { label: 'Fulfilled', value: done, icon: '<path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' },
-      { label: 'Net balance', value: net, sub: state.sample ? 'sample data' : 'no ledger activity yet', icon: '<path d="M3 17l6-6 4 4 8-8M21 7v6M21 7h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' },
-      { label: 'Departments active', value: activeDepts, icon: '<rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/>' }
+    var blocked = all.filter(function (t) { return t.status === 'blocked'; }).length;
+    var depts = {};
+    all.forEach(function (t) { if (t.status !== 'fulfilled') depts[t.dept] = 1; });
+    var deptsOpen = Object.keys(depts).length;
+    var pct = all.length ? Math.round((done / all.length) * 100) : 0;
+
+    var net = state.sample
+      ? money(SAMPLE_FINANCE.income.reduce(function (a, b) { return a + b; }, 0) -
+              SAMPLE_FINANCE.expense.reduce(function (a, b) { return a + b; }, 0))
+      : '$0';
+
+    var stats = [
+      { label: 'Fulfilled', value: done, sub: pct + '% of everything tracked',
+        ico: '<path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' },
+      { label: 'Blocked', value: blocked, sub: blocked ? 'waiting on a decision' : 'nothing stuck',
+        ico: '<circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2"/><path d="M6.2 6.2l11.6 11.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+      { label: 'Net balance', value: net, sub: state.sample ? 'sample data' : 'no ledger activity yet',
+        ico: '<path d="M3 17l6-6 4 4 8-8M21 7v6M21 7h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' },
+      { label: 'Departments', value: deptsOpen + ' of ' + DEPARTMENTS.length, sub: 'carrying open work',
+        ico: '<rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2"/>' }
     ];
-    document.getElementById('stat-row').innerHTML = tiles.map(function (t) {
-      return '<div class="stat-tile"><div><div class="stat-label">' + esc(t.label) + '</div><div class="stat-value">' + esc(t.value) +
-        '</div>' + (t.sub ? '<div class="stat-sub">' + esc(t.sub) + '</div>' : '') + '</div>' +
-        '<div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none">' + t.icon + '</svg></div></div>';
-    }).join('');
+
+    document.getElementById('stat-row').innerHTML =
+      '<div class="hero-inner">' +
+        '<div>' +
+          '<div class="hero-eyebrow">Open right now</div>' +
+          '<div class="hero-lead">' +
+            '<div class="hero-number">' + open + '</div>' +
+            '<div class="hero-unit">' + (open === 1 ? 'task needs someone' : 'tasks need someone') + '</div>' +
+          '</div>' +
+          '<div class="hero-note">Across ' + deptsOpen + ' of ' + DEPARTMENTS.length + ' departments' +
+            (blocked ? ', ' + blocked + ' of them blocked' : '') + '.</div>' +
+        '</div>' +
+        '<div class="hero-stats">' + stats.map(function (s) {
+          return '<div class="hero-stat">' +
+            '<div class="hero-stat-top"><span class="hero-stat-ico">' + svg(13, s.ico) + '</span>' +
+            '<span class="hero-stat-label">' + esc(s.label) + '</span></div>' +
+            '<div class="hero-stat-value">' + esc(s.value) + '</div>' +
+            '<div class="hero-stat-sub">' + esc(s.sub) + '</div></div>';
+        }).join('') + '</div>' +
+      '</div>' +
+      '<div class="hero-progress">' +
+        '<div class="hero-progress-head"><span>' + done + ' of ' + all.length + ' tracked tasks fulfilled</span><b>' + pct + '%</b></div>' +
+        '<div class="hero-track"><div class="hero-fill" style="width:' + pct + '%"></div></div>' +
+      '</div>';
   }
+
+  /* ----------------------------------------------------------------- chips */
 
   function renderChips() {
-    var all = [{ id: 'all', name: 'All departments', hue: null }].concat(DEPARTMENTS);
-    document.getElementById('chips').innerHTML = all.map(function (d) {
-      var active = state.dept === d.id ? ' active' : '';
-      var dot = d.id !== 'all' ? '<span class="chip-dot"></span>' : '';
-      return '<button class="chip' + active + '" style="--h:' + (d.hue == null ? 240 : d.hue) + '" data-dept="' + d.id + '">' + dot + esc(d.name) + '</button>';
+    var counts = {};
+    var pool = rawTasks();
+    pool.forEach(function (t) { counts[t.dept] = (counts[t.dept] || 0) + 1; });
+
+    var items = [{ id: 'all', name: 'All departments', hue: null, n: pool.length }]
+      .concat(DEPARTMENTS.map(function (d) {
+        return { id: d.id, name: d.name, hue: d.hue, n: counts[d.id] || 0 };
+      }));
+
+    document.getElementById('chips').innerHTML = items.map(function (d) {
+      var cls = 'chip' + (state.dept === d.id ? ' active' : '') + (d.n === 0 ? ' is-empty' : '');
+      return '<button class="' + cls + '" style="--h:' + (d.hue == null ? 240 : d.hue) + '"' +
+        ' data-dept="' + esc(d.id) + '" aria-pressed="' + (state.dept === d.id) + '">' +
+        (d.id !== 'all' ? '<span class="chip-dot"></span>' : '') +
+        esc(d.name) + '<span class="chip-n">' + d.n + '</span></button>';
     }).join('');
+
     Array.prototype.forEach.call(document.querySelectorAll('#chips .chip'), function (btn) {
-      btn.addEventListener('click', function () { state.dept = btn.getAttribute('data-dept'); renderAll(); });
-    });
-  }
-
-  function priorityBars(p) {
-    if (!p) return '';
-    var out = '';
-    for (var n = 1; n <= 3; n++) out += '<i class="' + (p >= n ? 'on' : '') + '"></i>';
-    return '<div class="priority">' + out + '</div>';
-  }
-
-  function renderBoard() {
-    var q = state.query.trim().toLowerCase();
-    var visTasks = rawTasks()
-      .filter(function (t) { return state.dept === 'all' || t.dept === state.dept; })
-      .filter(function (t) { return matchesQuery(t, q); });
-
-    var html = STATUS_ORDER.map(function (status) {
-      var meta = STATUS_META[status];
-      var tasks = visTasks.filter(function (t) { return t.status === status; });
-      var isFulfilled = status === 'fulfilled';
-      var clampLen = isFulfilled ? 130 : 190;
-      var cardsHtml = tasks.map(function (t) {
-        var d = DEPT_BY_ID[t.dept];
-        var notesLen = (t.notes || '').length;
-        var needsToggle = notesLen > clampLen;
-        return '<div class="task-card" data-id="' + t.id + '">' +
-          '<div class="task-title">' + esc(t.title) + '</div>' +
-          (t.notes ? '<div class="task-notes">' + esc(t.notes) + '</div>' : '') +
-          (needsToggle ? '<button class="notes-toggle" data-id="' + t.id + '">Show more</button>' : '') +
-          '<div class="task-meta">' +
-            '<span class="dept-tag" style="--h:' + d.hue + '"><span class="dept-tag-dot"></span>' + esc(d.short) + '</span>' +
-            '<div class="task-meta-right">' + priorityBars(t.priority) + (t.due ? '<span class="task-due">' + esc(t.due) + '</span>' : '') + '</div>' +
-          '</div></div>';
-      }).join('');
-      var empty = tasks.length === 0 ?
-        '<div class="col-empty"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 12h6M12 3v18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.5"/><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.4" opacity="0.35"/></svg>' +
-          (state.dept === 'all' && !q ? 'Nothing here' : 'None match the current filter') + '</div>' : '';
-      return '<div class="col" data-status="' + status + '">' +
-        '<div class="col-head"><div class="col-title"><span class="col-dot" style="background:' + meta.dot + '"></span>' + meta.label + '</div>' +
-        (isFulfilled ? '<span class="col-hint">Scroll for full history</span>' : '') +
-        '<div class="col-count">' + tasks.length + '</div></div>' +
-        '<div class="col-body">' + cardsHtml + empty + '</div></div>';
-    }).join('');
-
-    document.getElementById('board').innerHTML = html;
-
-    Array.prototype.forEach.call(document.querySelectorAll('.notes-toggle'), function (btn) {
       btn.addEventListener('click', function () {
-        var card = btn.closest('.task-card');
-        var expanded = card.classList.toggle('expanded');
-        btn.textContent = expanded ? 'Show less' : 'Show more';
+        setDept(btn.getAttribute('data-dept'));
       });
     });
   }
 
+  function renderResultLine() {
+    var el = document.getElementById('result-line');
+    var q = state.query.trim();
+    var filtered = state.dept !== 'all' || q !== '';
+    if (!filtered) { el.innerHTML = ''; return; }
+    var n = visibleTasks().length;
+    var bits = [];
+    if (q) bits.push('matching "' + esc(q) + '"');
+    if (state.dept !== 'all') {
+      var d = DEPT_BY_ID[state.dept];
+      bits.push('in ' + esc(d ? d.name : state.dept));
+    }
+    el.innerHTML = '<span>' + n + (n === 1 ? ' task ' : ' tasks ') + bits.join(' ') + '</span>' +
+      '<button class="result-reset" id="result-reset" type="button">Clear filters</button>';
+    var reset = document.getElementById('result-reset');
+    if (reset) reset.addEventListener('click', clearFilters);
+  }
+
+  /* ----------------------------------------------------------------- board */
+
+  function cardHtml(t, i) {
+    var d = deptOf(t);
+    var beyond = i >= COLLAPSE_AT ? ' is-beyond' : '';
+    var prio = t.priority
+      ? '<span class="prio prio-' + t.priority + '">' + (PRIORITY_LABEL[t.priority] || '') + '</span>' : '';
+    return '<button type="button" class="task-card' + beyond + '" style="--h:' + d.hue + ';--i:' + i + '"' +
+      ' data-id="' + t.id + '" aria-label="Open task: ' + esc(t.title) + '">' +
+      '<span class="card-title">' + esc(t.title) + '</span>' +
+      (t.notes ? '<span class="card-notes">' + esc(t.notes) + '</span>' : '') +
+      '<span class="card-meta">' +
+        '<span class="dept-tag" style="--h:' + d.hue + '"><span class="dept-tag-dot"></span>' + esc(d.short) + '</span>' +
+        '<span class="card-meta-right">' + prio +
+          (t.due ? '<span class="task-due">' + esc(t.due) + '</span>' : '') +
+        '</span>' +
+      '</span></button>';
+  }
+
+  function renderBoard() {
+    var vis = visibleTasks();
+    var board = document.getElementById('board');
+
+    board.innerHTML = STATUS_ORDER.map(function (status) {
+      var meta = STATUS_META[status];
+      var tasks = vis.filter(function (t) { return t.status === status; });
+      var expanded = !!state.expanded[status];
+      var hidden = Math.max(0, tasks.length - COLLAPSE_AT);
+
+      var cards = tasks.map(cardHtml).join('');
+      var empty = tasks.length === 0
+        ? '<div class="col-empty">' +
+            svg(20, '<rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.4" opacity="0.4"/><path d="M8.5 12h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.55"/>') +
+            (state.dept === 'all' && !state.query.trim() ? 'Nothing here' : 'None match the current filter') +
+          '</div>'
+        : '';
+      var more = hidden > 0
+        ? '<button type="button" class="col-more" data-status="' + status + '" aria-expanded="' + expanded + '">' +
+            (expanded ? 'Show fewer' : 'Show ' + hidden + ' more') +
+            svg(13, '<path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>') +
+          '</button>'
+        : '';
+
+      return '<div class="col' + (expanded ? ' is-expanded' : '') + '" data-status="' + status + '"' +
+        ' style="--col-accent:' + meta.c + ';--col-soft:' + meta.soft + '">' +
+        '<div class="col-head">' +
+          '<span class="col-ico">' + svg(14, meta.ico) + '</span>' +
+          '<span class="col-title">' + meta.label + '</span>' +
+          '<span class="col-count">' + tasks.length + '</span>' +
+        '</div>' +
+        '<div class="col-body">' + cards + empty + '</div>' + more +
+      '</div>';
+    }).join('');
+
+    // The entrance animation is a DELIBERATE-FILTER signal, not a keystroke
+    // effect. Replaying it on every character typed into the search box makes
+    // a 108-card board flicker continuously and reads as jank rather than
+    // feedback, so typing sets animate=false and only a chip, a dept card or
+    // the sample switch sets it back.
+    if (state.animate && !REDUCED_MOTION) {
+      board.classList.remove('animate');
+      void board.offsetWidth;
+      board.classList.add('animate');
+    } else {
+      board.classList.remove('animate');
+    }
+
+    Array.prototype.forEach.call(board.querySelectorAll('.task-card'), function (btn) {
+      btn.addEventListener('click', function () { openDrawer(btn.getAttribute('data-id')); });
+    });
+    Array.prototype.forEach.call(board.querySelectorAll('.col-more'), function (btn) {
+      btn.addEventListener('click', function () {
+        var s = btn.getAttribute('data-status');
+        state.expanded[s] = !state.expanded[s];
+        state.animate = false;
+        renderBoard();
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------- panels */
+
   function renderFinance() {
     var panel = document.getElementById('finance-panel');
-    if (state.sample) {
-      panel.innerHTML =
-        '<div class="panel-head"><div class="panel-title">Financial overview</div><span class="sample-tag">Sample</span></div>' +
-        '<div class="panel-sub">Weekly, last 6 weeks — illustrative only</div>' +
-        '<svg viewBox="0 0 600 200" width="100%" height="200" preserveAspectRatio="none">' +
-        '<line x1="40" y1="149.6" x2="580" y2="149.6" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 4"/>' +
-        '<polygon points="40,160 40,151.2 148,134.6 256,114.3 364,118.0 472,67.1 580,26.7 580,160" fill="var(--primary)" opacity="0.10"/>' +
-        '<polyline points="40,151.2 148,134.6 256,114.3 364,118.0 472,67.1 580,26.7" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-        '<polyline points="40,149.6 148,133.0 256,103.5 364,116.4 472,58.9 580,25.2" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>' +
-        '<polyline points="40,148.2 148,148.2 256,138.8 364,148.2 472,141.5 580,148.2" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>' +
-        '<text x="40" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W1</text><text x="148" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W2</text>' +
-        '<text x="256" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W3</text><text x="364" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W4</text>' +
-        '<text x="472" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W5</text><text x="565" y="188" font-size="10.5" fill="var(--text-faint)" font-family="Inter">W6</text></svg>' +
-        '<div class="legend"><div class="legend-item"><span class="legend-line" style="background:var(--green)"></span>Income</div>' +
-        '<div class="legend-item"><span class="legend-line" style="background:var(--red)"></span>Expense</div>' +
-        '<div class="legend-item"><span class="legend-line" style="background:var(--primary)"></span>Net</div></div>';
-    } else {
+    if (!state.sample) {
       panel.innerHTML =
         '<div class="panel-head"><div class="panel-title">Financial overview</div></div>' +
-        '<div class="empty-panel"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.4"/><path d="M7 15l3-4 3 3 4-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/></svg>' +
-        '<div class="empty-panel-title">No ledger activity yet</div><div class="empty-panel-sub">Charts fill in automatically as income and expenses are logged in departments/accounting/ledger.md.</div></div>';
+        '<div class="empty-panel">' +
+          '<div class="empty-ghost">' + svg(30, '<path d="M3 3v18h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 15l3-4 3 3 4-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>') + '</div>' +
+          '<div class="empty-panel-title">No ledger activity yet</div>' +
+          '<div class="empty-panel-sub">This fills in as income and expenses are logged in <code>departments/accounting/ledger.md</code>. Flip the sample switch to see the shape it takes.</div>' +
+        '</div>';
+      return;
     }
+
+    var f = SAMPLE_FINANCE;
+    var net = f.income.map(function (v, i) { return v - f.expense[i]; });
+    var max = Math.max.apply(null, f.income.concat(f.expense).concat(net));
+    var X0 = 42, X1 = 580, Y0 = 26, Y1 = 158;
+    var x = function (i) { return X0 + (i * (X1 - X0)) / (f.weeks.length - 1); };
+    var y = function (v) { return Y1 - (v / max) * (Y1 - Y0); };
+    var line = function (arr) {
+      return arr.map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+    };
+    var series = [
+      { name: 'Income', data: f.income, color: 'var(--green)' },
+      { name: 'Expense', data: f.expense, color: 'var(--red)' },
+      { name: 'Net', data: net, color: 'var(--primary)' }
+    ];
+
+    var paths = series.map(function (s) {
+      return '<polyline points="' + line(s.data) + '" fill="none" stroke="' + s.color +
+        '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    }).join('');
+
+    var dots = series.map(function (s) {
+      return s.data.map(function (v, i) {
+        return '<circle class="chart-hit" cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="12">' +
+          '<title>' + s.name + ', ' + f.weeks[i] + ': ' + money(v) + '</title></circle>' +
+          '<circle class="chart-dot" cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="3" fill="' + s.color + '"/>';
+      }).join('');
+    }).join('');
+
+    var labels = f.weeks.map(function (w, i) {
+      return '<text x="' + x(i).toFixed(1) + '" y="180" font-size="11" text-anchor="middle" fill="var(--text-faint)" font-weight="650">' + w + '</text>';
+    }).join('');
+
+    panel.innerHTML =
+      '<div class="panel-head"><div class="panel-title">Financial overview</div><span class="sample-tag">Sample</span></div>' +
+      '<div class="panel-sub">Six illustrative weeks. No real transaction is in this chart.</div>' +
+      '<svg class="chart-svg" viewBox="0 0 600 192" role="img" aria-label="Illustrative weekly income, expense and net.">' +
+        '<line x1="' + X0 + '" y1="' + Y1 + '" x2="' + X1 + '" y2="' + Y1 + '" stroke="var(--border)" stroke-width="1"/>' +
+        paths + dots + labels +
+      '</svg>' +
+      '<div class="legend">' + series.map(function (s) {
+        return '<div class="legend-item"><span class="legend-line" style="background:' + s.color + '"></span>' + s.name + '</div>';
+      }).join('') + '</div>';
   }
 
   function renderStatusPanel() {
     var all = rawTasks();
-    var counts = { assigned: 0, in_progress: 0, fulfilled: 0, blocked: 0 };
-    all.forEach(function (t) { counts[t.status]++; });
-    var total = all.length;
     var panel = document.getElementById('status-panel');
+    var counts = { assigned: 0, in_progress: 0, fulfilled: 0, blocked: 0 };
+    all.forEach(function (t) { if (counts[t.status] != null) counts[t.status]++; });
+    var total = all.length;
+
     if (!total) {
       panel.innerHTML = '<div class="panel-head"><div class="panel-title">Task status</div></div>' +
-        '<div class="empty-panel"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" opacity="0.4"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.4"/></svg>' +
-        '<div class="empty-panel-title">No tasks tracked yet</div></div>';
+        '<div class="empty-panel"><div class="empty-panel-title">No tasks tracked yet</div></div>';
       return;
     }
-    var acc = 0;
-    var stops = STATUS_ORDER.map(function (k) {
-      var pct = (counts[k] / total) * 360;
-      var from = acc; acc += pct;
-      return STATUS_META[k].color + ' ' + from + 'deg ' + acc + 'deg';
-    });
-    var gradient = 'conic-gradient(' + stops.join(', ') + ')';
-    var legend = STATUS_ORDER.map(function (k) {
-      return '<div class="legend-item"><span class="legend-swatch" style="background:' + STATUS_META[k].color + '"></span>' + STATUS_META[k].label + ' · ' + counts[k] + '</div>';
+
+    var rows = STATUS_ORDER.map(function (k) {
+      var m = STATUS_META[k];
+      var pct = (counts[k] / total) * 100;
+      return '<div class="status-row" style="--sc:' + m.c + '">' +
+        '<div class="status-row-label"><span class="status-row-ico">' + svg(13, m.ico) + '</span>' + m.label + '</div>' +
+        '<div class="status-row-val">' + counts[k] + '<span>' + pct.toFixed(pct < 10 ? 1 : 0) + '%</span></div>' +
+        '<div class="status-track"><div class="status-fill" style="width:' + Math.max(pct, counts[k] ? 1.5 : 0) + '%"></div></div>' +
+      '</div>';
     }).join('');
-    panel.innerHTML = '<div class="panel-head"><div class="panel-title">Task status</div></div>' +
-      '<div class="panel-sub">' + total + ' tasks tracked</div>' +
-      '<div class="donut-wrap"><div class="donut" style="background:' + gradient + '"><div class="donut-hole"><b>' + total + '</b><span>total</span></div></div>' +
-      '<div class="donut-legend">' + legend + '</div></div>';
+
+    panel.innerHTML =
+      '<div class="panel-head"><div class="panel-title">Task status</div>' +
+        (state.sample ? '<span class="sample-tag">Sample</span>' : '') + '</div>' +
+      '<div class="panel-sub">Every tracked task, whatever the board is filtered to.</div>' +
+      '<div class="status-rows">' + rows + '</div>' +
+      '<div class="status-total">' + total + ' tasks tracked in total.</div>';
   }
+
+  /* ----------------------------------------------------------- departments */
 
   function renderDepts() {
     var all = rawTasks();
     document.getElementById('dept-grid').innerHTML = DEPARTMENTS.map(function (d) {
-      var dTasks = all.filter(function (t) { return t.dept === d.id; });
-      var open = dTasks.filter(function (t) { return t.status !== 'fulfilled'; }).length;
-      var done = dTasks.filter(function (t) { return t.status === 'fulfilled'; }).length;
-      var active = state.dept === d.id ? ' active' : '';
-      var reportHtml = d.report ?
-        '<a class="dept-report has link" href="' + esc(d.report.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
-          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M14 3v5h5M6 3h8l5 5v13H6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>' +
-          esc(d.report.label) +
-          '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="margin-left:auto"><path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>' :
-        '<div class="dept-report none">No reports yet</div>';
-      return '<button class="dept-card' + active + '" style="--h:' + d.hue + '" data-dept="' + d.id + '">' +
-        '<div class="dept-card-top"><div class="dept-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="' + d.icon + '" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
-        '<div class="dept-name">' + esc(d.name) + '</div></div>' +
-        '<div class="dept-stats"><div class="dept-stat"><b>' + open + '</b><span>Open</span></div><div class="dept-stat"><b>' + done + '</b><span>Done</span></div></div>' +
-        reportHtml +
-        '</button>';
+      var mine = all.filter(function (t) { return t.dept === d.id; });
+      var open = mine.filter(function (t) { return t.status !== 'fulfilled'; }).length;
+      var done = mine.filter(function (t) { return t.status === 'fulfilled'; }).length;
+      var tot = open + done;
+      var donePct = tot ? (done / tot) * 100 : 0;
+      var openPct = tot ? (open / tot) * 100 : 0;
+      var active = state.dept === d.id;
+
+      // THE LINK IS A SIBLING OF THE BUTTON, NOT A CHILD OF IT. The previous
+      // markup put an <a> inside a <button>, which is invalid HTML and makes
+      // the link unreachable by keyboard. One control filters, the other
+      // navigates, and they are now two elements.
+      var report = d.report
+        ? '<a class="dept-report link" href="' + esc(d.report.url) + '" target="_blank" rel="noopener">' +
+            svg(12, '<path d="M14 3v5h5M6 3h8l5 5v13H6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>') +
+            esc(d.report.label) +
+            svg(10, '<path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>', ' style="margin-left:auto"') +
+          '</a>'
+        : '<div class="dept-report none">No reports yet</div>';
+
+      return '<div class="dept-card' + (active ? ' active' : '') + '" style="--h:' + (d.hue == null ? 240 : d.hue) + '">' +
+        '<button type="button" class="dept-hit" data-dept="' + esc(d.id) + '" aria-pressed="' + active + '"' +
+          ' title="' + (active ? 'Clear this filter' : 'Filter the board to ' + esc(d.name)) + '">' +
+          '<span class="dept-card-top">' +
+            '<span class="dept-icon">' + svg(16, '<path d="' + d.icon + '" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>') + '</span>' +
+            '<span class="dept-name">' + esc(d.name) + '</span>' +
+          '</span>' +
+          '<span class="dept-activity">' + esc(d.activity) + '</span>' +
+          '<span class="dept-bar">' +
+            '<i class="done" style="width:' + donePct.toFixed(1) + '%"></i>' +
+            '<i class="open" style="width:' + openPct.toFixed(1) + '%"></i>' +
+          '</span>' +
+          '<span class="dept-stats">' +
+            '<span class="dept-stat"><b>' + open + '</b><span>Open</span></span>' +
+            '<span class="dept-stat"><b>' + done + '</b><span>Done</span></span>' +
+          '</span>' +
+        '</button>' + report +
+      '</div>';
     }).join('');
-    Array.prototype.forEach.call(document.querySelectorAll('#dept-grid .dept-card'), function (btn) {
+
+    Array.prototype.forEach.call(document.querySelectorAll('#dept-grid .dept-hit'), function (btn) {
       btn.addEventListener('click', function () {
         var id = btn.getAttribute('data-dept');
-        state.dept = state.dept === id ? 'all' : id;
-        renderAll();
+        setDept(state.dept === id ? 'all' : id);
       });
     });
   }
 
+  /* ---------------------------------------------------------------- drawer */
+
+  var drawer = document.getElementById('drawer');
+  var backdrop = document.getElementById('drawer-backdrop');
+  var lastFocus = null;
+
+  function drawerList() { return visibleTasks(); }
+
+  function openDrawer(id) {
+    var list = drawerList();
+    var idx = -1;
+    for (var i = 0; i < list.length; i++) { if (String(list[i].id) === String(id)) { idx = i; break; } }
+    if (idx === -1) return;
+    var t = list[idx];
+    var d = deptOf(t);
+    var m = STATUS_META[t.status] || { label: t.status, c: 'var(--slate)', soft: 'var(--slate-soft)', ico: '' };
+
+    lastFocus = document.activeElement;
+    state.openId = t.id;
+
+    document.getElementById('drawer-pos').textContent = (idx + 1) + ' of ' + list.length;
+    document.getElementById('drawer-body').innerHTML =
+      '<div class="drawer-tags">' +
+        '<span class="status-pill" style="--sc:' + m.c + ';--sc-soft:' + m.soft + '">' + svg(12, m.ico) + m.label + '</span>' +
+        '<span class="dept-tag" style="--h:' + d.hue + '"><span class="dept-tag-dot"></span>' + esc(d.name) + '</span>' +
+        (t.priority ? '<span class="prio prio-' + t.priority + '">' + (PRIORITY_LABEL[t.priority] || '') + ' priority</span>' : '') +
+      '</div>' +
+      '<h2 class="drawer-title" id="drawer-title">' + esc(t.title) + '</h2>' +
+      (t.notes
+        ? '<div class="drawer-notes">' + esc(t.notes) + '</div>'
+        : '<div class="drawer-notes is-empty">No notes on this task.</div>') +
+      '<div class="drawer-facts">' +
+        '<div class="fact"><span class="fact-k">Department</span><span class="fact-v">' + esc(d.name) + '</span></div>' +
+        '<div class="fact"><span class="fact-k">Status</span><span class="fact-v">' + m.label + '</span></div>' +
+        '<div class="fact"><span class="fact-k">Priority</span><span class="fact-v">' + (t.priority ? esc(PRIORITY_LABEL[t.priority]) : 'Not set') + '</span></div>' +
+        '<div class="fact"><span class="fact-k">Due</span><span class="fact-v">' + (t.due ? esc(t.due) : 'No date') + '</span></div>' +
+      '</div>' +
+      '<div class="drawer-hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move between tasks, <kbd>Esc</kbd> closes.</div>';
+
+    backdrop.hidden = false;
+    drawer.hidden = false;
+    void drawer.offsetWidth;
+    backdrop.classList.add('is-open');
+    drawer.classList.add('is-open');
+    document.body.classList.add('drawer-open');
+    document.getElementById('drawer-close').focus();
+  }
+
+  function closeDrawer() {
+    if (state.openId == null) return;
+    state.openId = null;
+    backdrop.classList.remove('is-open');
+    drawer.classList.remove('is-open');
+    document.body.classList.remove('drawer-open');
+    window.setTimeout(function () {
+      if (state.openId == null) { drawer.hidden = true; backdrop.hidden = true; }
+    }, REDUCED_MOTION ? 0 : 340);
+    if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) { /* element gone */ } }
+  }
+
+  function stepDrawer(delta) {
+    if (state.openId == null) return;
+    var list = drawerList();
+    var idx = -1;
+    for (var i = 0; i < list.length; i++) { if (String(list[i].id) === String(state.openId)) { idx = i; break; } }
+    if (idx === -1) return;
+    var next = idx + delta;
+    if (next < 0 || next >= list.length) return;
+    openDrawer(list[next].id);
+  }
+
+  backdrop.addEventListener('click', closeDrawer);
+  document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-prev').addEventListener('click', function () { stepDrawer(-1); });
+  document.getElementById('drawer-next').addEventListener('click', function () { stepDrawer(1); });
+
+  /* ----------------------------------------------------------------- wiring */
+
+  function setDept(id) {
+    state.dept = id;
+    state.expanded = {};
+    state.animate = true;
+    renderAll();
+  }
+  function clearFilters() {
+    state.dept = 'all';
+    state.query = '';
+    searchInput.value = '';
+    state.expanded = {};
+    state.animate = true;
+    renderAll();
+  }
+
   function renderAll() {
-    renderStats();
+    renderHero();
     renderChips();
+    renderResultLine();
     renderBoard();
     renderFinance();
     renderStatusPanel();
     renderDepts();
     var wrap = document.getElementById('search-wrap');
-    if (state.query) wrap.classList.add('has-query'); else wrap.classList.remove('has-query');
+    wrap.classList.toggle('has-query', state.query !== '');
+    state.animate = false;
   }
 
-  // Search
   var searchInput = document.getElementById('search-input');
-  searchInput.addEventListener('input', function () { state.query = searchInput.value; renderAll(); });
+  var searchWrap = document.getElementById('search-wrap');
+  searchInput.addEventListener('input', function () {
+    state.query = searchInput.value;
+    state.expanded = {};
+    state.animate = false;
+    renderAll();
+  });
+  searchInput.addEventListener('focus', function () { searchWrap.classList.add('is-focused'); });
+  searchInput.addEventListener('blur', function () { searchWrap.classList.remove('is-focused'); });
   document.getElementById('search-clear').addEventListener('click', function () {
-    state.query = ''; searchInput.value = ''; renderAll(); searchInput.focus();
+    state.query = ''; searchInput.value = ''; state.animate = false; renderAll(); searchInput.focus();
   });
 
-  // Sample data toggle
   document.getElementById('sample-toggle').addEventListener('change', function (e) {
-    state.sample = e.target.checked; renderAll();
+    state.sample = e.target.checked;
+    state.expanded = {};
+    state.animate = true;
+    renderAll();
   });
 
-  // Theme toggle, persisted per-browser only
+  // Keyboard. "/" and Ctrl+K focus search the way every tool the founder
+  // already uses does; Esc backs out of whatever is innermost.
+  document.addEventListener('keydown', function (e) {
+    var typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
+    if (e.key === 'Escape') {
+      if (state.openId != null) { closeDrawer(); return; }
+      if (typing) { searchInput.blur(); }
+      if (state.query || state.dept !== 'all') clearFilters();
+      return;
+    }
+    if (state.openId != null) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); stepDrawer(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); stepDrawer(1); }
+      return;
+    }
+    if (typing) return;
+    if (e.key === '/' || ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K'))) {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+  });
+
+  // The controls bar only grows a border once it is actually stuck, so the
+  // shadow is a response to overlapping content rather than permanent chrome.
+  var controls = document.getElementById('controls');
+  var headerH = 62;
+  window.addEventListener('scroll', function () {
+    controls.classList.toggle('is-stuck', controls.getBoundingClientRect().top <= headerH + 1);
+  }, { passive: true });
+
   var THEME_KEY = 'sirketim-dashboard-theme';
   (function initTheme() {
     try {
       var saved = localStorage.getItem(THEME_KEY);
       if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
-    } catch (e) { /* storage unavailable — fall back to system preference */ }
+    } catch (e) { /* storage unavailable, fall back to system preference */ }
   })();
   document.getElementById('theme-toggle').addEventListener('click', function () {
     var current = document.documentElement.getAttribute('data-theme');
@@ -791,5 +1651,6 @@
   renderAll();
 })();
 </script>
+
 </body>
 </html>

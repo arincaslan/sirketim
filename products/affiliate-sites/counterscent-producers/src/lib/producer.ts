@@ -1,4 +1,5 @@
 import type { Sql } from "./auth";
+import { PLANS } from "../generated/plans";
 
 /**
  * Everything /console needs to read about an attached producer, in two
@@ -50,7 +51,13 @@ export function allowanceForTier(tier: string): Allowance {
       return 1;
     case "standard":
       return 25;
-    case "featured":
+    // Renamed from "featured" on 2026-09-18. Deliberately NOT accepting the old
+    // id as an alias: zero producers exist, so no stored row can carry it, and
+    // an alias here would be the one thing keeping a retired name alive. If a
+    // "featured" ever arrives it falls to "unknown", which refuses to guess an
+    // allowance rather than granting one, and that is the correct answer to a
+    // tier we no longer recognise.
+    case "unlimited":
       return "uncapped";
     default:
       return "unknown";
@@ -89,6 +96,19 @@ export interface ListingRow {
    *  formula that lives in the other project, so a listing that has not been
    *  removed has no number here to show. */
   scoreAtRemoval: number | null;
+  /**
+   * The listing's product photograph, or null.
+   *
+   * NULL IS THE ONLY VALUE THIS COLUMN HAS EVER HELD, and it is selected anyway
+   * on purpose. Photograph upload is not built, so nothing writes it; the point
+   * of reading it now is that the render path, the fallback and the layout are
+   * exercised and proven BEFORE the first real producer supplies an image,
+   * rather than discovered to be broken on the day one arrives.
+   *
+   * The console does not decide what a valid image is. It renders what is
+   * stored or, far more often, the fallback tile.
+   */
+  imageUrl: string | null;
   /** Both from the last AuditEvent, null when nothing has been recorded
    *  against this listing yet. Rendered as text by the database rather than
    *  parsed into a Date here: the column is a zoneless TIMESTAMP, and every
@@ -165,13 +185,81 @@ export type QuotaVerdict =
  *              one is the tightest allowance any tier has, so nobody gets more
  *              than they are entitled to out of it.
  */
+/**
+ * The allowance we ACTUALLY ENFORCE for a tier, including the no-record case.
+ *
+ * `allowanceForTier` takes a tier string and cannot answer for `null`, so
+ * every caller that has a nullable tier has had to write
+ * `tier === null ? 1 : allowanceForTier(tier)` for itself. That expression was
+ * in two places and about to be in a third, which is exactly how the console
+ * once told a producer there was nothing to be full of while the submit form
+ * said "1 of 1": two branches of the same rule, drifting.
+ *
+ * NO Subscription ROW IS ENFORCED AS ONE LISTING. That is not the same claim
+ * as "this producer is on the free plan" - the row genuinely does not exist,
+ * and quotaLine and the console's plan panel both still say so in words. This
+ * function answers the narrower question of what number we hold them to, and
+ * every surface that shows a remaining count must read it from here so the
+ * count and the dead Submit button cannot disagree.
+ */
+export function enforcedAllowance(tier: string | null): Allowance {
+  return tier === null ? 1 : allowanceForTier(tier);
+}
+
 export function quotaGate(opts: { tier: string | null; inUse: number }): QuotaVerdict {
-  const allowance: Allowance = opts.tier === null ? 1 : allowanceForTier(opts.tier);
+  const allowance: Allowance = enforcedAllowance(opts.tier);
 
   if (allowance === "unknown") return { kind: "unknown-tier", tier: opts.tier ?? "" };
   if (allowance === "uncapped") return { kind: "ok" };
   if (opts.inUse >= allowance) return { kind: "at-allowance", allowance };
   return { kind: "ok" };
+}
+
+/**
+ * Whether this tier may withdraw its own listing from the console.
+ *
+ * FOUNDER DECISION, 2026-09-18, reversing the one from 2026-09-16. Self-serve
+ * withdrawal is a paid feature; a free producer asks us and we do it. The cost
+ * was accepted deliberately: a free producer's single listing stops being a
+ * choice they can revisit alone, so the refusal has to explain itself and give
+ * them the way through rather than just saying no.
+ *
+ * DERIVED FROM THE PRICE, NOT FROM A TIER LIST, so it cannot drift the way a
+ * hardcoded ["standard", "unlimited"] would. A paid tier is one with a monthly
+ * figure; free is the only plan with a null price. That also means the
+ * 2026-09-18 rename of "featured" to "unlimited" needed no change here.
+ *
+ * FAILS CLOSED on purpose. tier === null is a producer with no Subscription
+ * row, which every other rule in this file already treats as free (see
+ * quotaGate). A tier string that matches no known plan also returns false: the
+ * honest answer to "we do not recognise your plan" is to refuse a destructive,
+ * irreversible action and let a person sort it out, not to allow it.
+ */
+export function mayWithdrawSelf(tier: string | null): boolean {
+  if (tier === null) return false;
+  const plan = PLANS.find((p) => p.id === tier);
+  return plan != null && plan.priceMonthlyUsd != null;
+}
+
+/**
+ * The generated plan record a stored tier string points at, or null.
+ *
+ * NULL HAS TWO CAUSES AND THE CALLER MUST NOT MERGE THEM. `tier === null` is a
+ * producer with no Subscription row, which is every producer at launch and is
+ * enforced at the free allowance. A non-null tier that matches no plan is a
+ * recorded value this build does not know - a tier renamed in the catalogue
+ * and not regenerated here, or a hand-edited row - and the honest response is
+ * to say the plan is unrecognised rather than to silently draw it as free.
+ * quotaLine() already makes exactly that distinction, and this returning one
+ * value for both would undo it.
+ *
+ * Reads the same generated PLANS as mayWithdrawSelf and the console's own
+ * comparison table, so a tier's display name has one source here rather than
+ * being title-cased out of the database column at each call site.
+ */
+export function planFor(tier: string | null): (typeof PLANS)[number] | null {
+  if (tier === null) return null;
+  return PLANS.find((p) => p.id === tier) ?? null;
 }
 
 /**
@@ -211,6 +299,7 @@ export async function loadProducerConsole(
            s."approvalStatus"::text AS "approvalStatus",
            s."publishState"::text   AS "publishState",
            s."scoreAtRemoval",
+           s."imageUrl",
            ae.action AS "lastAction",
            to_char(ae."createdAt", 'YYYY-MM-DD') AS "lastActionOn"
     FROM "Submission" s

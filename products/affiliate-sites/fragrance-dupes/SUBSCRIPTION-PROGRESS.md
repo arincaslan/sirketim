@@ -165,9 +165,12 @@ disclosure says it is not.
 
 ### Your no-commission decision is now in the data
 
-A paid tier takes no commission, so a subscriber's listing links **directly to
-their store** with no affiliate link. The schema separates the two: `storeUrl`
-always, `affiliateLinkId` only when we actually earn.
+**Updated 2026-09-18: it is now every tier, free included.** No producer listing
+carries an affiliate link at any tier — they all link **directly to the
+producer's own store**. The schema still separates the two (`storeUrl` always,
+`affiliateLinkId` nullable), but `affiliateLinkId` is now null on every row
+forever rather than only on subscribers'. When this was written the split was
+real: paid tiers took no commission and free ones did.
 
 One consequence worth knowing: a direct link has no tracking ID, so there is no
 network report behind it. **Our own click log becomes the only source of a
@@ -204,7 +207,9 @@ object. A failing build does.
    self-bill Turkish tax residents, which legal entity contracts with us, and
    whether payouts can be batched quarterly. Free, blocks nothing today, slow to
    come back.
-3. **Real prices.** 19 and 49 are placeholders. Nobody has researched what these
+3. **Real prices.** 12 and 49 are placeholders (Standard was 19 until 18 Sep,
+   when the founder cut it because one listing to twenty-five is a large first
+   step to charge for). Nobody has researched what these
    houses currently spend on getting a customer.
 4. **The `/disclosure` wording**, before the programme opens. It currently says we
    will never accept placement, and a subscription is placement in the ordinary

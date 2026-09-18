@@ -1,7 +1,7 @@
 /**
  * GENERATED FILE. DO NOT EDIT BY HAND.
  *
- * Produced by scripts/generate-constants.mjs on 2026-09-16.
+ * Produced by scripts/generate-constants.mjs on 2026-09-18.
  * Regenerate with `npm run generate`.
  *
  * SOURCE: products/affiliate-sites/fragrance-dupes/lib/plans.ts
@@ -46,21 +46,21 @@ export const PLANS: readonly GeneratedPlan[] = [
     listings: "1 listing",
     features: [
       "Appears in ranked comparisons",
+      "We take no commission on your sales",
       "Total click count",
       "Reviewed by a person, never auto-approved",
     ],
-    takesCommission: true,
+    takesCommission: false,
   },
   {
     id: "standard",
     name: "Standard",
     tagline: "For a catalog that covers a range of originals.",
-    priceMonthlyUsd: 19,
-    priceYearlyUsd: 190,
+    priceMonthlyUsd: 12,
+    priceYearlyUsd: 120,
     listings: "25 listings",
     features: [
       "Everything in Free",
-      "We take no commission on your sales",
       "Per-listing and per-original click data",
       "Request an edit to a published listing",
       "Withdraw a listing yourself, any time",
@@ -68,8 +68,8 @@ export const PLANS: readonly GeneratedPlan[] = [
     takesCommission: false,
   },
   {
-    id: "featured",
-    name: "Featured",
+    id: "unlimited",
+    name: "Unlimited",
     tagline: "For a full catalog and conversion data.",
     priceMonthlyUsd: 49,
     priceYearlyUsd: 490,
