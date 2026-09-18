@@ -35,9 +35,12 @@ import { formatWhen } from "./admin";
  * THE ATTACH FORM REPLACES HAND-WRITTEN SQL, WHICH IS THE POINT OF IT.
  * ============================================================================
  *
- * findOrCreateUser() deliberately never creates a Producer row: attaching an
- * inbox to a real business is a decision about identity and a person makes it.
- * That decision was real and the mechanism was not - until now it meant
+ * findOrCreateUser() deliberately never creates a Producer row. THAT IS STILL
+ * TRUE OF SIGN-IN, but since 2026-09-19 a producer creates their own company at
+ * /console/company, so this screen is no longer the only way a Producer row can
+ * come into existence - it is the way an EXISTING account is moved onto an
+ * EXISTING company, which is a different and rarer operation. The alternative
+ * to it was, and would still be,
  * someone opening a psql session against production and writing an UPDATE by
  * hand. That is the worst possible way to run a privileged, routine operation:
  * no audit trail, no confirmation of what it matched, no protection against a
@@ -358,9 +361,9 @@ async function renderPeople(
             })),
             empty: emptyState({
               headline: "No producers yet",
-              because: html`No company record exists on this deployment. Producers are
-                created by hand after a conversation, which is why there is no signup form
-                anywhere on this origin.`,
+              because: html`No company record exists on this deployment yet. Producers create
+                their own at <code>/console/company</code> after signing in; this screen is for
+                moving an account onto a company that already exists.`,
             }),
           }),
         })}

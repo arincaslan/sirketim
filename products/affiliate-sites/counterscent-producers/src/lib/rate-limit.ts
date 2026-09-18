@@ -184,6 +184,26 @@ export function producerWriteKey(producerId: string): string {
 }
 
 /**
+ * The bucket for a write made by an account that has no producer record yet.
+ *
+ * Creating a company is the one such write, and it cannot use
+ * producerWriteKey() for the obvious reason: the id it would key on is the row
+ * the request is asking us to create. Keyed on the USER id rather than the IP,
+ * because reaching this handler at all requires a verified email and a live
+ * session, which SIGN_IN_GLOBAL_MAX_SENDS already bounds upstream - so the
+ * population able to hammer it is capped by a limit that exists, and an IP key
+ * would punish two producers behind one office NAT for each other's writes.
+ *
+ * It shares PRODUCER_WRITE_MAX and the same window, deliberately: a second
+ * pair of constants for a rarer verb is two numbers to keep in step instead of
+ * one, and twenty company creations an hour from one verified account is
+ * already far past anything legitimate.
+ */
+export function accountWriteKey(userId: string): string {
+  return `account-write:${userId}`;
+}
+
+/**
  * How long a bucket row survives after its window opened, before the sweep
  * below deletes it.
  *

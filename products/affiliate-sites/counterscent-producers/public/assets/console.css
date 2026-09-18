@@ -884,6 +884,30 @@ fieldset {
   transform: scale(0.98);
 }
 
+/* A LINK WEARING THE BUTTON, for the screens whose primary action is a
+   navigation rather than a write - "Set up your company", "Submit a
+   fragrance". Those must stay <a> elements: they are GET, they belong in
+   history, and middle-click and open-in-new-tab should work. Styling them as
+   .btn rather than inventing a second button language is what keeps one
+   primary action looking like one primary action wherever it appears.
+
+   Anchors need three things buttons get for free: a box to pad, no underline,
+   and an inherited colour, since `a` above sets its own. */
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+}
+a.btn-primary {
+  color: hsl(var(--primary-foreground));
+}
+a.btn-ghost {
+  color: hsl(var(--foreground));
+}
+a.btn:hover {
+  text-decoration: none;
+}
+
 /* A link wearing the button's clothes. The only live actions on the signed-out
    screen are a navigation and a mailto, and both are anchors: a <button> that
    navigates would be the wrong element, and styling the anchor is cheaper than

@@ -124,7 +124,7 @@ export async function submitPage(request: Request, env: Env): Promise<Response> 
     return renderForm(request, gate, { unknownReceipt: true });
   }
 
-  return renderForm(request, gate, {});
+  return renderForm(request, gate, { welcome: url.searchParams.get("welcome") === "1" });
 }
 
 /* ======================================================================== *
@@ -249,6 +249,10 @@ interface FormState {
   errors?: FieldError[];
   quota?: QuotaVerdict;
   unknownReceipt?: boolean;
+  /** Arrived here straight from creating a company. Confirms the thing that
+   *  just happened in the status slot that already exists, rather than leaving
+   *  a producer to infer from a changed URL that it worked. */
+  welcome?: boolean;
 }
 
 /** Human labels for the error summary. One map, so a field cannot be called
@@ -748,13 +752,16 @@ async function renderForm(
       heading: "Submit a fragrance",
       nav: { current: "submit", showAdmin: gate.isAdmin },
       status: {
-        label: errors.length ? "Not submitted" : "Console live",
+        label: errors.length ? "Not submitted" : state.welcome ? "Company created" : "Console live",
         tone: errors.length ? "outline" : "solid",
         note: errors.length
           ? html`Nothing was saved. The list at the top says what needs fixing, and every box
               still holds what you typed.`
-          : html`This form writes to your producer record, ${data.producer.name}. It saves a
-              submission and sends it to a person; it does not publish anything.`,
+          : state.welcome
+            ? html`${data.producer.name} is set up and this account is attached to it. You are on
+                the free tier, which covers one listing. Here is the form.`
+            : html`This form writes to your producer record, ${data.producer.name}. It saves a
+                submission and sends it to a person; it does not publish anything.`,
       },
       standfirst: html`One listing, against one original we have already researched. Everything
         you enter is published as your own statement about your own product.`,

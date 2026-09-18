@@ -1,7 +1,7 @@
 import { html, type Html } from "../lib/html";
 import { page } from "../lib/http";
 import { layout } from "../ui/layout";
-import { card, notShipped, section } from "../ui/components";
+import { card, linkButton, notShipped, section } from "../ui/components";
 import type { Env } from "../lib/env";
 import { db } from "../lib/db";
 import { getAuthContext, type AuthUser, type Sql } from "../lib/auth";
@@ -18,7 +18,11 @@ import { isAdminEmail } from "../lib/admin";
  *   no producer attached  EVERY account at the moment it is created.
  *                         findOrCreateUser() deliberately never creates a
  *                         Producer row, so this is the normal first state and
- *                         not an edge case.
+ *                         not an edge case. Since 2026-09-19 it is also no
+ *                         longer a terminal one: the screen carries a single
+ *                         action to /console/company, which creates the record
+ *                         and sends the producer straight on to the form they
+ *                         were trying to reach.
  *   record unreadable     The database did not answer.
  *   attached              The workspace.
  *
@@ -265,12 +269,12 @@ function signedOut(copy: GateCopy): Html {
         ${card(html`
           <h3>You do not</h3>
           <p class="muted">
-            There is no signup form here. Write to us with the fragrances you would list and
-            the originals they go against, and a person reads it.
+            Request a link for your address anyway - signing in is what creates the account.
+            You name your company on the next screen, and the free tier covers one listing.
           </p>
           <p class="door-action">
             <a class="btn btn-ghost" href="mailto:contact@counterscent.com"
-              >Write to contact@counterscent.com</a
+              >Or ask us first</a
             >
           </p>
         `)}
@@ -290,41 +294,22 @@ function signedOut(copy: GateCopy): Html {
 function noProducerAttached(auth: AuthUser, copy: GateCopy): Html {
   return layout({
     title: copy.title,
-    heading: "There is no company record attached to this account yet",
+    heading: "One step first: your company",
     status: {
-      label: "No producer attached",
+      label: "Almost there",
       tone: "outline",
-      note: html`Signing in worked. The next step is ours, not yours.`,
+      note: html`Nothing is billed, and this takes a minute.`,
     },
-    standfirst: html`You are signed in as
-      <span class="wrap-anywhere">${auth.email}</span>, and a listing belongs to a company
-      rather than to an inbox.`,
+    standfirst: html`A listing belongs to a company rather than to an inbox, and this account
+      does not have one yet. Set it up and you can ${copy.verb} straight away.`,
     body: html`
-      ${section({
-        heading: `Why you cannot ${copy.verb} yet`,
-        body: html`
-          <div class="stack">
-            ${notShipped({
-              what: "This is the normal state of a new account, not something that went wrong",
-              reason: html`Signing in creates an account for your address and deliberately does
-                not create a company record or attach you to one. Attaching an inbox to a real
-                business is a decision about identity, so a person makes it by hand. Until that
-                happens there is no record for a listing to belong to, and a form here would be
-                collecting data with nowhere to put it.`,
-            })}
-            <p>
-              <strong>What moves it:</strong> write to
-              <a href="mailto:contact@counterscent.com">contact@counterscent.com</a> from this
-              address with your company and the fragrances you would list. If you have already
-              done that, nothing more is needed from you. We are not going to tell you how long
-              it takes, because nobody has been through it yet and any figure would be invented.
-            </p>
-            <p>
-              <a href="/console">Back to the console</a>, which describes the whole sequence.
-            </p>
-          </div>
-        `,
-      })}
+      <p>${linkButton("/console/company", "Set up your company")}</p>
+      <p class="muted">
+        You are signed in as <span class="wrap-anywhere">${auth.email}</span>. The free tier
+        includes one listing, with no card and no trial clock. Everything you submit is read by
+        a person before it reaches
+        <a href="https://counterscent.com">counterscent.com</a>.
+      </p>
     `,
   });
 }

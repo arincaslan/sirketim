@@ -9,13 +9,14 @@ import {
   disclosureGroup,
   emptyState,
   identityBar,
+  linkButton,
+  listingStateFor,
   listingStates,
   listingThumb,
   notShipped,
   section,
   stateBadge,
   tableBlock,
-  listingStateFor,
   type ListingState,
   type TableRow,
 } from "../ui/components";
@@ -56,12 +57,15 @@ import {
  *
  *   (b) SIGNED IN, NO PRODUCER ATTACHED. **This is the common case, not an
  *       edge case.** findOrCreateUser() never creates a Producer row, so every
- *       real account is in this state at the moment it is created, and will be
- *       until a person attaches it by hand. A design that treats it as an
- *       error would be showing an error to every producer who ever signs in.
- *       It is a waypoint and it reads as one: no error colour, no empty table,
- *       and the account card first, because the reader just clicked a link in
- *       an email and their only question is whether it worked.
+ *       real account is in this state at the moment it is created. A design
+ *       that treats it as an error would be showing an error to every producer
+ *       who ever signs in. It is a waypoint and it reads as one: no error
+ *       colour, no empty table.
+ *
+ *       IT IS NOW ONE STEP RATHER THAN A WAIT. Until 2026-09-19 this screen
+ *       said a person would attach the account by hand, and no code path
+ *       existed to do it - so the state was permanent for everyone. It now
+ *       carries a single primary action to /console/company.
  *
  *   (c) SIGNED IN AND ATTACHED. The workspace. Nobody is in it today; zero
  *       producers exist.
@@ -143,41 +147,47 @@ export async function producerConsole(request: Request, env: Env): Promise<Respo
  */
 function signedOut(): Html {
   const body = html`
-    ${section({
-      heading: "Two ways in, and there are only two",
-      lede: html`There is no signup form on this origin. That is a decision, not a
-        missing page: a listing claims a relationship between your product and somebody
-        else's, so we would rather know who is making the claim before there is an
-        account to make it from.`,
-      body: html`
-        <div class="grid-2">
-          ${card(html`
-            <h3>You already have an account</h3>
-            <p class="muted">
-              We email you a link. It works once, for fifteen minutes, and there is no
-              password to lose or to be stolen from us.
-            </p>
-            <p class="door-action">
-              <a class="btn btn-primary" href="/sign-in">Request a sign-in link</a>
-            </p>
-          `)}
-          ${card(html`
-            <h3>You do not</h3>
-            <p class="muted">
-              Write to us with the fragrances you would list and the originals they go
-              against. A person reads it and answers. We cannot tell you how long that
-              takes, because nobody has been through it yet and a number invented now
-              would be a promise nobody measured.
-            </p>
-            <p class="door-action">
-              <a class="btn btn-ghost" href="mailto:contact@counterscent.com"
-                >Write to contact@counterscent.com</a
-              >
-            </p>
-          `)}
-        </div>
-      `,
-    })}
+    ${
+      // ONE WAY IN, AND IT USED TO BE TWO. This section read "Two ways in, and
+      // there are only two" - a sign-in link for people who had an account, and
+      // an email address for people who did not, under a lede insisting "there
+      // is no signup form on this origin. That is a decision, not a missing
+      // page." The decision was real and the reasoning was good. It was also
+      // describing a door that opened onto nothing: no code path could create a
+      // producer, so the email was the only route and nobody had ever walked
+      // it. /console/company opened that door on 2026-09-19, so the honest
+      // shape of this section is now one path with three steps, and the email
+      // is what it always should have been - the way to reach a person, not the
+      // way to get an account.
+      section({
+        heading: "How to list a fragrance here",
+        lede: html`Three steps. The first two are yours and take a few minutes; the third is
+          ours and is a person reading what you wrote.`,
+        body: html`
+          <ol class="plain-list">
+            <li>
+              <strong>Sign in.</strong> We email you a link that works once, for fifteen
+              minutes. No password to lose, or to be stolen from us.
+            </li>
+            <li><strong>Name your company.</strong> One field. Nothing is billed.</li>
+            <li>
+              <strong>Submit a fragrance</strong> against an original we have researched. It
+              joins the review queue, and nothing reaches
+              <a href="${CATALOGUE}">counterscent.com</a> until a person approves it.
+            </li>
+          </ol>
+          <p class="door-action">
+            <a class="btn btn-primary" href="/sign-in">Request a sign-in link</a>
+          </p>
+          <p class="muted">
+            The free tier covers one listing, with no card and no trial clock. Questions before
+            you start go to
+            <a href="mailto:contact@counterscent.com">contact@counterscent.com</a>, where a
+            person answers them.
+          </p>
+        `,
+      })
+    }
 
     ${
       // THE "WHAT NO PLAN BUYS" HALF OF THIS SECTION WAS DELETED ON 2026-09-18,
@@ -342,9 +352,9 @@ function signedOut(): Html {
       note: html`This screen is the same for everyone who is not signed in. Nothing below
         is personalised and nothing is hidden from you.`,
     },
-    standfirst: html`What listing a fragrance here involves, what each tier covers, and
-      the two ways to get an account. There is no self-serve signup: a person attaches an
-      account to a real company by hand.`,
+    standfirst: html`What listing a fragrance here involves and what each tier covers. You can
+      set an account up yourself in a few minutes; what a person decides is whether a listing
+      publishes, not whether you get an account.`,
     body,
   });
 }
@@ -372,99 +382,47 @@ function signedOut(): Html {
  * path and never ran. Found by checking the live database rather than by
  * reading the code, after the deploy and before the founder hit it.
  */
+/**
+ * Signed in, no company record yet.
+ *
+ * REWRITTEN 2026-09-19, FROM A WAITING ROOM INTO A STEP. This screen used to
+ * run to four sections explaining that a person would attach the account by
+ * hand, that there was no queue and no timeframe, and that "nobody can create
+ * a producer here by filling in a form". All of that was accurate and all of
+ * it was a dead end: nothing in the Worker could create a Producer row, so
+ * every account ever created sat here permanently, the founder's included.
+ *
+ * It is now one sentence and one button. The reasoning the old copy gave for
+ * the manual step has not been thrown away - it moved to where the check
+ * already happens, which is the listing queue. See routes/company.ts.
+ */
 function noProducerAttached(auth: AuthUser, isAdmin = false): Html {
-  const body = html`
-    ${section({
-      heading: "Account",
-      body: card(html`
-        <p><strong>Signed in as <span class="wrap-anywhere">${auth.email}</span>.</strong></p>
-        <p class="muted">
-          The sign-in link worked and this session lasts thirty days. No company record is
-          attached to this address yet, which is the normal state of a new account here
-          rather than something that went wrong.
-        </p>
-        <form method="post" action="/sign-out" class="actions">
-          ${button("Sign out", { variant: "ghost" })}
-        </form>
-      `),
-    })}
-
-    ${section({
-      heading: "What happens next, and who does it",
-      lede: html`Three steps, with a real actor on each. None of them is a queue position,
-        because there is no queue.`,
-      body: html`
-        <div class="stack">
-          <ul class="plain-list">
-            <li>
-              <strong>You write to us</strong> at
-              <a href="mailto:contact@counterscent.com">contact@counterscent.com</a> from
-              this address, with your company and the fragrances you would list. If you
-              have already done that, nothing more is needed from you.
-            </li>
-            <li>
-              <strong>A person attaches this address</strong> to your company's record.
-              It is a decision about identity, so it is made by a person and not by
-              signing in. It is also the reason nobody can create a producer here by
-              filling in a form.
-            </li>
-            <li>
-              <strong>This page changes on its own</strong> the next time you load it.
-              There is nothing to click at that point and no second email to wait for.
-            </li>
-          </ul>
-          <p class="muted">
-            We are not going to tell you how long that takes. Nobody has been through it
-            yet, so any figure would be invented, and our own terms commit us to
-            publishing a review time only once we have measured real ones.
-          </p>
-        </div>
-      `,
-    })}
-
-    ${section({
-      heading: "The tier an attached account starts on",
-      body: html`
-        <p>
-          The free tier, which covers one listing, reviewed by a person like every other
-          listing here. Nothing is on file for this address: there is no producer record
-          and no subscription record, so there is no plan to show you yet. What each tier
-          covers is on
-          <a href="${CATALOGUE}/producers/pricing">plans and pricing</a>, and no figure
-          anywhere on this origin is an offer.
-        </p>
-      `,
-    })}
-
-    ${section({
-      heading: "Your listings",
-      body: notShipped({
-        what: "There is no listings table on this screen yet",
-        reason: html`A table of listings belongs to a producer record, and this address is
-          not attached to one. An empty table here would be a table of nothing about
-          nobody, and it would make this screen look like the one an attached producer
-          sees, which is the single most misleading thing this page could do. It appears
-          when the attachment does.`,
-      }),
-    })}
-  `;
-
   return layout({
     title: "Producer console",
-    heading: "Your account is set up.",
-    // See the note above this function: rendered for an admin, omitted for a
-    // producer, because only one of the two has somewhere to go from here.
+    heading: "One step first: your company",
+    // Rendered for an admin, omitted for a producer: the nav's two producer
+    // items both lead back to this same screen until a company exists, and a
+    // bar of links that bounce you is worse than no bar.
     nav: isAdmin ? { current: "listings", showAdmin: true } : undefined,
     status: {
-      label: "No producer attached",
+      label: "Almost there",
       tone: "outline",
-      note: html`Signing in worked. The next step is ours, not yours, and it is described
-        below.`,
+      note: html`Nothing is billed, and this takes a minute.`,
     },
-    standfirst: html`You are signed in as
-      <span class="wrap-anywhere">${auth.email}</span>. What is missing is the link
-      between this address and a company, which a person makes by hand.`,
-    body,
+    standfirst: html`A listing belongs to a company rather than to an inbox, and this account
+      does not have one yet.`,
+    body: html`
+      <p>${linkButton("/console/company", "Set up your company")}</p>
+      <p class="muted">
+        Signed in as <span class="wrap-anywhere">${auth.email}</span>. The free tier covers
+        one listing, with no card and no trial clock; what the paid tiers add is on
+        <a href="${CATALOGUE}/producers/pricing">plans and pricing</a>. Everything you submit
+        is read by a person before it reaches the catalogue, whichever tier you are on.
+      </p>
+      <form method="post" action="/sign-out" class="actions">
+        ${button("Sign out", { variant: "ghost" })}
+      </form>
+    `,
   });
 }
 
@@ -535,9 +493,7 @@ function attached(
 
     ${section({
       heading: "Everything you have submitted",
-      lede: html`One row per fragrance, whatever state it is in. Withdrawn and removed
-        listings stay in this table rather than disappearing from it, because a record you
-        can make vanish is not a record.`,
+      lede: html`One row per fragrance, whatever state it is in.`,
       body: html`
         <div class="stack">
           <div>
@@ -620,8 +576,7 @@ function attached(
       // of use is housekeeping.
       section({
         heading: "Reference",
-        lede: html`Three things worth being able to look up and not worth reading twice.
-          Nothing here changes what you can do on this screen.`,
+        lede: html`Worth being able to look up, not worth reading twice.`,
         body: disclosureGroup([
           {
             summary: "What each column in the table means",
@@ -725,9 +680,7 @@ function attached(
       // Two of those three shipped on 16 Sep and this line did not move with
       // them, so the page spent two days telling a producer they could not do
       // the thing the button above does. Say what is true per verb.
-      note: html`This screen is reading your producer record. Submitting a fragrance and
-        withdrawing one both work. Requesting an edit does not yet, and that button says so
-        itself rather than leaving you to find out by pressing it.`,
+      note: html`Reading your producer record. Nothing here publishes to the catalogue.`,
     },
     standfirst: html`Everything ${producer.name} has submitted, what state each listing is
       in, and what can be done about it today.`,

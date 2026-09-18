@@ -93,6 +93,7 @@ import { robots } from "./routes/robots";
 import { signIn, signInSubmit } from "./routes/sign-in";
 import { verify } from "./routes/verify";
 import { signOut } from "./routes/sign-out";
+import { companyPage, createCompany } from "./routes/company";
 import { submitPage, submitListing } from "./routes/submit";
 import { withdrawPage, withdrawSubmit } from "./routes/withdraw";
 import type { Env } from "./lib/env";
@@ -121,8 +122,18 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
   // own `form-action` grant. A route whose CSP is chosen by the table cannot
   // do that without the table knowing who is signed in.
   "/console": { GET: (req, env) => producerConsole(req, env) },
-  // The two authenticated writes this origin accepts. Both are POST-only for
-  // the act itself and GET for the screen that precedes it, so neither can be
+  // THE FIRST STEP EVERY NEW ACCOUNT TAKES, and until 2026-09-19 it did not
+  // exist: nothing in this Worker could create a `Producer` row, so every
+  // account that signed in was permanently stuck on a screen saying no company
+  // was attached to it. See the header of routes/company.ts for why the manual
+  // step it replaces was safe to drop - in short, the listing queue is the
+  // identity gate and it was being applied twice.
+  "/console/company": {
+    GET: (req, env) => companyPage(req, env),
+    POST: (req, env) => createCompany(req, env),
+  },
+  // The authenticated writes this origin accepts. All are POST-only for the
+  // act itself and GET for the screen that precedes it, so none can be
   // triggered by a link, an image, or a prefetch.
   "/console/submit": {
     GET: (req, env) => submitPage(req, env),

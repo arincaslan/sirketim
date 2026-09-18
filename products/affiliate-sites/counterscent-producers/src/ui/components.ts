@@ -886,6 +886,26 @@ export function button(
   >${label}</button>`;
 }
 
+/**
+ * A link styled as a button, for a screen whose primary action is a navigation.
+ *
+ * AN ANCHOR, NOT A BUTTON IN A FORM, and that is the point rather than a
+ * shortcut: "Set up your company" and "Submit a fragrance" are GET, they
+ * belong in history, and middle-click and open-in-new-tab have to work. A
+ * <button> wrapped in a <form method="get"> would break all three and would
+ * pull a `form-action` CSP grant onto pages that accept no post.
+ *
+ * It wears `.btn` so there is one button language on the origin: the rule that
+ * makes an anchor sit right in it lives beside `.btn` in console.css.
+ */
+export function linkButton(
+  href: string,
+  label: string,
+  opts: { variant?: "primary" | "ghost" } = {},
+): Html {
+  return html`<a class="btn btn-${opts.variant ?? "primary"}" href="${href}">${label}</a>`;
+}
+
 /* ------------------------------------------------------------------------ *
  * Empty states
  * ------------------------------------------------------------------------ */

@@ -69,6 +69,11 @@ export type CsrfPurpose =
   // render functions that currently do not take one. The three verbs below all
   // change stored state irreversibly, which is why they are worth that cost
   // and this is not.
+  // THE ONLY WRITE AN ACCOUNT WITH NO PRODUCER CAN MAKE. Every other verb here
+  // is scoped to a producer record; this one creates that record, so it is
+  // scoped to the session alone. It is still a separate purpose rather than a
+  // shared one, so a token minted for it cannot be replayed against a listing.
+  | "create-company"
   | "submit-listing"
   | "withdraw-listing"
   // THE ADMIN VERBS ARE SEPARATE PURPOSES, not one shared "admin" token, for
