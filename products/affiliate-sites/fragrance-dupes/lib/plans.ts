@@ -186,20 +186,46 @@ export const PLANS: Plan[] = [
     id: "standard",
     name: "Standard",
     tagline: "For a catalog that covers a range of originals.",
-    // PRICE CUT 19 -> 12, founder, 2026-09-18, and the reason is the SHAPE of
-    // the ladder rather than the market: free carries one listing and this
-    // carries twenty-five, which is a twenty-fivefold jump in what you get for
-    // the first money you spend. $12 is what the founder judged that first step
-    // should cost. Yearly keeps the same ten-months-for-twelve ratio the old
-    // pair had (190/19 = 10, 120/12 = 10), so the annual discount did not
-    // silently change with the headline number.
+    // PRICE CUT 19 -> 12 -> 9.99, founder, 2026-09-18, twice in one day. The
+    // second cut came with a stated goal that the first did not have - "i want
+    // lots of subscribers" - so this tier is now priced for volume rather than
+    // for margin, and the ladder was reshaped to match rather than just
+    // discounted: the allowance came DOWN from twenty-five to twelve at the
+    // same time.
+    //
+    // THE ALLOWANCE CUT IS THE DELIBERATE HALF. Dropping the price while
+    // leaving twenty-five listings would have made Unlimited nearly
+    // unsellable, because twenty-five covers almost any real dupe house's
+    // catalogue - the top tier would have been buying a number nobody reaches.
+    // Twelve is a catalogue a producer can actually outgrow, which is what
+    // makes the step above it mean something.
+    //
+    // THE .99 IS CHARM PRICING AND NOTHING MORE. The founder asked for 9.99
+    // over 10 explicitly ("would be more appealing"). It is worth recording
+    // that this is the first number on this page chosen for how it reads
+    // rather than for what it recovers.
+    //
+    // YEARLY IS 99, WHICH BREAKS THE OLD RATIO ON PURPOSE. Every previous pair
+    // was exactly ten months for twelve (190/19, 120/12). 99/9.99 is 9.91
+    // months, so the annual deal is now slightly BETTER than the old one, and
+    // the "12 months for the price of N" line stops rendering because N is no
+    // longer whole. That is the honest outcome: 99 reads better than 99.90 and
+    // the saving is real either way. See yearlySavingMonths(), which is derived
+    // and still correct.
     //
     // STILL A PLACEHOLDER. Section 3's research into what these houses actually
     // spend on acquisition has not been done, and the header's warning applies
-    // to 12 exactly as it applied to 19.
-    priceMonthly: 12,
-    priceYearly: 120,
-    listings: "25 listings",
+    // to 9.99 exactly as it applied to 19.
+    priceMonthly: 9.99,
+    priceYearly: 99,
+    // MIRRORED BY HAND IN THE WORKER. counterscent-producers'
+    // src/lib/producer.ts has its own allowanceForTier() switch with this
+    // number written into it, because a string like "12 listings" is copy and
+    // an allowance is a capability - the Worker will not parse one out of the
+    // other. `npm run generate` copies this STRING and does not touch that
+    // switch, so changing the number here without changing it there ships a
+    // page that promises twelve and a gate that enforces twenty-five.
+    listings: "12 listings",
     // TWO FEATURES WERE REMOVED HERE, and both were being SOLD on a live
     // pricing page for things the repo has decided not to build.
     //
@@ -240,8 +266,19 @@ export const PLANS: Plan[] = [
     id: "unlimited",
     name: "Unlimited",
     tagline: "For a full catalog and conversion data.",
-    priceMonthly: 49,
-    priceYearly: 490,
+    // PRICE CUT 49 -> 17.99, founder, 2026-09-18, same instruction and same
+    // reasoning as Standard's: priced for subscriber volume, and charm-priced
+    // on the founder's explicit preference.
+    //
+    // THE GAP BETWEEN THE TIERS NARROWED FROM 4.1x TO 1.8x, which is the part
+    // worth watching. At 12 and 49 the top tier was a different decision; at
+    // 9.99 and 17.99 it is an easy upsell, and that is presumably the point
+    // given the volume goal. The risk is the mirror image: a producer who
+    // would have paid 9.99 happily may now anchor on 17.99 and decide the
+    // whole programme is cheap. Nothing here can settle that - it needs a
+    // price nobody has tested on a population that does not yet exist.
+    priceMonthly: 17.99,
+    priceYearly: 179,
     listings: "Unlimited listings",
     features: [
       "Everything in Standard",

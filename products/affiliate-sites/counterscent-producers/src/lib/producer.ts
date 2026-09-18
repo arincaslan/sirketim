@@ -26,7 +26,7 @@ import { PLANS } from "../generated/plans";
  *
  * THIS IS A COPY OF A CAPABILITY, AND THE COPY IS THE RISK. Source of truth:
  * products/affiliate-sites/fragrance-dupes/lib/plans.ts, the `listings` field
- * on each plan ("1 listing", "25 listings", "Unlimited listings"). This is a
+ * on each plan ("1 listing", "12 listings", "Unlimited listings"). This is a
  * separate project with no import path to that file, so this mapping is
  * hand-written and can drift. It is deliberately the only thing copied:
  * prices are NOT copied here and must not be, because a third hand-typed copy
@@ -49,8 +49,21 @@ export function allowanceForTier(tier: string): Allowance {
   switch (tier) {
     case "free":
       return 1;
+    // 25 -> 12 on 2026-09-18, in lockstep with the price cut to $9.99.
+    //
+    // THIS NUMBER AND THE CATALOGUE'S "12 listings" STRING ARE TWO COPIES AND
+    // NOTHING CHECKS THEM AGAINST EACH OTHER. `npm run generate` copies the
+    // plans' COPY across from fragrance-dupes/lib/plans.ts - names, taglines,
+    // prices, and the `listings` string - but it cannot generate this switch,
+    // because "12 listings" is a sentence and an allowance is an integer the
+    // gate compares against. So the pricing page's promise and the quota that
+    // enforces it are kept in step by hand, in two repositories' worth of
+    // distance, and the failure is silent in the worst direction: a page that
+    // sells twelve while the gate grants twenty-five costs us money quietly.
+    //
+    // If this drifts once, parse it instead of trusting the pair.
     case "standard":
-      return 25;
+      return 12;
     // Renamed from "featured" on 2026-09-18. Deliberately NOT accepting the old
     // id as an alias: zero producers exist, so no stored row can carry it, and
     // an alias here would be the one thing keeping a retired name alive. If a
@@ -206,7 +219,30 @@ export function enforcedAllowance(tier: string | null): Allowance {
   return tier === null ? 1 : allowanceForTier(tier);
 }
 
-export function quotaGate(opts: { tier: string | null; inUse: number }): QuotaVerdict {
+export function quotaGate(opts: {
+  tier: string | null;
+  inUse: number;
+  /**
+   * Skip the allowance entirely. Set ONLY from `isAdminEmail`, never from
+   * anything a producer's own record can say.
+   *
+   * WHY THIS IS AN ARGUMENT RATHER THAN A TIER. Founder instruction
+   * 2026-09-18: an administrator has every ability, including listing their
+   * own fragrance from the console. The tempting implementation is a fourth
+   * tier, or an "admin" string in Producer.tier - and both are wrong in the
+   * same way, because they put the answer to "may this account ignore the
+   * cap" inside data the application writes. Administrative access on this
+   * origin is a deployment secret precisely so that nothing writable can
+   * grant it (see src/lib/admin.ts), and a tier that unlocked the cap would
+   * be a second, weaker door into the same room.
+   *
+   * It is also deliberately narrow: this removes a COMMERCIAL limit and
+   * nothing else. An admin's submission is still created PENDING and still
+   * waits for a decision, because no route on this origin writes LIVE.
+   */
+  uncapped?: boolean;
+}): QuotaVerdict {
+  if (opts.uncapped) return { kind: "ok" };
   const allowance: Allowance = enforcedAllowance(opts.tier);
 
   if (allowance === "unknown") return { kind: "unknown-tier", tier: opts.tier ?? "" };

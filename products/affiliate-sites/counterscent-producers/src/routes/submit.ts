@@ -110,7 +110,7 @@ export async function submitPage(request: Request, env: Env): Promise<Response> 
     } catch {
       receipt = null;
     }
-    if (receipt) return page(received(gate.auth, gate.data, receipt), 200);
+    if (receipt) return page(received(gate.auth, gate.data, receipt, gate.isAdmin), 200);
     // Falls through to the form, with a notice. Not a 404: the overwhelmingly
     // likely cause is a bookmarked or edited address, and the useful thing to
     // put in front of somebody is the form they were trying to use.
@@ -160,7 +160,11 @@ export async function submitListing(request: Request, env: Env): Promise<Respons
   // server does not do: a stale tab, a second window, or a request that never
   // came from our form would otherwise walk straight past a decision made at
   // render time.
-  const quota = quotaGate({ tier: gate.data.producer.tier, inUse: gate.data.inUse });
+  const quota = quotaGate({
+    tier: gate.data.producer.tier,
+    inUse: gate.data.inUse,
+    uncapped: gate.isAdmin,
+  });
   if (quota.kind !== "ok") return renderForm(request, gate, { quota });
 
   const draft = readDraft(form);
@@ -213,7 +217,7 @@ export async function submitListing(request: Request, env: Env): Promise<Respons
       });
     }
     console.error("submitListing insert failed", err instanceof Error ? err.message : err);
-    return page(writeFailed(gate.auth), 503);
+    return page(writeFailed(gate.auth, gate.isAdmin), 503);
   }
 
   // PRG, and a 303 rather than the 302 the rest of this origin uses: 303 is the
@@ -271,11 +275,12 @@ const REFERENCE_GROUPS = (() => {
 
 async function renderForm(
   request: Request,
-  gate: { auth: AuthUser; sql: Sql; data: ProducerConsoleData },
+  gate: { auth: AuthUser; sql: Sql; data: ProducerConsoleData; isAdmin: boolean },
   state: FormState,
 ): Promise<Response> {
   const { data } = gate;
-  const quota = state.quota ?? quotaGate({ tier: data.producer.tier, inUse: data.inUse });
+  const quota =
+    state.quota ?? quotaGate({ tier: data.producer.tier, inUse: data.inUse, uncapped: gate.isAdmin });
 
   if (quota.kind === "unknown-tier") {
     return page(unknownTier(gate.auth, data, quota.tier), 200);
@@ -674,7 +679,7 @@ async function renderForm(
     layout({
       title: COPY.title,
       heading: "Submit a fragrance",
-      nav: { current: "submit", showReview: true },
+      nav: { current: "submit", showAdmin: gate.isAdmin },
       status: {
         label: errors.length ? "Not submitted" : "Console live",
         tone: errors.length ? "outline" : "solid",
@@ -721,7 +726,7 @@ function allowanceFull(auth: AuthUser, data: ProducerConsoleData, allowance: num
   return layout({
     title: COPY.title,
     heading: allowance === 1 ? "Your free listing is in use" : "This plan's listings are all in use",
-    nav: { current: "submit", showReview: true },
+    nav: { current: "submit" },
     status: {
       label: "Allowance full",
       tone: "outline",
@@ -773,7 +778,7 @@ function unknownTier(auth: AuthUser, data: ProducerConsoleData, tier: string): H
   return layout({
     title: COPY.title,
     heading: "We do not know what your plan allows",
-    nav: { current: "submit", showReview: true },
+    nav: { current: "submit" },
     status: {
       label: "Allowance not known",
       tone: "outline",
@@ -807,11 +812,11 @@ function unknownTier(auth: AuthUser, data: ProducerConsoleData, tier: string): H
 
 /** The insert itself failed for a reason that is not a duplicate. Nothing was
  *  written, and saying so is the whole content of the page. */
-function writeFailed(auth: AuthUser): Html {
+function writeFailed(auth: AuthUser, isAdmin = false): Html {
   return layout({
     title: COPY.title,
     heading: "That did not save",
-    nav: { current: "submit", showReview: true },
+    nav: { current: "submit", showAdmin: isAdmin },
     status: {
       label: "Not saved",
       tone: "outline",
@@ -850,7 +855,12 @@ function writeFailed(auth: AuthUser): Html {
  * QUEUE POSITION either, because there is no queue: submissions wait for a
  * person and that person is one person.
  */
-function received(auth: AuthUser, data: ProducerConsoleData, receipt: SubmissionReceipt): Html {
+function received(
+  auth: AuthUser,
+  data: ProducerConsoleData,
+  receipt: SubmissionReceipt,
+  isAdmin = false,
+): Html {
   const notes = [
     ...(receipt.notesTop ?? []),
     ...(receipt.notesHeart ?? []),
@@ -862,7 +872,7 @@ function received(auth: AuthUser, data: ProducerConsoleData, receipt: Submission
   return layout({
     title: "Submitted",
     heading: "Recorded, and waiting for a person",
-    nav: { current: "listings", showReview: true },
+    nav: { current: "listings", showAdmin: isAdmin },
     status: {
       label: "Console live",
       tone: "solid",

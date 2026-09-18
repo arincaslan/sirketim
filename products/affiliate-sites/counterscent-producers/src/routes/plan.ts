@@ -48,7 +48,7 @@ import type { ProducerConsoleData } from "../lib/producer";
  * catalogue's lib/plans.ts by `npm run generate` and checked by `--check`.
  * This origin cannot import from that project, so a figure typed here would be
  * a copy sitting behind the catalogue's constants with nothing able to catch a
- * mismatch - and a producer reading $12 here and something else on the pricing
+ * mismatch - and a producer reading $9.99 here and something else on the pricing
  * page is worse than one reading no figure at all. That was the original
  * argument for printing no figures; the founder overruled the conclusion on
  * 2026-09-16 and upheld the objection, which is what generation answers.
@@ -64,10 +64,21 @@ export async function producerPlan(request: Request, env: Env): Promise<Response
     title: "Your plan",
   });
   if (gate.kind === "refused") return gate.response;
-  return page(planPage(gate.data));
+  return page(planPage(gate.data, gate.isAdmin));
 }
 
-function planPage(data: ProducerConsoleData): Html {
+/**
+ * NOT LINKED FROM AN ADMIN'S NAV, but still rendered if one arrives here.
+ *
+ * Founder instruction 2026-09-18 removed "Your plan" from the administrative
+ * navigation, and the console's account panel points an admin at /admin
+ * instead, so there is no route into this page for one. That is a navigation
+ * decision, not an access one: refusing to render a page of published prices
+ * to somebody who can read the same figures on the public pricing page would
+ * be theatre. The nav flag is threaded through so that an admin who gets here
+ * from a bookmark does not silently lose the admin group from the bar.
+ */
+function planPage(data: ProducerConsoleData, isAdmin = false): Html {
   const { producer, inUse } = data;
   const current = planFor(producer.tier);
   const allowance: Allowance | null =
@@ -83,7 +94,7 @@ function planPage(data: ProducerConsoleData): Html {
   return layout({
     title: "Your plan",
     heading: "Your plan",
-    nav: { current: "plan", showReview: true },
+    nav: { current: "plan", showAdmin: isAdmin },
     status: {
       // OUTLINE, NOT SOLID. Solid is reserved for a surface that is real and
       // working end to end, which /console earned by reading live data. This
@@ -279,6 +290,23 @@ function tierCard(
  * "about two months" on a page about money is exactly the kind of small lie
  * that is not worth the sentence.
  */
+/**
+ * A dollar figure as a person writes one.
+ *
+ * `String(9.99)` is "9.99" and `String(9.5)` is "9.5", and the second is not a
+ * price - it is a number that happens to be a price, printed as "$9.5". That
+ * was harmless while every figure on this page was a whole number and stopped
+ * being harmless on 2026-09-18, when the tiers moved to 9.99 and 17.99. The
+ * founder changed the prices twice within a minute, so the next value being a
+ * clean two-decimal one is not something to rely on.
+ *
+ * Whole numbers stay whole ("$99 a year", not "$99.00"), because padding a
+ * round annual figure reads like a form field rather than a price.
+ */
+function money(v: number): string {
+  return Number.isInteger(v) ? String(v) : v.toFixed(2);
+}
+
 function priceBlock(plan: GeneratedPlan): Html {
   if (plan.priceMonthlyUsd === null) {
     return html`<p class="plan-card-price">
@@ -289,16 +317,23 @@ function priceBlock(plan: GeneratedPlan): Html {
   const monthly = plan.priceMonthlyUsd;
   const yearly = plan.priceYearlyUsd;
   const monthsInYearly = yearly === null ? null : yearly / monthly;
-  const whole = monthsInYearly !== null && Number.isInteger(monthsInYearly);
+  // TOLERANCE, NOT Number.isInteger. Prices became decimal on 2026-09-18
+  // (9.99, 17.99) and a ratio like 99.90/9.99 is 10.000000000000002 in
+  // binary floating point, so an exact integer test would silently drop the
+  // "price of 10" line from a pair that genuinely is ten months. The current
+  // pair (99/9.99 = 9.91) is not whole by any measure and correctly renders
+  // without the clause; this guard is for the next pair the founder picks.
+  const whole =
+    monthsInYearly !== null && Math.abs(monthsInYearly - Math.round(monthsInYearly)) < 0.005;
 
   return html`<p class="plan-card-price">
-      $${String(monthly)}<span class="plan-card-per"> a month</span>
+      $${money(monthly)}<span class="plan-card-per"> a month</span>
     </p>
     ${yearly === null
       ? ""
       : html`<p class="plan-card-yearly">
-          or $${String(yearly)} a year${whole && monthsInYearly < 12
-            ? html` - 12 months for the price of ${String(monthsInYearly)}`
+          or $${money(yearly)} a year${whole && monthsInYearly < 12
+            ? html` - 12 months for the price of ${String(Math.round(monthsInYearly))}`
             : ""}
         </p>`}`;
 }

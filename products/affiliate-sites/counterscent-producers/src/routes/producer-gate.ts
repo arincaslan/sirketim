@@ -6,6 +6,7 @@ import type { Env } from "../lib/env";
 import { db } from "../lib/db";
 import { getAuthContext, type AuthUser, type Sql } from "../lib/auth";
 import { loadProducerConsole, type ProducerConsoleData } from "../lib/producer";
+import { isAdminEmail } from "../lib/admin";
 
 /**
  * The gate both `/console/submit` and `/console/withdraw` sit behind, in one
@@ -34,7 +35,26 @@ import { loadProducerConsole, type ProducerConsoleData } from "../lib/producer";
  */
 
 export type ProducerGate =
-  | { kind: "ok"; auth: AuthUser; sql: Sql; data: ProducerConsoleData }
+  | {
+      kind: "ok";
+      auth: AuthUser;
+      sql: Sql;
+      data: ProducerConsoleData;
+      /**
+       * Whether this producer is also an administrator of the deployment.
+       *
+       * Computed here so the producer routes cannot disagree about it, and so
+       * none of them has to carry `env` into a render function just to ask.
+       * It is read from the ADMIN_EMAILS secret, never from the producer
+       * record - see the `uncapped` note on quotaGate for why that direction
+       * matters.
+       *
+       * IT GRANTS NOTHING ON ITS OWN. Every administrative ROUTE still calls
+       * requireAdmin() for itself. What this flag decides is what the producer
+       * console shows an admin and whether the listing cap is applied to them.
+       */
+      isAdmin: boolean;
+    }
   | { kind: "refused"; response: Response };
 
 /** What the reader was trying to do, in a verb phrase that fits after "to".
@@ -73,7 +93,7 @@ export async function requireProducer(
 
   if (!data) return { kind: "refused", response: page(recordMissing(auth), 200) };
 
-  return { kind: "ok", auth, sql: sql as Sql, data };
+  return { kind: "ok", auth, sql: sql as Sql, data, isAdmin: isAdminEmail(auth.email, env) };
 }
 
 /* ---------------------------------------------------------------------- *

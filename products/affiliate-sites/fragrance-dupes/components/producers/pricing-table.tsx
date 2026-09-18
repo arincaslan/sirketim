@@ -10,6 +10,18 @@ import { cn } from "@/lib/utils";
 import type { BillingInterval } from "@/lib/plans";
 
 /**
+ * A price as a person writes one.
+ *
+ * Template interpolation of a number prints 9.5 as "9.5", which is a number
+ * and not a price. Harmless while every tier was a whole figure; the tiers
+ * moved to 9.99 and 17.99 on 2026-09-18 and the next revision may not be so
+ * tidy. Whole numbers stay whole, so the annual $99 does not become "$99.00".
+ */
+function formatPrice(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2);
+}
+
+/**
  * Plan chooser. The monthly/yearly switch is the founder's "monthly or
  * yearly" requirement at the point of purchase; the same choice is stored on
  * Subscription.interval (prisma/schema.prisma) rather than derived from the
@@ -114,7 +126,7 @@ export function PricingTable() {
 
               <div className="flex flex-col gap-1">
                 <p className="font-display text-3xl tabular-nums">
-                  {isFree ? "Free" : `$${price}`}
+                  {isFree || price == null ? "Free" : `$${formatPrice(price)}`}
                   {!isFree && (
                     <span className="ml-1 text-sm font-normal text-muted-foreground">
                       /{interval === "yearly" ? "year" : "month"}

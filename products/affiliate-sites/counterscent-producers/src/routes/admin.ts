@@ -41,7 +41,7 @@ export async function adminOverview(request: Request, env: Env): Promise<Respons
     layout({
       title: "Admin",
       heading: "Everything, at a glance",
-      nav: { current: "admin", showAdmin: true, showReview: true },
+      nav: { current: "admin", showAdmin: true },
       status: {
         label: "Admin",
         tone: "solid",
@@ -250,7 +250,7 @@ function readFailed(e: unknown): Html {
   return layout({
     title: "Admin",
     heading: "The database did not answer",
-    nav: { current: "admin", showAdmin: true, showReview: true },
+    nav: { current: "admin", showAdmin: true },
     status: {
       label: "Read failed",
       tone: "outline",

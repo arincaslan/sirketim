@@ -21,6 +21,7 @@ import { NEVER_INCLUDED, PLANS } from "../generated/plans";
 import type { Env } from "../lib/env";
 import { db } from "../lib/db";
 import { getAuthContext, type AuthUser } from "../lib/auth";
+import { isAdminEmail } from "../lib/admin";
 import {
   countsAgainstAllowance,
   enforcedAllowance,
@@ -112,7 +113,9 @@ export async function producerConsole(request: Request, env: Env): Promise<Respo
       ? data.listings.find((l) => l.slug === withdrewSlug) ?? null
       : null;
 
-  return page(attached(auth, data, withdrew), 200, { allowForms: true });
+  return page(attached(auth, data, withdrew, isAdminEmail(auth.email, env)), 200, {
+    allowForms: true,
+  });
 }
 
 /* ======================================================================== *
@@ -420,7 +423,12 @@ function noProducerAttached(auth: AuthUser): Html {
  * (c) Signed in and attached
  * ======================================================================== */
 
-function attached(auth: AuthUser, data: ProducerConsoleData, withdrew: ListingRow | null = null): Html {
+function attached(
+  auth: AuthUser,
+  data: ProducerConsoleData,
+  withdrew: ListingRow | null = null,
+  isAdmin = false,
+): Html {
   const { producer, listings, inUse } = data;
   const hasListings = listings.length > 0;
 
@@ -431,7 +439,7 @@ function attached(auth: AuthUser, data: ProducerConsoleData, withdrew: ListingRo
   // which is false when tier is null - so this page said there was nothing to be
   // full of while the form said "1 of 1". That is every producer's state at
   // launch, not an edge case, because there are zero Subscription rows.
-  const verdict = quotaGate({ tier: producer.tier, inUse });
+  const verdict = quotaGate({ tier: producer.tier, inUse, uncapped: isAdmin });
   const atAllowance = verdict.kind === "at-allowance";
 
   const body = html`
@@ -468,7 +476,7 @@ function attached(auth: AuthUser, data: ProducerConsoleData, withdrew: ListingRo
               { label: "Producer", value: html`${producer.name}` },
               { label: "Signed in as", value: html`<span class="wrap-anywhere">${auth.email}</span>` },
             ],
-            aside: planPanel(producer, inUse),
+            aside: isAdmin ? adminPanel(inUse) : planPanel(producer, inUse),
             action: html`<form method="post" action="/sign-out" class="actions">
               ${button("Sign out", { variant: "ghost" })}
             </form>`,
@@ -580,10 +588,16 @@ function attached(auth: AuthUser, data: ProducerConsoleData, withdrew: ListingRo
     title: "Producer console",
     heading: "Your listings",
     // The main signed-in screen, so this is where the nav first appears.
-    // showReview is a session check standing in for a role check until User has
-    // one; see NavContext in ../ui/layout for why that is a stopgap and what
-    // has to land with it.
-    nav: { current: "listings", showReview: true },
+    //
+    // showAdmin IS PASSED FROM THE PRODUCER SIDE, and that is new on
+    // 2026-09-18. It used to be set only by the three /admin routes, which
+    // made the administrative group reachable only by typing the URL: from
+    // /console there was no link to it at all, and once on an admin page
+    // there was no way back into the console except the footer. That is the
+    // same complaint the founder made about this origin earlier the same day,
+    // in a smaller shape. It is a display flag and nothing else - what
+    // protects those routes is requireAdmin() inside each one.
+    nav: { current: "listings", showAdmin: isAdmin },
     status: {
       label: "Console live",
       // The one solid pill on the origin. Solid means published on a listing
@@ -671,6 +685,42 @@ function planPanel(producer: ProducerConsoleData["producer"], inUse: number): Ht
     </p>
     ${note ? html`<p class="plan-panel-note">${note}</p>` : ""}
     <p class="plan-panel-link"><a href="/console/plan">See plans and move tier</a></p>
+  </div>`;
+}
+
+/**
+ * What stands where the plan panel stands, for an administrator.
+ *
+ * FOUNDER INSTRUCTION 2026-09-18: "as admin we shouldn't see your plan... but
+ * as admin again we should have every ability. I can list my own fragrance
+ * from here too." So this is not a smaller plan panel - it answers a different
+ * question. A producer's panel answers "how much room is left"; an admin has
+ * no room to run out of, so the only honest count is how many listings the
+ * house currently holds.
+ *
+ * IT SAYS THE LISTING STILL ENTERS THE QUEUE, and that sentence is the point
+ * of the panel rather than a disclaimer on it. Removing the cap removes a
+ * commercial limit, not the editorial one: a submission made from here is
+ * created PENDING exactly like anybody else's, because nothing on this origin
+ * may publish without a person putting it up. If that sentence ever stops
+ * being true, this panel is lying on the one screen where the house is
+ * looking at its own work.
+ */
+function adminPanel(inUse: number): Html {
+  return html`<div class="plan-panel">
+    <p class="plan-panel-label">Your access</p>
+    <p class="plan-panel-name">Administrator</p>
+    <p class="plan-panel-count">
+      <span class="plan-panel-listed"
+        >${inUse === 1 ? "1 listed" : `${String(inUse)} listed`}</span
+      >
+      <span class="plan-panel-room">No listing cap</span>
+    </p>
+    <p class="plan-panel-note">
+      Anything you submit still joins the queue and waits for a decision, the same as a
+      producer's.
+    </p>
+    <p class="plan-panel-link"><a href="/admin">Open the admin panel</a></p>
   </div>`;
 }
 
@@ -818,7 +868,7 @@ function exhaustedAllowance(allowance: number): Html {
  * small lesson about a stated reason outliving the decision behind it.
  *
  * THE PRICES ARE STILL PLACEHOLDERS AT THE SOURCE, and the cost row says so
- * rather than leaving a reader to treat $12 as a commitment.
+ * rather than leaving a reader to treat $9.99 as a commitment.
  *
  * There is still no monthly/yearly toggle: it is client state, there is no
  * JavaScript budget, and a toggle belongs at a point of purchase, which this
@@ -829,9 +879,16 @@ function exhaustedAllowance(allowance: number): Html {
  *  them. */
 function costCell(p: { priceMonthlyUsd: number | null; priceYearlyUsd: number | null }): Html {
   if (p.priceMonthlyUsd === null) return html`Nothing`;
-  return html`$${String(p.priceMonthlyUsd)} a month${p.priceYearlyUsd === null
+  return html`$${money(p.priceMonthlyUsd)} a month${p.priceYearlyUsd === null
     ? ""
-    : html`<span class="cell-sub">or $${String(p.priceYearlyUsd)} a year</span>`}`;
+    : html`<span class="cell-sub">or $${money(p.priceYearlyUsd)} a year</span>`}`;
+}
+
+/** Whole numbers stay whole, decimals get both places. See the fuller note on
+ *  the twin of this in routes/plan.ts - two copies because this origin has no
+ *  shared ui/money module and one function is not worth inventing one for. */
+function money(v: number): string {
+  return Number.isInteger(v) ? String(v) : v.toFixed(2);
 }
 
 function planTable(): Html {
@@ -922,7 +979,7 @@ function planTable(): Html {
         ],
       },
       // GENERATED CELLS, for the same reason the column headers are. Typing
-      // "$12" here would recreate exactly the hand-copied figure the old
+      // "$9.99" here would recreate exactly the hand-copied figure the old
       // version of this function refused to carry, one tier to the left of
       // where the headers now come from.
       {

@@ -170,7 +170,7 @@ async function renderPeople(
       layout({
         title: "Producers and accounts",
         heading: "That could not be read",
-        nav: { current: "people", showAdmin: true, showReview: true },
+        nav: { current: "people", showAdmin: true },
         status: { label: "Read failed", tone: "outline", note: html`Nothing was written.` },
         body: section({
           heading: "What happened",
@@ -187,7 +187,7 @@ async function renderPeople(
     layout({
       title: "Producers and accounts",
       heading: "Producers and accounts",
-      nav: { current: "people", showAdmin: true, showReview: true },
+      nav: { current: "people", showAdmin: true },
       status: {
         label: "Admin",
         tone: "solid",

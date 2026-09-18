@@ -270,7 +270,7 @@ async function renderQueue(
       layout({
         title: "Listing queue",
         heading: "The queue could not be read",
-        nav: { current: "queue", showAdmin: true, showReview: true },
+        nav: { current: "queue", showAdmin: true },
         status: { label: "Read failed", tone: "outline", note: html`Nothing was written.` },
         body: section({
           heading: "What happened",
@@ -285,7 +285,7 @@ async function renderQueue(
     layout({
       title: "Listing queue",
       heading: "Listings waiting on a decision",
-      nav: { current: "queue", showAdmin: true, showReview: true },
+      nav: { current: "queue", showAdmin: true },
       status: {
         label: waiting.length > 0 ? `${waiting.length} waiting` : "Queue empty",
         tone: waiting.length > 0 ? "solid" : "outline",

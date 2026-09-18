@@ -56,9 +56,9 @@ export const PLANS: readonly GeneratedPlan[] = [
     id: "standard",
     name: "Standard",
     tagline: "For a catalog that covers a range of originals.",
-    priceMonthlyUsd: 12,
-    priceYearlyUsd: 120,
-    listings: "25 listings",
+    priceMonthlyUsd: 9.99,
+    priceYearlyUsd: 99,
+    listings: "12 listings",
     features: [
       "Everything in Free",
       "Per-listing and per-original click data",
@@ -71,8 +71,8 @@ export const PLANS: readonly GeneratedPlan[] = [
     id: "unlimited",
     name: "Unlimited",
     tagline: "For a full catalog and conversion data.",
-    priceMonthlyUsd: 49,
-    priceYearlyUsd: 490,
+    priceMonthlyUsd: 17.99,
+    priceYearlyUsd: 179,
     listings: "Unlimited listings",
     features: [
       "Everything in Standard",

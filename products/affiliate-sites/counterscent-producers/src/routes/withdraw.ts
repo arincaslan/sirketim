@@ -93,15 +93,21 @@ export async function withdrawPage(request: Request, env: Env): Promise<Response
   // NOT FOUND AND NOT YOURS ARE THE SAME ANSWER. `gate.data.listings` holds
   // only this producer's rows, so a listing belonging to somebody else simply
   // is not in it - and answering "that is not yours" would confirm it exists.
-  if (!listing) return page(notYours(gate.auth.email), 404);
+  if (!listing) return page(notYours(gate.auth.email, gate.isAdmin), 404);
 
-  if (!withdrawable(listing)) return page(alreadyGone(gate.auth.email, listing), 409);
+  if (!withdrawable(listing)) return page(alreadyGone(gate.auth.email, listing, gate.isAdmin), 409);
 
   // TIER GATE, CHECKED ON BOTH VERBS. Here it stops us rendering a form the
   // producer is not allowed to submit; the identical check in the POST below is
   // the one that actually enforces it, because this screen is not the only way
   // to reach that handler.
-  if (!mayWithdrawSelf(gate.data.producer.tier)) {
+  // THE ADMIN BYPASS IS THE SAME SHAPE AS quotaGate's `uncapped`, and for the
+  // same reason: self-withdrawal is a PAID-TIER feature, so an administrator
+  // whose own producer record sits on the free default could not take their
+  // own listing down - which contradicts "every ability" (founder, 2026-09-18)
+  // and would be absurd on a screen that also offers them the Take down button
+  // in /admin/queue. Read from ADMIN_EMAILS, never from the producer record.
+  if (!gate.isAdmin && !mayWithdrawSelf(gate.data.producer.tier)) {
     return page(askUsInstead(gate.auth.email, listing), 403);
   }
 
@@ -111,7 +117,7 @@ export async function withdrawPage(request: Request, env: Env): Promise<Response
   // that cannot submit.
   if (!token) return csrfRefused(COPY, "/console");
 
-  return page(confirm(gate.auth.email, listing, token), 200, { allowForms: true });
+  return page(confirm(gate.auth.email, listing, token, gate.isAdmin), 200, { allowForms: true });
 }
 
 /* ======================================================================== *
@@ -141,15 +147,21 @@ export async function withdrawSubmit(request: Request, env: Env): Promise<Respon
   const rawId = form.get("id");
   const id = typeof rawId === "string" ? rawId : null;
   const listing = id ? gate.data.listings.find((l) => l.id === id) : undefined;
-  if (!listing) return page(notYours(gate.auth.email), 404);
-  if (!withdrawable(listing)) return page(alreadyGone(gate.auth.email, listing), 409);
+  if (!listing) return page(notYours(gate.auth.email, gate.isAdmin), 404);
+  if (!withdrawable(listing)) return page(alreadyGone(gate.auth.email, listing, gate.isAdmin), 409);
 
   // THE ENFORCEMENT. The GET refuses too, but a hidden button is not a control:
   // this handler is reachable by a direct POST with a valid CSRF token, which a
   // free producer's own browser can mint from any console page. Checked before
   // the rate limiter so a refused attempt cannot spend the producer's write
   // budget, and before any write so nothing is half-done.
-  if (!mayWithdrawSelf(gate.data.producer.tier)) {
+  // THE ADMIN BYPASS IS THE SAME SHAPE AS quotaGate's `uncapped`, and for the
+  // same reason: self-withdrawal is a PAID-TIER feature, so an administrator
+  // whose own producer record sits on the free default could not take their
+  // own listing down - which contradicts "every ability" (founder, 2026-09-18)
+  // and would be absurd on a screen that also offers them the Take down button
+  // in /admin/queue. Read from ADMIN_EMAILS, never from the producer record.
+  if (!gate.isAdmin && !mayWithdrawSelf(gate.data.producer.tier)) {
     return page(askUsInstead(gate.auth.email, listing), 403);
   }
 
@@ -173,14 +185,14 @@ export async function withdrawSubmit(request: Request, env: Env): Promise<Respon
     moved = await withdrawListing(gate.sql, actor, { id: listing.id, publishState: listing.publishState });
   } catch (err) {
     console.error("withdrawSubmit failed", err instanceof Error ? err.message : err);
-    return page(writeFailed(gate.auth.email), 503);
+    return page(writeFailed(gate.auth.email, gate.isAdmin), 503);
   }
 
   // FALSE MEANS THE GUARDED UPDATE MATCHED NOTHING - two confirmations racing,
   // or an editor removing it a second earlier. Reported honestly rather than
   // as a success, because "withdrawn" would be a claim about a row this
   // request did not move.
-  if (!moved) return page(alreadyGone(gate.auth.email, listing), 409);
+  if (!moved) return page(alreadyGone(gate.auth.email, listing, gate.isAdmin), 409);
 
   // PRG with a 303, matching POST /console/submit: refreshing the console
   // afterwards can never replay the withdrawal.
@@ -198,11 +210,11 @@ function withdrawable(listing: ListingRow): boolean {
   );
 }
 
-function confirm(email: string, listing: ListingRow, token: string) {
+function confirm(email: string, listing: ListingRow, token: string, isAdmin = false) {
   return layout({
     title: COPY.title,
     heading: "Withdraw this listing?",
-    nav: { current: "listings", showReview: true },
+    nav: { current: "listings", showAdmin: isAdmin },
     status: {
       label: "Nothing has happened yet",
       tone: "outline",
@@ -255,11 +267,11 @@ function confirm(email: string, listing: ListingRow, token: string) {
   });
 }
 
-function notYours(email: string) {
+function notYours(email: string, isAdmin = false) {
   return layout({
     title: COPY.title,
     heading: "No such listing",
-    nav: { current: "listings", showReview: true },
+    nav: { current: "listings", showAdmin: isAdmin },
     status: {
       label: "Nothing was changed",
       tone: "outline",
@@ -292,7 +304,7 @@ function askUsInstead(email: string, listing: ListingRow) {
   return layout({
     title: COPY.title,
     heading: "We will withdraw this for you",
-    nav: { current: "listings", showReview: true },
+    nav: { current: "listings" },
     status: {
       label: "Nothing was changed",
       tone: "outline",
@@ -323,11 +335,11 @@ function askUsInstead(email: string, listing: ListingRow) {
   });
 }
 
-function alreadyGone(email: string, listing: ListingRow) {
+function alreadyGone(email: string, listing: ListingRow, isAdmin = false) {
   return layout({
     title: COPY.title,
     heading: "Already withdrawn",
-    nav: { current: "listings", showReview: true },
+    nav: { current: "listings", showAdmin: isAdmin },
     status: {
       label: "Nothing was changed",
       tone: "outline",
@@ -343,11 +355,11 @@ function alreadyGone(email: string, listing: ListingRow) {
   });
 }
 
-function writeFailed(email: string) {
+function writeFailed(email: string, isAdmin = false) {
   return layout({
     title: COPY.title,
     heading: "We could not withdraw it",
-    nav: { current: "listings", showReview: true },
+    nav: { current: "listings", showAdmin: isAdmin },
     status: {
       label: "Nothing was changed",
       tone: "outline",

@@ -83,19 +83,6 @@ export interface NavContext {
   /** Which item is the current page. Drives `aria-current`. */
   current?: NavKey;
   /**
-   * Whether to offer the editor queue.
-   *
-   * RESOLVED 2026-09-18. This used to be gated on merely having a session,
-   * which was a stopgap recorded here as one: `/review` was publicly reachable
-   * and answered 200 to anyone, and the note said access control had to land
-   * in the SAME change as its first real query. It did. `/review` now calls
-   * requireAdmin() like every other administrative route, so this flag is
-   * back to being what a nav flag should be - a question about what to show,
-   * not about what to permit.
-   */
-  showReview?: boolean;
-
-  /**
    * Whether to show the admin group.
    *
    * Set from `requireAdmin` having already succeeded, never from a guess. See
@@ -106,15 +93,24 @@ export interface NavContext {
 
 type NavKey = "listings" | "submit" | "plan" | "review" | "admin" | "queue" | "people";
 
-// ORDER IS THE PRODUCER'S SEQUENCE, not ours: look at what you have, add to
-// it, then deal with what it costs. "Your plan" sits before the editor queue
-// because the queue is staff-only in intent and only present at all as a
-// stopgap (see showReview above), so it should never separate two items a
-// producer uses.
-const NAV_ITEMS: { key: NavKey; href: string; label: string; admin?: true }[] = [
+// ORDER IS THE PRODUCER'S SEQUENCE FIRST, then ours: look at what you have,
+// add to it, then deal with what it costs - and only after all three, the
+// administrative group. The two groups never interleave, so an admin reading
+// this bar sees their producer tools and their house tools as two things
+// rather than one mixed list.
+const NAV_ITEMS: { key: NavKey; href: string; label: string; admin?: true; producerOnly?: true }[] = [
   { key: "listings", href: "/console", label: "Your listings" },
   { key: "submit", href: "/console/submit", label: "Submit a fragrance" },
-  { key: "plan", href: "/console/plan", label: "Your plan" },
+  // PRODUCER-ONLY, AND ONLY THIS ONE. Founder instruction 2026-09-18: an
+  // administrator should not be offered "Your plan", but should keep every
+  // producer ability including submitting a fragrance of their own. Those two
+  // sentences are the whole rule, and the distinction they draw is real - the
+  // other producer items act on listings, which an admin genuinely has; this
+  // one acts on a subscription tier, which an admin is not billed under and is
+  // not capped by (see the `uncapped` argument to quotaGate). Offering it would
+  // invite them to "move up a tier" from an allowance that is not being applied
+  // to them in the first place.
+  { key: "plan", href: "/console/plan", label: "Your plan", producerOnly: true },
   // THE ADMIN GROUP IS A NAVIGATION AFFORDANCE, NOT A GUARD. Hiding these
   // links protects nothing; what protects them is requireAdmin() inside each
   // route, which every one of them calls before reading anything. They are
@@ -142,7 +138,7 @@ const NAV_ITEMS: { key: NavKey; href: string; label: string; admin?: true }[] = 
 function navBar(ctx: NavContext): Html {
   const items = NAV_ITEMS.filter((i) => {
     if (i.admin) return ctx.showAdmin === true;
-    if (i.key === "review") return ctx.showReview === true;
+    if (i.producerOnly) return ctx.showAdmin !== true;
     return true;
   });
   return html`<nav class="site-nav" aria-label="Producer console">

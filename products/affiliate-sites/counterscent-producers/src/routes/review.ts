@@ -219,7 +219,7 @@ export async function reviewQueue(request: Request, env: Env) {
       // Every reader here is an administrator now - requireAdmin ran above and
       // returned its own response otherwise - so the nav is unconditional and
       // carries the admin group.
-      nav: { current: "review", showAdmin: true, showReview: true },
+      nav: { current: "review", showAdmin: true },
       status: {
         label: "Not the working screen",
         tone: "outline",
