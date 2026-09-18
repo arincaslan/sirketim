@@ -303,6 +303,27 @@ export async function createSession(sql: Sql, userId: string): Promise<{ token: 
     INSERT INTO "Session" (id, "sessionToken", "userId", expires)
     VALUES (${id}, ${token}, ${userId}, now() + (${SESSION_TTL_DAYS}::int * interval '1 day'))
   `;
+
+  // EXPIRED ROWS ARE SWEPT HERE, opportunistically, which is the same shape
+  // VerificationToken and RateLimit already use rather than a new mechanism.
+  // Session was the one table with no cleanup at all: deleteSession() is
+  // called only by sign-out, so every session a producer simply abandons - the
+  // overwhelmingly common case at a 30-day TTL - stayed forever. Not a hole,
+  // because getSessionUser() filters on `expires > now()`, but unbounded
+  // growth in a table every authenticated request reads.
+  //
+  // ON CREATION, NOT ON READ, and that is the whole reason this is safe. A
+  // sweep in getSessionUser() would turn every page load into a write, which
+  // is the shape the root CLAUDE.md prohibits outright; sign-in already writes
+  // and is rare. It deletes only rows that are already dead, never the row
+  // just inserted, and it is caught because a failed tidy-up must never fail a
+  // sign-in that has otherwise succeeded.
+  try {
+    await sql`DELETE FROM "Session" WHERE expires < now()`;
+  } catch {
+    // Swept next time. Nothing downstream depends on it having run.
+  }
+
   return { token, expires: daysFromNow(SESSION_TTL_DAYS) };
 }
 

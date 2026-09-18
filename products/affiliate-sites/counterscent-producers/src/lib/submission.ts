@@ -663,16 +663,35 @@ export async function withdrawListing(
   actor: ActorContext,
   listing: { id: string; publishState: string },
 ): Promise<boolean> {
-  const rows = (await sql`
-    UPDATE "Submission"
-    SET "publishState" = 'WITHDRAWN_BY_PRODUCER', "updatedAt" = now()
+  // THE AUDIT ROW IS WRITTEN FIRST AND THE STATE CHANGE SECOND, which reverses
+  // the order this function shipped with. adminDecide() states the rule in its
+  // own header - "if only one of the two can survive a failure, the safe
+  // survivor is a log entry describing a change that did not happen" - and
+  // honours it; both producer-side writers did the opposite, and there is no
+  // transaction anywhere in this project to make the pair atomic (the neon HTTP
+  // client opens none).
+  //
+  // THE CONSEQUENCE WAS NOT THEORETICAL. With the UPDATE first, a failure in the
+  // audit INSERT produced a withdrawn listing, no record of who withdrew it, and
+  // a 503 page telling the producer "the listing is still published" and
+  // "nothing was withdrawn" - three false statements about an action that cannot
+  // be undone from the console, because @@unique([producerId, referenceSlug])
+  // means they cannot resubmit it.
+  //
+  // The pre-check keeps the common case honest: without it, withdrawing an
+  // already-withdrawn listing would log an event for a change that was never
+  // going to happen. The UPDATE keeps its own guard regardless, so a race
+  // between the two still cannot double-withdraw - it can only leave an
+  // over-logged event, which is the failure this ordering deliberately prefers.
+  const live = (await sql`
+    SELECT id FROM "Submission"
     WHERE id = ${listing.id}
       AND "producerId" = ${actor.producerId}
       AND "publishState" NOT IN ('WITHDRAWN_BY_PRODUCER', 'REMOVED_BY_EDITOR')
-    RETURNING id
+    LIMIT 1
   `) as { id: string }[];
 
-  if (rows.length === 0) return false;
+  if (live.length === 0) return false;
 
   await writeAuditEvent(sql, {
     submissionId: listing.id,
@@ -685,7 +704,16 @@ export async function withdrawListing(
     reason: null,
   });
 
-  return true;
+  const rows = (await sql`
+    UPDATE "Submission"
+    SET "publishState" = 'WITHDRAWN_BY_PRODUCER', "updatedAt" = now()
+    WHERE id = ${listing.id}
+      AND "producerId" = ${actor.producerId}
+      AND "publishState" NOT IN ('WITHDRAWN_BY_PRODUCER', 'REMOVED_BY_EDITOR')
+    RETURNING id
+  `) as { id: string }[];
+
+  return rows.length > 0;
 }
 
 /**

@@ -1,0 +1,23 @@
+-- Let AuditEvent record something that is not about a submission.
+--
+-- WHY. POST /admin/people attaches a signed-in account to a producer record.
+-- It is the highest-privilege write on this origin - it decides who controls a
+-- company's listings - and until now it wrote no audit row at all. Not an
+-- oversight in the handler: AuditEvent."submissionId" was NOT NULL with a
+-- required relation, so the table could not physically hold an event that was
+-- not about a submission. The only record of an attach was User."producerId",
+-- a mutable column that the next attach overwrites.
+--
+-- SAFE AND NON-DESTRUCTIVE. Dropping NOT NULL widens what the column accepts
+-- and rejects nothing that is already there; every existing row keeps its
+-- value, and every listing event still sets it. The foreign key and the
+-- ON DELETE RESTRICT are untouched, so a submission still cannot be deleted
+-- out from under its own history.
+--
+-- ORDERING: apply BEFORE deploying the Worker that writes the new row, the
+-- same way the RateLimit table went out ahead of the code that counts against
+-- it. A Worker writing a NULL submissionId against the old constraint fails
+-- the INSERT, which - because the audit row is written FIRST - would refuse
+-- the attach rather than silently skip the record. That is the safe direction,
+-- but it is still an outage for the founder, so keep the order.
+ALTER TABLE "AuditEvent" ALTER COLUMN "submissionId" DROP NOT NULL;

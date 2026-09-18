@@ -6,6 +6,8 @@ import {
   card,
   csrfInput,
   datalist,
+  disclosure,
+  disclosureGroup,
   errorSummary,
   field,
   formGroup,
@@ -19,7 +21,12 @@ import {
 import type { Env } from "../lib/env";
 import type { AuthUser, Sql } from "../lib/auth";
 import { CSRF_FIELD, csrfToken, verifyCsrf } from "../lib/csrf";
-import { quotaGate, type ProducerConsoleData, type QuotaVerdict } from "../lib/producer";
+import {
+  mayWithdrawSelf,
+  quotaGate,
+  type ProducerConsoleData,
+  type QuotaVerdict,
+} from "../lib/producer";
 import {
   bumpRateLimit,
   PRODUCER_WRITE_MAX,
@@ -147,14 +154,13 @@ export async function submitListing(request: Request, env: Env): Promise<Respons
     return csrfRefused(COPY, "/console/submit");
   }
 
-  const limit = await bumpRateLimit(gate.sql, {
-    key: producerWriteKey(gate.data.producer.id),
-    windowSeconds: PRODUCER_WRITE_WINDOW_SECONDS,
-    limit: PRODUCER_WRITE_MAX,
-  });
-  if (limit.kind === "unavailable") return writeLimiterUnavailable(COPY, limit.reason);
-  if (limit.kind === "limited") return writeLimited(COPY, limit.retryAfterSeconds);
-
+  // CHECKED BEFORE THE RATE-LIMIT BUMP, which is the order withdraw.ts already
+  // uses and states the reason for: a request that was never going to be
+  // accepted must not spend one of the producer's write attempts. This costs
+  // nothing to get right - quotaGate is pure and needs no round trip - and the
+  // two write routes disagreeing about it was how a producer at their
+  // allowance burned their hourly budget on submissions the server refused.
+  //
   // THE QUOTA IS CHECKED AGAIN HERE, not only on the GET that rendered the
   // form. Quota enforcement that lives in a page is quota enforcement the
   // server does not do: a stale tab, a second window, or a request that never
@@ -166,6 +172,14 @@ export async function submitListing(request: Request, env: Env): Promise<Respons
     uncapped: gate.isAdmin,
   });
   if (quota.kind !== "ok") return renderForm(request, gate, { quota });
+
+  const limit = await bumpRateLimit(gate.sql, {
+    key: producerWriteKey(gate.data.producer.id),
+    windowSeconds: PRODUCER_WRITE_WINDOW_SECONDS,
+    limit: PRODUCER_WRITE_MAX,
+  });
+  if (limit.kind === "unavailable") return writeLimiterUnavailable(COPY, limit.reason);
+  if (limit.kind === "limited") return writeLimited(COPY, limit.retryAfterSeconds);
 
   const draft = readDraft(form);
   const result = validateSubmission(draft);
@@ -322,62 +336,79 @@ async function renderForm(
 
     ${errorSummary(summary)}
 
-    ${section({
-      heading: "What you fill in, and what we fill in",
-      lede: html`Worth reading once before the form, because the shape of it is not an
-        oversight.`,
-      body: html`
-        <div class="grid-2">
-          ${card(html`
-            <h3>Yours</h3>
-            <p class="muted">
-              Which original this is an alternative to, your product's name, price, size and
-              concentration, its note pyramid as top, heart and base, what is genuinely
-              different about it, and a link a reader can check it against.
-            </p>
-          `)}
-          ${card(html`
-            <h3>Ours, and not on this form</h3>
-            <p class="muted">
-              The six profile numbers, the family, the verdict and the match score. The six were
-              once sliders on a form and were taken out on purpose: our copy-detection check
-              compares your declared notes against those numbers, and handing the same party
-              both inputs defeats it by construction. It is not a comment on your honesty, it is
-              that a check only works while we author one side of it.
-              <a href="${CATALOGUE}/about#methodology">How we score</a> is published in full.
-            </p>
-          `)}
-        </div>
-      `,
-    })}
+    ${
+      // THE DIVISION OF LABOUR CAME OUT OF TWO CARDS AND INTO ONE DISCLOSURE.
+      // It was a section of its own, above the form, carrying a lede that said
+      // it was "worth reading once" - which is the definition of reference
+      // material and therefore the definition of what folds. Two <div class=
+      // "card"> wrappers around two paragraphs were elevation communicating
+      // nothing: nobody acts on either card, and side by side they read as a
+      // choice between them rather than as one explanation in two halves.
+      //
+      // IT STAYS ABOVE THE FORM RATHER THAN MOVING TO THE BOTTOM. A producer
+      // filling this in for the first time asks "why is there no score field"
+      // before the fields, not after them, and an answer filed after the
+      // submit button is an answer to nobody.
+      section({
+        heading: "Your listing",
+        lede: html`Everything is required unless it says Optional. Nothing is saved until you
+          press submit at the bottom, and if something is wrong you get this page back with
+          what you typed still in it.`,
+        body: html`
+          ${disclosureGroup([
+            {
+              summary: "What you fill in, and what we fill in",
+              body: html`
+                <p>
+                  <strong>Yours.</strong> Which original this is an alternative to, your
+                  product's name, price, size and concentration, its note pyramid as top, heart
+                  and base, what is genuinely different about it, and a link a reader can check
+                  it against.
+                </p>
+                <p>
+                  <strong>Ours, and not on this form.</strong> The six profile numbers, the
+                  family, the verdict and the match score. The six were once sliders on a form
+                  and were taken out on purpose: our copy-detection check compares your declared
+                  notes against those numbers, and handing the same party both inputs defeats it
+                  by construction. It is not a comment on your honesty, it is that a check only
+                  works while we author one side of it.
+                  <a href="${CATALOGUE}/about#methodology">How we score</a> is published in full.
+                </p>
+              `,
+            },
+          ])}
 
-    ${section({
-      heading: "The fragrance",
-      lede: html`Everything is required unless it says Optional. Nothing is saved until you
-        press submit at the bottom, and if something is wrong you get this page back with what
-        you typed still in it.`,
-      body: html`
-        <form method="post" action="/console/submit" class="submit-form">
+          <form method="post" action="/console/submit" class="submit-form">
           ${csrfInput(CSRF_FIELD, token)}
 
           ${formGroup({
             legend: "The original it goes against",
             note: html`You choose from the originals we have already researched. You cannot add
-              one: the comparison runs against a note pyramid we wrote up ourselves, so a
-              fragrance we have not covered has nothing to be scored against, and we do not
-              commit to a date for covering one.`,
-            body: selectField({
-              name: "referenceSlug",
-              label: "The original",
-              required: true,
-              emptyLabel: "Choose an original",
-              groups: REFERENCE_GROUPS,
-              value: draft.referenceSlug,
-              error: errorFor("referenceSlug"),
-              hint: html`${String(REFERENCES.length)} originals, grouped by house. One listing
-                per original per producer, so the page it lands on compares your product with
-                the original rather than with several of yours.`,
-            }),
+              one.`,
+            body: html`
+              ${disclosure({
+                summary: "Why you cannot add an original",
+                body: html`
+                  <p>
+                    The comparison runs against a note pyramid we wrote up ourselves, so a
+                    fragrance we have not covered has nothing to be scored against. We do not
+                    commit to a date for covering one.
+                  </p>
+                `,
+              })}
+              ${selectField({
+                name: "referenceSlug",
+                label: "The original",
+                required: true,
+                emptyLabel: "Choose an original",
+                groups: REFERENCE_GROUPS,
+                value: draft.referenceSlug,
+                error: errorFor("referenceSlug"),
+                hint: html`${String(REFERENCES.length)} originals, grouped by house. One listing
+                  per original per producer, so the page it lands on compares your product with
+                  the original rather than with several of yours.`,
+              })}
+            `,
           })}
 
           ${formGroup({
@@ -449,12 +480,24 @@ async function renderForm(
           ${formGroup({
             legend: "The note pyramid",
             note: html`Three tiers, as you publish them. Start typing and the box suggests notes
-              the catalogue already records, which is worth using: we compare your notes against
-              the original's by name, so "Ice" and "Ice Accord" are two different materials as
-              far as the arithmetic is concerned. You are not limited to the list. If your
-              fragrance contains something we have never recorded, type it: it is accepted, a
-              person looks at it, and it is never a reason to refuse a listing.`,
+              the catalogue already records.`,
             body: html`
+              ${disclosure({
+                summary: "Why the suggestions are worth using, and what happens to a note we have never recorded",
+                body: html`
+                  <p>
+                    We compare your notes against the original's by name, so "Ice" and "Ice
+                    Accord" are two different materials as far as the arithmetic is concerned.
+                    Taking the suggestion when it fits is the difference between a match the
+                    formula can see and one it cannot.
+                  </p>
+                  <p>
+                    You are not limited to the list. If your fragrance contains something we
+                    have never recorded, type it: it is accepted, a person looks at it, and it
+                    is never a reason to refuse a listing.
+                  </p>
+                `,
+              })}
               <div class="note-tiers">
                 ${noteTier({
                   name: "notesTop",
@@ -542,10 +585,9 @@ async function renderForm(
 
           ${formGroup({
             legend: "How it wears, as you describe it",
-            note: html`These three are your claim about your own product and they are labelled
-              as such wherever they appear. They feed no part of the match score: the longevity
-              and sillage numbers in the profile are separate, they are ours, and they are not
-              on this form.`,
+            note: html`Your claim about your own product, labelled as such wherever it appears.
+              None of it feeds the match score: the profile's longevity and sillage numbers are
+              ours and are not on this form.`,
             body: html`
               <div class="grid-2">
                 ${field({
@@ -589,9 +631,15 @@ async function renderForm(
 
           ${formGroup({
             legend: "A quote, if somebody else has written about it",
-            note: html`All optional, and all three or none of the first two. A quote with nobody
-              attached to it is an unattributed claim, which is the one thing a quote must not
-              be.`,
+            // "ALL THREE OR NONE OF THE FIRST TWO" WAS WHAT THIS SAID, and it
+            // described a rule the validator does not have. The real one, from
+            // validateSubmission(): who said it and the quote are all-or-nothing
+            // with each other, and the link is independent of both. The sentence
+            // could not be followed as written, which on a form is worse than
+            // saying nothing.
+            note: html`All optional. Who said it and the quote go together, because a quote with
+              nobody attached to it is an unattributed claim, which is the one thing a quote must
+              not be.`,
             body: html`
               ${field({
                 name: "pairingSource",
@@ -644,35 +692,54 @@ async function renderForm(
           </div>
         </form>
 
-        ${datalist(NOTE_LIST_ID, NOTE_VOCABULARY)}
-        ${datalist(CONCENTRATION_LIST_ID, CONCENTRATION_SUGGESTIONS)}
-      `,
-    })}
+          ${datalist(NOTE_LIST_ID, NOTE_VOCABULARY)}
+          ${datalist(CONCENTRATION_LIST_ID, CONCENTRATION_SUGGESTIONS)}
+        `,
+      })
+    }
 
-    ${section({
-      heading: "What happens after you press submit",
-      body: html`
-        <ul class="plain-list">
-          <li>
-            It is recorded as ${stateBadge("in-review")} and waits for a person. Nothing is
-            approved automatically, at any tier, and nothing ever will be.
-          </li>
-          <li>
-            We do not tell you how long that takes. Nobody has been through it yet, so any
-            figure would be invented, and our own terms commit us to publishing a review time
-            only once we have measured real ones.
-          </li>
-          <li>
-            Approving is not publishing. An approved listing joins the catalogue at the next
-            site build, which is why ${stateBadge("approved")} is a state of its own.
-          </li>
-          <li>
-            You can withdraw it at any point from ${raw2("the console")}, on any plan. Withdrawing
-            frees your allowance slot and keeps the record.
-          </li>
-        </ul>
-      `,
-    })}
+    ${
+      // FOLDED, AND IT IS THE ONE FOLD ON THIS PAGE WORTH DEFENDING. This was a
+      // four-bullet section under the submit button, and every bullet of it is
+      // said again on the receipt the producer lands on a second later: the
+      // state, the absence of a review time, approved-is-not-live, and how to
+      // withdraw. A screen and a half of prose between the button and the end
+      // of the document, answering questions nobody has until after they press
+      // it.
+      //
+      // NOT DELETED, because the receipt is not where somebody decides whether
+      // to press submit, and a producer who wants to know what they are about to
+      // set in motion is entitled to find out before rather than after. One line
+      // they can open, in the place they would look.
+      disclosureGroup([
+        {
+          summary: "What happens after you press submit",
+          body: html`
+            <ul class="plain-list">
+              <li>
+                It is recorded as ${stateBadge("in-review")} and waits for a person. Nothing is
+                approved automatically, at any tier, and nothing ever will be.
+              </li>
+              <li>
+                We do not tell you how long that takes. Nobody has been through it yet, so any
+                figure would be invented, and our own terms commit us to publishing a review
+                time only once we have measured real ones.
+              </li>
+              <li>
+                Approving is not publishing. An approved listing joins the catalogue at the next
+                site build, which is why ${stateBadge("approved")} is a state of its own.
+              </li>
+              <li>
+                You can withdraw it at any point from ${raw2("the console")} on a paid plan. On
+                Free, ask us and we will do it the same day: self-serve withdrawal is one of the
+                things a paid tier buys. Withdrawing frees your allowance slot and keeps the
+                record.
+              </li>
+            </ul>
+          `,
+        },
+      ])
+    }
   `;
 
   return page(
@@ -753,10 +820,17 @@ function allowanceFull(auth: AuthUser, data: ProducerConsoleData, allowance: num
           cannot give you a date and we will not invent one.
         </p>
         <p>
-          <strong>What you can do on your own:</strong> withdrawing a listing frees its slot
-          immediately, on every plan including this one. A withdrawn listing keeps its record and
-          its click history; withdrawal is a change of state, never a deletion. The control is in
-          the row of the listing it acts on, on <a href="/console">the console</a>.
+          ${mayWithdrawSelf(data.producer.tier)
+            ? html`<strong>What you can do on your own:</strong> withdrawing a listing frees its
+                slot immediately. The control is in the row of the listing it acts on, on
+                <a href="/console">the console</a>.`
+            : html`<strong>This is the one thing you cannot do from here.</strong> Self-serve
+                withdrawal is a paid feature, so on this plan the way to free your slot is to
+                <a href="mailto:contact@counterscent.com">write to us</a> and say which listing
+                to take down. A person does it, and we are not going to pretend a button exists
+                when it does not.`}
+          A withdrawn listing keeps its record and its click history; withdrawal is a change of
+          state, never a deletion.
         </p>
         <p class="muted">Signed in as <span class="wrap-anywhere">${auth.email}</span>.</p>
       </div>
@@ -820,7 +894,17 @@ function writeFailed(auth: AuthUser, isAdmin = false): Html {
     status: {
       label: "Not saved",
       tone: "outline",
-      note: html`The database refused the write. Nothing was recorded.`,
+      // DELIBERATELY DOES NOT SAY "nothing was recorded", which is what it said
+      // until 2026-09-18 and could not guarantee. insertSubmission() writes the
+      // Submission row and THEN its audit event, and unlike every other writer
+      // on this origin it cannot be reordered: AuditEvent.submissionId has a
+      // foreign key to the row, so the log entry cannot exist before the thing
+      // it describes. There is no transaction. So a failure here has two shapes
+      // - nothing written, or a listing saved with no audit row - and the page
+      // must not assert the first. It tells the producer how to find out
+      // instead, which is a thing they can actually act on.
+      note: html`The database refused the write. Your listings page is the record of what
+        exists - check it before submitting again, so you do not end up with two.`,
     },
     standfirst: html`You are signed in as <span class="wrap-anywhere">${auth.email}</span>, and
       the submission was not created.`,
@@ -999,8 +1083,10 @@ function received(
               the record of this submission.
             </li>
             <li>
-              You can withdraw it at any point, on any plan, from the row it sits in. Withdrawing
-              frees your allowance slot immediately and keeps the record.
+              You can withdraw it at any point from the row it sits in on a paid plan. On Free,
+              ask us and we will do it the same day: self-serve withdrawal is one of the things a
+              paid tier buys. Withdrawing frees your allowance slot immediately and keeps the
+              record.
             </li>
             <li>
               ${

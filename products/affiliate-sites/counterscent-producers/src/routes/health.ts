@@ -27,6 +27,13 @@ export function health(_request: Request, env: Env): Response {
     programmeOpen: false,
     accounts: true,
     mailConfigured: mailConfigured(env),
-    submissions: false,
+    // TRUE SINCE 2026-09-16, and it read `false` until 2026-09-18. This is a
+    // public, unauthenticated endpoint whose whole job is to be a
+    // machine-readable version of what the pages say in prose, and it was
+    // publishing a false capability claim: POST /console/submit calls
+    // insertSubmission() and writes real Submission rows. The repo's rule cuts
+    // both ways - never claim a feature works when it does not, and do not go
+    // on denying one that does.
+    submissions: true,
   });
 }

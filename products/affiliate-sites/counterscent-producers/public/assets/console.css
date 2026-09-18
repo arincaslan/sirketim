@@ -1004,17 +1004,33 @@ a.btn:hover {
   padding: 1rem 1.125rem;
 }
 
-.plan-panel > * {
+/* THE NAME WAS `.plan-panel` AND IT HAD STOPPED BEING TRUE, which is why it
+   moved on 2026-09-18. Three different things were wearing it: a real plan
+   (planPanel in routes/console.ts), an ACCESS LEVEL that is not a plan and is
+   not billed (adminPanel, same file), and a STATISTIC on /admin (statCard in
+   routes/admin.ts, which reached across and borrowed .plan-panel-label and
+   .plan-now-name for a count of pending listings). A class named after one
+   caller and used by three is the same failure as a comment that outlived its
+   reason: the next person edits `.plan-panel` to suit the plan and silently
+   restyles the admin panel's access level and the queue's counter.
+
+   `.summary-panel` names the SHAPE rather than the subject - a label, one
+   large value, a count line, an optional note, a link out - which is what all
+   the callers actually share. The statistic did not fit that shape and got its
+   own two classes instead (.stat-label / .stat-value, further down) rather
+   than being forced into this one. `.plan-now-*` on /console/plan kept its
+   name, because there it genuinely is the current plan. */
+.summary-panel > * {
   margin: 0;
 }
-.plan-panel-label {
+.summary-panel-label {
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: hsl(var(--muted-foreground));
 }
-.plan-panel-name {
+.summary-panel-name {
   margin-top: 0.125rem;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.75rem;
@@ -1025,7 +1041,7 @@ a.btn:hover {
    stacking them made the panel a line taller than the entire left half of the
    strip. They wrap to two lines on their own when the panel is narrow, which
    is the only width where the stack is worth its height. */
-.plan-panel-count {
+.summary-panel-count {
   margin-top: 0.75rem;
   padding-top: 0.75rem;
   border-top: 1px solid hsl(var(--border));
@@ -1036,7 +1052,7 @@ a.btn:hover {
 }
 /* The separator is decoration, so it is generated rather than marked up, and
    it disappears with the element it separates rather than being stranded. */
-.plan-panel-room::before {
+.summary-panel-room::before {
   content: "·";
   margin-right: 0.375rem;
   color: hsl(var(--muted-foreground));
@@ -1045,17 +1061,17 @@ a.btn:hover {
 /* The two figures are the panel's point, so they are the only bold things in
    it. "1 listing" is what they have, "Can list 24 more" is what they can do
    next, and that ordering is the one a producer reads in. */
-.plan-panel-listed,
-.plan-panel-room {
+.summary-panel-listed,
+.summary-panel-room {
   font-weight: 600;
   font-size: 0.9375rem;
 }
-.plan-panel-note {
+.summary-panel-note {
   font-size: 0.8125rem;
   color: hsl(var(--muted-foreground));
   line-height: 1.5;
 }
-.plan-panel-link {
+.summary-panel-link {
   margin-top: 0.75rem;
   font-size: 0.875rem;
 }
@@ -1541,4 +1557,558 @@ html[data-theme-switching] *::after {
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid hsl(var(--border));
+}
+
+/* =========================================================================
+   ADDED 2026-09-18, THE DECLUTTERING PASS.
+
+   Founder instruction: both the producer console and the admin panel are
+   "too much crowded", should be "easy to navigate and easy to use", and
+   "we can take out unnecessary information".
+
+   Everything below composes from the tokens already declared at the top of
+   this file. ZERO tokens added and zero changed, which is the standing rule:
+   this file is a deliberate strict SUBSET of the catalogue's globals.css, and
+   the moment it holds a token the source lacks, the two stop being diffable
+   and the "copy with a named source" story is over.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   Progressive disclosure.
+
+   NATIVE <details>, AND THAT IS THE ONLY REASON THIS IS POSSIBLE AT ALL. The
+   CSP here is `script-src 'self'` with no client application, so every
+   JavaScript accordion is unavailable by construction. <details> costs no
+   script, is keyboard-reachable and announced as expandable for free, and in
+   most browsers Ctrl+F still finds text inside a closed one - which matters,
+   because what goes in here is reference material somebody will eventually
+   search for.
+
+   THE MARKER IS DRAWN FROM TWO BORDERS RATHER THAN SHIPPED AS AN ASSET. The
+   native triangle is inconsistent between browsers and cannot be animated;
+   an SVG would be a hand-drawn vector this repo has a standing rule against.
+   Two borders rotated 45 degrees is a control affordance, not an
+   illustration, and it is the one piece of motion added in this pass: it
+   turns because the reader just changed a state and the turn is the
+   acknowledgement. The global prefers-reduced-motion block above already
+   neutralises it.
+   ------------------------------------------------------------------------- */
+.disclose {
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* A group reads as one block of reference rather than as a run of separate
+   objects, so only the last one closes the stack. */
+.disclose-group > .disclose:last-child {
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.disclose-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+/* Safari still renders its own marker without this, which lands a second
+   triangle beside the one below. */
+.disclose-summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclose-summary::before {
+  content: "";
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  margin-left: 0.125rem;
+  border-right: 1.5px solid hsl(var(--primary));
+  border-bottom: 1.5px solid hsl(var(--primary));
+  transform: rotate(-45deg);
+  transition: transform 0.18s var(--ease-out);
+}
+.disclose[open] > .disclose-summary::before {
+  transform: rotate(45deg);
+}
+
+.disclose-summary:hover {
+  color: hsl(var(--primary));
+}
+
+/* The focus ring goes on the summary, which is the focusable element. Without
+   this the outline is drawn around the whole <details> including its open
+   body, which on a long reference block is a ring nobody can see the top and
+   bottom of at once. */
+.disclose-summary:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.disclose-body {
+  padding: 0 0 1.25rem;
+}
+.disclose-body > :last-child {
+  margin-bottom: 0;
+}
+/* Indented to the marker, so an open disclosure reads as belonging to the
+   summary above it rather than as the next section starting. */
+@media (min-width: 40rem) {
+  .disclose-body {
+    padding-left: 1.0625rem;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   A statistic with somewhere to go. /admin only.
+
+   ITS OWN TWO CLASSES RATHER THAN THE PLAN PANEL'S. statCard() used to borrow
+   .plan-panel-label and .plan-now-name, which meant a count of pending
+   listings was rendered by rules named after a subscription tier and a
+   producer's current plan. See the note above .summary-panel.
+   ------------------------------------------------------------------------- */
+.stat-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(var(--muted-foreground));
+}
+.stat-value {
+  margin: 0.125rem 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1.05;
+}
+
+/* -------------------------------------------------------------------------
+   The submit form.
+
+   EVERY CLASS BELOW WAS ALREADY BEING EMITTED AND NONE OF THEM EXISTED HERE.
+   formGroup(), noteTier(), errorSummary() and the field helpers in
+   src/ui/components.ts have rendered .form-group, .note-tier, .error-summary,
+   .field-error and .field-optional since 2026-09-16, and this stylesheet had
+   a rule for none of them. Two consequences, both of which read exactly like
+   the founder's complaint:
+
+     1. THE FORM HAD NO VISIBLE SECTIONS. The reset near the top of this file
+        sets `fieldset { border: 0; padding: 0; margin: 0 }`, so the seven
+        <fieldset>/<legend> groups the form is built from rendered as one
+        undivided run of eighteen controls. The sectioning was in the markup
+        and invisible on the screen.
+     2. THE ERROR SUMMARY WAS UNSTYLED. The accessibility work around it is
+        real - role="alert", tabindex="-1", autofocus, every item linked to
+        its field - and it was landing as plain body text at the top of the
+        page, indistinguishable from the standfirst.
+
+   Found by extracting every class emitted from src/ and diffing it against
+   the selectors in this file, rather than by looking at the page, because an
+   unstyled block looks like a copy decision rather than a missing rule.
+   ------------------------------------------------------------------------- */
+.submit-form {
+  margin-top: 0.5rem;
+}
+
+.form-group {
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 1.5rem;
+  margin-top: 2rem;
+}
+.form-group:first-child {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+/* FLOATED, WHICH IS A FIX AND NOT A LAYOUT CHOICE. A <legend> in normal flow
+   is painted over its fieldset's top border and punches a gap in it, so the
+   rule above each group would break around a heading of unpredictable width.
+   Floating takes the legend out of that special rendering path entirely and
+   it behaves as an ordinary block under an unbroken rule. The clearfix below
+   is what the float then costs. */
+.form-group > legend {
+  float: left;
+  width: 100%;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.375rem;
+  line-height: 1.2;
+}
+.form-group::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.form-group-note {
+  max-width: var(--measure);
+  margin: 0 0 1.25rem;
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* "Optional" rather than an asterisk on the required ones. All but four
+   fields on this form are required, so marking those would put a badge on
+   nearly every row and mark nothing out at all. Quieter than .tag-off, which
+   means a control is dead rather than a control is optional. */
+.field-optional {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground));
+}
+
+.field-error {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(var(--destructive));
+}
+/* The control itself carries the state too, so the error is not signalled by
+   the red sentence alone. */
+.field input[aria-invalid="true"],
+.field textarea[aria-invalid="true"],
+.field select[aria-invalid="true"] {
+  border-color: hsl(var(--destructive));
+}
+
+/* <select> was inheriting nothing at all and rendered as the browser's own
+   control beside inputs that had been styled, which made the two originals
+   dropdowns look like they belonged to a different form. */
+.field select {
+  font: inherit;
+  font-size: 0.9375rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+
+/* The one interruption on the page, so it is allowed to look like one.
+   Destructive on the rule rather than on the fill: a filled red panel behind
+   a list of links makes the links the hardest thing on the page to read, and
+   this block exists to be read. */
+.error-summary {
+  border: 1px solid hsl(var(--destructive) / 0.45);
+  border-left: 3px solid hsl(var(--destructive));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--destructive) / 0.06);
+  padding: 1.125rem 1.25rem;
+  margin-bottom: 2rem;
+}
+.error-summary:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+.error-summary-title {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  font-size: 1.0625rem;
+}
+.error-summary-list {
+  margin: 0.75rem 0 0;
+  padding-left: 1.125rem;
+}
+.error-summary-list li {
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
+}
+.error-summary-list a {
+  color: hsl(var(--destructive));
+}
+
+/* The note pyramid: three tiers of six boxes. Nested fieldsets inside a
+   .form-group, so they get a lighter treatment than the group rule above -
+   a tint rather than a second hairline, or the section reads as three more
+   top-level sections. */
+.note-tiers {
+  display: grid;
+  gap: 1rem;
+}
+.note-tier {
+  padding: 1rem 1.125rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--secondary) / 0.4);
+}
+.note-tier > legend {
+  float: left;
+  width: 100%;
+  margin: 0 0 0.25rem;
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.note-tier::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.note-tier > .field-hint {
+  margin-bottom: 0.75rem;
+}
+
+.note-inputs {
+  display: grid;
+  gap: 0.625rem;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+}
+.note-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.note-input label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.note-input input {
+  font: inherit;
+  font-size: 0.9375rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+.note-input input[aria-invalid="true"] {
+  border-color: hsl(var(--destructive));
+}
+
+/* STICKY, AND IT EARNS IT ON THIS ONE FORM. Eighteen controls is several
+   screens tall, and "nothing is saved until you press submit at the bottom"
+   is a worse instruction when the bottom is four scrolls away. It sticks only
+   while the form is taller than the viewport, which is exactly the case that
+   made it necessary. Opaque background rather than a tint, because content
+   passing visibly under a control bar reads as a rendering fault. */
+.submit-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding: 1rem 0;
+  border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+}
+
+/* -------------------------------------------------------------------------
+   The navigation's two groups, told apart.
+
+   NAV_ITEMS in src/ui/layout.ts says in a comment that the producer group and
+   the administrative group "never interleave, so an admin reading this bar
+   sees their producer tools and their house tools as two things rather than
+   one mixed list". That was true of the ORDER and invisible on the screen:
+   five links in one evenly-spaced row read as one list of five whatever order
+   they are in. This is the comment's stated intent, drawn.
+
+   aria-hidden in the markup, because it is a visual grouping and the nav is
+   already one labelled landmark. It renders as nothing on a narrow viewport,
+   where the bar scrolls and a vertical rule in a scroller is noise.
+   ------------------------------------------------------------------------- */
+.site-nav-sep {
+  flex: none;
+  width: 1px;
+  height: 1.25rem;
+  margin-inline: 0.5rem;
+  background: hsl(var(--border));
+}
+@media (max-width: 48rem) {
+  .site-nav-sep {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   /admin: an obligation and a fact, told apart.
+
+   The panel had four numbers on it in two identical two-column grids of
+   identical cards at identical size: listings awaiting a decision, accounts
+   with nobody attached, producers on file, accounts that have signed in. The
+   first two are work. The last two are the size of the register and are the
+   same on a day when everything is done as on a day when nothing is.
+
+   THE TWO SHAPES ARE NOW DIFFERENT OBJECTS RATHER THAN THE SAME OBJECT IN TWO
+   PLACES. A card with a large figure and a button for the things waiting on
+   you; a plain labelled figure, no frame and no button, for the things that
+   are merely true. The accent rule appears only while the count is non-zero,
+   and it is set from the value in routes/admin.ts rather than by hand, so it
+   cannot be left behind on a queue that has since emptied.
+   ------------------------------------------------------------------------- */
+.stat-card {
+  border-left: 3px solid hsl(var(--border));
+}
+.stat-card.is-waiting {
+  border-left-color: hsl(var(--primary));
+}
+
+/* The register. `figure-row` wraps to a column below 40rem on its own, which
+   is the same behaviour .identity-facts has and for the same reason: a row of
+   figures that scrolls sideways hides one of them. */
+.figure-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1rem 2.5rem;
+}
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
+  margin: 0;
+}
+.figure {
+  min-width: 0;
+}
+/* Display face and about half the height of .stat-value. The two carry the
+   same kind of content and must not carry the same weight: this is the whole
+   distinction the section above describes, expressed as type. */
+.figure-value {
+  margin: 0.125rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.15;
+}
+.figure-link {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* Two two-column tables side by side. .data-table carries min-width: 44rem
+   because the listing table is six columns wide and must scroll rather than
+   stretch the document; a Status/Listings pair is two columns and that floor
+   would force a scroller onto a table 12rem wide. Scoped to this wrapper, so
+   the six-column tables elsewhere keep the floor they need. */
+.table-pair > * {
+  min-width: 0;
+}
+.table-pair .data-table {
+  min-width: 0;
+}
+
+/* -------------------------------------------------------------------------
+   The queue's decision cards.
+
+   A queue is read down a column. Anything set per card is set once per
+   listing, so the five facts that decide a listing were three sentences in a
+   bulleted list, each ending in a full stop, each needing to be read rather
+   than seen. As label-and-value pairs they can be compared against the card
+   below without reading either.
+
+   `auto-fit` rather than a fixed count: four pairs sit on one line on a wide
+   screen and fold to two and then one without a media query, and the card is
+   as likely to be read on a laptop at half width as on a desktop.
+   ------------------------------------------------------------------------- */
+.decision-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.875rem 1.5rem;
+  margin: 1.25rem 0;
+  padding: 1rem 0;
+  border-top: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.decision-meta > div {
+  min-width: 0;
+}
+.decision-meta dt {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(var(--muted-foreground));
+}
+.decision-meta dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  min-width: 0;
+}
+.decision-meta code {
+  font-size: 0.8125rem;
+}
+
+/* A disclosure inside a form group. The group's own rule is above the legend,
+   so this one needs a gap under it or the reference line and the first label
+   sit on top of each other. */
+.form-group .disclose {
+  margin-bottom: 1.25rem;
+  max-width: var(--measure);
+}
+/* The way out of the register, aligned with the figures rather than with their
+   labels. Baseline alignment puts an anchor on the first text baseline in the
+   row, which is the label line, so the link floated a line above the numbers it
+   belongs with. */
+.figure-link {
+  align-self: flex-end;
+}
+
+/* -------------------------------------------------------------------------
+   THE FLOATED LEGEND COST THREE FIELDSETS THEIR WIDTH, and this is the line
+   that pays it back.
+
+   The rule above floats .form-group > legend to stop it punching a gap in the
+   group's top border. The float is one line tall and everything after it is
+   expected to flow underneath. That holds for a <p>, whose line boxes simply
+   shorten to nothing beside the float and wrap below it - which is why the
+   groups that open with .form-group-note looked right.
+
+   IT DOES NOT HOLD FOR .field, WHICH IS display: flex AND THEREFORE ITS OWN
+   BLOCK FORMATTING CONTEXT. A BFC box does not overlap a float: it is placed
+   BESIDE it and squeezed into whatever width is left, which beside a
+   width: 100% float is zero. Measured in Chrome at 1280px, the first field of
+   "Your product", of "What is different, and what is in it" and of "Where a
+   reader can check this" each rendered 0px wide, one word per line, dragging
+   the document from 5018px to 7675px. Three of the seven groups on the form,
+   including the required store link and the required differences box.
+
+   `clear` is the whole fix: a cleared box moves below the float instead of
+   trying to sit next to it. Applied to every direct child except the legend,
+   so it cannot come back the next time a group's first element changes - the
+   bug was invisible in four groups purely because a paragraph happened to
+   come first. .note-tier gets the same treatment for the same reason: its
+   .note-inputs grid is a BFC sitting under a floated legend too, saved today
+   only by the hint paragraph in front of it.
+   ------------------------------------------------------------------------- */
+.form-group > *:not(legend),
+.note-tier > *:not(legend) {
+  clear: both;
+}
+
+/* -------------------------------------------------------------------------
+   THE STICKY SUBMIT BAR WAS SWALLOWING THE KEYBOARD-FOCUSED FIELD.
+
+   WCAG 2.2 AA 2.4.11 (Focus Not Obscured, Minimum) says persistent author UI
+   must not completely hide the focused control. Measured in Chrome by focusing
+   all 34 controls on /console/submit in order: four ended up under the bar and
+   three of those were covered completely - the store link and the "what is
+   different" box, both required, plus the quote link. Tabbing into them put
+   the caret somewhere the reader could not see.
+
+   `scroll-padding-bottom` is the remedy: it tells the browser to treat the
+   bottom N pixels of the viewport as occupied when it scrolls something into
+   view, which is the same mechanism scroll-padding-top already uses for the
+   sticky header at the top of this file. 10rem is the bar at its tallest
+   measured height (150px at 390px wide, where the note under the button wraps
+   to three lines) with a little over. It is stated here rather than computed,
+   for the same reason the header's value is: there is no build step to compute
+   one, so the coupling is written down instead.
+
+   COUPLED TO .submit-actions. If that bar gains a line, this grows with it.
+   ------------------------------------------------------------------------- */
+html {
+  scroll-padding-bottom: 10rem;
 }

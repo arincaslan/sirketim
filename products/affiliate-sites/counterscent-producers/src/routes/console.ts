@@ -5,6 +5,8 @@ import {
   button,
   card,
   deadButton,
+  disclosure,
+  disclosureGroup,
   emptyState,
   identityBar,
   listingStates,
@@ -27,6 +29,7 @@ import {
   enforcedAllowance,
   loadProducerConsole,
   planFor,
+  mayWithdrawSelf,
   quotaGate,
   type ListingRow,
   type ProducerConsoleData,
@@ -176,14 +179,35 @@ function signedOut(): Html {
       `,
     })}
 
-    ${section({
-      heading: "What a listing buys, and what no plan buys",
-      lede: html`This is the question this audience arrives with, so it is answered above
-        the plans rather than underneath them.`,
-      body: html`
-        <div class="stack">
-          <div>
-          <h3>What a listing buys</h3>
+    ${
+      // THE "WHAT NO PLAN BUYS" HALF OF THIS SECTION WAS DELETED ON 2026-09-18,
+      // and it is the one deletion in this pass that is not progressive
+      // disclosure. Everything else long and honest on this origin was folded
+      // into a <details>; this was cut, because it was not long and honest, it
+      // was the same three claims printed twice on one screen.
+      //
+      // Measured rather than felt. Its first bullet restated NEVER_INCLUDED
+      // rows 1 to 3, which planTable() renders forty lines below spanning the
+      // tier columns - and carried the import-graph sentence VERBATIM, the
+      // same words in the same order, twice in one document. Its second
+      // restated the table's own "Commission we take on your sales" row, which
+      // answers the question in the column a producer actually scans. Its
+      // third ("nothing is approved automatically") is said again in
+      // neverDoBand() further down the same page, under "Publish anything by
+      // itself".
+      //
+      // The surviving copy is the better one in every case, and deliberately
+      // so: a promise rendered as a row spanning every tier column cannot be
+      // read as applying to only one of them, which is the whole argument
+      // CONSOLE-PLAN 2.4 made for a table over three cards. A bulleted
+      // paragraph above it is that same promise in a weaker form, and two
+      // copies of a promise is how one of them ends up edited alone.
+      section({
+        heading: "What a listing buys",
+        lede: html`The question this audience arrives with, answered above the plans rather
+          than underneath them. What no tier buys is in the table itself, on the row that
+          spans every column.`,
+        body: html`
           <ul class="plain-list">
             <li>
               A place in a ranked comparison against an original we have already
@@ -199,55 +223,56 @@ function signedOut(): Html {
               the price we last verified and the date we verified it.
             </li>
           </ul>
-          </div>
-          <div>
-          <h3>What no plan buys</h3>
-          <ul class="plain-list">
-            <li>
-              <strong>No plan buys a better match score</strong>, a higher rank,
-              placement, or a friendlier verdict. The modules that compute and order
-              scores are barred from importing anything that knows what a producer pays,
-              and the catalogue's build fails if that changes. An import-graph assertion
-              is a control; a promise in a document is not.
-            </li>
-            <li>
-              <strong>We take no commission on your sales, on any tier</strong>, the
-              free one included. We have no financial interest in where any listing
-              ranks or how much traffic it gets, which is what makes the line above
-              worth anything. A subscription, if you take one, is the only thing you
-              ever pay us.
-            </li>
-            <li>
-              <strong>Nothing is approved automatically</strong>, at any tier. Automation
-              may flag a listing, weaken a claim on it, or take it down. It may never put
-              one up.
-            </li>
-          </ul>
-          </div>
-        </div>
-      `,
-    })}
+        `,
+      })
+    }
 
     ${section({
       heading: "The plans",
-      lede: html`What each tier covers. What each tier costs is not printed on this
-        screen, and the row that would carry it says why.`,
+      // THE OLD LEDE SAID THE COSTS WERE NOT PRINTED HERE. They have been since
+      // 2026-09-16, when the founder overruled CONSOLE-PLAN 2.4 and the figures
+      // started being generated from the catalogue's own plans.ts rather than
+      // typed. The sentence describing their absence outlived them by two days,
+      // directly above a table with a cost row in it.
+      lede: html`What each tier covers and what it costs. The figures are generated from
+        the same file the public pricing page reads, and they are indicative rather than
+        an offer.`,
       body: html`
         <div class="stack">
           ${planTable()}
           ${notShipped({
             what: "Nothing on this screen can be paid for",
             reason: html`There is no checkout on this origin, no payment provider
-              connected to it, and no way for anyone to take money from you today. Which
-              provider it will eventually be is also unsettled: the usual ones do not
-              serve a Turkey-based business, so the shortlist is short and the question
-              is open. Three capability lines are missing from the table above for a
-              different reason. Click reporting and conversion reporting are not built
-              for anyone, at any tier, and who may withdraw or request an edit without
-              paying is a contradiction between our own plan list and our producer terms
-              that we have not settled. We would rather leave a row out than print a
-              contested capability as a fact.`,
+              connected to it, and no way for anyone to take money from you today.`,
           })}
+          ${
+            // THE THREE NESTED REASONS CAME OUT OF THE NOTICE ABOVE, where they
+            // ran to a paragraph a reader had to finish before reaching the one
+            // sentence that mattered. One of them had also become false: it said
+            // who may withdraw without paying was "a contradiction between our
+            // own plan list and our producer terms that we have not settled",
+            // and the founder settled it on 2026-09-18, in the same change that
+            // put a "Withdraw a listing yourself" row into the table directly
+            // above this notice. The page was describing a contradiction it had
+            // already resolved, forty lines under the resolution.
+            disclosure({
+              summary: "Why no provider is connected, and what the table leaves out",
+              body: html`
+                <p>
+                  Which provider it will eventually be is genuinely open. The usual ones
+                  do not serve a Turkey-based business, so the shortlist is short and the
+                  question has not been answered.
+                </p>
+                <p>
+                  Three capabilities our plan list mentions are missing from the table
+                  above, and they are missing for one reason rather than three: click
+                  reporting, conversion reporting and edit requests are not built for
+                  anyone, at any tier. We would rather leave a row out than print a
+                  capability nobody has as a fact about a tier.
+                </p>
+              `,
+            })
+          }
           <p>
             The one thing that moves any of this is an email:
             <a href="mailto:contact@counterscent.com">contact@counterscent.com</a>. Tell
@@ -562,50 +587,118 @@ function attached(
       `,
     })}
 
-    ${verdict.kind === "at-allowance" ? exhaustedAllowance(verdict.allowance) : ""}
+    ${verdict.kind === "at-allowance" ? exhaustedAllowance(verdict.allowance, producer.tier) : ""}
 
-    ${section({
-      heading: "What each column means",
-      body: html`
-        <ul class="plain-list">
-          <li>
-            <strong>Compared against</strong> is an original already in our catalogue. You
-            choose it; you cannot add one. The comparison runs against a note pyramid we
-            researched, so a fragrance we have not written up yet cannot be scored
-            against, and we do not commit to a date for researching one.
-          </li>
-          <li>
-            <strong>Match</strong> is computed, not negotiated. It is capped at 90 per
-            cent while a listing is producer-declared and at 95 once we have verified it
-            independently; nothing publishes above 95. This console does not hold a copy
-            of the figure: it is computed by the catalogue's own build, so the number on
-            your public listing is the only one there is. The one score stored here is the
-            score a listing had at the moment it came down, frozen.
-          </li>
-          <li>
-            <strong>State</strong> is the pair of database columns, shown as one label per
-            row. The one to read carefully is ${stateBadge("approved")}, which means we
-            have said yes and the catalogue has not been rebuilt yet.
-          </li>
-          <li>
-            <strong>Last change</strong> is read from an append-only event log, not from a
-            timestamp somebody can overwrite. Every state change is attributed to a
-            person, to us, or to an automated check, so months later it is still possible
-            to say who moved a listing and when.
-          </li>
-        </ul>
-      `,
-    })}
-
-    ${neverDoBand()}
-
-    ${notShipped({
-      what: "Photograph upload is not here either",
-      reason: html`A listing will require a product photograph and a statement that you
-        hold the rights to it. That needs file storage, a rights declaration recorded
-        against the image, and a path for getting the file into a static build. None of
-        those exist, so the field is not on this page pretending to.`,
-    })}
+    ${
+      // ============================================================================
+      // THE WORKSPACE'S STANDING PROSE, FOLDED AWAY. 2026-09-18.
+      // ============================================================================
+      //
+      // Founder: these pages are "too much crowded". This band is where that was
+      // most true and most expensive. Below the listings table sat three blocks
+      // of permanent explanation - a four-item column glossary, a two-card band
+      // on what this screen will never do, and a paragraph about photograph
+      // upload - roughly a screen and a half of prose under a table, with
+      // nothing actionable anywhere in it. A producer signing in to check one
+      // listing scrolled past all of it, every time, forever.
+      //
+      // NOT DELETED. Every word is still true and two of the three are things we
+      // want a producer to be able to find. The test applied was whether a
+      // RETURNING reader would act differently for having read it again, and all
+      // three fail it while remaining worth keeping: they are looked up, not
+      // read. That is the definition of reference material and <details> is what
+      // reference material goes in.
+      //
+      // THE PHOTOGRAPH GAP IS THE INTERESTING ONE, because collapsing it looks
+      // like exactly the thing this repo's point-of-use rule forbids. It is
+      // allowed HERE and would not be allowed on /console/submit, and the
+      // difference is where the reader is standing: this screen shows listings
+      // that already exist, the form is where somebody is about to create one
+      // believing it can be published. The same words stay expanded and
+      // unmissable there. Moving a disclosure away from the point of use is the
+      // violation; folding a second copy of it on a screen that is not the point
+      // of use is housekeeping.
+      section({
+        heading: "Reference",
+        lede: html`Three things worth being able to look up and not worth reading twice.
+          Nothing here changes what you can do on this screen.`,
+        body: disclosureGroup([
+          {
+            summary: "What each column in the table means",
+            body: html`
+              <ul class="plain-list">
+                <li>
+                  <strong>Compared against</strong> is an original already in our
+                  catalogue. You choose it; you cannot add one. The comparison runs
+                  against a note pyramid we researched, so a fragrance we have not written
+                  up yet cannot be scored against, and we do not commit to a date for
+                  researching one.
+                </li>
+                <li>
+                  <strong>Match</strong> is computed, not negotiated. It is capped at 90
+                  per cent while a listing is producer-declared and at 95 once we have
+                  verified it independently; nothing publishes above 95. This console does
+                  not hold a copy of the figure: it is computed by the catalogue's own
+                  build, so the number on your public listing is the only one there is.
+                  The one score stored here is the score a listing had at the moment it
+                  came down, frozen.
+                </li>
+                <li>
+                  <strong>State</strong> is the pair of database columns, shown as one
+                  label per row. The one to read carefully is ${stateBadge("approved")},
+                  which means we have said yes and the catalogue has not been rebuilt yet.
+                </li>
+                <li>
+                  <strong>Last change</strong> is read from an append-only event log, not
+                  from a timestamp somebody can overwrite. Every state change is
+                  attributed to a person, to us, or to an automated check, so months later
+                  it is still possible to say who moved a listing and when.
+                </li>
+              </ul>
+            `,
+          },
+          {
+            summary: "The two things this screen will never do",
+            body: html`
+              <ul class="plain-list">
+                <li>
+                  <strong>Let you write your own scores.</strong> The six profile numbers
+                  are derived by us from your declared notes and concentration. They were
+                  once six sliders on a form and were taken out on purpose: our
+                  copy-detection check compares your notes against those numbers, and
+                  handing the same party both inputs defeats it by construction.
+                </li>
+                <li>
+                  <strong>Publish anything by itself.</strong> No automated step may
+                  approve a listing or make a claim on it stronger. Automation can flag,
+                  weaken and take down; a person has to put something up. Even then,
+                  publication waits for the next site build.
+                </li>
+              </ul>
+            `,
+          },
+          {
+            summary: "Photograph upload is not built",
+            body: html`
+              <p>
+                A listing will require a product photograph and a statement that you hold
+                the rights to it. That needs file storage, a rights declaration recorded
+                against the image, and a path for getting the file into a static build.
+                None of those exist, so the field is not on the form pretending to. Send
+                the photograph to
+                <a href="mailto:contact@counterscent.com">contact@counterscent.com</a>
+                with the product name.
+              </p>
+              <p class="muted">
+                The submit form says this too, where it cannot be missed. It is repeated
+                here because it is the answer to "why has nothing of mine gone live", and
+                that question is asked from this screen.
+              </p>
+            `,
+          },
+        ]),
+      })
+    }
   `;
 
   return layout({
@@ -689,7 +782,10 @@ function planPanel(producer: ProducerConsoleData["producer"], inUse: number): Ht
   } else {
     const left = Math.max(0, allowance - inUse);
     room = left === 0 ? html`No room for another` : html`Can list ${String(left)} more`;
-    if (left === 0) note = html`Withdrawing one frees its slot, or move up a tier.`;
+    if (left === 0)
+      note = mayWithdrawSelf(producer.tier)
+        ? html`Withdrawing one frees its slot, or move up a tier.`
+        : html`Ask us to withdraw one and the slot frees, or move up a tier.`;
   }
 
   // The missing-record fact outranks the allowance notes: it is the only one
@@ -698,17 +794,17 @@ function planPanel(producer: ProducerConsoleData["producer"], inUse: number): Ht
   // the number is what it is.
   if (noRecord) note = html`No subscription record exists yet. This is what we enforce.`;
 
-  return html`<div class="plan-panel">
-    <p class="plan-panel-label">Your plan</p>
-    <p class="plan-panel-name">${heading}</p>
-    <p class="plan-panel-count">
-      <span class="plan-panel-listed"
+  return html`<div class="summary-panel">
+    <p class="summary-panel-label">Your plan</p>
+    <p class="summary-panel-name">${heading}</p>
+    <p class="summary-panel-count">
+      <span class="summary-panel-listed"
         >${inUse === 1 ? "1 listed" : `${String(inUse)} listed`}</span
       >
-      <span class="plan-panel-room">${room}</span>
+      <span class="summary-panel-room">${room}</span>
     </p>
-    ${note ? html`<p class="plan-panel-note">${note}</p>` : ""}
-    <p class="plan-panel-link"><a href="/console/plan">See plans and move tier</a></p>
+    ${note ? html`<p class="summary-panel-note">${note}</p>` : ""}
+    <p class="summary-panel-link"><a href="/console/plan">See plans and move tier</a></p>
   </div>`;
 }
 
@@ -731,20 +827,20 @@ function planPanel(producer: ProducerConsoleData["producer"], inUse: number): Ht
  * looking at its own work.
  */
 function adminPanel(inUse: number): Html {
-  return html`<div class="plan-panel">
-    <p class="plan-panel-label">Your access</p>
-    <p class="plan-panel-name">Administrator</p>
-    <p class="plan-panel-count">
-      <span class="plan-panel-listed"
+  return html`<div class="summary-panel">
+    <p class="summary-panel-label">Your access</p>
+    <p class="summary-panel-name">Administrator</p>
+    <p class="summary-panel-count">
+      <span class="summary-panel-listed"
         >${inUse === 1 ? "1 listed" : `${String(inUse)} listed`}</span
       >
-      <span class="plan-panel-room">No listing cap</span>
+      <span class="summary-panel-room">No listing cap</span>
     </p>
-    <p class="plan-panel-note">
+    <p class="summary-panel-note">
       Anything you submit still joins the queue and waits for a decision, the same as a
       producer's.
     </p>
-    <p class="plan-panel-link"><a href="/admin">Open the admin panel</a></p>
+    <p class="summary-panel-link"><a href="/admin">Open the admin panel</a></p>
   </div>`;
 }
 
@@ -834,7 +930,7 @@ function withdrawable(l: ListingRow): boolean {
  * It renders from the same count the quota line uses, so the screen and the
  * figure above it cannot disagree.
  */
-function exhaustedAllowance(allowance: number): Html {
+function exhaustedAllowance(allowance: number, tier: string | null): Html {
   const lead =
     allowance === 1
       ? html`The free tier covers one listing and you have it.`
@@ -860,8 +956,14 @@ function exhaustedAllowance(allowance: number): Html {
           process today, and we cannot give you a date for the automated version.
         </p>
         <p class="muted">
-          Withdrawing a listing frees its slot. A withdrawn listing keeps its record and
-          its click history; withdrawal is a change of state, never a deletion.
+          ${mayWithdrawSelf(tier)
+            ? html`Withdrawing a listing frees its slot, and the control is in the listing's own
+                row.`
+            : html`Withdrawing frees a slot, but doing it yourself is a paid feature - on this
+                plan, <a href="mailto:contact@counterscent.com">write to us</a> and a person
+                takes it down.`}
+          A withdrawn listing keeps its record and its click history; withdrawal is a change of
+          state, never a deletion.
         </p>
       </div>
     `,
@@ -908,6 +1010,20 @@ function costCell(p: { priceMonthlyUsd: number | null; priceYearlyUsd: number | 
     : html`<span class="cell-sub">or $${money(p.priceYearlyUsd)} a year</span>`}`;
 }
 
+/**
+ * An allowance as a comparison-table cell.
+ *
+ * "unknown" cannot occur here - every id in PLANS is one allowanceForTier has
+ * a case for - but it is rendered rather than thrown away, because the whole
+ * point of that third state is that it refuses to guess a number, and a table
+ * that quietly printed a blank would be guessing by omission.
+ */
+function allowanceCell(a: ReturnType<typeof enforcedAllowance>): Html {
+  if (a === "uncapped") return html`No cap`;
+  if (a === "unknown") return html`Not known here`;
+  return html`${String(a)}`;
+}
+
 /** Whole numbers stay whole, decimals get both places. See the fuller note on
  *  the twin of this in routes/plan.ts - two copies because this origin has no
  *  shared ui/money module and one function is not worth inventing one for. */
@@ -950,12 +1066,20 @@ function planTable(): Html {
     // assertion under this call enforces rather than trusts.
     columns: ["Item", ...PLANS.map((p) => p.name)],
     rows: [
+      // GENERATED, AND IT SHOULD HAVE BEEN FROM THE START. This row hand-typed
+      // "1 / 25 / No cap" while the cost row directly below it and the column
+      // headers directly above it were both read from PLANS - so it was the one
+      // hand-typed cell in a table built to prove a copy cannot drift, and on
+      // 2026-09-18 it drifted: Standard's allowance moved 25 -> 12 with the
+      // price cut and this row went on telling every signed-out reader 25.
+      //
+      // It now reads enforcedAllowance(), which is the SAME function the quota
+      // gate calls, so the number a stranger is shown and the number the form
+      // enforces are one value rather than two that agree by habit.
       {
         cells: [
           label("Listings included"),
-          cell(html`1`),
-          cell(html`25`),
-          cell(html`No cap`),
+          ...PLANS.map((p) => cell(allowanceCell(enforcedAllowance(p.id)))),
         ],
       },
       // THREE IDENTICAL CELLS, KEPT AS A ROW ON PURPOSE. Free read "A share of

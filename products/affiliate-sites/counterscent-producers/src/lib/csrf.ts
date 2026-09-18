@@ -39,9 +39,11 @@ import { readSessionCookie } from "./auth";
  * leaking a rendered page does not leak the session.
  *
  * THE PER-PURPOSE STRING is defence in depth rather than the main event: a
- * token minted into the sign-out form cannot be replayed into the withdraw
- * handler, so a page that leaks one form's markup does not hand over every
- * verb on the origin.
+ * token minted for one verb cannot be replayed into another handler, so a page
+ * that leaks one form's markup does not hand over every verb on the origin.
+ * (This sentence used to cite the sign-out form as its example, which was the
+ * one form on the origin that never carried a token at all - see the note on
+ * the type below.)
  *
  * KNOWN LIMIT, named rather than implied: this defends against cross-origin
  * forgery, which is what CSRF is. It does not defend against an attacker who
@@ -52,7 +54,21 @@ import { readSessionCookie } from "./auth";
  *  means adding it here, which is deliberate friction: a write that forgot to
  *  pick a purpose would not compile. */
 export type CsrfPurpose =
-  | "sign-out"
+  // "sign-out" WAS DECLARED HERE AND NEVER MINTED, and it is removed rather
+  // than implemented. None of the five sign-out forms carried a token and the
+  // handler never checked one, so the union member was the only trace of a
+  // defence that did not exist - and the header above described its behaviour
+  // as if it did, which is worse than silence.
+  //
+  // SIGN-OUT IS DELIBERATELY EXEMPT, on the merits rather than by oversight.
+  // The session cookie is `SameSite=Lax`, so a cross-site POST carries no
+  // cookie at all: a forged sign-out arrives with no session and deletes
+  // nothing. The worst outcome if that were ever wrong is an unwanted
+  // sign-out, recoverable with one email, against a real cost - every sign-out
+  // form would need its own token, which means threading the request into five
+  // render functions that currently do not take one. The three verbs below all
+  // change stored state irreversibly, which is why they are worth that cost
+  // and this is not.
   | "submit-listing"
   | "withdraw-listing"
   // THE ADMIN VERBS ARE SEPARATE PURPOSES, not one shared "admin" token, for

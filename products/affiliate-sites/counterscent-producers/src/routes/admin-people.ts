@@ -1,5 +1,16 @@
 import { html, type Html } from "../lib/html";
-import { page } from "../lib/http";
+import { page, redirect as httpRedirect } from "../lib/http";
+
+// SEE THE NOTE IN lib/http.ts: this used to be a THREE-LINE LOCAL FUNCTION of
+// the same name, and because it shadowed the shared one, every response from
+// this file - including every successful admin write - went out with no CSP,
+// no X-Frame-Options, no Referrer-Policy, no X-Content-Type-Options and no
+// X-Robots-Tag. The router's 404, its 405 and its 301 all carried them; the
+// highest-privilege routes on the origin did not. A local helper that shares a
+// name with a shared one is the cheapest way to lose a cross-cutting concern.
+function redirect(to: string): Response {
+  return httpRedirect(to, { status: 303 });
+}
 import { layout } from "../ui/layout";
 import {
   button,
@@ -11,7 +22,7 @@ import {
   tableBlock,
 } from "../ui/components";
 import type { Env } from "../lib/env";
-import { requireAdmin } from "../lib/admin";
+import { adminActorId, requireAdmin } from "../lib/admin";
 import { CSRF_FIELD, csrfToken, verifyCsrf } from "../lib/csrf";
 import type { Sql } from "../lib/auth";
 import { formatWhen } from "./admin";
@@ -73,9 +84,21 @@ export async function adminPeople(request: Request, env: Env): Promise<Response>
 export async function adminAttach(request: Request, env: Env): Promise<Response> {
   const gate = await requireAdmin(request, env);
   if (gate.kind === "refused") return gate.response;
-  const { sql } = gate;
+  const { sql, auth } = gate;
 
-  const form = await request.formData();
+  // PARSED IN A try/catch BECAUSE formData() THROWS ON A BODY IT CANNOT READ.
+  // The other three write routes on this origin all guard it and each says why:
+  // unguarded, an absent or unparseable body answers with a generic 500, which
+  // is the fake-failure shape this project's notShipped() ethos exists to
+  // prevent. A browser cannot produce it; only a non-browser client can, and it
+  // should get the same honest refusal as a missing token. Admin-only
+  // reachability made this low severity, never correct.
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return redirect("/admin/people?problem=malformed");
+  }
   if (!(await verifyCsrf(request, "admin-attach", asString(form.get(CSRF_FIELD))))) {
     return redirect("/admin/people?problem=csrf");
   }
@@ -89,6 +112,47 @@ export async function adminAttach(request: Request, env: Env): Promise<Response>
     // is a suggestion; this is the guarantee. `producerId IS NULL` in the
     // WHERE clause is what makes the write refuse to reassign rather than
     // merely decline to offer it.
+    // GUARDED, THEN LOGGED, THEN WRITTEN - the same three steps and the same
+    // order adminDecide() uses, and for the same reason: there is no
+    // transaction here, so if only one of the log and the change can survive a
+    // failure, the safe survivor is a log entry describing a change that did
+    // not happen. Until 2026-09-18 this write had no audit row of ANY kind,
+    // and it is the highest-privilege write on the origin: it decides who
+    // controls a company's listings. Its only trace was User."producerId", a
+    // mutable column the next attach overwrites.
+    //
+    // The pre-check is what keeps the log honest, since the UPDATE's own WHERE
+    // clause is still the guarantee - it refuses to reassign an already
+    // attached account or to invent a producer, and it stays exactly as it was.
+    const eligible = (await sql`
+      SELECT u.id, u.email, p.name AS "producerName"
+      FROM "User" u, "Producer" p
+      WHERE u.id = ${userId} AND u."producerId" IS NULL AND p.id = ${producerId}
+      LIMIT 1
+    `) as { id: string; email: string | null; producerName: string }[];
+
+    const target = eligible[0];
+    if (!target) return redirect("/admin/people?problem=refused");
+
+    // submissionId IS NULL: this event is about an account, not a listing. The
+    // column was made nullable by 20260918210000_audit_account_events for
+    // exactly this row. Deploying this code against an unmigrated database
+    // fails the INSERT and therefore refuses the attach - loud, and the safe
+    // direction - so apply the migration first.
+    await sql`
+      INSERT INTO "AuditEvent" (
+        id, "submissionId", "producerId", action, "actorType", "actorId",
+        channel, before, after, reason
+      ) VALUES (
+        ${crypto.randomUUID()}, NULL, ${producerId}, 'account.attached',
+        'FOUNDER', ${adminActorId(auth)},
+        'admin-console',
+        ${JSON.stringify({ userId, email: target.email, producerId: null })}::jsonb,
+        ${JSON.stringify({ userId, email: target.email, producerId, producerName: target.producerName })}::jsonb,
+        NULL
+      )
+    `;
+
     const rows = (await sql`
       UPDATE "User"
       SET "producerId" = ${producerId}
@@ -105,9 +169,7 @@ export async function adminAttach(request: Request, env: Env): Promise<Response>
   }
 }
 
-function redirect(to: string): Response {
-  return new Response(null, { status: 303, headers: { Location: to } });
-}
+
 // `FormDataEntryValue` is a DOM lib name and is not in the Workers types,
 // so this takes `unknown` and narrows. A File upload therefore reads as
 // null rather than as "[object File]", which is the right answer for every
@@ -183,6 +245,16 @@ async function renderPeople(
 
   const unattached = users.filter((u) => u.producerId === null);
 
+  // WHETHER THE PAGE ACTUALLY CONTAINS A <form>, computed once and used twice:
+  // to render the attach panel, and to decide the `form-action` CSP grant
+  // below. This page passed `allowForms: true` unconditionally while its only
+  // form is conditional on all three of these, so on the ordinary day - every
+  // account attached, nobody waiting - the policy advertised a form-post
+  // surface the document did not have. The grant is meant to describe the page
+  // it is sent with, which is the entire reason it is per-page here rather
+  // than origin-wide.
+  const hasForm = unattached.length > 0 && producers.length > 0 && token !== null;
+
   return page(
     layout({
       title: "Producers and accounts",
@@ -202,10 +274,50 @@ async function renderPeople(
 
         ${section({
           heading: "Attach an account to a producer",
-          lede: html`This is the step that turns a signed-in stranger into a producer who
-            can submit. Every account starts unattached, by design.`,
-          body:
-            unattached.length === 0
+          // THE LEDE SAID THIS IS THE STEP THAT LETS SOMEBODY SUBMIT, which the
+          // heading says. What it carried that the heading does not is that
+          // every account starts unattached, so that is what survives.
+          lede: html`Every account starts unattached, by design.`,
+          // BRANCHED ON hasForm RATHER THAN RE-DERIVING THE SAME THREE
+          // CONDITIONS. It used to test them again here, in the same order, and
+          // the CSP grant tested none of them - so the page's markup and the
+          // page's policy could disagree and nothing would say so. One
+          // expression now decides both.
+          // `&& token !== null` is redundant against hasForm and is here so the
+          // compiler can narrow the token to a string. An empty-string fallback
+          // would have compiled too, and would have rendered a form whose POST
+          // is refused every time - a working-looking button that cannot work.
+          body: hasForm && token !== null
+            ? card(html`
+                <form method="post" action="/admin/people" class="stack">
+                  ${csrfInput(CSRF_FIELD, token)}
+                  ${selectField({
+                    name: "userId",
+                    label: "Account",
+                    required: true,
+                    emptyLabel: "Choose an account",
+                    hint: html`Only accounts with no producer attached are listed.`,
+                    options: unattached.map((u) => ({
+                      value: u.id,
+                      label: u.email ?? u.id,
+                    })),
+                  })}
+                  ${selectField({
+                    name: "producerId",
+                    label: "Producer",
+                    required: true,
+                    emptyLabel: "Choose a producer",
+                    hint: html`The company record this inbox will be able to submit and
+                      withdraw listings for.`,
+                    options: producers.map((p) => ({
+                      value: p.id,
+                      label: `${p.name} (${p.slug})`,
+                    })),
+                  })}
+                  <div class="actions">${button("Attach this account")}</div>
+                </form>
+              `)
+            : unattached.length === 0
               ? emptyState({
                   headline: "Every account is already attached",
                   because: html`Nobody is waiting. A new account appears here the first time
@@ -219,40 +331,7 @@ async function renderPeople(
                       created before an inbox can be connected to one, and that is
                       deliberately not a button on this page.`,
                   })
-                : token === null
-                  ? html`<p class="muted">No session token. Reload the page.</p>`
-                  : card(html`
-                      <form method="post" action="/admin/people" class="stack">
-                        ${csrfInput(CSRF_FIELD, token)}
-                        ${selectField({
-                          name: "userId",
-                          label: "Account",
-                          required: true,
-                          emptyLabel: "Choose an account",
-                          hint: html`Only accounts with no producer attached are listed.
-                            Reassigning an attached account would silently change who owns a
-                            set of listings, so it is not offered here and the handler
-                            refuses it as well.`,
-                          options: unattached.map((u) => ({
-                            value: u.id,
-                            label: u.email ?? u.id,
-                          })),
-                        })}
-                        ${selectField({
-                          name: "producerId",
-                          label: "Producer",
-                          required: true,
-                          emptyLabel: "Choose a producer",
-                          hint: html`The company record this inbox will be able to submit
-                            and withdraw listings for.`,
-                          options: producers.map((p) => ({
-                            value: p.id,
-                            label: `${p.name} (${p.slug})`,
-                          })),
-                        })}
-                        <div class="actions">${button("Attach this account")}</div>
-                      </form>
-                    `),
+                : html`<p class="muted">No session token. Reload the page.</p>`,
         })}
 
         ${section({
@@ -288,8 +367,8 @@ async function renderPeople(
 
         ${section({
           heading: "Accounts",
-          lede: html`Every address that has ever completed a sign-in. Unattached ones are
-            listed first, because they are the ones waiting on us.`,
+          lede: html`Every address that has completed a sign-in, unattached ones first
+            because they are the ones waiting on us.`,
           body: tableBlock({
             label: "Accounts",
             columns: ["Address", "Attached to"],
@@ -316,7 +395,7 @@ async function renderPeople(
       `,
     }),
     200,
-    { allowForms: true },
+    { allowForms: hasForm },
   );
 }
 

@@ -146,7 +146,8 @@ export const SIGN_IN_GLOBAL_MAX_SENDS = 100;
  *
  * WHY TWENTY. Argued from the demand side, because that is the side anybody
  * can actually see. There are zero enrolled producers today. The free tier
- * covers one active listing, the largest paid tier that exists covers 25, and
+ * covers one active listing, the largest CAPPED tier covers 12 (Standard, cut
+ * from 25 on 2026-09-18 alongside the price), Unlimited is uncapped, and
  * every write here is a person filling in a form about a real product they
  * make: a submission is a deliberate act that happens a handful of times in
  * the life of an account, and a withdrawal is rarer still. Twenty an hour is

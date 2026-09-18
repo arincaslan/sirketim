@@ -18,12 +18,21 @@
 // verified by querying information_schema rather than by trusting the
 // migration's exit code.
 //
-// THE ELEVENTH TABLE, `RateLimit`, IS NOT IN THE DATABASE YET. It was added
-// here on 2026-09-16 with migration 20260916143000_add_rate_limit, which was
-// deliberately NOT applied in the session that wrote it - that session had no
-// database credentials and the founder had not reviewed the change. The
-// migration is additive (one new table, no alteration to anything existing),
-// and it has to be applied BEFORE the Worker carrying that code is deployed:
+// THE ELEVENTH TABLE, `RateLimit`, IS APPLIED. This block said "IS NOT IN THE
+// DATABASE YET" until 2026-09-18, two days after it went live, and the
+// migration file itself had already been corrected and had recorded that the
+// stale version of this very claim once misled a subagent into reporting an
+// unapplied migration as a deploy blocker. So two documents asserted the thing
+// a third explicitly warned readers not to believe, and an audit on 2026-09-18
+// correctly refused to guess between them.
+//
+// SETTLED BY QUERYING PRODUCTION, which is the only thing that settles it:
+// _prisma_migrations carries all four migrations, and "RateLimit" exists with
+// rows in it. Do not re-state an application status here from memory - read it
+// from _prisma_migrations, and note that this schema is NOT the record.
+//
+// The ordering rule that comment carried is still right and still applies to
+// every future migration: apply BEFORE deploying the Worker that needs it.
 // POST /sign-in refuses to send mail when it cannot reach its rate-limit
 // table, on purpose, so deploying first means a 503 on sign-in until the
 // migration runs. Apply with `npx prisma migrate deploy` from this directory
@@ -544,8 +553,19 @@ model SubmissionRevision {
 /// producer contact and billing identifiers.
 model AuditEvent {
   id           String     @id @default(cuid())
-  submissionId String
-  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Restrict)
+  /// NULLABLE SINCE 2026-09-18, and the reason is a gap this column created.
+  /// Attaching an account to a producer is the highest-privilege write on the
+  /// origin - it decides who controls a company's listings - and it was going
+  /// UNRECORDED, because this column was NOT NULL and an attach has no
+  /// submission to point at. The only trace was User.producerId, a mutable
+  /// column the next attach overwrites.
+  ///
+  /// So the table's scope widened from "things that happened to a submission"
+  /// to "things that happened, to a producer". Events about an account carry
+  /// producerId and leave this null; everything about a listing still sets it,
+  /// and nothing that used to be recorded stopped being recorded.
+  submissionId String?
+  submission   Submission? @relation(fields: [submissionId], references: [id], onDelete: Restrict)
   producerId   String
 
   /// e.g. "submitted", "approved", "revision_requested", "withdrawn",

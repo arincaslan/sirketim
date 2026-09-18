@@ -1,5 +1,16 @@
 import { html, type Html } from "../lib/html";
-import { page } from "../lib/http";
+import { page, redirect as httpRedirect } from "../lib/http";
+
+// SEE THE NOTE IN lib/http.ts: this used to be a THREE-LINE LOCAL FUNCTION of
+// the same name, and because it shadowed the shared one, every response from
+// this file - including every successful admin write - went out with no CSP,
+// no X-Frame-Options, no Referrer-Policy, no X-Content-Type-Options and no
+// X-Robots-Tag. The router's 404, its 405 and its 301 all carried them; the
+// highest-privilege routes on the origin did not. A local helper that shares a
+// name with a shared one is the cheapest way to lose a cross-cutting concern.
+function redirect(to: string): Response {
+  return httpRedirect(to, { status: 303 });
+}
 import { layout } from "../ui/layout";
 import {
   button,
@@ -120,7 +131,19 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
   if (gate.kind === "refused") return gate.response;
   const { sql, auth } = gate;
 
-  const form = await request.formData();
+  // PARSED IN A try/catch BECAUSE formData() THROWS ON A BODY IT CANNOT READ.
+  // The other three write routes on this origin all guard it and each says why:
+  // unguarded, an absent or unparseable body answers with a generic 500, which
+  // is the fake-failure shape this project's notShipped() ethos exists to
+  // prevent. A browser cannot produce it; only a non-browser client can, and it
+  // should get the same honest refusal as a missing token. Admin-only
+  // reachability made this low severity, never correct.
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return redirect("/admin/queue?problem=malformed");
+  }
   const ok = await verifyCsrf(request, "admin-decide", asString(form.get(CSRF_FIELD)));
   if (!ok) return redirect("/admin/queue?problem=csrf");
 
@@ -198,9 +221,7 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
   }
 }
 
-function redirect(to: string): Response {
-  return new Response(null, { status: 303, headers: { Location: to } });
-}
+
 
 // `FormDataEntryValue` is a DOM lib name and is not in the Workers types,
 // so this takes `unknown` and narrows. A File upload therefore reads as
@@ -284,7 +305,12 @@ async function renderQueue(
   return page(
     layout({
       title: "Listing queue",
-      heading: "Listings waiting on a decision",
+      // "LISTINGS WAITING ON A DECISION" WAS THE <h1> AND "Awaiting a decision"
+      // the first section heading directly under it, which is the same phrase
+      // twice in fourteen words. It was also half-true: the page carries the
+      // approved-and-standing listings as well, which are the ones nothing is
+      // waiting on.
+      heading: "Listing queue",
       nav: { current: "queue", showAdmin: true },
       status: {
         label: waiting.length > 0 ? `${waiting.length} waiting` : "Queue empty",
@@ -334,6 +360,34 @@ async function renderQueue(
   );
 }
 
+/**
+ * One listing, and the decision it is waiting for.
+ *
+ * ============================================================================
+ * WHAT CAME OUT OF THIS CARD, AND WHY IT WAS SAFE TO TAKE.
+ * ============================================================================
+ *
+ * A queue is read down a column, not across one item, so anything printed per
+ * card is printed once per listing. Two things here were.
+ *
+ * THE FACTS WERE A BULLETED LIST OF SENTENCES. Three <li>s reading "Compared
+ * against x.", "Eau de Parfum, 50 ml, $39.", "Slug y. Current state z." - which
+ * is a table of five values wearing full stops. They are now a definition list:
+ * same five values, each under its own label, scannable in a column beside the
+ * next card's. Nothing was dropped.
+ *
+ * THE REASON FIELD CARRIED A PARAGRAPH EXPLAINING ITSELF. "Required for
+ * anything except approving. This is stored on the audit record and is what the
+ * producer is owed: 'no' with no reason is an outcome, not a decision." That is
+ * the right rule and it was already stated twice above, in the standfirst ("A
+ * refusal needs a reason; an approval does not") and in this file's header. On
+ * a queue of twenty it was the same paragraph twenty times, between the reader
+ * and the buttons. The hint keeps the operative half.
+ *
+ * WHAT DID NOT CHANGE: the `required` attribute still follows needsReason, the
+ * verbs still carry the decision as a button value, and the server-side reason
+ * check in adminDecide() is untouched and remains the only one that counts.
+ */
 function decisionCard(r: QueueRow, token: string | null, verbs: DecisionKey[]): Html {
   const needsReason = verbs.some((v) => DECISIONS[v].needsReason);
   return card(html`
@@ -342,18 +396,31 @@ function decisionCard(r: QueueRow, token: string | null, verbs: DecisionKey[]): 
       <div>
         <h3>${r.brand} ${r.name}</h3>
         <p class="muted">
-          by ${r.producerName}${r.tier ? html` on ${r.tier}` : html` (no plan on file)`} ·
+          by ${r.producerName}${r.tier ? html` on ${r.tier}` : html` (no plan on file)`},
           submitted ${formatWhen(r.submittedAt)}
         </p>
       </div>
     </div>
-    <ul class="plain-list">
-      <li>Compared against <code>${r.referenceSlug}</code>.</li>
-      <li>${r.concentration}, ${String(r.bottleMl)} ml, $${String(r.priceUsd)}.</li>
-      <li>Slug <code>${r.slug}</code>. Current state ${stateBadge(
-        r.approvalStatus === "APPROVED" ? "approved" : "in-review",
-      )}.</li>
-    </ul>
+    <dl class="decision-meta">
+      <div>
+        <dt>Compared against</dt>
+        <dd><code class="wrap-anywhere">${r.referenceSlug}</code></dd>
+      </div>
+      <div>
+        <dt>Product</dt>
+        <dd>${r.concentration}, ${String(r.bottleMl)} ml, $${String(r.priceUsd)}</dd>
+      </div>
+      <div>
+        <dt>Slug</dt>
+        <dd><code class="wrap-anywhere">${r.slug}</code></dd>
+      </div>
+      <div>
+        <dt>State</dt>
+        <dd>
+          ${stateBadge(r.approvalStatus === "APPROVED" ? "approved" : "in-review")}
+        </dd>
+      </div>
+    </dl>
     ${token === null
       ? html`<p class="muted">
           This form cannot be rendered without a session token. Reload the page.
@@ -367,12 +434,9 @@ function decisionCard(r: QueueRow, token: string | null, verbs: DecisionKey[]): 
             label: "Reason",
             required: needsReason,
             hint: needsReason
-              ? html`Required for anything except approving. This is stored on the audit
-                  record and is what the producer is owed: "no" with no reason is an
-                  outcome, not a decision.`
-              : html`Optional when approving. Leave it empty unless there is something
-                  worth saying; a column full of "ok" looks like a record and is not.`,
-            rows: 3,
+              ? html`Required for anything except approving. Stored on the audit record.`
+              : html`Optional when approving. Stored on the audit record.`,
+            rows: 2,
           })}
           <div class="actions">
             ${verbs.map((v) =>
@@ -380,6 +444,11 @@ function decisionCard(r: QueueRow, token: string | null, verbs: DecisionKey[]): 
                 name: "decision",
                 value: v,
                 variant: v === "approve" ? "primary" : "ghost",
+                // See the note on `novalidate` in ui/components.ts. The shared
+                // textarea is `required` for this card because at least one of
+                // its verbs needs a reason; without this, that requirement also
+                // blocked the verb that deliberately does not.
+                novalidate: !DECISIONS[v].needsReason,
               }),
             )}
           </div>

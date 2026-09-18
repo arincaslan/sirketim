@@ -113,6 +113,35 @@ export function signIn(request: Request, env: Env) {
                     A link is on its way if that address can receive mail. It works once and expires in 15
                     minutes. Nothing else happened yet - no account exists until the link is used.
                   </p>
+                  ${
+                    // SAID HERE, BEFORE THE LOCKOUT, RATHER THAN ONLY ON THE 429
+                    // AFTER IT. While a link minted in the last 15 minutes is
+                    // still alive this form deliberately sends no second one and
+                    // returns this exact page, byte for byte, so that it cannot
+                    // be used to ask "does this address have a live token" - see
+                    // the note above hasActiveVerificationToken(). That
+                    // anti-enumeration property is worth keeping and this
+                    // sentence does not weaken it: it is unconditionally true on
+                    // both branches and shown to everyone identically, so it
+                    // distinguishes nothing.
+                    //
+                    // What it fixes is the cost of the silence. A reader who
+                    // sees no mail presses the button again, which is the one
+                    // response that cannot help: the repeat sends nothing AND
+                    // spends one of five per-IP attempts, because that counter
+                    // is bumped before the body is even read. The founder hit
+                    // exactly this on 2026-09-18 - five presses, one email, and
+                    // a lockout - and the advice that would have prevented it
+                    // was already written on the 429 page they only reached
+                    // afterwards.
+                    ""
+                  }
+                  <p class="muted">
+                    If you asked more than once, only the first request sent anything: while a link is
+                    still valid we do not send a second, and the first one still works. Check your spam
+                    folder before asking again - repeat requests count against a limit of five in ten
+                    minutes even when no mail goes out.
+                  </p>
                 </div>`
               : ""
         }

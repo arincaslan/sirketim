@@ -141,9 +141,23 @@ function navBar(ctx: NavContext): Html {
     if (i.producerOnly) return ctx.showAdmin !== true;
     return true;
   });
+  // THE SEPARATOR IS THE COMMENT ON NAV_ITEMS, DRAWN. That comment claims the
+  // producer group and the administrative group "never interleave, so an admin
+  // reading this bar sees their producer tools and their house tools as two
+  // things rather than one mixed list" - which was true of the ORDER and
+  // invisible on the screen, because five evenly-spaced links read as one list
+  // of five whatever order they are in. The rule for it had already been
+  // written into console.css and never given any markup to style, so the
+  // stylesheet carried a comment describing something that did not exist.
+  //
+  // aria-hidden: it is a visual grouping, and the nav is already one labelled
+  // landmark. A screen reader gains nothing from a decorative rule.
+  const firstAdmin = items.findIndex((i) => i.admin);
   return html`<nav class="site-nav" aria-label="Producer console">
       ${items.map(
-        (i) => html`<a
+        (i, n) => html`${n === firstAdmin && n > 0
+          ? html`<span class="site-nav-sep" aria-hidden="true"></span>`
+          : ""}<a
           class="site-nav-link${ctx.current === i.key ? " is-current" : ""}"
           href="${i.href}"
           ${ctx.current === i.key ? html`aria-current="page"` : ""}

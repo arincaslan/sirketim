@@ -15,16 +15,15 @@ export function notFound() {
     title: "Not found",
     heading: "Nothing at this address",
     showBackLink: false,
-    standfirst: html`This origin has four pages, and they are all listed on the
-      overview.`,
+    standfirst: html`The pages anyone can open are listed below, and the overview
+      explains the rest.`,
     body: section({
       heading: "Where you might have meant to go",
       body: html`
         <ul class="plain-list">
           <li><a href="/">The overview</a>, which explains what this console is for.</li>
           <li><a href="/sign-in">Sign in</a>, where a real sign-in link can be requested.</li>
-          <li><a href="/console">The producer console</a>.</li>
-          <li><a href="/review">The review queue</a>.</li>
+          <li><a href="/console">The producer console</a>, and your listings inside it.</li>
         </ul>
       `,
     }),

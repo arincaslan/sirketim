@@ -164,6 +164,23 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
   "/health": { GET: health },
 };
 
+/**
+ * Paths whose EXISTENCE is not public, listed here because the router has to
+ * answer for them before any handler runs.
+ *
+ * This is not the access control - requireAdmin() inside each handler is, and
+ * removing a path from this set would leak the address without granting
+ * anything. It exists because two router-level answers fire before a handler
+ * is ever chosen (the trailing-slash canonicaliser and the 405), and both used
+ * to distinguish a real administrative path from a typo for an anonymous
+ * caller.
+ *
+ * Keep it in step with the `admin: true` entries in ui/layout.ts NAV_ITEMS and
+ * with every route that calls requireAdmin(). A path missing from here is a
+ * disclosure bug, not a crash, which is exactly why it needs saying.
+ */
+const GATED_PATHS = new Set(["/admin", "/admin/queue", "/admin/people", "/review"]);
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -172,14 +189,24 @@ export default {
     // One canonical URL per page. "/console/" and "/console" being two
     // addresses for one screen is the kind of thing that turns into two
     // entries in a log and one confusing bug report.
+    //
+    // REDIRECTS UNCONDITIONALLY, AND THAT IS A SECURITY FIX RATHER THAN A
+    // TIDY-UP. This used to redirect only when the stripped path was `in
+    // ROUTES`, which made the status code an oracle: `/admin/` answered 301
+    // and `/wibble/` answered 404, so an anonymous stranger could enumerate
+    // every real path on the origin - including the administrative ones -
+    // without ever reaching requireAdmin(). Confirmed against production on
+    // 2026-09-18 before the fix.
+    //
+    // Stripping first and letting the ordinary lookup decide costs nothing:
+    // an unknown path now redirects once and then 404s, which is the same
+    // answer by a slightly longer road, and every path answers alike.
     if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
       const canonical = url.pathname.replace(/\/+$/, "") || "/";
-      if (canonical in ROUTES) {
-        return new Response(null, {
-          status: 301,
-          headers: { Location: canonical + url.search, ...SECURITY_HEADERS },
-        });
-      }
+      return new Response(null, {
+        status: 301,
+        headers: { Location: canonical + url.search, ...SECURITY_HEADERS },
+      });
     }
 
     const route = ROUTES[url.pathname];
@@ -193,6 +220,19 @@ export default {
 
     const handler = route[method as "GET" | "POST"];
     if (!handler) {
+      // THE GATED PATHS GET THE ORDINARY 404 INSTEAD, because a 405 is an
+      // admission. `DELETE /admin/queue` answered "405, Allow: GET, POST" to
+      // anybody at all, which confirms the address is real AND names the two
+      // verbs worth attacking - all of it before requireAdmin() is reached,
+      // since there is no handler for the method to call. `DELETE /wibble`
+      // answered 404. Verified against production on 2026-09-18.
+      //
+      // For these paths the whole point is that a stranger cannot tell them
+      // from a typo, so they answer the same way for every method. Everything
+      // else keeps the 405 and the reasoning below it, which is still right
+      // for a public address.
+      if (GATED_PATHS.has(url.pathname)) return page(notFound(), 404);
+
       // A 405 with an Allow header, not a 404: a 404 on a POST invites a
       // retry against a different path, a 405 says this address exists and
       // names what it does take.

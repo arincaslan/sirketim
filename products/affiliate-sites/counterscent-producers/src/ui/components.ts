@@ -35,6 +35,67 @@ export function notShipped(opts: { what: string; reason: Html }): Html {
   </div>`;
 }
 
+/**
+ * Reference material, folded away until somebody asks for it.
+ *
+ * ============================================================================
+ * THE RULE THIS IMPLEMENTS, AND WHY IT IS A COMPONENT RATHER THAN A HABIT.
+ * ============================================================================
+ *
+ * Founder instruction, 2026-09-18: the console and the admin panel are "too
+ * much crowded" and "we can take out unnecessary information". The trap in
+ * that instruction is that almost none of the prose on this origin is
+ * unnecessary - it is there because the house rule says a feature whose
+ * backing service does not exist must say so at the point of use, and every
+ * paragraph was written to keep a promise. Deleting it to tidy the screen
+ * would be paying for a clean layout with an honest one.
+ *
+ * So the test applied everywhere this is used is NOT "is this true" or "is
+ * this worth saying". It is: WOULD A RETURNING READER ACT DIFFERENTLY FOR
+ * HAVING READ IT AGAIN? A quota, a listing state, an error and the one real
+ * action all pass. The eight-state vocabulary, what a table column means, and
+ * why we will never let a producer write their own score are all true, all
+ * worth keeping, and all read exactly once. Those go in here.
+ *
+ * NATIVE <details>, WHICH IS THE WHOLE POINT. This origin has a strict CSP
+ * (no inline script, no inline style, no client JavaScript at all beyond the
+ * theme toggle) and no build step, so every JavaScript accordion is
+ * unavailable by construction. <details> needs none: the browser opens it, a
+ * screen reader announces it as expandable, it is keyboard-reachable for free,
+ * and Ctrl+F in most browsers can still find text inside a closed one.
+ *
+ * WHAT MUST NEVER GO IN HERE, and it is the one boundary worth stating twice:
+ *
+ *   1. A POINT-OF-USE DISCLOSURE. The photograph gap on /console/submit stays
+ *      visible, because a producer who does not read it submits a listing that
+ *      cannot be published under our own terms. Hiding it behind a click would
+ *      be using progressive disclosure to quietly break the rule that put it
+ *      there. The same words on /console MAY collapse, because that screen is
+ *      not the point of use and the form says it.
+ *   2. A REQUIRED FORM FIELD. A closed disclosure hiding a control that blocks
+ *      submission is worse than a long form, because the reader cannot see
+ *      what they are missing.
+ *   3. AN ERROR. An error nobody opened is an error nobody has.
+ *
+ * `open` is available and is deliberately not the default anywhere yet. It
+ * exists so a screen that has a genuine reason to start expanded (a first
+ * visit, a state that needs explaining once) does not have to reach around
+ * this component to get one.
+ */
+export function disclosure(opts: { summary: string; body: Html; open?: boolean }): Html {
+  return html`<details class="disclose"${opts.open ? raw(" open") : ""}>
+    <summary class="disclose-summary">${opts.summary}</summary>
+    <div class="disclose-body">${opts.body}</div>
+  </details>`;
+}
+
+/** Several disclosures read as one block of reference rather than as a run of
+ *  separate objects. Used where a screen has three or four things a reader
+ *  looks up rather than reads. */
+export function disclosureGroup(items: { summary: string; body: Html }[]): Html {
+  return html`<div class="disclose-group">${items.map((i) => disclosure(i))}</div>`;
+}
+
 /* ------------------------------------------------------------------------ *
  * Listing state
  * ------------------------------------------------------------------------ */
@@ -794,6 +855,24 @@ export function button(
      */
     name?: string;
     value?: string;
+    /**
+     * Submit WITHOUT running the form's client-side validation.
+     *
+     * Exists for exactly one shape, and it is the admin queue's: ONE shared
+     * field serving buttons with DIFFERENT requirements. The reason textarea
+     * is `required` because rejecting and requesting changes both need one -
+     * but `required` is a property of the field, not of the verb, so the
+     * browser was also refusing to submit APPROVE with an empty reason. That
+     * contradicts rule 3 in admin-queue.ts's own header, which says approving
+     * needs no reason on purpose, because a mandatory field fills up with "ok"
+     * and looks like a record without being one.
+     *
+     * `formnovalidate` is the precise fix: it disables validation for the one
+     * button that does not need it and leaves the guard in place for the two
+     * that do. The server check is unchanged and remains the real one - this
+     * only decides whether the browser argues first.
+     */
+    novalidate?: boolean;
   } = {},
 ): Html {
   const variant = opts.variant ?? "primary";
@@ -803,6 +882,7 @@ export function button(
     class="btn btn-${variant}"
     ${opts.name ? html`name="${opts.name}"` : ""}
     ${opts.value ? html`value="${opts.value}"` : ""}
+    ${opts.novalidate ? raw("formnovalidate") : ""}
   >${label}</button>`;
 }
 

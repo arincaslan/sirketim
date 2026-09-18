@@ -211,15 +211,17 @@ export async function overview(request: Request, env: Env) {
             <p class="muted">
               Reads your actual session and shows one of three screens: signed out,
               signed in with no producer record attached yet, or attached, with your own
-              listings in it. Nothing can be submitted from it - the form is the next
-              piece of work - and it says so where the button would be.
+              listings in it. From there you can submit a fragrance, withdraw one, and
+              see what your plan covers.
             </p>
           `)}
           ${card(html`
-            <h3><a href="/review">The review queue</a></h3>
+            <h3>The review queue is ours, not yours</h3>
             <p class="muted">
-              The editor's side: what a reviewer sees, what the decisions are, and where
-              automation is allowed to act.
+              Every submission is read by a person before it can appear on the
+              catalogue, and nothing is ever approved automatically. That queue is a
+              staff screen rather than a page on this side of the site, so there is
+              deliberately no link to it here.
             </p>
           `)}
           ${card(html`

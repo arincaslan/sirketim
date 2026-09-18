@@ -2,6 +2,7 @@ import { html } from "../lib/html";
 import { page } from "../lib/http";
 import { layout } from "../ui/layout";
 import { notShipped, section } from "../ui/components";
+import { notFound } from "../routes/not-found";
 import type { Env } from "./env";
 import { db } from "./db";
 import { getAuthContext, normalizeEmail, type AuthUser, type Sql } from "./auth";
@@ -168,34 +169,29 @@ function notConfigured() {
  * founder on the wrong account, and that one fact ends the confusion without
  * telling a stranger anything they did not already supply themselves.
  */
-function noSuchPage(auth: AuthUser | null) {
-  return layout({
-    title: "Not found",
-    heading: "There is nothing at this address",
-    status: {
-      label: "Not found",
-      tone: "outline",
-      note: html`No page here.`,
-    },
-    body: section({
-      heading: "Where to go instead",
-      body: html`
-        <div class="stack">
-          <p><a href="/console">The producer console</a> is probably what you want.</p>
-          ${auth
-            ? html`<p class="muted">
-                You are signed in as
-                <span class="wrap-anywhere">${auth.email ?? ""}</span>. If you expected
-                something else here, it is because this address is not the one that has it.
-              </p>`
-            : html`<p class="muted">
-                You are not signed in. <a href="/sign-in">Request a sign-in link</a> if you
-                have an account.
-              </p>`}
-        </div>
-      `,
-    }),
-  });
+/**
+ * THE REFUSAL IS THE SITE'S ORDINARY 404, BYTE FOR BYTE.
+ *
+ * This used to be its own document - a different h1 ("There is nothing at
+ * this address" against the real one's "Nothing at this address"), a status
+ * pill, a "Where to go instead" section and, because it passed no nav,
+ * layout()'s default back-link. Same status code, same headers, materially
+ * different body and length.
+ *
+ * So the stated invariant - that a 404 here tells a stranger nothing - was
+ * false, and provably so: earlier on 2026-09-18 this very difference was used
+ * as the test that PROVED the admin routes were deployed to production,
+ * signed out, from outside. A distinguishing feature convenient enough to
+ * verify a deploy with is a distinguishing feature good enough to enumerate
+ * an attack surface with; those are the same fact wearing two hats.
+ *
+ * Delegating to notFound() means there is now exactly one 404 document on the
+ * origin and no way to keep two in step, because there is only one. The
+ * signed-in reader loses a sentence naming their own address; that sentence
+ * was the tell.
+ */
+function noSuchPage(_auth: AuthUser | null) {
+  return notFound();
 }
 
 function noDatabase() {
