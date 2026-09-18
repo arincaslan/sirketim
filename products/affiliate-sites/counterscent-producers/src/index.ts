@@ -85,6 +85,9 @@ import { notFound } from "./routes/not-found";
 import { overview } from "./routes/overview";
 import { producerConsole } from "./routes/console";
 import { producerPlan } from "./routes/plan";
+import { adminOverview } from "./routes/admin";
+import { adminQueue, adminDecide } from "./routes/admin-queue";
+import { adminPeople, adminAttach } from "./routes/admin-people";
 import { reviewQueue } from "./routes/review";
 import { robots } from "./routes/robots";
 import { signIn, signInSubmit } from "./routes/sign-in";
@@ -138,7 +141,25 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
   // Async now, because it reads the session to decide whether to render the
   // console nav. That is a navigation affordance, NOT a guard - see the header
   // comment in routes/review.ts before assuming this route is protected.
-  "/review": { GET: async (req, env) => page(await reviewQueue(req, env)) },
+  // Behind requireAdmin since 2026-09-18, and it returns its own Response now
+  // (the gate's refusal is a 404 or a 503, which the router must not re-wrap
+  // as a 200). See the header comment in routes/review.ts.
+  "/review": { GET: (req, env) => reviewQueue(req, env) },
+
+  // THE ADMIN SURFACE. Every one of these calls requireAdmin() as its first
+  // statement and returns that refusal untouched; the router grants no
+  // privilege of its own. `allowForms` is decided inside each handler rather
+  // than here, because the GET pages that carry a decision form need it and
+  // the refusal screens deliberately do not.
+  "/admin": { GET: (req, env) => adminOverview(req, env) },
+  "/admin/queue": {
+    GET: (req, env) => adminQueue(req, env),
+    POST: (req, env) => adminDecide(req, env),
+  },
+  "/admin/people": {
+    GET: (req, env) => adminPeople(req, env),
+    POST: (req, env) => adminAttach(req, env),
+  },
   "/robots.txt": { GET: robots },
   "/health": { GET: health },
 };

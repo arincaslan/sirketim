@@ -51,7 +51,17 @@ import { readSessionCookie } from "./auth";
 /** Every authenticated write on this origin, and nothing else. Adding a verb
  *  means adding it here, which is deliberate friction: a write that forgot to
  *  pick a purpose would not compile. */
-export type CsrfPurpose = "sign-out" | "submit-listing" | "withdraw-listing";
+export type CsrfPurpose =
+  | "sign-out"
+  | "submit-listing"
+  | "withdraw-listing"
+  // THE ADMIN VERBS ARE SEPARATE PURPOSES, not one shared "admin" token, for
+  // the same reason the producer verbs are separate: a token minted for the
+  // page that lists producers should not be replayable against the handler
+  // that publishes a listing. These are the highest-privilege writes on the
+  // origin, so the narrowest scoping is the cheapest place to be strict.
+  | "admin-decide"
+  | "admin-attach";
 
 /** The form field the token travels in. One name everywhere, so a handler and
  *  a form cannot disagree about it. */

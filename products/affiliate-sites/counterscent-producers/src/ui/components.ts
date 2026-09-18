@@ -560,8 +560,21 @@ export function textareaField(opts: {
   required?: boolean;
   value?: string;
   error?: string;
+  /**
+   * Override the derived element id.
+   *
+   * REQUIRED WHEN A PAGE RENDERS THIS MORE THAN ONCE WITH THE SAME `name`.
+   * The id is normally "f-" + name, which is fine on a submit form where each
+   * field appears once. The admin queue renders one of these per listing, all
+   * named "reason" because the handler reads one field - so without this every
+   * card after the first would repeat id="f-reason", and a duplicate id
+   * silently points every <label> and every aria-describedby at the FIRST
+   * textarea on the page. Clicking a label would focus the wrong box and a
+   * screen reader would read the wrong hint, with nothing looking broken.
+   */
+  id?: string;
 }): Html {
-  const id = "f-" + opts.name;
+  const id = opts.id ?? "f-" + opts.name;
   return html`<div class="field">
     ${fieldLabel(id, opts.label, opts.required)}
     <textarea
@@ -766,11 +779,31 @@ function describedBy(id: string, error?: string): string {
  *  live button on this origin so far is inside exactly one <form>. */
 export function button(
   label: string,
-  opts: { variant?: "primary" | "ghost"; type?: "submit" | "button" } = {},
+  opts: {
+    variant?: "primary" | "ghost";
+    type?: "submit" | "button";
+    /**
+     * Submit the button's own value alongside the form.
+     *
+     * ADDED for the admin queue, where one listing takes three different
+     * decisions. The alternative was three separate <form> elements around the
+     * same reason field, which cannot work - the reason belongs to whichever
+     * decision is taken, and duplicating the textarea into three forms would
+     * let an editor type into one and submit another, silently discarding what
+     * they wrote. One form, one reason, the verb carried by the button.
+     */
+    name?: string;
+    value?: string;
+  } = {},
 ): Html {
   const variant = opts.variant ?? "primary";
   const type = opts.type ?? "submit";
-  return html`<button type="${type}" class="btn btn-${variant}">${label}</button>`;
+  return html`<button
+    type="${type}"
+    class="btn btn-${variant}"
+    ${opts.name ? html`name="${opts.name}"` : ""}
+    ${opts.value ? html`value="${opts.value}"` : ""}
+  >${label}</button>`;
 }
 
 /* ------------------------------------------------------------------------ *

@@ -55,4 +55,26 @@ export interface Env {
    * it is, this becomes a secret change rather than a code change.
    */
   HOSTINGER_MAILBOX_ID?: string;
+
+  /**
+   * Comma-separated addresses allowed to reach `/admin` and `/review`.
+   *
+   * FOUNDER DECISION 2026-09-18: administrative access is a deployment secret
+   * rather than a `User.role` column, so that nothing the application can
+   * write is able to grant it and revoking it never depends on the database
+   * being healthy. The full reasoning, and the condition under which it should
+   * become a column instead, is in src/lib/admin.ts.
+   *
+   * UNSET MEANS NOBODY, NEVER EVERYBODY. `requireAdmin` answers 503 with the
+   * reason when this is missing rather than falling open, and it checks that
+   * before it checks the session so a fresh environment says "set the secret"
+   * instead of sending the reader through sign-in first.
+   *
+   * WHAT A LEAK OF THIS REACHES: nothing on its own. It is a list of
+   * addresses, not a credential - holding it does not let anyone in, because
+   * an admin still has to prove the address through the ordinary magic-link
+   * sign-in. It is worth keeping out of the repo anyway, since publishing
+   * which inbox to attack is a free gift to somebody choosing a target.
+   */
+  ADMIN_EMAILS?: string;
 }

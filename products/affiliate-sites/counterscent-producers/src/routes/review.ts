@@ -1,7 +1,8 @@
 import { html } from "../lib/html";
 import { layout } from "../ui/layout";
+import { page } from "../lib/http";
 import type { Env } from "../lib/env";
-import { getAuthContext } from "../lib/auth";
+import { requireAdmin } from "../lib/admin";
 import {
   card,
   deadButton,
@@ -25,19 +26,24 @@ import {
  * When accounts exist, this route goes behind the session and stops being
  * linked from a public page.
  *
- * IT NOW READS THE SESSION, AND THAT IS NOT ACCESS CONTROL. The read exists so
- * a signed-in editor arriving from the console nav keeps the nav and has a way
- * back; a signed-out visitor still gets the page, exactly as before. Nothing is
- * refused to anyone and nothing here queries a producer's data.
+ * IT IS NOW BEHIND requireAdmin, AND THAT CLOSES A STANDING DEBT. Until
+ * 2026-09-18 this route answered 200 to anyone, and the note here said the
+ * real check had to land in the SAME change as its first real query. The real
+ * query landed that day - at /admin/queue, which reads and decides live
+ * submissions - so the guard landed with it, and it is applied to this page
+ * too rather than only to the new one. An unprotected page that merely LOOKS
+ * like an editor surface is still an invitation to go looking for the one that
+ * is not a mock-up.
  *
- * DO NOT MISTAKE THIS FOR THE GUARD. The page is still inert and still
- * unprotected, which the root CLAUDE.md flags as safe ONLY while it stays
- * inert. The real check needs a role on `User` (there is none; `ActorType.STAFF`
- * exists in the schema but nothing maps a user to it) and it has to land in the
- * SAME change as this route's first real query. Not after it.
+ * WHAT THIS PAGE IS NOW: the layout study, kept because it documents the
+ * vocabulary and the shape the real queue grew into, and reachable only by an
+ * administrator. The working screen is /admin/queue and this page says so at
+ * the top rather than leaving an admin to work out which of the two is real.
  */
 export async function reviewQueue(request: Request, env: Env) {
-  const auth = await getAuthContext(request, env);
+  const gate = await requireAdmin(request, env);
+  if (gate.kind === "refused") return gate.response;
+  const auth = gate.auth;
   const body = html`
     ${section({
       heading: "Waiting for a decision",
@@ -206,19 +212,24 @@ export async function reviewQueue(request: Request, env: Env) {
     })}
   `;
 
-  return layout({
-    title: "Review queue",
-    heading: "Review queue",
-    // Only for a signed-in reader. A signed-out visitor gets the page with no
-    // nav, the same as every other public screen here.
-    nav: auth ? { current: "review", showReview: true } : undefined,
-    status: {
-      label: "Nothing in the queue",
-      note: html`And no way for anything to enter it. This is the editor's side of the
-        console, shown as a layout rather than a working screen.`,
-    },
-    standfirst: html`What a reviewer sees: every submission waiting on a person, the
-      decisions available, and what each one does to a listing.`,
-    body,
-  });
+  return page(
+    layout({
+      title: "Review queue",
+      heading: "Review queue (layout study)",
+      // Every reader here is an administrator now - requireAdmin ran above and
+      // returned its own response otherwise - so the nav is unconditional and
+      // carries the admin group.
+      nav: { current: "review", showAdmin: true, showReview: true },
+      status: {
+        label: "Not the working screen",
+        tone: "outline",
+        note: html`This page reads nothing and writes nothing. The queue that actually
+          decides listings is <a href="/admin/queue">the listing queue</a>.`,
+      },
+      standfirst: html`Kept because it documents the decision vocabulary and the shape the
+        real queue grew into. You are signed in as
+        <span class="wrap-anywhere">${auth.email ?? ""}</span>.`,
+      body,
+    }),
+  );
 }

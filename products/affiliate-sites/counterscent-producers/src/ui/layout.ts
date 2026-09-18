@@ -85,32 +85,51 @@ export interface NavContext {
   /**
    * Whether to offer the editor queue.
    *
-   * GATED ON A SESSION, NOT ON A ROLE, AND THAT IS A STOPGAP. There is no role
-   * model yet: `User` has no `role` or `isStaff` column, and `/review` is
-   * publicly reachable and answers 200 to anyone. Showing the link only to
-   * signed-in users does not protect the route - nothing does today - but it
-   * stops a public page advertising an unprotected editor surface, which is a
-   * different and cheaper thing to get right.
-   *
-   * WHEN THE ROLE MODEL LANDS this becomes a real staff check, and the access
-   * control on /review must land in the SAME change as its first real query.
-   * Not after. An inert page with no auth is safe only while it stays inert.
+   * RESOLVED 2026-09-18. This used to be gated on merely having a session,
+   * which was a stopgap recorded here as one: `/review` was publicly reachable
+   * and answered 200 to anyone, and the note said access control had to land
+   * in the SAME change as its first real query. It did. `/review` now calls
+   * requireAdmin() like every other administrative route, so this flag is
+   * back to being what a nav flag should be - a question about what to show,
+   * not about what to permit.
    */
   showReview?: boolean;
+
+  /**
+   * Whether to show the admin group.
+   *
+   * Set from `requireAdmin` having already succeeded, never from a guess. See
+   * the comment on NAV_ITEMS: this hides links, it does not protect routes.
+   */
+  showAdmin?: boolean;
 }
 
-type NavKey = "listings" | "submit" | "plan" | "review";
+type NavKey = "listings" | "submit" | "plan" | "review" | "admin" | "queue" | "people";
 
 // ORDER IS THE PRODUCER'S SEQUENCE, not ours: look at what you have, add to
 // it, then deal with what it costs. "Your plan" sits before the editor queue
 // because the queue is staff-only in intent and only present at all as a
 // stopgap (see showReview above), so it should never separate two items a
 // producer uses.
-const NAV_ITEMS: { key: NavKey; href: string; label: string }[] = [
+const NAV_ITEMS: { key: NavKey; href: string; label: string; admin?: true }[] = [
   { key: "listings", href: "/console", label: "Your listings" },
   { key: "submit", href: "/console/submit", label: "Submit a fragrance" },
   { key: "plan", href: "/console/plan", label: "Your plan" },
-  { key: "review", href: "/review", label: "Review queue" },
+  // THE ADMIN GROUP IS A NAVIGATION AFFORDANCE, NOT A GUARD. Hiding these
+  // links protects nothing; what protects them is requireAdmin() inside each
+  // route, which every one of them calls before reading anything. They are
+  // hidden from non-admins only so the producer console does not advertise a
+  // surface its reader cannot use. If this flag were ever the only thing
+  // standing between a producer and the approve button, the bug would be in
+  // the route, not here.
+  { key: "admin", href: "/admin", label: "Admin", admin: true },
+  { key: "queue", href: "/admin/queue", label: "Listing queue", admin: true },
+  // "People" rather than "Producers and accounts": with the admin group shown
+  // the bar carries six items, and the long label left 16px between the nav
+  // and the header's own links at 1440px - clearance that disappears on any
+  // narrower desktop. The page's own <h1> still says "Producers and accounts",
+  // which is where the reader needs the full phrase.
+  { key: "people", href: "/admin/people", label: "People", admin: true },
 ];
 
 /**
@@ -121,7 +140,11 @@ const NAV_ITEMS: { key: NavKey; href: string; label: string }[] = [
  * where the grant already exists and is already reasoned about.
  */
 function navBar(ctx: NavContext): Html {
-  const items = NAV_ITEMS.filter((i) => i.key !== "review" || ctx.showReview);
+  const items = NAV_ITEMS.filter((i) => {
+    if (i.admin) return ctx.showAdmin === true;
+    if (i.key === "review") return ctx.showReview === true;
+    return true;
+  });
   return html`<nav class="site-nav" aria-label="Producer console">
       ${items.map(
         (i) => html`<a
