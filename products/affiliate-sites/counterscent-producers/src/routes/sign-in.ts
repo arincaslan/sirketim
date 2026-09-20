@@ -116,7 +116,10 @@ export function signIn(request: Request, env: Env) {
   // card 406px down a 732px screen. Both measured in a browser rather than
   // adjusted by eye. The lede it used to carry became the page standfirst,
   // where it says the same thing once.
+  // TWO COLUMNS ABOVE 60rem, ONE BELOW. See .auth-layout in console.css
+  // for why the leftover desktop width is filled rather than centred away.
   const body = html`
+    <div class="auth-layout">
     <div class="stack">
         ${
           !configured
@@ -247,6 +250,7 @@ export function signIn(request: Request, env: Env) {
         )}
     </div>
 
+    <div class="auth-aside">
     ${section({
       heading: "What this actually does",
       body: html`
@@ -295,6 +299,8 @@ export function signIn(request: Request, env: Env) {
         </p>
       `,
     })}
+    </div>
+    </div>
   `;
 
   return page(

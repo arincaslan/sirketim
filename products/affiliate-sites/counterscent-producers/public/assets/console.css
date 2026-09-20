@@ -2169,6 +2169,54 @@ html {
    controls. It stays on the left edge because every heading, label and
    paragraph on this origin is left-aligned, and a centred card under a
    left-aligned <h1> is two layouts in one screen. */
+/* -------------------------------------------------------------------------
+   THE SIGN-IN PAGE AT DESKTOP WIDTH.
+
+   FOUNDER, 2026-09-20: "sign in card seems fine in mobile but broken in pc".
+   Correct, and the gap was in how the card was VERIFIED rather than in the
+   card. It is capped at 26rem so its two full-width buttons stop stretching to
+   about 1350px, which is right; what was never looked at is what the other
+   1000px then does. A 416px card pinned to the left of a 1440px viewport,
+   narrower than the standfirst directly above it, reads as something that
+   failed to load. Every measurement taken that day was a mobile width or the
+   ABSENCE of horizontal scroll - neither of which can show this.
+
+   THE FIX IS NOT TO CENTRE THE CARD. The h1, the standfirst and every section
+   on this page hang off the same left edge, so a centred card would be the one
+   element that does not, trading one mismatch for another. The width gets used
+   instead: the card takes a fixed column and the page's own explanation of what
+   pressing these buttons does moves up beside it - which is exactly what a
+   producer is weighing while deciding whether to type their address in.
+
+   ONE COLUMN BELOW 60rem, and the order there is the order the markup is in:
+   card first, explanation after. That is the mobile layout the founder already
+   called fine, unchanged.
+   ------------------------------------------------------------------------- */
+.auth-layout {
+  display: grid;
+  gap: 1rem;
+}
+@media (min-width: 60rem) {
+  .auth-layout {
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+    column-gap: 4rem;
+    align-items: start;
+  }
+}
+.auth-aside {
+  min-width: 0;
+}
+@media (min-width: 60rem) {
+  /* The aside's first band drops its rule and most of its top padding so the
+     heading beside the card starts on the card's own top edge rather than a
+     line below it. .band:first-of-type already does this, but only when the
+     band is the first of its type in its PARENT - which it is here, and this
+     states it rather than leaving the alignment resting on that coincidence. */
+  .auth-aside > .band:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
 .auth-card {
   display: grid;
   gap: 1rem;
