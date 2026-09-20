@@ -404,6 +404,15 @@ function noProducerAttached(auth: AuthUser, isAdmin = false): Html {
     // items both lead back to this same screen until a company exists, and a
     // bar of links that bounce you is worse than no bar.
     nav: isAdmin ? { current: "listings", showAdmin: true } : undefined,
+    // BUT THIS READER IS SIGNED IN, nav or no nav, so the lockup must take
+    // them to their console rather than out to the signed-out explainer.
+    // This is the case that stops `signedIn` being derivable from `nav`.
+    signedIn: true,
+    // AND NO BACK-LINK, because this screen IS /console and the back-link
+    // defaults on wherever there is no nav - which would render a link to the
+    // page you are standing on. There is genuinely nowhere back to from here:
+    // that is what makes this a step rather than a waiting room.
+    showBackLink: false,
     status: {
       label: "Almost there",
       tone: "outline",

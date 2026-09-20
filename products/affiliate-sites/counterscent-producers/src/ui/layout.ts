@@ -77,6 +77,22 @@ export interface PageOptions {
    * footer.
    */
   nav?: NavContext;
+  /**
+   * Whether there is a session behind this page. It decides where HOME is:
+   * the lockup and the back-link point at /console for a signed-in reader
+   * and at / for everybody else.
+   *
+   * IT IS SEPARATE FROM `nav` BECAUSE THE TWO QUESTIONS ARE GENUINELY
+   * DIFFERENT, and console.ts proves it: noProducerAttached() deliberately
+   * renders NO nav for a producer with no company, because both producer
+   * items would bounce them back to the screen they are on - and that
+   * reader is very much signed in. Deriving one from the other would send
+   * exactly that person out to the signed-out explainer.
+   *
+   * Defaults to whether a nav was passed, so every page that already
+   * renders one is correct without being touched.
+   */
+  signedIn?: boolean;
 }
 
 export interface NavContext {
@@ -185,10 +201,42 @@ const FUNDING_LINE = html`Counterscent is a Sirketim product. Independent
 
 export function layout(options: PageOptions): Html {
   const { title, heading, standfirst, status, body, nav } = options;
-  // A nav makes "Back to the overview" redundant twice over: the lockup already
-  // links to `/`, and a back-link inside an app shell reads as browser history
+
+  /**
+   * WHERE HOME IS, AND WHY IT IS NOT ALWAYS `/`.
+   *
+   * FOUNDER, 2026-09-20: "when logged in as admin when i press the logo for
+   * going the console we lose navigation". Exactly right, and the lockup was
+   * the cause rather than the nav. It linked to `/` unconditionally; `/` is
+   * the signed-out explainer and passes no nav, so pressing the logo from
+   * anywhere inside the console dropped the reader out of the app shell
+   * entirely. An admin notices first because they have the most to lose -
+   * six items rather than three - but it happened to every signed-in
+   * producer.
+   *
+   * In an app shell the lockup means "home", and home for somebody signed in
+   * is their console, not the page explaining what the console will be. That
+   * is also plainly what the founder expected: they pressed the logo in
+   * order to GO to the console.
+   *
+   * THIS IS THE THIRD TIME THIS ORIGIN HAS LOST A WAY BACK, which is the
+   * part worth remembering. The nav exists at all because the only route
+   * between screens was a footer link (2026-09-18); showAdmin was then
+   * threaded through the producer side because /admin was reachable only by
+   * typing the URL (same day, see console.ts). Each fix corrected one exit
+   * and left the others alone. The pattern is that an escape hatch added
+   * before the shell existed keeps pointing where it pointed then.
+   */
+  const signedIn = options.signedIn ?? nav !== undefined;
+  const home = signedIn ? "/console" : "/";
+
+  // A nav makes the back-link redundant twice over: the lockup goes home
+  // already, and a back-link inside an app shell reads as browser history
   // rather than as a place. Default it off wherever a nav renders, so a caller
-  // adding nav does not have to remember to remove the other thing.
+  // adding nav does not have to remember to remove the other thing. Where it
+  // DOES render - a signed-in screen with no nav - it now follows `home`
+  // rather than pointing at the explainer, which was the same bug in
+  // miniature.
   const showBackLink = options.showBackLink ?? !nav;
 
   return html`<!doctype html>
@@ -216,7 +264,7 @@ ${
 
 <header class="site-header">
   <div class="shell header-inner">
-    <a class="lockup" href="/">
+    <a class="lockup" href="${home}">
       ${MARK}
       <span class="lockup-text">
         <span class="wordmark">COUNTERSCENT</span>
@@ -233,7 +281,11 @@ ${
 
 <main id="main">
   <div class="shell">
-    ${showBackLink ? html`<a class="back-link" href="/">Back to the overview</a>` : ""}
+    ${showBackLink
+      ? html`<a class="back-link" href="${home}"
+          >${signedIn ? "Back to the console" : "Back to the overview"}</a
+        >`
+      : ""}
     ${
       status
         ? html`<div class="status-strip" role="note">

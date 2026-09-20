@@ -296,6 +296,10 @@ function shell(auth: AuthUser, heading: string, body: Html): Html {
   return layout({
     title: heading,
     heading,
+    // These are the database-unreachable and rate-limited refusals, which
+    // render no nav because they cannot read what to put in it. The reader
+    // is still signed in, so home is still the console.
+    signedIn: true,
     standfirst: html`Signed in as <span class="wrap-anywhere">${auth.email}</span>.`,
     body,
   });

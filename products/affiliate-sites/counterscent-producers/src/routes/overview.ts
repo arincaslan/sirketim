@@ -3,6 +3,7 @@ import { CATALOGUE, layout } from "../ui/layout";
 import { button, card, listingStates, section } from "../ui/components";
 import type { Env } from "../lib/env";
 import { getAuthContext } from "../lib/auth";
+import { isAdminEmail } from "../lib/admin";
 import { page } from "../lib/http";
 
 /**
@@ -255,6 +256,13 @@ export async function overview(request: Request, env: Env) {
       title: "Producer console",
       heading: "The producer console",
       showBackLink: false,
+      // THE LOCKUP NO LONGER BRINGS A SIGNED-IN READER HERE, but this page
+      // is still the first address anyone types (see the note at the top of
+      // this file), so arriving with a session must not mean arriving
+      // without a way onward. No `current`: this page is not one of the nav
+      // destinations and claiming it is would be a lie to a screen reader.
+      nav: auth ? { showAdmin: isAdminEmail(auth.email, env) } : undefined,
+      signedIn: Boolean(auth),
       status: {
         label: "Not open yet",
         note: html`Signing in is real (see "Account" above) and
