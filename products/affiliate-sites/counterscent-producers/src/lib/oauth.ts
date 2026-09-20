@@ -22,12 +22,20 @@
  *    and a reset flow IS a magic link. Passwords would not have replaced the
  *    email dependency, only added a stealable credential on top of it.
  *
- * 2. NEVER AUTO-LINK. A provider identity that arrives carrying an email which
- *    already belongs to a User is REFUSED, not signed in. See resolveIdentity()
- *    in src/lib/oauth-account.ts for the whole rule; the short version is that
- *    auto-linking on a provider-asserted email is the classic "sign in with X"
- *    takeover, and this origin's admin check is keyed on email address, so the
- *    prize for winning it is the admin panel.
+ * 2. AN ADDRESS IS ONLY AS GOOD AS ITS PROOF. A provider identity carrying an
+ *    email that already belongs to a User signs into that account - but ONLY
+ *    if the provider asserts it has verified the address. Google does;
+ *    Microsoft's Entra publishes no such claim at all and could never satisfy
+ *    it. That is the line, and it is drawn at whether the address is proved
+ *    rather than at whether an account exists.
+ *
+ *    This replaced a blanket never-auto-link rule on the day it was written,
+ *    at the founder's instruction, and the argument is in the header of
+ *    src/lib/oauth-account.ts. The short version: the magic link already lets
+ *    anyone holding that mailbox into that account in one step, and a
+ *    provider's verified-email claim is that same mailbox proving itself. It
+ *    is the same proof by a different road, so refusing it bought nothing and
+ *    cost every returning producer a detour.
  *
  * WHAT THIS FILE IS NOT. It is not a general OAuth client and should not grow
  * into one. It implements exactly one flow - authorization code with PKCE, for

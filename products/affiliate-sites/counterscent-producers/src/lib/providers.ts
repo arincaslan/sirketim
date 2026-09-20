@@ -13,13 +13,13 @@
  *
  *   GOOGLE - shipped. The only configured provider.
  *   MICROSOFT - built, then DROPPED the same day before it was ever deployed.
- *     See the note on `canCreateAccount` below: it is the provider that
+ *     See the note on `assertsVerifiedEmail` below: it is the provider that
  *     motivated that rule, and re-adding it is one entry in PROVIDERS plus two
  *     secrets. Nothing else in this codebase assumes a second provider exists.
  *   APPLE - rejected on cost and operations. $99/yr Developer Program, a client
  *     secret that is an ES256 JWT needing regeneration at most every six months
  *     (a recurring chore that breaks sign-in when missed), and Private Relay
- *     addresses that fight both the email-keyed admin check and no-auto-link.
+ *     addresses that fight the email-keyed admin check and the matching rule.
  *   GITHUB - rejected as the wrong audience. A perfume house owner does not
  *     have a GitHub account.
  *
@@ -49,8 +49,9 @@ export interface ProviderProfile {
    */
   providerAccountId: string;
   email: string | null;
-  /** Whether the PROVIDER asserts it has verified this address. See
-   *  `canCreateAccount` for the only thing this is allowed to decide. */
+  /** Whether the PROVIDER asserts it has verified THIS address, this time.
+   *  Read together with `assertsVerifiedEmail`, which says whether this
+   *  provider's answer to that question is worth anything. */
   emailVerified: boolean;
   name: string | null;
 }
@@ -66,29 +67,44 @@ export interface OAuthProvider {
   clientIdKey: keyof Env;
   clientSecretKey: keyof Env;
   /**
-   * MAY THIS PROVIDER CREATE A USER ROW THAT DID NOT EXIST BEFORE?
+   * DOES THIS PROVIDER TELL US WHETHER IT HAS VERIFIED THE ADDRESS IT SENDS?
    *
-   * The rule: a provider may sign somebody UP only if it asserts that it has
-   * verified the email address. Google does, through `email_verified`.
+   * Google does, through `email_verified`. Microsoft's Entra does not - it
+   * publishes no such claim for any account type, and its own claims reference
+   * says the address may be wrong, is mutable, and must not be used for
+   * authorization. That is the distinction this boolean holds.
+   *
+   * IT IS NAMED FOR THE PROVIDER FACT RATHER THAN FOR A CONSEQUENCE, because
+   * since 2026-09-20 it has TWO consequences and a name describing one of them
+   * would mislead the next reader. It was `canCreateAccount` when creating an
+   * account was all it decided. It now gates both of the things a provider's
+   * address is allowed to do here:
+   *
+   *   CREATE an account for an address nobody has registered.
+   *   MATCH an address that already has one, and sign that account in.
+   *
+   * Both need the same thing - that the address has been proved, not merely
+   * asserted - so both read the same flag, alongside the per-request
+   * `ProviderProfile.emailVerified`. The flag says whether the claim means
+   * anything; the claim says whether it is true this time. Neither alone is
+   * enough, and src/lib/oauth-account.ts checks both.
    *
    * NO CONFIGURED PROVIDER TRIPS THIS TODAY, and it stays anyway. Microsoft was
-   * the provider it was written for - Entra publishes no `email_verified` claim
-   * for any account type, so nothing it sends could satisfy the rule - and
-   * dropping Microsoft did not make the reasoning wrong, only currently unused.
-   * The next provider added is exactly the moment it is needed again, and a
-   * rule deleted is a rule whose reasoning has to be re-derived under time
-   * pressure by whoever adds one. It is a boolean and a branch.
+   * the provider it was written for, and dropping Microsoft did not make the
+   * reasoning wrong, only currently unused. The next provider added is exactly
+   * the moment it is needed again, and a rule deleted is a rule whose reasoning
+   * has to be re-derived under time pressure by whoever adds one. It is a
+   * boolean and a branch.
    *
-   * THE HOLE IT CLOSES is not the obvious one. "Never auto-link" already stops
-   * a provider identity from joining an EXISTING account. Without this, though,
-   * somebody could sign up with an address they do not own but that nobody here
-   * has registered yet; when the real owner later arrives at the magic link,
+   * THE HOLE IT CLOSES ON THE CREATE SIDE is not the takeover everyone expects.
+   * Somebody signs up with an address they do not own but that nobody here has
+   * registered yet; when the real owner later arrives at the magic link,
    * findOrCreateUser() upserts on email and would drop them into the squatter's
    * account with the squatter's Account row still attached. The refusal has to
    * happen at creation time, because after creation the two are
    * indistinguishable.
    */
-  canCreateAccount: boolean;
+  assertsVerifiedEmail: boolean;
   /**
    * Whether `iss` is one this provider is allowed to have issued. Takes the
    * whole claim set because a multi-tenant provider's answer can depend on a
@@ -127,7 +143,7 @@ const GOOGLE: OAuthProvider = {
   extraAuthorizeParams: { prompt: "select_account" },
   clientIdKey: "GOOGLE_CLIENT_ID",
   clientSecretKey: "GOOGLE_CLIENT_SECRET",
-  canCreateAccount: true,
+  assertsVerifiedEmail: true,
   // Google documents BOTH forms as valid for the same tokens, and which one
   // arrives is not something we control, so both are accepted explicitly
   // rather than one being picked and the other becoming a mystery outage.
@@ -141,8 +157,9 @@ const GOOGLE: OAuthProvider = {
       // Google sends this as a JSON boolean, but has historically sent the
       // STRING "true" in some responses. Both are accepted and everything else
       // - including absence - is false. Note the direction of the default:
-      // unverified is the safe answer, because this flag is what decides
-      // whether an account may be created.
+      // unverified is the safe answer, because this flag is what decides both
+      // whether an account may be created AND whether an existing one may be
+      // matched by address.
       emailVerified: claims.email_verified === true || claims.email_verified === "true",
       name: readString(claims.name),
     };

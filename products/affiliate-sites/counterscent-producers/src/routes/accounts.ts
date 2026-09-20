@@ -3,11 +3,22 @@
  * /console/accounts - "How you sign in"
  * ============================================================================
  *
- * THIS PAGE EXISTS BECAUSE OF THE NO-AUTO-LINK RULE, and it is the only place
- * a provider can be attached to an account. src/lib/oauth-account.ts refuses to
- * join a provider identity to an existing account from the sign-in page; that
- * refusal is only reasonable if there is somewhere else to do it, and this is
- * it. The two ship together or neither should.
+ * WHAT THIS PAGE IS FOR CHANGED ON 2026-09-20, and the old reason is worth
+ * recording because it explains why the page is shaped the way it is.
+ *
+ * IT WAS THE ONLY PLACE a provider could ever be attached to an account: the
+ * sign-in page refused to join a provider identity to an account that already
+ * existed, and that refusal was only reasonable if there was somewhere else to
+ * do it. This was that somewhere.
+ *
+ * IT IS NOW TWO THINGS, neither of which is that. First, it is where a
+ * producer connects a provider account whose address DIFFERS from the one they
+ * sign in with - a personal Gmail against a business mailbox - which address
+ * matching will never do, because only a live session proves the same person
+ * holds both. Second, it is where a match LANDS: routes/oauth.ts sends a
+ * first-time match here rather than to the console, so that joining two
+ * identities is something the account holder is told about on the screen that
+ * lists them, rather than something that happened silently on the way in.
  *
  * IT IS NOT IN THE MAIN NAV, deliberately. The nav carries task items a
  * producer uses repeatedly (listings, submit, plan) and already ran out of
@@ -89,13 +100,17 @@ export async function accountsPage(request: Request, env: Env): Promise<Response
     ...shown.map((id): MethodRow => {
       const isLinked = linked.includes(id);
       const label = PROVIDERS[id].label;
+      const accountEmail = auth.email;
       return {
         name: label,
         state: isLinked ? "connected" : "available",
         provider: id,
         note: isLinked
           ? html`Signing in with ${label} brings you straight here. Your email link still works as well.`
-          : html`Connect ${label} and you can use it to sign in instead of waiting for an email.`,
+          : html`Connect ${label} and you can use it to sign in instead of waiting for an email. Do
+              it here if the ${label} address is not <span class="wrap-anywhere">${accountEmail}</span>
+              - a personal account against a work mailbox, say. If it is the same address, pressing
+              Continue with ${label} on the sign-in page connects it by itself.`,
       };
     }),
   ];
@@ -118,18 +133,24 @@ export async function accountsPage(request: Request, env: Env): Promise<Response
           </ul>
         `)}
         ${section({
-          heading: "Why connecting happens here and not on the sign-in page",
+          heading: "When you need this page, and when you do not",
           body: html`
             <p>
-              Pressing "Continue with Google" on the sign-in page will not attach Google to an account that
-              already exists, even when the address matches exactly. It refuses and sends you here.
+              If your Google address is the same as the one on this account, you do not need this page at
+              all. Press <strong>Continue with Google</strong> on the sign-in page and it connects itself,
+              the first time, and signs you in every time after that.
             </p>
             <p>
-              That is on purpose. An address is a claim a third party makes about you; being signed in is
-              proof you already hold the account. Connecting from inside a session means the two are joined
-              by the person who owns both, rather than by whoever can get a provider to assert an address.
-              Administrative access on this origin is granted by email address, so the difference is not
-              theoretical.
+              That works because Google tells us it has confirmed the address, and a confirmed address is
+              the mailbox vouching for you - the same thing the email link proves by sending to it. Anyone
+              holding that mailbox can already sign in here with a link, so recognising it through Google
+              opens nothing that was not already open. A provider that will <em>not</em> confirm an address
+              is refused for exactly that reason, in reverse.
+            </p>
+            <p>
+              Use this page when the addresses differ - a personal Google account against a work mailbox.
+              No amount of matching will ever join those two, because they are not the same address. Being
+              signed in is what proves the same person holds both.
             </p>
           `,
         })}
@@ -193,6 +214,12 @@ function resultNotice(result: string | null): Html {
   if (!result) return html``;
   const messages: Record<string, string> = {
     linked: "Connected. You can use it to sign in from now on.",
+    // Written as a statement of what just happened rather than as a
+    // congratulation, because the reader did not ask for this one: they
+    // pressed a sign-in button and an account link is what came out. The
+    // list under it is the answer to the question that provokes.
+    "connected-on-sign-in":
+      "Signed in, and Google is now connected to this account because it confirmed the same address. Your email link still works.",
     "already-linked": "That was already connected to this account. Nothing changed.",
     "claimed-elsewhere":
       "That account is already connected to a different Counterscent account, so it was not connected here. Nothing changed.",

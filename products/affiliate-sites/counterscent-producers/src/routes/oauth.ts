@@ -198,7 +198,24 @@ export async function oauthCallback(request: Request, env: Env, providerId: Prov
   if (outcome.kind === "refused") return refusedPage(provider.label, outcome.reason, clear);
 
   const session = await createSession(sql, outcome.user.id);
-  return redirect("/console", {
+
+  // A MATCH LANDS ON "HOW YOU SIGN IN", NOT ON THE CONSOLE, and that one
+  // redirect is the whole difference between what this origin does and an
+  // ordinary silent auto-link.
+  //
+  // `matched` means a provider identity was just attached to an account that
+  // already existed - a change to how that account can be reached, made on the
+  // strength of a claim rather than on the strength of a button the holder
+  // pressed from inside a session. The change is defensible (see the header of
+  // src/lib/oauth-account.ts). Doing it without saying so is not, and silence
+  // is the part of auto-linking that is actually worth objecting to.
+  //
+  // It happens exactly once per account. Every sign-in afterwards finds the
+  // link and goes straight to the console like any other.
+  const destination =
+    outcome.kind === "matched" ? "/console/accounts?result=connected-on-sign-in" : "/console";
+
+  return redirect(destination, {
     setCookie: [setSessionCookieHeader(session.token, session.expires), clear],
   });
 }
@@ -374,30 +391,44 @@ function sessionChanged(clearCookie?: string): Response {
 }
 
 /**
- * THE FOUR REFUSALS THAT ARE POLICY RATHER THAN FAILURE.
+ * THE REFUSALS THAT ARE POLICY RATHER THAN FAILURE.
  *
  * Each says what happened, why the rule exists, and the exact way forward. The
  * "why" is not decoration: a person told only "you cannot do that" assumes a
- * bug and tries again, and the commonest of these refusals - email-taken - is
- * one a legitimate producer will hit on their very first attempt.
+ * bug and tries again.
+ *
+ * ONE OF THESE WAS DELETED ON 2026-09-20 AND SHOULD NOT COME BACK BY REFLEX.
+ * `email-taken` used to be the commonest page here - the one a legitimate
+ * producer hit on their very first press of the Google button, telling them
+ * that the address matched an account and that we would not join the two
+ * anyway. The rule behind it was replaced (see the header of
+ * src/lib/oauth-account.ts), so the page is not merely unreachable, it is
+ * describing behaviour this origin no longer has. A refusal page for a refusal
+ * that cannot happen is worse than no page, because it teaches a reader a rule
+ * that is false.
+ *
+ * That is a different judgement from the one on `assertsVerifiedEmail`, which
+ * is also currently unreachable and was deliberately KEPT. The distinction is
+ * whether the reasoning still holds: that flag's does and is waiting for the
+ * next provider, this page's stopped being true.
  */
 function refusedPage(
   providerLabel: string,
-  reason: "provider-cannot-create" | "email-unverified" | "email-missing" | "email-taken",
+  reason: "provider-email-untrusted" | "email-unverified" | "email-missing" | "could-not-attach",
   clearCookie?: string,
 ): Response {
-  if (reason === "email-taken") {
+  if (reason === "provider-email-untrusted") {
     return refusalPage({
-      title: "Account already exists",
-      heading: "That address already has an account here",
+      title: "Cannot open an account",
+      heading: providerLabel + " can sign you in, but cannot identify an account here",
       clearCookie,
       body: html`
         ${card(html`
-          <h3>Connect ${providerLabel} from inside your account, not from the sign-in page</h3>
+          <h3>Start with an email link, then connect ${providerLabel}</h3>
           <p>
-            An account already exists for the address ${providerLabel} gave us, and it is not connected to
-            ${providerLabel} yet. We never join the two from this page, even when the address matches
-            exactly.
+            ${providerLabel} does not tell us whether it has confirmed that the address belongs to the
+            person signing in, so we cannot use that address either to open an account or to recognise one
+            that already exists.
           </p>
           ${CONNECT_STEPS} ${signInAgain()}
         `)}
@@ -405,47 +436,16 @@ function refusedPage(
           heading: "Why it works this way",
           body: html`
             <p>
-              Letting a matching address sign you straight in would mean anyone who could get
-              ${providerLabel} to assert your address would inherit your account and everything it controls.
-              Requiring you to be signed in first proves the connection is being made by the person who
-              already holds the account, which is the one thing an address by itself cannot prove.
-            </p>
-            <p>
-              It costs one extra step, once. After that ${providerLabel} signs you in directly, and your
-              email link keeps working alongside it.
-            </p>
-          `,
-        })}
-      `,
-    });
-  }
-
-  if (reason === "provider-cannot-create") {
-    return refusalPage({
-      title: "Cannot create an account",
-      heading: providerLabel + " can sign you in, but cannot create an account",
-      clearCookie,
-      body: html`
-        ${card(html`
-          <h3>Create the account first, then connect ${providerLabel}</h3>
-          <p>
-            There is no account here yet for the address ${providerLabel} gave us, and ${providerLabel} is
-            not a method we allow to open one.
-          </p>
-          ${CONNECT_STEPS} ${signInAgain()}
-        `)}
-        ${section({
-          heading: "Why it works this way",
-          body: html`
-            <p>
-              ${providerLabel} does not tell us whether it has confirmed that the address belongs to the
-              person signing in. Its own documentation says the address it sends can be wrong and can
-              change, and asks that it not be used to identify anyone. We take that at its word, so it is
-              allowed to recognise an account you have already connected it to, and not to create one.
+              ${providerLabel}'s own documentation says the address it sends can be wrong, can change, and
+              should not be used to identify anyone. We take that at its word. A provider that
+              <em>does</em> confirm the address - Google does - signs you straight into the matching
+              account, because a confirmed address is the mailbox itself vouching for you. An unconfirmed
+              one is just a string.
             </p>
             <p>
               An email link proves the address by sending something to it. That is why the account starts
-              there.
+              there, and why ${providerLabel} can be attached to it afterwards from inside a session, where
+              being signed in is the proof instead.
             </p>
           `,
         })}
@@ -462,12 +462,35 @@ function refusedPage(
         ${card(html`
           <h3>Confirm it with ${providerLabel}, or use an email link</h3>
           <p>
-            ${providerLabel} signed you in but told us the address on the account has not been verified, so
-            we did not create an account from it.
+            ${providerLabel} signed you in but told us the address on that account has not been verified.
+            An unverified address proves nothing about who holds the mailbox, so we did not open an account
+            from it and did not sign you into an existing one.
           </p>
           <p>
             Either confirm the address in your ${providerLabel} account settings and try again, or sign in
             with an email link, which proves it by sending to it.
+          </p>
+          ${signInAgain()}
+        `)}
+      `,
+    });
+  }
+
+  if (reason === "could-not-attach") {
+    return refusalPage({
+      title: "Sign-in did not complete",
+      heading: "That sign-in could not be completed",
+      clearCookie,
+      body: html`
+        ${card(html`
+          <h3>Nothing was created, changed or connected</h3>
+          <p>
+            ${providerLabel} answered correctly, but the record connecting it to an account here was not
+            written, so we stopped rather than sign you in on a half-finished result.
+          </p>
+          <p>
+            The usual cause is two sign-ins racing each other - the same button pressed twice, or in two
+            tabs. Trying once more normally works, and if it does not, the email link is unaffected.
           </p>
           ${signInAgain()}
         `)}
@@ -481,11 +504,11 @@ function refusedPage(
     clearCookie,
     body: html`
       ${card(html`
-        <h3>We need an address to create an account</h3>
+        <h3>We need an address to know who you are</h3>
         <p>
           ${providerLabel} completed the sign-in but sent no email address with it, usually because the
-          permission covering it was not granted. An account here is identified by its address, so there was
-          nothing to create one from.
+          permission covering it was not granted. An account here is identified by its address, so there
+          was nothing to open one with and nothing to match against.
         </p>
         <p>Sign in with an email link instead, then connect ${providerLabel} from inside your account.</p>
         ${signInAgain()}

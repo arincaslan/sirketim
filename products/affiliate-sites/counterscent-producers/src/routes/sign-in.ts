@@ -276,11 +276,11 @@ export function signIn(request: Request, env: Env) {
             whatever else you connect, which is why it can never be switched off.
           </li>
           <li>
-            Is what an existing account has to use first. Pressing
-            <strong>Continue with Google</strong> will not sign you into an account that already
-            exists here, even when the address matches exactly: an address is something Google says
-            about you, where being signed in already proves you hold the account. It refuses and
-            explains. One extra step, once.
+            Is interchangeable with Google when the address is the same. If an account already exists
+            for the address Google confirms, <strong>Continue with Google</strong> signs you into it
+            and connects the two, once. Google saying it has confirmed an address is that mailbox
+            vouching for you, which is what an email link proves by sending to it - the same proof by
+            a shorter road. A provider that will not confirm an address is refused instead.
           </li>
         </ul>
       `,
