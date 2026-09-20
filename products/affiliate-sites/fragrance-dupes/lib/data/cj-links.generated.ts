@@ -4,8 +4,8 @@
  * that FragranceShop.com actually stocks, keyed by the `original-<slug>`
  * id the reference already declares in lib/data/houses/.
  *
- * Generated: 2026-09-07T17:24:52.591Z
- * Entries:   175  (116 original-*, 59 shop-*)
+ * Generated: 2026-09-20T14:36:20.221Z
+ * Entries:   176  (117 original-*, 59 shop-*)
  *
  * The deep link is CJ's own click URL exactly as delivered in the feed — CJ
  * pre-wraps it, so unlike Awin there is no link to build. affiliateDestination()
@@ -47,6 +47,13 @@ export const CJ_ORIGINAL_LINKS: Record<string, AffiliateLinkEntry> = {
     deepLink: "https://www.kqzyfj.com/click-101873278-16941446?url=https%3A%2F%2Fwww.fragranceshop.com%2Fproduct%2Facqua-di-parma-oud-for-men%2F%3Fattribute_pa_size%3Deau-de-parfum-spray-3-4-oz%26wmc-currency%3DUSD",
     subId: "original__acqua-di-parma-oud",
     label: "FragranceShop.com — Acqua Di Parma Oud Cologne for Men - Eau de Parfum Spray 3.4 oz",
+  },
+  "original-alien": {
+    network: "cj",
+    merchantId: "16941446",
+    deepLink: "https://www.anrdoezrs.net/click-101873278-16941446?url=https%3A%2F%2Fwww.fragranceshop.com%2Fproduct%2Falien-for-women%2F%3Fattribute_pa_size%3Deau-de-parfum-spray-refillable-2-0-oz%26wmc-currency%3DUSD",
+    subId: "original__alien",
+    label: "FragranceShop.com — Alien Perfume for Women - Eau de Parfum Spray Refillable 2.0 oz",
   },
   "original-angel": {
     network: "cj",

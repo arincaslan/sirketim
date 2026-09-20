@@ -4,11 +4,11 @@
  * feed. Re-run that script to refresh; see scripts/feeds/README.md for how the
  * feed gets here and what it does and does not contain.
  *
- * Generated:  2026-09-07T17:24:52.583Z
+ * Generated:  2026-09-20T14:36:20.213Z
  * Feed rows:  5802
- * References: 216  (matched 116, unmatched 100)
- * Images:     116 usable, 0 suppressed as a shared stock photo
- * Prices:     97 tied to a volume equal to our own bottleMl
+ * References: 217  (matched 117, unmatched 100)
+ * Images:     117 usable, 0 suppressed as a shared stock photo
+ * Prices:     98 tied to a volume equal to our own bottleMl
  *
  * UNLIKE THE AWIN FEED, PRICE HERE HAS A KNOWN VOLUME. `priceUsd` is the
  * merchant's price for the variant whose bottle size equals the reference's
@@ -127,6 +127,22 @@ export const CJ_OFFERS: Record<string, CjOffer> = {
     priceFromUsd: 121.95,
     priceToUsd: 121.95,
     variantCount: 1,
+    currency: "USD",
+  },
+  "alien": {
+    slug: "alien",
+    matchedName: "Alien Perfume for Women - Eau de Parfum Spray Refillable 2.0 oz",
+    matchedBrand: "Thierry Mugler",
+    concentrationMatched: true,
+    productUrl: "https://www.fragranceshop.com/product/alien-for-women/?attribute_pa_size=eau-de-parfum-spray-refillable-2-0-oz&wmc-currency=USD",
+    deepLink: "https://www.anrdoezrs.net/click-101873278-16941446?url=https%3A%2F%2Fwww.fragranceshop.com%2Fproduct%2Falien-for-women%2F%3Fattribute_pa_size%3Deau-de-parfum-spray-refillable-2-0-oz%26wmc-currency%3DUSD",
+    remoteImageUrl: "https://www.fragranceshop.com/wp-content/uploads/2024/06/FS36308.jpg",
+    imageSuppressedAsGeneric: false,
+    priceUsd: 55.95,
+    priceMl: 60,
+    priceFromUsd: 44.95,
+    priceToUsd: 68.95,
+    variantCount: 4,
     currency: "USD",
   },
   "angel": {

@@ -772,6 +772,27 @@ export const OTHER_HOUSES: ReferenceFragrance[] = [
     affiliateLinkId: "original-intense-cafe",
   },
   {
+    slug: "alien",
+    name: "Alien",
+    brand: "Mugler",
+    family: "Oriental Woody",
+    // Pyramid is Mugler's own, tiers included. Keep comments here SHORT:
+    // ingest-cj-feed.mjs parses these entries in a 700-char window.
+    notes: {
+      top: ["Jasmine Sambac"],
+      heart: ["Cashmeran"],
+      base: ["White Amber"],
+    },
+    facets: { freshness: 2, sweetness: 8, warmth: 9, woodyDepth: 6, longevity: 9, sillage: 9 },
+    longevityHoursRange: [8, 12],
+    sillageLabel: "Beast Mode",
+    // Editorial fallback; the retailer price supersedes it.
+    priceUsd: 150,
+    bottleMl: 60,
+    concentration: "Eau de Parfum",
+    affiliateLinkId: "original-alien",
+  },
+  {
     slug: "alien-goddess",
     name: "Alien Goddess",
     brand: "Mugler",

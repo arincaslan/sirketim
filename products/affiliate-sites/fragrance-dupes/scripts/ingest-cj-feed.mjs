@@ -221,11 +221,31 @@ function readReferences() {
       const brand = pick(/brand:\s*"([^"]+)"/);
       if (!name || !brand) continue;
       const ml = pick(/bottleMl:\s*(\d+)/);
+      const concentration = pick(/concentration:\s*"([^"]+)"/) ?? "";
+      /* THE 700-CHARACTER WINDOW ABOVE IS A TRAP, so say so out loud rather
+       * than returning a half-parsed reference. A long comment inside an
+       * entry pushes its later fields out of range and they come back
+       * EMPTY - which is worse than not parsing the reference at all,
+       * because an empty concentration makes every candidate row score
+       * equally and the cheapest variant wins. That shipped a Mugler Alien
+       * EDP page pointing at the EDT on 2026-09-20, found only by reading
+       * the generated offer. This file already refuses to write an empty
+       * map for the same reason; a PARTIAL parse deserves the same
+       * suspicion. */
+      if (!concentration || !ml) {
+        console.warn(
+          `  ingest-cj-feed: "${m[1]}" parsed without ` +
+            `${!concentration ? "a concentration" : ""}` +
+            `${!concentration && !ml ? " or " : ""}${!ml ? "a bottleMl" : ""}` +
+            ` - its fields are probably past the 700-char window. Shorten the` +
+            ` comments inside that entry.`
+        );
+      }
       refs.push({
         slug: m[1],
         name,
         brand,
-        concentration: pick(/concentration:\s*"([^"]+)"/) ?? "",
+        concentration,
         bottleMl: ml ? Number.parseInt(ml, 10) : null,
         priceUsd: Number.parseFloat(pick(/priceUsd:\s*([\d.]+)/) ?? "") || null,
         file,

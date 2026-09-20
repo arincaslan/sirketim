@@ -2,7 +2,7 @@
  * GENERATED FILE — do not edit by hand.
  * Written by scripts/ingest-cj-feed.mjs from the FragranceShop.com CJ feed.
  *
- * Generated: 2026-09-07T17:24:52.589Z
+ * Generated: 2026-09-20T14:36:20.220Z
  * Products:  103  (44 are references we hold, 59 shop-only)
  * Scope:     EDP or Parfum, over $100, excluding testers, sets and the merchant's own
  *            "type" dupe oils.
