@@ -462,23 +462,24 @@
 
   <header class="mast">
     <div class="mast-top">
-      <div class="eyebrow">Sirketim · Board synthesis · updated 18 Sep 2026 · tenth pass</div>
+      <div class="eyebrow">Sirketim &middot; Board synthesis &middot; updated 20 Sep 2026 &middot; eleventh pass</div>
       <div class="eyebrow">Web Dev · Comms · Content · Accounting · COO · CFO</div>
     </div>
     <h1>Counterscent
       <span class="thin">One ordered path from where the site is to where it earns.</span>
     </h1>
     <p class="lede" style="margin-top:26px">
-      <strong>The producer console is real, and the loop is half open.</strong>
+      <strong>The loop is closed. A listing can now be submitted, reviewed, scored and approved.</strong>
       Phases 0&ndash;2 are done, Phase 3 is done bar one founder check, Phase 4 is done bar research.
-      <strong>The empty room is furnished:</strong> the console this page last described as hardcoding
-      &ldquo;signed out&rdquo; now has three states, a listings table, a quota line, a submit form and a withdraw
-      flow &mdash; all live, all refusing an unauthenticated request. <strong>What is missing is the other
-      half.</strong> A producer can sign in, submit and withdraw, and the submission lands <code>PENDING</code>
-      with <em>nothing in existence able to move it out of that state</em>. The review queue does not exist,
-      <code>/review</code> is still inert, and it answers <strong>200 to anyone</strong> &mdash; safe only while it
-      stays inert. <strong>Two deferred decisions were taken on 18 Sep:</strong> how a submitted listing gets
-      checked, and the tier name that contradicted our own promise.
+      <strong>The half-open loop this page described on 18 Sep is shut:</strong> the review queue shipped,
+      <code>/review</code> sits behind <code>requireAdmin</code> rather than answering 200 to anyone, and an
+      editor approving a listing must set its family and six facets or the approval is refused &mdash; because
+      an approved-but-unscored listing has passed review, so nothing looks at it again, and it still cannot
+      publish. <strong>What is left is the money.</strong> A pre-payment audit on 20 Sep found two blockers and
+      closed both: <em>every gate read the subscription tier and none read its status</em>, so a CANCELED
+      subscription kept an uncapped allowance; and nothing anywhere could score a listing.
+      <strong>The rail is now chosen too</strong> &mdash; Paddle, paid to Payoneer, annual billing preferred
+      &mdash; see <a href="#rail" style="color:var(--brass-ink)">the rail section</a>.
     </p>
 
     <div class="readout">
@@ -493,8 +494,8 @@
       <div class="metric ok"><div class="metric-k">Score ceiling</div><div class="metric-v">95%</div><div class="metric-n">Reformed 8 Sep · 90% unverified</div></div>
       <div class="metric ok"><div class="metric-k">Producer sign-in</div><div class="metric-v">Live</div><div class="metric-n">16 Sep · magic link, proven end to end</div></div>
       <div class="metric ok"><div class="metric-k">Producer console</div><div class="metric-v">Live</div><div class="metric-n">16 Sep · submit + withdraw · 401 unauth</div></div>
-      <div class="metric bad"><div class="metric-k">Review queue</div><div class="metric-v">None</div><div class="metric-n">Submissions land PENDING and stay there</div></div>
-      <div class="metric bad"><div class="metric-k">Producer billing</div><div class="metric-v">None</div><div class="metric-n">No rail · Stripe/PayPal exclude Turkey</div></div>
+      <div class="metric ok"><div class="metric-k">Review queue</div><div class="metric-v">Live</div><div class="metric-n">18&ndash;20 Sep &middot; approve, reject, score &middot; admin-only</div></div>
+      <div class="metric warn"><div class="metric-k">Producer billing</div><div class="metric-v">Chosen</div><div class="metric-n">Paddle &rarr; Payoneer &middot; not yet built</div></div>
       <div class="metric warn"><div class="metric-k">CJ sub-ID</div><div class="metric-v">Unchecked</div><div class="metric-n">One founder look at CJ&rsquo;s click report</div></div>
       <div class="metric"><div class="metric-k">Revenue</div><div class="metric-v">$0</div><div class="metric-n">Links live · no commission yet</div></div>
     </div>
@@ -515,10 +516,13 @@
       queue, no approver, and no way to mark a listing anything else. <code>/review</code> makes no database calls
       and <b>returns 200 to anyone</b> &mdash; harmless only because it is inert, which is precisely why access
       control has to ship in the <em>same change</em> as its first query rather than after it.</p>
-      <p style="margin-top:10px"><strong>Unchanged:</strong> there is <b>no payment rail</b>. Stripe, PayPal and
-      Gumroad do not serve Turkey, and the $19/$49 plan prices remain, in the pricing module&rsquo;s own words,
-      &ldquo;a considered guess, not a price.&rdquo; <b>The top tier is being renamed</b> <code>Featured</code>
-      &rarr; <code>Unlimited</code>, because it was named after the one thing we promise it does not buy.</p>
+      <p style="margin-top:10px"><strong>Changed on 20 Sep:</strong> the payment rail is <b>decided, not built</b>.
+      Stripe, PayPal and Gumroad still do not serve Turkey; <b>Paddle does</b>, and the research that had priced it
+      at ~10.2% was pricing the wrong payout route. <b>The prices are now $9.99 / $17.99</b>, not the $19/$49 this
+      paragraph carried for three weeks after they changed, and they remain, in the pricing module&rsquo;s own
+      words, &ldquo;a considered guess, not a price.&rdquo; <b>The top tier rename shipped</b> &mdash;
+      <code>Featured</code> &rarr; <code>Unlimited</code>, because it was named after the one thing
+      <code>NEVER_INCLUDED</code> promises it does not buy.</p>
     </div>
   </header>
 
@@ -532,6 +536,7 @@
     <a href="#handoffs">Handoffs</a>
     <a href="#founder">Founder-only</a>
     <a href="#board">Board review</a>
+    <a href="#rail">Payment rail</a>
     <a href="#scoring">Scoring reform</a>
   </nav>
 
@@ -551,8 +556,8 @@
         <td>Was &ldquo;personal account&rdquo;. The invoicing requirement settled it, exactly as this doc&rsquo;s own escape clause predicted: Awin does <b>not</b> self-bill Turkish tax residents (Turkey is an explicit exception in Awin&rsquo;s policy), so the publisher issues their own invoice per payout &mdash; and a Turkish individual cannot casually issue a <em>fatura</em>. Founder, 27 Aug: <em>&ldquo;for invoice we need company account.&rdquo;</em> <b>The clause said to revisit this &ldquo;only if Awin is added&rdquo; &mdash; but Awin was already the plan.</b> A conditional deferral whose condition is already true is not a deferral; it is an unnoticed decision.</td></tr>
         <tr><td><strong>Payee receiving account</strong></td><td><b style="color:var(--done)">Open &mdash; resolved 29 Aug</b></td>
         <td>The founder opened <b>company USD and EUR (<em>d&ouml;viz</em>) accounts</b> on 29 Aug, closing the entity/account mismatch this row used to warn about &mdash; the A.&#350;. can now be named as payee cleanly on any application. Awin was applied to and verified 30 Aug with payment configured against the USD account.</td></tr>
-        <tr><td><strong>Payment rail</strong></td><td><b style="color:var(--done)">Payoneer open</b></td>
-        <td>Stripe cannot serve a Turkish business; its integration has now been deleted from the codebase. A producer subscription rail is not needed until a producer agrees to pay.</td></tr>
+        <tr><td><strong>Payment rail</strong></td><td><b style="color:var(--done)">Paddle &rarr; Payoneer, annual</b></td>
+        <td>Stripe cannot serve a Turkish business; its integration has now been deleted from the codebase. <b>Reopened 20 Sep by a new premise rather than a new opinion:</b> revenue now comes from T&uuml;rkiye as well as the US and EU, and the August analysis had rejected a Turkish rail on the ground that every producer was American or European. Same provider, new payout route and billing interval &mdash; roughly <b>20% to roughly 7%</b>, without touching a price. A rail is still not needed until a producer agrees to pay. See <a href="#rail" style="color:var(--brass-ink)">the payment-rail section</a>.</td></tr>
       </tbody>
     </table>
   </div>
@@ -816,7 +821,7 @@
           <tr><td><b>&ldquo;Unlimited&rdquo; = originals covered, not rows</b></td><td>One listing per producer&ndash;reference pair, which caps naturally at 68 today. Otherwise a producer blankets the catalog with 40 near-identical variants to crowd out competitors. <b>As of 18 Sep this is also the tier&rsquo;s name</b> &mdash; see the row below.</td></tr>
           <tr><td><b>It buys coverage, never placement</b></td><td>The unverified score cap applies to these exactly as to any other listing. Listing volume is a legitimate tier lever; rank is not. Keep them separate in the pricing copy as well as in the code.</td></tr>
           <tr><td><b>Stop promising conversion data</b></td><td>With no network there is no conversion report — we would see clicks and nothing else. The top tier currently promises conversion data; that must be qualified or the promise breaks on day one. <b>Still open</b>, and deliberately <em>not</em> folded into the rename below &mdash; a name change does not make an undeliverable promise deliverable.</td></tr>
-          <tr><td><b>&ldquo;Featured&rdquo; &rarr; &ldquo;Unlimited&rdquo;</b> <span style="color:var(--done)">decided 18 Sep</span></td><td>The tier was named after the one thing <code>NEVER_INCLUDED</code> promises it does not buy: <em>&ldquo;a premium or featured slot in results.&rdquo;</em> Every honest explanation of it had to open by explaining the contradiction. <b>The promise wording stays and the name gives</b>, because the promise is the load-bearing half — it is what makes &ldquo;no tier buys rank&rdquo; structural rather than asserted. <b>Not yet built:</b> <code>featured</code> is the tier <em>id</em>, not a label — source of truth in <code>lib/plans.ts</code>, generated into the producer Worker, switched on in <code>producer.ts</code>, and stored in <code>Producer.plan</code>. Zero producers exist, so there is no data migration, which is exactly why it is cheap now.</td></tr>
+          <tr><td><b>&ldquo;Featured&rdquo; &rarr; &ldquo;Unlimited&rdquo;</b> <span style="color:var(--done)">decided 18 Sep</span></td><td>The tier was named after the one thing <code>NEVER_INCLUDED</code> promises it does not buy: <em>&ldquo;a premium or featured slot in results.&rdquo;</em> Every honest explanation of it had to open by explaining the contradiction. <b>The promise wording stays and the name gives</b>, because the promise is the load-bearing half — it is what makes &ldquo;no tier buys rank&rdquo; structural rather than asserted. <b>Built 18 Sep.</b> <code>featured</code> is the tier <em>id</em>, not a label — source of truth in <code>lib/plans.ts</code>, generated into the producer Worker, switched on in <code>producer.ts</code>, and stored in <code>Producer.plan</code>. Zero producers exist, so there is no data migration, which is exactly why it is cheap now.</td></tr>
         </tbody>
       </table>
       </div>
@@ -874,7 +879,7 @@
       <h3>Producers pay</h3>
       <div class="chips">
         <span class="chip owner">Web Development + Founder</span>
-        <span class="chip cost high">~10.2% of subscription revenue</span>
+        <span class="chip cost high">~7.3% annual &middot; ~10.6% monthly</span>
         <span class="chip free">Deliberately last</span>
       </div>
       <p class="why">There are still <strong>zero producers</strong> &mdash; but this phase moved further in three days than in the four weeks before it. <b>Postgres, Prisma, authentication and the console all shipped 14&ndash;16 Sep</b>, most of it ahead of its own trigger. <b>The remaining gap is not billing and not the dashboard &mdash; it is the approver.</b> A producer can now sign in, submit a listing and withdraw one, and every submission lands <code>PENDING</code> where it stays forever, because nothing exists that can approve or reject it. <b>Billing remains correctly unbuilt:</b> a free tier needs no rail, no producer has agreed to pay, and no rail serves Turkey without a decision first.</p>
@@ -898,12 +903,15 @@
         <li><input type="checkbox" id="t56" aria-labelledby="t56l" checked><span class="t-id">5.6</span><div>
           <div class="t-title" id="t56l">How a submitted listing gets checked <span style="color:var(--done)">&mdash; DECIDED 18 Sep</span></div>
           <div class="t-note"><b>Advisory flags into a human queue, plus mechanical checks moved into the form.</b> Two things were never in play, and reading the question without them produces a false choice: auto-approval and auto-publish are prohibited outright, and the direction of travel is asymmetric &mdash; automation may flag, weaken, cap and take down; it may never put something up. <b>Mechanical, unambiguous checks become form validation at submission time, not a rejection after it</b> &mdash; a missing required field, a <code>storeUrl</code> that is not https or is a shortener or a tracking link, an original not in our catalogue, a duplicate producer&ndash;reference pair. The producer is stopped <em>before</em> the submission exists, so there is no wrong verdict to appeal, only an incomplete form. <b>Everything requiring judgement flags into the queue and never auto-refuses.</b> The evidence is already in this repo and it is the strongest available: the copy gate landed differently on two near-identical merchant listings &mdash; one withheld, one shipped &mdash; on the strength of two orthographic differences, correctly recorded at the time as the gate working at its boundary. <b>A check with a known boundary is the wrong instrument for telling a real, operating company no with no person reading it.</b> The honest cost, stated rather than hidden: this does not reduce how many submissions the founder reads, only the effort per item. <b>One invariant it must not break:</b> the party being measured must never supply both inputs to the check that measures them &mdash; the copy gate compares a producer&rsquo;s notes <em>and</em> facets, and works only because the facets are ours.</div></div></li>
-        <li><input type="checkbox" id="t57" aria-labelledby="t57l"><span class="t-id">5.7</span><div>
-          <div class="t-title" id="t57l">Build the review queue &mdash; the next build<span class="tag top">NOW</span></div>
+        <li><input type="checkbox" id="t57" aria-labelledby="t57l" checked><span class="t-id">5.7</span><div>
+          <div class="t-title" id="t57l">Build the review queue <span style="color:var(--done)">&mdash; SHIPPED 18&ndash;20 Sep</span></div>
           <div class="t-note"><b>The loop stays half open until this lands.</b> A producer can sign in, submit and withdraw; the submission lands <code>PENDING</code> and nothing in existence can move it. Three parts, and they belong in <em>one</em> change rather than in sequence. <b>(a) A staff role, which is a migration.</b> <code>User</code> has no <code>role</code> or <code>isStaff</code> column &mdash; <code>ActorType.STAFF</code> exists in the enum, so the audit trail already anticipates staff acting while nothing can identify one. <b>(b) Access control on <code>/review</code>, in the same change as its first database call and never after it</b> &mdash; that route is publicly reachable and returns 200 today, which is harmless only while it reads nothing. <b>(c) The queue itself:</b> <code>PENDING</code> oldest first with a paid tier prioritised within the same day, approve and reject with a written reason, every action recorded as an <code>AuditEvent</code>. Priority changes how soon something is <em>read</em> and nothing about where it lands. <b>The migration goes before the deploy</b> &mdash; the same ordering that made sign-in fail closed with a 503 when its table was missing.</div></div></li>
         <li><input type="checkbox" id="t54" aria-labelledby="t54l"><span class="t-id">5.4</span><div>
           <div class="t-title" id="t54l">Write the Paddle adapter</div>
-          <div class="t-note">Only when a producer says yes to paying. <b>Economics:</b> ~10.2% all-in at $300/month — a flat ~$15 wire fee per <em>payout</em> dominates at low volume, so the first one or two paying producers are roughly net-zero. Batch payouts quarterly, not monthly.</div></div></li>
+          <div class="t-note">Only when a producer says yes to paying &mdash; but the <b>economics were re-priced on 20 Sep and the old figure here was pricing the wrong payout route.</b> The flat $15 is a <em>SWIFT</em> fee, and Paddle pays out by wire <b>or Payoneer</b>; a US-domiciled Payoneer account makes it a domestic transfer, and we have held a company Payoneer account since 30 Aug. Below roughly $750/month that beats the wire, above it the wire wins. <b>Annual billing is the larger lever and needs no pricing decision</b> &mdash; <code>priceYearlyUsd</code> of 99 and 179 already exist in <code>lib/plans.ts</code>, and on a $9.99 charge Paddle&rsquo;s 50&cent; flat component <em>is</em> 5% by itself. See the rail section below.</div></div></li>
+        <li><input type="checkbox" id="t58" aria-labelledby="t58l"><span class="t-id">5.8</span><div>
+          <div class="t-title" id="t58l">Record a subscription a human agreed and a human collected<span class="tag top">SMALLEST USEFUL STEP</span></div>
+          <div class="t-note">An admin route, not an adapter. <b>It serves a Turkish producer today</b> &mdash; the A.&#350;. invoices, the producer pays by bank transfer, no PSP exists anywhere in the flow &mdash; and it writes the <b>first <code>Subscription</code> row this project has ever had</b>. That matters beyond T&uuml;rkiye: nothing in the Worker writes that table, production holds zero rows, so every branch of <code>entitlementOf()</code> except &ldquo;no subscription&rdquo; has never run against real data. <b>Better to exercise the entitlement path with us on both ends of it than to discover it through a third party&rsquo;s webhook, in production, on the day a producer first pays.</b> Needs one migration: <code>PaymentProvider</code> has no manual value and <code>providerCustomerId</code> is NOT NULL, so today even a hand-written row must invent an identifier. See <a href="#rail" style="color:var(--brass-ink)">the payment-rail section</a>.</div></div></li>
       </ul>
     </div>
   </section>
@@ -965,7 +973,7 @@
   <h2 class="sec" id="board">Board review, 27 August — what the COO and CFO found</h2>
   <p style="margin:0 0 18px;max-width:72ch">Both ran <b>read-only and text-return-only</b>, verifying every claim against the real files rather than asserting — a shape adopted after a board member once reported writing a file that did not exist. Nothing could be fabricated as &ldquo;written&rdquo; because nothing was to be written.</p>
 
-  <div class="cards">
+  <div class="cols">
     <div class="card">
       <h4 style="color:var(--done)">Found and fixed</h4>
       <ul>
@@ -991,6 +999,182 @@
   <h2 class="sec">Not worth doing yet</h2>
   <p class="skip"><s>Postgres migration</s> <b>(shipped 14 Sep)</b> · <s>sign-in</s> <b>(shipped 16 Sep, hand-written rather than Auth.js)</b> · billing on any rail · <s>approval-queue UI</s> <b>(now next — 5.7)</b> · <s>producer dashboard</s> <b>(shipped 16 Sep — 5.5)</b> · <s>review submission backend</s> <b>(shipped 16 Sep)</b> · click logging to a database before a network is chosen · <s>the latent <code>familyBonus</code> bug</s> <b>&mdash; fixed 8 Sep, inside the score reform; it was never worth doing alone, which is exactly why it waited for a change that moved every score anyway</b> · <b>more front-end polish</b> (three passes have landed — what fails review is data honesty and missing legal pages, not build quality) · Amazon and everything Amazon-specific · Impact and Rakuten · verifying prices for all 68 references · approaching ALT. and Dossier as <em>producers</em> (same company, same contact, wrong door — affiliate first) · paid traffic · a second domain · Stripe Atlas (~$2k/yr, and Form 5472 carries a $25,000 penalty for non-filing).</p>
 
+  <h2 class="sec" id="rail">The payment rail &mdash; decided 20 September</h2>
+  <div class="prose">
+    <p><strong>A new fact about the market reopened a closed question.</strong> August settled this on the premise
+    that every producer was American or European, and the accounting report rejected a Turkish rail on exactly that
+    ground &mdash; Dossier and ALT. are US, Divain is ES, and billing them in lira through a Turkish PSP is the wrong
+    shape. <b>The founder has since said revenue comes from the USA, Europe <em>and</em> T&uuml;rkiye.</b> That is a
+    new premise, not a new opinion, so it reopens the conclusion rather than contradicting it.</p>
+    <p><strong>The call is one rail: Paddle, paid out to the company Payoneer account that already exists, with
+    annual billing offered and preferred. No Turkish PSP yet.</strong> The provider is unchanged from the board&rsquo;s
+    10 Sep call. What is new is the <em>payout route</em> and the <em>billing interval</em> &mdash; and between them
+    they take the effective cost from roughly <b>20%</b> to roughly <b>7%</b> without touching a price or writing a
+    line of adapter. Verified 20 Sep against each provider&rsquo;s own documentation rather than an aggregator, and
+    written up at <code>departments/accounting/reports/payment-rails-investigation.md</code> &sect;11.</p>
+  </div>
+
+  <h4 style="margin:30px 0 12px">Lever one &mdash; the $15 payout fee is avoidable, and the reason is structural</h4>
+  <p style="margin:0 0 14px;max-width:72ch">Paddle pays out <b>by wire or by Payoneer</b>, and it pays in 13
+  currencies of which <b>TRY is not one</b> &mdash; so a payout to a Turkish bank is <em>structurally</em> SWIFT and
+  the $15 is not negotiable. It is avoidable instead: Payoneer supplies a <b>US-domiciled</b> USD receiving account,
+  so a USD payout into it is a domestic transfer rather than a cross-border one. <b>Sirketim&rsquo;s company Payoneer
+  account already exists</b>, opened 30 Aug for CJ. This is the same US-domiciled-versus-USD-denominated distinction
+  that decided the Amazon row at the top of this page.</p>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th style="width:28%">Per payout</th><th>To a Turkish bank &mdash; $15 flat</th><th>To Payoneer &mdash; ~2%</th></tr></thead>
+      <tbody>
+        <tr><td class="c">$130</td><td class="c">$15 &mdash; <b style="color:var(--blocker)">11.5%</b></td><td class="c">~$2.40 &mdash; <b>1.8%</b></td></tr>
+        <tr><td class="c">$300</td><td class="c">$15 &mdash; <b style="color:var(--warn)">5.0%</b></td><td class="c">~$5.50 &mdash; <b>1.8%</b></td></tr>
+        <tr><td class="c">$750</td><td class="c">$15 &mdash; 2.0%</td><td class="c">~$14 &mdash; <b>1.8%</b></td></tr>
+        <tr><td class="c">$1,500</td><td class="c">$15 &mdash; <b style="color:var(--done)">1.0%</b></td><td class="c">~$28 &mdash; 1.8%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin:14px 0 0;max-width:72ch"><b>Below roughly $750 the Payoneer route wins; above it the wire does</b>
+  &mdash; a flat fee and a percentage fee cross over, so this is a per-<em>payout</em> choice and not a permanent one.
+  The $100 minimum applies either way, and Paddle allows the threshold to be raised, so batching is a second and
+  independent lever on the same fee.</p>
+
+  <h4 style="margin:30px 0 12px">Lever two &mdash; annual billing, and it needs no pricing decision</h4>
+  <p style="margin:0 0 14px;max-width:72ch"><strong>On a $9.99 charge Paddle&rsquo;s 50&cent; flat component is 5% by
+  itself</strong>, so the headline &ldquo;5% + 50&cent;&rdquo; is a <b>10% rate at that ticket size</b>. On a $99
+  charge the same 50&cent; is 0.5%. The prices to do something about it are already written:
+  <code>priceYearly: 99</code> and <code>179</code> sit in <code>lib/plans.ts</code> and generate through into the
+  producer Worker as <code>priceYearlyUsd</code>, and <code>BillingInterval</code> is already an enum column on
+  <code>Subscription</code>. <b>Nothing here is a pricing decision</b> &mdash; only a billing-interval choice at
+  checkout.</p>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th style="width:34%">Modelled at 10 producers &mdash; 6 Standard, 4 Unlimited</th><th>Gross</th><th>All-in cost</th><th>Effective</th></tr></thead>
+      <tbody>
+        <tr><td><b>Monthly, paid by wire</b> &mdash; what this page assumed until today</td><td class="c">$131.90/mo</td><td class="c">~$26.60/mo</td><td class="c"><b style="color:var(--blocker)">~20.2%</b></td></tr>
+        <tr><td><b>Monthly, paid to Payoneer</b></td><td class="c">$131.90/mo</td><td class="c">~$14.00/mo</td><td class="c"><b style="color:var(--warn)">~10.6%</b></td></tr>
+        <tr><td><b>Annual, paid to Payoneer</b></td><td class="c">$1,310/yr</td><td class="c">~$95/yr</td><td class="c"><b style="color:var(--done)">~7.3%</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin:14px 0 0;max-width:72ch"><b>Annual billing does not automatically push us past the crossover</b>,
+  because the crossover is per payout and ten annual subscriptions renewing on ten different dates is still ten small
+  payouts. If renewals ever cluster into one large one, the wire wins again &mdash; which is the same point as above,
+  and the reason the route is reviewed rather than fixed.</p>
+
+  <h4 style="margin:30px 0 12px">T&uuml;rkiye is a legal question before it is a technical one</h4>
+  <div class="prose">
+    <p><strong>32 Say&#305;l&#305; Karar</strong> bars persons resident in T&uuml;rkiye from denominating
+    service-contract prices in foreign currency <em>between themselves</em>. There is an exception for contracts
+    covering <b>software produced abroad</b> &mdash; the console is produced here, so it does not apply, and billing a
+    Turkish producer directly in USD is the wrong shape. <b>A merchant of record plausibly dissolves this</b>, because
+    the seller of record becomes Paddle, a non-resident, so the contract is no longer between two Turkish residents.
+    <strong>That is an argument, not an answer, and it is a <em>mali m&uuml;&#351;avir</em> question rather than a
+    research one.</strong> It will not be settled by reading more.</p>
+    <p><strong>Nothing is blocked on it today.</strong> A Turkish producer is served first by the route that already
+    exists and needs no PSP at all: the A.&#350;. invoices a Turkish company and takes a bank transfer. Accounting
+    already records direct-to-customer invoicing as available now with zero setup. <b>Building a second rail for a
+    population of zero</b> would buy a second live credential, a second webhook, a second reconciliation path and an
+    e-fatura obligation, to serve nobody.</p>
+    <p><strong>Paddle cannot bill in Turkish lira &mdash; and a search result said it could.</strong> The same
+    aggregated list also named <b>Russian Rubles</b>, which Paddle does not process at all. Checked against Paddle&rsquo;s
+    own developer documentation: TRY is not a supported payment currency and is not one of the 13 payout currencies
+    either. <b>Recorded because the false version was one sentence from being written here as fact, and what caught it
+    was an unrelated implausibility elsewhere in the same list rather than any check of the claim itself.</b> The
+    consequence for a producer is real either way: a Turkish subscriber on this rail is billed in USD and sees a
+    foreign-currency charge on a Turkish card.</p>
+  </div>
+
+  <h4 style="margin:30px 0 12px">The same decision from the code side</h4>
+  <div class="prose">
+    <p><strong>Nothing in the Worker writes a <code>Subscription</code> row, and production holds zero of them</strong>
+    &mdash; confirmed against the database the deployed Worker actually reads, which is not the one <code>.dev.vars</code>
+    points at. So the Paddle adapter would be the first thing ever to exercise <code>entitlementOf()</code> against a
+    real row, and it would do it through a third party&rsquo;s webhook, in production, on the day a producer first pays.</p>
+    <p><strong>The smallest useful first step is therefore not the adapter. It is a manual rail</strong> &mdash; an
+    admin route that records a subscription a human agreed and a human collected. It serves a Turkish producer today
+    with no PSP at all, it writes the <b>first <code>Subscription</code> row this project has ever had</b>, and it
+    exercises the entitlement path with us holding both ends of it. Every gate it proves is a gate the webhook will
+    not have to prove later, on the worst possible day to be finding out.</p>
+  </div>
+  <div class="callout">
+    <p><strong>A trap that is live right now and would be found by a paying producer.</strong>
+    <code>entitlementOf()</code> uppercases <code>status</code> and passes <code>tier</code> through <b>untouched</b>;
+    <code>allowanceForTier()</code> is a <b>case-sensitive</b> <code>switch</code> over <code>"free"</code> /
+    <code>"standard"</code> / <code>"unlimited"</code> with <code>default: "unknown"</code>. A webhook that writes the
+    provider&rsquo;s own plan label &mdash; <code>"Standard"</code> &mdash; therefore produces a producer who is
+    <b>in force and cannot submit anything</b>: entitled and quota-less at the same time, having just paid.
+    <b>The refuse-to-guess default is correct and should not move.</b> What is missing is that nothing normalises the
+    tier on the way in, and the only writer that will ever supply it is a system whose casing we do not control.</p>
+  </div>
+  <p style="margin:18px 0 12px;max-width:72ch"><b>Three schema changes are free today and are data migrations the day
+  after the first row exists.</b> There are zero rows. This is the same window that made the
+  <code>featured</code>&rarr;<code>unlimited</code> rename cost nothing on 18 Sep.</p>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th style="width:30%">Change</th><th>Why, and why now</th></tr></thead>
+      <tbody>
+        <tr><td><b><code>@@unique([provider, providerCustomerId])</code></b></td><td><code>providerCustomerId</code> is
+        <b>globally <code>@unique</code></b> today, which asserts something no provider guarantees &mdash; a customer id
+        is unique <em>within</em> a provider. It also makes a sandbox account, a second provider and the Turkish rail
+        this section defers mutually exclusive with the live one, by constraint rather than by decision.</td></tr>
+        <tr><td><b>Period columns to <code>timestamptz</code></b></td><td><code>currentPeriodStart</code> and
+        <code>currentPeriodEnd</code> are Prisma <code>DateTime</code>, which lands as a <b>zoneless</b> timestamp
+        &mdash; the exact shape that made every magic-link token born already expired, hidden only by the database
+        defaulting to UTC. <b>The same bug with a subscription attached is a paying producer refused, or a lapsed one
+        served.</b> Note the gate must also compute <code>currentPeriodEnd &gt; now()</code> <em>in SQL</em>, not
+        against a Worker clock.</td></tr>
+        <tr><td><b>An idempotency / ordering column</b></td><td>Webhooks retry and arrive out of order. With no stored
+        event id and no sequence, a redelivered <code>cancelled</code> silently overwrites a newer <code>active</code>,
+        and nothing anywhere would show it happened.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout stop">
+    <p><strong>The largest risk on this rail is not a fee, and it has not moved since 26 August.</strong>
+    Paddle&rsquo;s acceptable-use policy is reportedly restrictive toward <em>marketplaces</em>, and Counterscent is
+    literally one. The thing being sold is arguably plain SaaS &mdash; access to a listing tool &mdash; which Paddle
+    does support. <b>But that is our reading of their policy, not their answer</b>, and KYC tightened after
+    Paddle&rsquo;s 2025 FTC settlement. It has to be asked <em>before</em> an adapter is written, because the failure
+    mode is not a worse rate, it is no rail and a rewrite. <b>5.2 exists to close this and gates nothing else</b>
+    &mdash; it can be sent today.</p>
+  </div>
+
+  <div class="cols" style="margin-top:20px">
+    <div class="card">
+      <h4>Ask Paddle, before the adapter</h4>
+      <ul>
+        <li><b>Marketplace acceptable use.</b> The one above. Everything else on this list is cheap by comparison.</li>
+        <li><b>Do you self-bill Turkish tax residents?</b> Awin explicitly does not, which is why every Awin payout
+        needs a hand-issued <em>fatura</em>. If Paddle also does not, the entity name, address and VAT number are
+        needed verbatim on every invoice.</li>
+        <li><b>Does arbitrary passthrough metadata survive into the webhook?</b> Load-bearing rather than convenient:
+        <code>providerCustomerId</code> is NOT NULL, so no row can be pre-created at checkout, so
+        <code>producerId</code> must make the round trip through the provider.</li>
+        <li><b>Is a reliable cancelled/expired webhook emitted, or is polling expected?</b> The Worker exports only
+        <code>fetch</code> &mdash; there is <b>no <code>scheduled</code> handler</b>, so nothing ages a row out on
+        its own.</li>
+        <li><b>Does the webhook expose charge amount and currency?</b> Accounting needs both per charge and
+        <code>Subscription</code> has a column for neither.</li>
+        <li><b>Are batched or quarterly payouts permitted?</b> The second lever on the flat fee.</li>
+        <li><b>Charging a Turkish cardholder and selling into T&uuml;rkiye as a market are two separate
+        permissions.</b> Confirm both, not one.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Ask the <em>mali m&uuml;&#351;avir</em>, in one conversation</h4>
+      <ul>
+        <li><b>32 Say&#305;l&#305; Karar.</b> Does a merchant of record dissolve the foreign-currency prohibition for
+        a Turkish subscriber, on the grounds that the seller of record is a non-resident?</li>
+        <li><b>The services-export exemption.</b> Does routing domestic Turkish sales through a foreign MoR complicate
+        <em>hizmet ihracat&#305;</em>, which rewards revenue that clearly arrives from abroad?</li>
+        <li><b>On any rail where Sirketim is the seller of record</b> &mdash; what is owed per Turkish subscriber per
+        period: <b>e-fatura or e-ar&#351;iv, and at what KDV rate</b>?</li>
+        <li><b>None of these are research questions</b>, and no further reading will settle them. They are listed here
+        so they are asked once, together, rather than discovered one at a time by a rail that is already live.</li>
+      </ul>
+    </div>
+  </div>
+
   <h2 class="sec" id="scoring">The integrity problem — reformed 8 September</h2>
   <div class="prose">
     <p><strong>The formula rewarded a merchant&rsquo;s copywriter.</strong> Two dupe houses, within two days of each other, published the original&rsquo;s own note pyramid as their product&rsquo;s &mdash; and a formula that is half declared-note overlap read that as a near-perfect composition match. It is not a match; it is marketing copy. One listing&rsquo;s declared notes were the original&rsquo;s <em>note for note</em>, scoring 99 raw. The existing defences caught only that extreme end: a copy-detector needing notes <em>and</em> facets to match, and a 90% cap on anything unverified. Scores of 85&ndash;89 published untouched.</p>
@@ -1015,7 +1199,7 @@
   </div>
 
   <footer class="end">
-    <div>Canonical copy: <code>products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md</code> &middot; tenth pass, 18 September 2026</div>
+    <div>Canonical copy: <code>products/affiliate-sites/fragrance-dupes/FINALIZATION-GUIDE.md</code> &middot; eleventh pass, 20 September 2026</div>
     <button class="reset" id="reset" type="button">Clear all checkmarks</button>
   </footer>
 </div>

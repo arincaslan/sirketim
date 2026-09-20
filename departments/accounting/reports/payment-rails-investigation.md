@@ -9,6 +9,8 @@ Builds on: `departments/communication/reports/amazon-associates-application.md`,
 
 ## ⚠️ Read this before trusting any figure below
 
+> **UPDATE 2026-09-20 — [§11](#11-t%C3%BCrkiye-as-a-market-and-the-payout-route-2026-09-20) reopens §2's rejection of a Turkish rail, because the founder has since said revenue comes from Türkiye as well as the US and EU. It also corrects the payout-fee model: Paddle's $15 SWIFT charge is avoidable via Payoneer. Read §11 before acting on §2 or §7.**
+
 > **UPDATE 2026-08-26 — items 1, 2, 4 and 5 of §8 have since been verified live. See [§10](#10-live-verification-2026-08-26). Two findings in this report changed: Amazon direct deposit to a Turkish bank is confirmed *unavailable*, and Paddle is confirmed available to Turkish sellers. Read §10 alongside any section below.**
 
 **No live verification was possible *at the time this report was written*.** Neither the CFO nor the `accountant` subagent has web access (`WebSearch`/`WebFetch` are not in either toolset). Every provider fact here comes from two sources only:
@@ -315,3 +317,108 @@ First-hand Turkish figures at $300/month revenue: ~$15.50 commission **plus a fl
 ### Net effect on the recommendation
 
 **§7's sequence stands and is now better-founded.** One reordering: **Payoneer (step 4) is the highest-value founder action on the list** — it is a hard prerequisite for Amazon, CJ and ShareASale simultaneously, and it is the only step that unblocks money actually arriving. Step 1 is now done: Stripe is settled, no need to spend the five minutes.
+
+---
+
+## 11. Türkiye as a market, and the payout route (2026-09-20)
+
+**Why this section exists.** Everything above assumed producers in the US and EU — §2 rejected a Turkish PSP on the grounds that "COUNTERSCENT's producers are Dossier (US), ALT. Fragrances (US), Divain (ES)." The founder has since said revenue will come from **the USA, Europe AND Türkiye**. That is a new premise, not a new opinion, and it reopens §2's conclusion rather than contradicting it.
+
+Live-verified from the root session (`WebSearch`/`WebFetch`), against providers' own documentation wherever a primary source exists. Where only third-party sources exist, that is said.
+
+### 11.1 What changed in the numbers
+
+| Claim in this report | Status as of 2026-09-20 |
+|---|---|
+| Stripe does not serve Turkey | **Still true.** Turkey absent from the supported list. |
+| Paddle onboards Turkish sellers | **Still true.** Paddle's own unsupported-suppliers list runs to 28 countries; Turkey is not among them. |
+| Paddle is ~5% + $0.50 | **Still the published rate**, and it is genuinely all-in — no separate international-card surcharge, unlike Polar. |
+| Paddle costs a flat $15 payout fee | **True but conditional, and the condition is the useful part.** Paddle's own help centre: when the payout currency matches the local currency of the bank's country, the transfer uses local networks and is typically free; the $15 applies when it must go by SWIFT. Paddle pays out in 13 currencies and **TRY is not one of them**, so a payout to a Turkish bank is *structurally* SWIFT. The fee is not negotiable — but it is avoidable, see 11.2. |
+
+### 11.2 The finding that matters most: Paddle pays out to Payoneer
+
+Paddle's payout methods are **wire transfer or Payoneer** — stated on its own "When and how do I get paid?" page, which also says "for certain countries, a $15 SWIFT fee may be applicable."
+
+**Sirketim already has a company Payoneer account**, opened and approved 2026-08-30 for CJ (see the CJ row in `departments/accounting/CLAUDE.md`). Payoneer provides a **US-domiciled USD receiving account**, so a USD payout into it is a domestic transfer rather than a cross-border SWIFT. The cost moves from a flat $15 per payout to Payoneer's own withdrawal charge — published as **up to 2%** when withdrawing to a local bank in a different currency.
+
+That is regressive-fee-versus-percentage-fee, so it inverts with volume:
+
+| Monthly gross | Paddle → Turkish bank ($15 flat) | Paddle → Payoneer (~2%) |
+|---|---|---|
+| $130 | $15 = 11.5% of gross | ~$2.40 = 1.8% |
+| $300 | $15 = 5.0% | ~$5.50 = 1.8% |
+| $750 | $15 = 2.0% | ~$14 = 1.8% |
+| $1,500 | $15 = 1.0% | ~$28 = 1.8% |
+
+**Below roughly $750/month the Payoneer route wins; above it the wire does.** §10 item 3's warning — "do not model Paddle at 5% until monthly volume is well past $1,000" — was right about the symptom and now has a remedy. Note the $100 minimum payout threshold applies either way, and Paddle lets the threshold be raised (up to $100,000), so batching is a second, independent lever on the same fee.
+
+### 11.3 Annual billing is the larger lever, and the prices already exist
+
+On a $9.99 charge, Paddle's 50¢ flat component **is 5% on its own** — the headline "5% + 50¢" is a 10% rate at that ticket size. On the annual price it is 0.5%.
+
+`products/affiliate-sites/fragrance-dupes/lib/plans.ts` already carries `priceYearly: 99` (Standard) and `179` (Unlimited), generated through to `src/generated/plans.ts`, where the field is named `priceYearlyUsd`. (The source field is `priceYearly`; an earlier draft of this section gave the generated name as the source one.) **No pricing decision is needed to take this** — only a billing-interval choice at checkout, and `BillingInterval` is already an enum column on `Subscription`.
+
+Modelled at 10 producers (6 Standard + 4 Unlimited), Paddle, paid to Payoneer:
+
+| | Gross | All-in cost | Effective |
+|---|---|---|---|
+| Monthly billing | $131.90/mo | ~$14.00/mo | **~10.6%** |
+| Annual billing | $1,310/yr | ~$95/yr | **~7.3%** |
+
+### 11.4 Paddle cannot bill in Turkish lira, and a search result said otherwise
+
+An aggregated search result listed TRY among Paddle's checkout currencies. **It also listed Russian Rubles**, which Paddle does not process — Russia is on its unsupported list. Checked against Paddle's own developer documentation: TRY is not a supported payment currency, and it is not one of the 13 payout currencies either.
+
+Recorded here because the false version was one sentence away from being reported as fact, and the thing that caught it was an unrelated implausibility in the same list rather than any check of the claim itself. This is the root `CLAUDE.md`'s "sanity-check anything the summarizer returns" rule earning its place.
+
+**Consequence:** a Turkish producer on an MoR rail is billed in USD, and sees a foreign-currency charge on a Turkish card.
+
+### 11.5 The Türkiye question is legal before it is technical
+
+**32 Sayılı Karar** (Türk Parası Kıymetini Koruma) prohibits persons resident in Türkiye from denominating service-contract prices in foreign currency *between themselves*. There is an exception for licence and service contracts covering **software produced abroad** — Counterscent's console is produced in Türkiye, so the exception does not apply. Billing a Turkish producer directly in USD is therefore the wrong shape.
+
+**A merchant of record plausibly dissolves this**, because the seller of record becomes Paddle, a non-resident — so the contract is no longer between two Turkish residents. **That is an argument, not an answer.** It is a *mali müşavir* question and should be asked alongside two others in the same conversation:
+
+- Does running domestic Turkish sales through a foreign MoR complicate the **services-export exemption**, which rewards revenue that clearly arrives from abroad?
+- On any rail where Sirketim is the seller of record, what is owed per Turkish subscriber per period — **e-fatura or e-arşiv, and at what KDV rate**?
+
+### 11.6 Provider comparison, current
+
+| | Headline fee | Surcharges | Payout | TR seller | Primary source |
+|---|---|---|---|---|---|
+| **Paddle** | 5% + 50¢ | none — all-in | wire (SWIFT $15) **or Payoneer**; $100 min, monthly | Yes | Paddle help centre |
+| **Polar** | 5% + 50¢ (Starter); 3.8% + 40¢ (Pro, $20/mo) | **+1.5% international cards**, $15/dispute | Stripe Connect Express: $2/mo + 0.25% + 25¢, FX 0.25–1% | **Yes, listed explicitly** | Polar docs |
+| **Creem** | 3.9% + 40¢ | reported +1.5% intl | — | Not confirmed | third-party only |
+| **Dodo** | 4% + 40¢ | reported +1.5% intl | — | Reported yes | third-party only |
+| **PayTR** | ~1.99–3.40%, negotiated by volume/sector | — | next-day, TRY | Yes | published ranges only |
+| **iyzico** | ~1.95% domestic single-payment; 2.5–4.5% foreign cards | 3DS mandatory | weekly, 2-day hold, TRY | Yes | published ranges only |
+
+Two notes on reading this table. **Polar's +1.5% international-card surcharge is decisive against it here**, not incidental: for a Türkiye-based seller collecting from US and EU producers, essentially every card is an international card, so the surcharge applies to almost all revenue and closes Polar's payout-fee advantage. And **the Turkish PSPs' rates are negotiated**, published as ranges rather than a price — the figures above are indicative and cannot be relied on until quoted.
+
+Lemon Squeezy remains ruled out (§10, and the Stripe acquisition).
+
+### 11.7 Recommendation
+
+**One rail: Paddle, paid out to the existing company Payoneer account, with annual billing offered and preferred.** Unchanged from the board's 2026-09-10 call on the provider; what is new is the payout route and the billing interval, which together take the effective rate from roughly 20% to roughly 7%.
+
+**Do not build a Turkish PSP rail yet.** At zero producers of any nationality it is speculative work with a second live credential, a second webhook, a second reconciliation path and an e-fatura obligation attached. Turkish producers can be served first by the manual route that already exists — an A.Ş. invoicing a Turkish company and taking a bank transfer needs no PSP at all, and `departments/accounting/CLAUDE.md`'s "Direct-to-customer invoicing" row already records that as available today with zero setup.
+
+**The three failure modes are not the same question** and the verification list should keep them apart:
+
+1. The MoR will not sell into Türkiye as a market — *forces* a second rail.
+2. It sells there but Turkish cards are hostile (3DS behaviour, FX spread, no *taksit*) — a friction question, measurable with one real charge.
+3. It works and Turkish producers simply will not pay in dollars — a **pricing and copy** question, not an integration one.
+
+### 11.8 Still to confirm with Paddle before an adapter is written
+
+Carried forward from §10 item 4 and the payout-accounts table, still open:
+
+- **Marketplace acceptable-use.** Counterscent is literally a marketplace; the subscription sold is arguably plain SaaS. This remains the single largest unverified risk on this rail.
+- **Whether Paddle self-bills Turkish tax residents.** Awin explicitly does not, which is why every Awin payout needs a hand-issued *fatura*. If Paddle also does not, the entity name, address and VAT number are needed verbatim on every invoice.
+- **Whether batched/quarterly payouts are permitted** — a second lever on the same flat fee.
+- **Whether arbitrary passthrough metadata survives into the webhook.** Load-bearing rather than convenient: `Subscription.providerCustomerId` is NOT NULL, so no row can be pre-created at checkout, so `producerId` must make the round trip through the provider.
+- **Whether a reliable cancelled/expired webhook is emitted**, or polling is expected. The Worker exports only `fetch` — there is no `scheduled` handler, so nothing ages a row out on its own.
+- **Whether the webhook exposes charge amount and currency.** Accounting needs it per charge and `Subscription` has no column for either.
+- **Charging a Turkish cardholder** and **selling into Türkiye as a market** are two separate permissions. Confirm both.
+
+Sources, all fetched 2026-09-20: Paddle's supported-countries, payout, payout-currency and developer currency pages; Polar's supported-countries and pricing pages; Stripe's global availability page; Payoneer's withdrawal-fee documentation; `vergidegundem.com` on 32 Sayılı Karar.
