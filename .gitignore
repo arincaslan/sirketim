@@ -60,3 +60,13 @@ skills-lock.json
 # variants (brutalist-skill, minimalist-skill, imagegen-*, brandkit, etc.)
 # deliberately not installed, scope not requested.
 .claude/skills/design-taste-frontend/
+
+# Downloaded provider credentials. A vendor console hands you a file like
+# client_secret_<id>.apps.googleusercontent.com.json and the browser drops it
+# wherever your downloads go - which on this machine has been the REPO ROOT.
+# This repo is PUBLIC, and the file was untracked-but-not-ignored on
+# 2026-09-20, one `git add -A` away from publishing a live Google secret.
+# Same class as the licensed-feed near-miss the root CLAUDE.md records.
+client_secret_*.json
+*.apps.googleusercontent.com.json
+credentials*.json

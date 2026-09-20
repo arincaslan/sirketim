@@ -96,6 +96,10 @@ import { signOut } from "./routes/sign-out";
 import { companyPage, createCompany } from "./routes/company";
 import { submitPage, submitListing } from "./routes/submit";
 import { withdrawPage, withdrawSubmit } from "./routes/withdraw";
+import { accountsPage, accountsDisconnect } from "./routes/accounts";
+import { oauthStart, oauthCallback } from "./routes/oauth";
+import { PROVIDERS, type ProviderId } from "./lib/providers";
+import type { FlowMode } from "./lib/oauth";
 import type { Env } from "./lib/env";
 
 type Handler = (request: Request, env: Env) => Response | Promise<Response>;
@@ -111,7 +115,43 @@ type Handler = (request: Request, env: Env) => Response | Promise<Response>;
  * table's own keys rather than a hardcoded string, so it cannot drift from
  * what a route actually supports.
  */
+/**
+ * "link" when the flow was started from /console/accounts, "signin" otherwise.
+ *
+ * Read here rather than inside the handler so both modes are visible in the
+ * routing table, which is where somebody looks to find out what a path does.
+ * Anything other than the exact string "link" is treated as "signin": an
+ * unrecognised mode must never fall into the one that can attach a provider
+ * identity to a live session.
+ */
+function flowModeFrom(request: Request): FlowMode {
+  return new URL(request.url).searchParams.get("mode") === "link" ? "link" : "signin";
+}
+
+/**
+ * /auth/<provider>/start and /auth/<provider>/callback, GENERATED FROM THE
+ * PROVIDER TABLE rather than typed out.
+ *
+ * src/lib/providers.ts promises that adding a third provider is a data change
+ * there and a code change nowhere. Enumerating four literal paths here would
+ * have made that promise false the day it was written, and the failure mode is
+ * the quiet one: the button renders, the route 404s, and nothing connects the
+ * two symptoms. Deriving the paths from PROVIDERS keeps the promise mechanical.
+ *
+ * Every path exists for every KNOWN provider, configured or not. An
+ * unconfigured one answers 404 from inside oauthStart(), which is the same
+ * answer a reader gets for a provider this origin has never heard of - see that
+ * function for why 404 rather than 503.
+ */
+const AUTH_ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = Object.fromEntries(
+  (Object.keys(PROVIDERS) as ProviderId[]).flatMap((id) => [
+    ["/auth/" + id + "/start", { GET: (req: Request, env: Env) => oauthStart(req, env, id, flowModeFrom(req)) }],
+    ["/auth/" + id + "/callback", { GET: (req: Request, env: Env) => oauthCallback(req, env, id) }],
+  ]),
+);
+
 const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
+  ...AUTH_ROUTES,
   "/": { GET: (req, env) => overview(req, env) },
   "/sign-in": { GET: (req, env) => signIn(req, env), POST: (req, env) => signInSubmit(req, env) },
   "/verify": { GET: (req, env) => verify(req, env) },
@@ -149,6 +189,17 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
   // why a request table was rejected. When billing lands this gains a POST and
   // the `allowForms` grant arrives with it.
   "/console/plan": { GET: (req, env) => producerPlan(req, env) },
+  // HOW YOU SIGN IN. Session-gated but NOT producer-gated, because every
+  // account on production today has no producer attached, and changing how you
+  // sign in must not wait on creating a company. The POST is disconnect only;
+  // connecting is a GET to /auth/<provider>/start?mode=link, and the header of
+  // routes/oauth.ts explains why that asymmetry is deliberate.
+  "/console/accounts": {
+    GET: (req, env) => accountsPage(req, env),
+  },
+  "/console/accounts/disconnect": {
+    POST: (req, env) => accountsDisconnect(req, env),
+  },
   // Async now, because it reads the session to decide whether to render the
   // console nav. That is a navigation affordance, NOT a guard - see the header
   // comment in routes/review.ts before assuming this route is protected.

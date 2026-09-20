@@ -2136,3 +2136,108 @@ html[data-theme-switching] *::after {
 html {
   scroll-padding-bottom: 10rem;
 }
+
+/* -------------------------------------------------------------------------
+   SIGN-IN METHODS. Two surfaces: the alternative ways in under the email form
+   on /sign-in, and the list of them on /console/accounts.
+
+   NO NEW TOKENS, per CONSOLE-PLAN.md section 3. Everything below is the
+   existing palette, the existing two faces and the existing three radii.
+
+   THERE IS NO RULE ABOVE .alt-methods, deliberately. The obvious build is the
+   centred hairline with OR sitting in a gap in the middle, and it is the most
+   templated component on the web. Spacing plus a display-face heading
+   separates the two routes exactly as every other block on this origin is
+   separated, so the page gains a second option without gaining a pattern
+   borrowed from somewhere else.
+   ------------------------------------------------------------------------- */
+.alt-methods {
+  margin-top: 2rem;
+}
+.alt-methods-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+/* The buttons sit directly under their heading, so the shared .btn-row top
+   margin is too much here. */
+.alt-methods .btn-row {
+  margin-top: 0.75rem;
+}
+.alt-methods .field-hint {
+  margin-top: 0.875rem;
+  max-width: var(--measure);
+}
+
+/* A DIVIDED LIST RATHER THAN CARDS. Three rows whose only relationship is
+   that they are alternatives to each other: elevation would claim a hierarchy
+   between them that does not exist, and three bordered boxes inside a card
+   would be a frame inside a frame. Same border-top rhythm as .state-row. */
+.method-list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+.method-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid hsl(var(--border));
+}
+/* The first row sits directly under the card's own heading, which is already
+   a boundary. A rule there would read as a double line. */
+.method-row:first-child {
+  border-top: 0;
+  padding-top: 0.25rem;
+}
+.method-row:last-child {
+  padding-bottom: 0;
+}
+/* Action moves beside the name once there is room for it. Below this the
+   button sits under the text it belongs to, full width of its own content,
+   which is the only arrangement that does not strand it at 375px. */
+@media (min-width: 40rem) {
+  .method-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 2rem;
+  }
+}
+/* AN <h4>, NOT A <p>. The card's own heading is an h3, so this is the next
+   sequential level and it gives a screen reader something to navigate the
+   list by. The explicit size and margin are the h4 default being overridden,
+   which a <p> did not need. */
+.method-name {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+/* THE STATE IS A WORD, NOT A COLOURED DOT, and not a small-caps label either.
+   A dot before every row carries no meaning to a screen reader and reads as
+   decoration; uppercase micro-labels are the same move in type. Connected and
+   Not connected are told apart by weight and colour, which is a real
+   difference at a glance and still passes as plain text when read aloud. */
+.method-state {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0.25rem 0 0;
+}
+.method-state.is-off {
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+.method-note {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  margin: 0.5rem 0 0;
+  max-width: var(--measure);
+}
+/* The disconnect form carries .actions, whose top margin is meant for the
+   bottom of a fieldset rather than a table-ish row. */
+.method-action .actions {
+  margin: 0;
+}

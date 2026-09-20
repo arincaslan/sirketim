@@ -50,6 +50,35 @@ HOSTINGER_MAIL_API_TOKEN=
 # credential, and useless without the token.
 HOSTINGER_MAILBOX_ID=AC9278a32f3d4ca8bd1119f31c2d1c
 
+# ---------------------------------------------------------------------------
+# SIGN IN WITH GOOGLE (added 2026-09-20)
+# ---------------------------------------------------------------------------
+# Each provider is a PAIR and is all-or-nothing: if either half is missing or
+# blank, that provider renders NO button anywhere and its /auth/<id>/* routes
+# answer 404. A half-set pair is therefore invisible rather than broken, which
+# is the same house rule the mail secrets above follow.
+#
+# THE REDIRECT URI REGISTERED WITH THE PROVIDER MUST BE EXACTLY:
+#   https://producers.counterscent.com/auth/google/callback
+#
+# MICROSOFT WAS BUILT AND DROPPED on 2026-09-20 before it ever deployed, at the
+# founder's instruction. Google alone. Re-adding it is one entry in
+# src/lib/providers.ts plus two secrets here.
+# Providers compare it as a string, so a trailing slash or http:// is a
+# different URI and fails with redirect_uri_mismatch.
+#
+# LOCAL DEV CANNOT COMPLETE A REAL FLOW, and that is a wrangler behaviour
+# rather than a bug here: `wrangler dev` rewrites the request host to the
+# configured custom domain, so the callback URL this Worker builds is the
+# production one whatever port you are on. Dummy values are still useful -
+# they make the buttons render and the authorize redirect verifiable - but the
+# code exchange will be rejected by the provider.
+#
+# Google: console.cloud.google.com -> APIs & Services -> Credentials ->
+#   OAuth client ID -> Web application.
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
 # NEVER COMMIT THE REAL VALUES. This repo is public. .dev.vars is gitignored
 # at the repo root; verify with `git check-ignore .dev.vars` before assuming
 # it, the same rule the root CLAUDE.md states for any downloaded/licensed

@@ -77,4 +77,36 @@ export interface Env {
    * which inbox to attack is a free gift to somebody choosing a target.
    */
   ADMIN_EMAILS?: string;
+
+  /**
+   * SIGN IN WITH GOOGLE. Founder decision 2026-09-20: one way in is outdated,
+   * so this origin grows OAuth alongside the magic link. Passwords
+   * were considered and REJECTED in the same decision - see src/lib/oauth.ts
+   * for the measurement that settled it.
+   *
+   * Each provider is a PAIR, and a pair is all-or-nothing: providerCredentials()
+   * treats a provider whose id or secret is missing as not configured at all,
+   * so a half-set pair renders no button rather than a button that 500s. That
+   * is this project's house rule (a feature whose backing secret is absent
+   * says so at the point of use) applied to a two-part credential.
+   *
+   * WHAT A LEAK OF A CLIENT SECRET REACHES, stated rather than implied: it
+   * lets the holder impersonate THIS application to the provider - that is,
+   * complete a code exchange for a user who has been persuaded to authorise
+   * it. It does NOT read anything in this database and does not by itself
+   * sign anyone in here, because the callback still has to arrive with a
+   * state and PKCE verifier matching a cookie this Worker set. Rotate in the
+   * provider's console; neither value is derived from anything else we hold.
+   *
+   * MICROSOFT WAS HERE AND WAS DROPPED 2026-09-20, before it was ever
+   * deployed, at the founder's instruction. Google alone. The provider table
+   * in src/lib/providers.ts records why, and re-adding it is one entry there
+   * plus two secrets here.
+   *
+   * The redirect URI registered with each provider must be exactly
+   * https://producers.counterscent.com/auth/<provider>/callback - providers
+   * match it as an exact string, so a trailing slash is a different URI.
+   */
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
 }

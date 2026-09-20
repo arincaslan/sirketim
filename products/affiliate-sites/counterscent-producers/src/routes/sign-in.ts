@@ -1,7 +1,8 @@
 import { html } from "../lib/html";
 import { page, redirect } from "../lib/http";
 import { CATALOGUE, layout } from "../ui/layout";
-import { button, card, field, notShipped, section } from "../ui/components";
+import { button, card, field, linkButton, notShipped, section } from "../ui/components";
+import { configuredProviders } from "../lib/providers";
 import type { Env } from "../lib/env";
 import { db } from "../lib/db";
 import {
@@ -85,6 +86,13 @@ export function signIn(request: Request, env: Env) {
   const url = new URL(request.url);
   const state = readState(url);
   const configured = Boolean(env.DATABASE_URL) && mailConfigured(env);
+  // GATED ON THE DATABASE BUT NOT ON MAIL, which is the honest dependency
+  // rather than the convenient one. Signing in with a provider stores a
+  // Session row, so without DATABASE_URL it can only ever end in a 503; with
+  // no mail secrets it works perfectly. Reusing `configured` above would have
+  // hidden these buttons whenever Hostinger was the broken half, which is the
+  // exact failure a second way in exists to survive.
+  const providers = env.DATABASE_URL ? configuredProviders(env) : [];
 
   const notConfiguredReason = !env.DATABASE_URL
     ? html`There is no database connection configured on this Worker (the <code>DATABASE_URL</code> secret
@@ -182,6 +190,36 @@ export function signIn(request: Request, env: Env) {
               `,
           "signin-card",
         )}
+
+        ${
+          // RENDERED EVEN WHEN THE MAIL SECRETS ARE MISSING, and that is the
+          // point rather than an oversight. `configured` above is about
+          // Hostinger; these buttons depend on it for nothing. The day mail
+          // breaks - an expired token, a suspended mailbox, a provider
+          // outage - is precisely the day a second way in earns its keep, so
+          // gating it on the first one would throw the benefit away at the
+          // only moment it mattered.
+          //
+          // An empty list renders nothing at all. A provider whose secrets
+          // are not both set is invisible here rather than disabled, because
+          // a button that explains why it cannot work is still a button
+          // somebody presses.
+          providers.length > 0
+            ? html`<div class="alt-methods">
+                <h3 class="alt-methods-title">Other ways to sign in</h3>
+                <div class="btn-row">
+                  ${providers.map((p) =>
+                    linkButton(`/auth/${p.id}/start`, `Continue with ${p.label}`, { variant: "ghost" }),
+                  )}
+                </div>
+                <p class="field-hint">
+                  These will not sign you into an account that already exists, even when the address
+                  matches. Signed in here before? Use the link above, then connect them under
+                  <strong>How you sign in</strong>.
+                </p>
+              </div>`
+            : ""
+        }
         </div>
       `,
     })}
@@ -205,9 +243,14 @@ export function signIn(request: Request, env: Env) {
             sign-in click does on its own.
           </li>
           <li>
-            Does not put you in the console with anything to do there. Submitting, listing, and everything
-            else a producer account will eventually do is step 6 of the build order and is not built yet -
-            this step is only "can a real person sign in and stay signed in."
+            Puts you in the console, which is real: your listings, submitting a fragrance, withdrawing
+            one, and your plan. If no company is attached to your address yet, the first thing it offers
+            is creating one.
+          </li>
+          <li>
+            Is not the only way in. Once you are signed in you can connect Google under
+            <strong>How you sign in</strong>, and use it next time. The email link keeps working
+            whatever else you connect, which is why it can never be switched off.
           </li>
         </ul>
       `,

@@ -418,6 +418,7 @@ function noProducerAttached(auth: AuthUser, isAdmin = false): Html {
         one listing, with no card and no trial clock; what the paid tiers add is on
         <a href="${CATALOGUE}/producers/pricing">plans and pricing</a>. Everything you submit
         is read by a person before it reaches the catalogue, whichever tier you are on.
+        You can also change <a href="/console/accounts">how you sign in</a>.
       </p>
       <form method="post" action="/sign-out" class="actions">
         ${button("Sign out", { variant: "ghost" })}
@@ -482,6 +483,17 @@ function attached(
             facts: [
               { label: "Producer", value: html`${producer.name}` },
               { label: "Signed in as", value: html`<span class="wrap-anywhere">${auth.email}</span>` },
+              // THE LINK LIVES HERE RATHER THAN IN THE NAV. The nav carries
+              // repeated task items and already ran out of room at 1440px
+              // once, which is how one label had to be shortened on
+              // 2026-09-18. A page visited twice in an account's lifetime
+              // belongs beside the address it is about, which is where a
+              // reader looks when the question is about their account rather
+              // than their listings. The value is a link rather than a list of
+              // connected providers on purpose: rendering that here would mean
+              // a second query for a fact the destination page already states,
+              // and two places that can disagree about it.
+              { label: "Sign-in", value: html`<a href="/console/accounts">How you sign in</a>` },
             ],
             aside: isAdmin ? adminPanel(inUse) : planPanel(producer, inUse),
             action: html`<form method="post" action="/sign-out" class="actions">

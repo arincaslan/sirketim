@@ -99,9 +99,21 @@ export function page(
  * (hypothetically) another header under the same name would silently drop
  * one - `append()` is the one API that cannot do that.
  */
-export function redirect(location: string, options: { status?: number; setCookie?: string } = {}): Response {
+export function redirect(
+  location: string,
+  options: { status?: number; setCookie?: string | string[] } = {},
+): Response {
   const headers = new Headers({ Location: location, ...SECURITY_HEADERS });
-  if (options.setCookie) headers.append("Set-Cookie", options.setCookie);
+  // AN ARRAY IS ACCEPTED because one response genuinely needs two cookies: the
+  // OAuth callback sets the session AND expires the in-flight __Host-oauth
+  // cookie in the same redirect. Folding those into one header is not possible
+  // and dropping either is a real bug - a session with a live flow cookie left
+  // behind, or a cleared flow with nobody signed in. `append()` was already
+  // the right API for this and now takes the whole list.
+  if (options.setCookie) {
+    const cookies = Array.isArray(options.setCookie) ? options.setCookie : [options.setCookie];
+    for (const cookie of cookies) headers.append("Set-Cookie", cookie);
+  }
   return new Response(null, { status: options.status ?? 302, headers });
 }
 

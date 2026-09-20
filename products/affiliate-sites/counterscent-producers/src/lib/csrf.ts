@@ -74,6 +74,14 @@ export type CsrfPurpose =
   // scoped to the session alone. It is still a separate purpose rather than a
   // shared one, so a token minted for it cannot be replayed against a listing.
   | "create-company"
+  // REMOVING A SIGN-IN METHOD. Its own purpose rather than sharing
+  // "create-company", on the same narrow-scoping principle as everything else
+  // here: the two are the only writes an account with no producer can make, so
+  // sharing a token between them is precisely the case where a replay would go
+  // unnoticed. CONNECTING a provider is deliberately NOT in this union - it is
+  // a GET link, and src/routes/oauth.ts explains at length why a CSRF token
+  // would be the wrong instrument for it.
+  | "disconnect-provider"
   | "submit-listing"
   | "withdraw-listing"
   // THE ADMIN VERBS ARE SEPARATE PURPOSES, not one shared "admin" token, for
