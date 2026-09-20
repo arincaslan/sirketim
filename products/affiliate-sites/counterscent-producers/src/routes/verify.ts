@@ -5,6 +5,7 @@ import { section } from "../ui/components";
 import type { Env } from "../lib/env";
 import { db } from "../lib/db";
 import { consumeVerificationToken, createSession, findOrCreateUser, setSessionCookieHeader } from "../lib/auth";
+import { bumpRateLimit, VERIFY_MAX_ATTEMPTS, VERIFY_WINDOW_SECONDS, verifyIpKey } from "../lib/rate-limit";
 
 /**
  * "/verify" - the magic-link callback. Not linked from anywhere on this
@@ -61,6 +62,39 @@ export async function verify(request: Request, env: Env): Promise<Response> {
         }),
       }),
       503,
+    );
+  }
+
+  // LIMITED BEFORE THE TOKEN IS CONSUMED, not after: the point is to stop the
+  // database work, so a check that runs once the work is done would be
+  // decoration. Fails CLOSED when the RateLimit table cannot be read, matching
+  // POST /sign-in and the OAuth callback - an unreadable limiter on an
+  // unauthenticated endpoint is exactly when waving traffic through is worst.
+  const limit = await bumpRateLimit(sql, {
+    key: verifyIpKey(request),
+    windowSeconds: VERIFY_WINDOW_SECONDS,
+    limit: VERIFY_MAX_ATTEMPTS,
+  });
+  if (limit.kind === "limited" || limit.kind === "unavailable") {
+    return page(
+      layout({
+        title: "Sign-in link",
+        heading: "Too many sign-in links have been opened from this connection",
+        body: section({
+          heading: "Nothing was signed in, and your link was not used up",
+          body: html`
+            <p>
+              This connection has opened ${String(VERIFY_MAX_ATTEMPTS)} sign-in links in the last
+              ${String(VERIFY_WINDOW_SECONDS / 60)} minutes, which is the limit. Your link was not
+              read, so it has not been spent - wait a few minutes and open it again.
+            </p>
+            <p>
+              If it has expired by then, <a href="/sign-in">request a new one</a>.
+            </p>
+          `,
+        }),
+      }),
+      429,
     );
   }
 

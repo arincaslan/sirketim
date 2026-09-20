@@ -244,6 +244,36 @@ export const SIGN_IN_GLOBAL_KEY = "signin-send:global";
  * fiddly code that could not be tested against real Cloudflare traffic from
  * here. The global send cap is what bounds that case today.
  */
+/**
+ * THE MAGIC-LINK CALLBACK'S OWN IP BUCKET, added 2026-09-20.
+ *
+ * `/verify` was the last unauthenticated endpoint on this origin with no
+ * limit of any kind, which was found by firing twelve requests at the live
+ * Worker and getting twelve answers. It is NOT a token-guessing risk - the
+ * tokens are 256-bit and hashed at rest - and that is exactly why it was
+ * missed: the danger is not authentication, it is COST. Each hit is two to
+ * three round trips to a Neon instance on a 100 CU-hour monthly budget, and
+ * this repo already records that exceeding that budget suspends compute until
+ * the next billing month. An unmetered database endpoint is a way for a
+ * stranger to take the console off the air for weeks.
+ *
+ * SEPARATE BUCKET FROM SIGN-IN, for the same reason the OAuth callback has
+ * its own: sharing one would let a burst of junk verifies exhaust the
+ * allowance that protects the business mailbox, which is the more valuable
+ * of the two.
+ *
+ * Loose on purpose. A real person clicking a link in an email hits this once;
+ * twenty in ten minutes is far beyond any honest use and still far below what
+ * it takes to matter.
+ */
+export const VERIFY_WINDOW_SECONDS = 600;
+export const VERIFY_MAX_ATTEMPTS = 20;
+
+export function verifyIpKey(request: Request): string {
+  const ip = request.headers.get("CF-Connecting-IP")?.trim();
+  return `verify-ip:${ip || "unknown"}`;
+}
+
 export function signInIpKey(request: Request): string {
   const ip = request.headers.get("CF-Connecting-IP")?.trim();
   return `signin-ip:${ip || "unknown"}`;

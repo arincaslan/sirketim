@@ -179,12 +179,19 @@ function readCatalogue() {
   const vocabulary = new Set();
   const sillage = new Set();
   const concentrations = new Set();
+  // FAMILIES, added 2026-09-20 for the review screen. An admin sets a
+  // submission's family at approval, and the value has to be one the
+  // catalogue's build can render - so it is read from the catalogue rather
+  // than typed into the console, for the same reason every other constant
+  // in this file is.
+  const families = new Set();
   let maxTier = 0;
   const facetValues = [];
 
   for (const r of references) {
     if (typeof r.sillageLabel === "string" && r.sillageLabel) sillage.add(r.sillageLabel);
     if (typeof r.concentration === "string" && r.concentration) concentrations.add(r.concentration);
+    if (typeof r.family === "string" && r.family) families.add(r.family);
     for (const tier of ["top", "heart", "base"]) {
       const notes = r.notes?.[tier];
       if (!Array.isArray(notes) || notes.length === 0) {
@@ -216,11 +223,20 @@ function readCatalogue() {
     fail(`observed ${sillage.size} distinct sillage labels, which is implausible`);
   }
   if (concentrations.size < 2) fail(`observed ${concentrations.size} concentrations`);
+  // The taxonomy is two-word and granular - "Oriental Woody", "Floral Fruity" -
+  // so 58 across 216 references is normal, and the first ceiling written here
+  // (40) was wrong and fired on correct data. Fewer than three means the field
+  // was not read at all; more than eighty means something other than a family
+  // is being collected, which would produce hundreds rather than dozens.
+  if (families.size < 3 || families.size > 80) {
+    fail(`observed ${families.size} distinct families, which is implausible`);
+  }
 
   return {
     files: perFile,
     sillage: [...sillage].sort((a, b) => a.localeCompare(b)),
     concentrations: [...concentrations].sort((a, b) => a.localeCompare(b)),
+    families: [...families].sort((a, b) => a.localeCompare(b)),
     references: references
       .map((r) => ({ slug: r.slug, name: r.name, brand: r.brand }))
       .sort((a, b) => a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name)),
@@ -386,6 +402,14 @@ function buildCatalogueFile(cat) {
     " *  a permitted set. */",
     `export const CONCENTRATIONS: readonly string[] = [`,
     ...cat.concentrations.map((c) => `  ${lit(c)},`),
+    `];`,
+    "",
+    "/** The fragrance families in use across the catalogue. CLOSED: an admin",
+    " *  picks one of these when approving a submission, and a family outside",
+    " *  this set is one the public build has never rendered. Generated rather",
+    " *  than typed so the review screen cannot drift from the catalogue. */",
+    `export const FAMILIES: readonly string[] = [`,
+    ...cat.families.map((f) => `  ${lit(f)},`),
     `];`,
     "",
     "export interface GeneratedReference {",

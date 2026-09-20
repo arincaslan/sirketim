@@ -2054,6 +2054,64 @@ html[data-theme-switching] *::after {
    screen and fold to two and then one without a media query, and the card is
    as likely to be read on a laptop at half width as on a desktop.
    ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+   SCORING AT REVIEW. The family and the six facets an editor sets when
+   approving a listing - see the FACETS header in src/routes/admin-queue.ts
+   for why approval cannot happen without them.
+
+   A FIELDSET WITH A LEGEND, not a div with a heading. These seven controls
+   are one answer to one question, the grouping is semantic rather than
+   decorative, and a screen reader announces the legend with each control -
+   which is the difference between "Warmth" and "Scores, Warmth" on a page
+   that may carry twenty of these.
+   ------------------------------------------------------------------------- */
+.score-set {
+  margin: 0;
+  padding: 1rem 1.125rem 1.125rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+}
+.score-set > legend {
+  padding: 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+}
+.score-set .field-hint {
+  margin-top: 0;
+}
+
+/* Six short numeric inputs. auto-fit rather than a fixed six columns: at 375px
+   they stack two-up instead of overflowing, and nothing needs a breakpoint. */
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.75rem 1rem;
+}
+.score-grid .field {
+  margin: 0;
+}
+/* A 0-10 box does not need to be as wide as an email address, and a narrow
+   one reads as "a small number goes here" without any copy saying so. */
+.score-grid input {
+  max-width: 6rem;
+}
+
+/* The producer's own claim, collapsed. It is the longest thing on the card and
+   the only part an editor does not need on every pass, so it opens on demand
+   rather than pushing the next listing off the screen. */
+.decision-claim {
+  margin: 0 0 1rem;
+}
+.decision-claim > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.decision-claim p {
+  margin: 0.5rem 0 0;
+  color: hsl(var(--muted-foreground));
+}
 .decision-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));

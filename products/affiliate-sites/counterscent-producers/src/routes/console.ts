@@ -27,6 +27,7 @@ import { getAuthContext, type AuthUser } from "../lib/auth";
 import { isAdminEmail } from "../lib/admin";
 import {
   countsAgainstAllowance,
+  effectiveTier,
   enforcedAllowance,
   loadProducerConsole,
   planFor,
@@ -118,7 +119,10 @@ export async function producerConsole(request: Request, env: Env): Promise<Respo
   // this page assert that something was withdrawn when nothing was.
   const withdrewSlug = new URL(request.url).searchParams.get("withdrew");
   const withdrew =
-    withdrewSlug && data.listings.find((l) => l.slug === withdrewSlug && !countsAgainstAllowance(l.publishState))
+    withdrewSlug &&
+    data.listings.find(
+      (l) => l.slug === withdrewSlug && !countsAgainstAllowance(l.publishState, l.approvalStatus),
+    )
       ? data.listings.find((l) => l.slug === withdrewSlug) ?? null
       : null;
 
@@ -456,7 +460,7 @@ function attached(
   // which is false when tier is null - so this page said there was nothing to be
   // full of while the form said "1 of 1". That is every producer's state at
   // launch, not an edge case, because there are zero Subscription rows.
-  const verdict = quotaGate({ tier: producer.tier, inUse, uncapped: isAdmin });
+  const verdict = quotaGate({ tier: effectiveTier(producer), inUse, uncapped: isAdmin });
   const atAllowance = verdict.kind === "at-allowance";
 
   const body = html`
@@ -757,7 +761,7 @@ function planPanel(producer: ProducerConsoleData["producer"], inUse: number): Ht
     const left = Math.max(0, allowance - inUse);
     room = left === 0 ? html`No room for another` : html`Can list ${String(left)} more`;
     if (left === 0)
-      note = mayWithdrawSelf(producer.tier)
+      note = mayWithdrawSelf(effectiveTier(producer))
         ? html`Withdrawing one frees its slot, or move up a tier.`
         : html`Ask us to withdraw one and the slot frees, or move up a tier.`;
   }
@@ -894,8 +898,13 @@ function withdrawable(l: ListingRow): boolean {
  * The exhausted-allowance screen
  * ======================================================================== *
  *
- * UNREACHABLE TODAY, AND BUILT ANYWAY. Nobody can submit anything, so no
- * allowance can be used, so this never renders. It is written now because it
+ * REACHED IN THE ORDINARY WAY SINCE SUBMISSIONS SHIPPED. This comment used to
+ * open "UNREACHABLE TODAY, AND BUILT ANYWAY. Nobody can submit anything",
+ * which was true when it was written and stopped being true on 2026-09-16,
+ * and the sentence sat here asserting it for four more days. Corrected
+ * 2026-09-20 after a pre-payment audit read it as current.
+ *
+ * It was written ahead of its first use because it
  * is the single most likely place this product fakes success: it is the exact
  * moment a subscription flow wants a Subscribe button, and the button would do
  * nothing. Left to be written in a hurry beside a payment integration, it gets

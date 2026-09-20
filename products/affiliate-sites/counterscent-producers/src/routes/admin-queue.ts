@@ -1,4 +1,4 @@
-import { html, type Html } from "../lib/html";
+import { html, raw, type Html } from "../lib/html";
 import { page, redirect as httpRedirect } from "../lib/http";
 
 // SEE THE NOTE IN lib/http.ts: this used to be a THREE-LINE LOCAL FUNCTION of
@@ -27,6 +27,7 @@ import { adminActorId, requireAdmin } from "../lib/admin";
 import { CSRF_FIELD, csrfToken, verifyCsrf } from "../lib/csrf";
 import { generateId, type Sql } from "../lib/auth";
 import { formatWhen } from "./admin";
+import { FAMILIES } from "../generated/catalogue";
 
 /**
  * "/admin/queue" - the screen where a listing is acknowledged.
@@ -70,6 +71,77 @@ import { formatWhen } from "./admin";
  *    (invisible, permanent).
  */
 
+/**
+ * ============================================================================
+ * THE SIX FACETS AND THE FAMILY, SET HERE OR NOWHERE.
+ * ============================================================================
+ *
+ * ADDED 2026-09-20. Until then this console could take a submission and
+ * approve it, and nothing anywhere could score it - so an APPROVED listing
+ * still carried `family = ""` and all six facets at -1, the deliberate
+ * sentinels src/lib/submission.ts writes because a producer must not supply
+ * these and the Worker cannot derive them. That file said plainly what was
+ * missing: "an editor setting the facets at review... That is step 7 and it is
+ * not built." This is step 7.
+ *
+ * WHY IT BLOCKS APPROVAL RATHER THAN SITTING BESIDE IT. An approved listing
+ * with sentinel facets is the worst of both worlds: it has passed review, so
+ * nothing will look at it again, and it cannot be scored, so it can never
+ * publish. A producer would have paid, submitted, been told yes, and received
+ * nothing, with no state anywhere recording that a step was missed. Requiring
+ * the scores at the moment of approval means the only way to say yes is to
+ * say yes to something publishable.
+ *
+ * THE OTHER THREE DECISIONS TAKE NO SCORES, and that is not an oversight:
+ * rejecting, requesting changes and taking down all move a listing AWAY from
+ * publication, and scoring something we are refusing is work with no reader.
+ *
+ * THE SCALE IS 0-10. The catalogue documents it as 0 to 10 in lib/types.ts;
+ * the observed range across all 216 references is 1 to 10 (printed by
+ * scripts/generate-constants.mjs on every run). 0 is accepted because the
+ * scale says so, not because anything uses it. -1 remains impossible, which
+ * is what keeps `WHERE "facetFreshness" < 0` meaning "nobody has scored this".
+ *
+ * THE FAMILY LIST IS GENERATED, never typed here - see FAMILIES in
+ * src/generated/catalogue.ts. A family outside it is one the public build has
+ * never rendered.
+ */
+const FACETS = [
+  { name: "facetFreshness", label: "Freshness" },
+  { name: "facetSweetness", label: "Sweetness" },
+  { name: "facetWarmth", label: "Warmth" },
+  { name: "facetWoodyDepth", label: "Woody depth" },
+  { name: "facetLongevity", label: "Longevity" },
+  { name: "facetSillage", label: "Sillage" },
+] as const;
+
+const FACET_MIN = 0;
+const FACET_MAX = 10;
+
+/** Parsed scores, or the reason they could not be. */
+type ScoreResult =
+  | { ok: true; family: string; facets: Record<string, number> }
+  | { ok: false };
+
+function readScores(form: FormData): ScoreResult {
+  const family = (asString(form.get("family")) ?? "").trim();
+  // MEMBERSHIP, not just non-empty. The <select> offers only generated values,
+  // so anything else arrived from something that was not our form.
+  if (!FAMILIES.includes(family)) return { ok: false };
+
+  const facets: Record<string, number> = {};
+  for (const f of FACETS) {
+    const raw = (asString(form.get(f.name)) ?? "").trim();
+    if (raw === "") return { ok: false };
+    const n = Number(raw);
+    // Number("") is 0 and Number("3abc") is NaN; both are caught, and the
+    // integer check stops 7.5 becoming 7 silently in the column.
+    if (!Number.isInteger(n) || n < FACET_MIN || n > FACET_MAX) return { ok: false };
+    facets[f.name] = n;
+  }
+  return { ok: true, family, facets };
+}
+
 const DECISIONS = {
   approve: {
     label: "Approve",
@@ -77,6 +149,8 @@ const DECISIONS = {
     publishState: null,
     action: "approved",
     needsReason: false,
+    /** The only decision that scores. See the FACETS header above. */
+    needsScores: true,
   },
   changes: {
     label: "Request changes",
@@ -84,6 +158,7 @@ const DECISIONS = {
     publishState: "DRAFT",
     action: "revision_requested",
     needsReason: true,
+    needsScores: false,
   },
   reject: {
     label: "Reject",
@@ -91,6 +166,7 @@ const DECISIONS = {
     publishState: null,
     action: "rejected",
     needsReason: true,
+    needsScores: false,
   },
   remove: {
     label: "Take down",
@@ -98,6 +174,7 @@ const DECISIONS = {
     publishState: "REMOVED_BY_EDITOR",
     action: "removed_by_editor",
     needsReason: true,
+    needsScores: false,
   },
 } as const;
 
@@ -159,6 +236,15 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
     return redirect(`/admin/queue?problem=reason&id=${encodeURIComponent(id)}`);
   }
 
+  // ALSO SERVER-SIDE, and for the same reason: the `required` attributes on
+  // the score inputs are a convenience for a browser, not the rule. Approving
+  // without a full set of scores is refused here, which is the only place it
+  // counts.
+  const scores = decision.needsScores ? readScores(form) : null;
+  if (scores !== null && !scores.ok) {
+    return redirect(`/admin/queue?problem=score&id=${encodeURIComponent(id)}`);
+  }
+
   try {
     const rows = (await sql`
       SELECT s.id, s."producerId", s."approvalStatus", s."publishState",
@@ -201,19 +287,59 @@ export async function adminDecide(request: Request, env: Env): Promise<Response>
         'FOUNDER', ${adminActorId(auth)},
         'admin-console',
         ${JSON.stringify({ approvalStatus: row.approvalStatus, publishState: row.publishState })}::jsonb,
-        ${JSON.stringify({ approvalStatus: nextApproval, publishState: nextPublish })}::jsonb,
+        ${JSON.stringify(
+          scores && scores.ok
+            ? {
+                approvalStatus: nextApproval,
+                publishState: nextPublish,
+                family: scores.family,
+                ...scores.facets,
+              }
+            : { approvalStatus: nextApproval, publishState: nextPublish },
+        )}::jsonb,
         ${reason.length > 0 ? reason : null},
         ${row.tier}, ${row.subStatus}
       )
     `;
 
-    await sql`
-      UPDATE "Submission"
-      SET "approvalStatus" = ${nextApproval},
-          "publishState"   = ${nextPublish},
-          "updatedAt"      = now()
-      WHERE id = ${row.id}
-    `;
+    // REVIEWER AND TIMESTAMP ON EVERY DECISION, not just approval. Both
+    // columns existed in the schema from the first migration and NOTHING in
+    // this Worker had ever written either - found by approving a listing
+    // against the live Worker and reading the row back. The AuditEvent
+    // carried the same facts, so nothing was lost, but a reviewed row that
+    // says it was reviewed by nobody at no time is a column lying quietly.
+    //
+    // `reviewedAt` is now(), computed by the database, because that column is
+    // a zoneless TIMESTAMP and this repo has already paid once for writing a
+    // JavaScript clock into one of those.
+    if (scores && scores.ok) {
+      await sql`
+        UPDATE "Submission"
+        SET "approvalStatus"  = ${nextApproval},
+            "publishState"    = ${nextPublish},
+            family            = ${scores.family},
+            "facetFreshness"  = ${scores.facets.facetFreshness},
+            "facetSweetness"  = ${scores.facets.facetSweetness},
+            "facetWarmth"     = ${scores.facets.facetWarmth},
+            "facetWoodyDepth" = ${scores.facets.facetWoodyDepth},
+            "facetLongevity"  = ${scores.facets.facetLongevity},
+            "facetSillage"    = ${scores.facets.facetSillage},
+            "reviewedBy"      = ${adminActorId(auth)},
+            "reviewedAt"      = now(),
+            "updatedAt"       = now()
+        WHERE id = ${row.id}
+      `;
+    } else {
+      await sql`
+        UPDATE "Submission"
+        SET "approvalStatus" = ${nextApproval},
+            "publishState"   = ${nextPublish},
+            "reviewedBy"     = ${adminActorId(auth)},
+            "reviewedAt"     = now(),
+            "updatedAt"      = now()
+        WHERE id = ${row.id}
+      `;
+    }
 
     return redirect(`/admin/queue?done=${encodeURIComponent(decision.action)}`);
   } catch {
@@ -250,6 +376,17 @@ interface QueueRow {
   submittedAt: unknown;
   producerName: string;
   tier: string | null;
+  /** THE DECLARED PYRAMID, read so the card can show it. An editor cannot
+   *  set a family or six facets from a name and a price - these ARE the
+   *  evidence the scores are derived from, and a review screen that hides
+   *  them is asking for a number to be invented. */
+  notesTop: string[] | null;
+  notesHeart: string[] | null;
+  notesBase: string[] | null;
+  declaredDifferences: string;
+  /** Below zero means nobody has scored it. See FACET_SENTINEL. */
+  facetFreshness: number;
+  family: string;
 }
 
 async function renderQueue(
@@ -266,7 +403,11 @@ async function renderQueue(
     waiting = (await sql`
       SELECT s.id, s.slug, s.name, s.brand, s."referenceSlug", s.concentration,
              s."priceUsd", s."bottleMl", s."imageUrl", s."approvalStatus",
-             s."publishState", s."submittedAt", p.name AS "producerName", sub.tier AS tier
+             s."publishState", s."submittedAt", p.name AS "producerName", sub.tier AS tier,
+             s."notesTop", s."notesHeart", s."notesBase", s."declaredDifferences",
+             s."facetFreshness", s.family,
+             s."notesTop", s."notesHeart", s."notesBase", s."declaredDifferences",
+             s."facetFreshness", s.family
       FROM "Submission" s
       JOIN "Producer" p ON p.id = s."producerId"
       LEFT JOIN "Subscription" sub ON sub."producerId" = s."producerId"
@@ -388,8 +529,76 @@ async function renderQueue(
  * verbs still carry the decision as a button value, and the server-side reason
  * check in adminDecide() is untouched and remains the only one that counts.
  */
+/** The producer's declared pyramid. Rendered as three labelled rows rather
+ *  than a paragraph, because the reader is comparing tiers against each
+ *  other to pick six numbers, not reading prose. */
+function declaredPyramid(r: QueueRow): Html {
+  const tier = (label: string, notes: string[] | null) =>
+    html`<div>
+      <dt>${label}</dt>
+      <dd>${notes && notes.length > 0 ? notes.join(", ") : html`<span class="muted">none declared</span>`}</dd>
+    </div>`;
+  return html`<dl class="decision-meta">
+    ${tier("Top", r.notesTop)} ${tier("Heart", r.notesHeart)} ${tier("Base", r.notesBase)}
+  </dl>`;
+}
+
+/**
+ * THE SCORING CONTROLS, rendered only on a card that can approve.
+ *
+ * IDS ARE PER ROW. The shared selectField()/field() helpers derive their id
+ * from the field NAME alone, which is correct on a form that appears once and
+ * wrong here: a queue of twenty cards would emit twenty elements all called
+ * `f-family`, so every <label> on the page would point at the first card's
+ * control. Duplicate ids are invalid HTML and, more to the point, they make
+ * every label after the first one lie to a screen reader.
+ *
+ * NOT PRE-FILLED, and that is deliberate rather than lazy. Only
+ * `facetFreshness` is read into QueueRow - it is the sentinel probe, not a
+ * value to display - so pre-filling from it would put one facet's number into
+ * all six boxes. A plausible-looking wrong number is precisely what the -1
+ * sentinel exists to make impossible, and this card only ever renders for a
+ * PENDING submission, which by definition has never been scored.
+ */
+function scoreFields(r: QueueRow): Html {
+  return html`<fieldset class="score-set">
+    <legend>Scores</legend>
+    <p class="field-hint">
+      Set from the declared pyramid above. Required to approve, and nothing else can set
+      them - a listing approved without these could never publish.
+    </p>
+    <div class="field">
+      <label for="family-${r.id}">Family</label>
+      <select id="family-${r.id}" name="family" required>
+        <option value="">Choose a family</option>
+        ${FAMILIES.map(
+          (f) => html`<option value="${f}"${r.family === f ? raw(" selected") : ""}>${f}</option>`,
+        )}
+      </select>
+    </div>
+    <div class="score-grid">
+      ${FACETS.map(
+        (f) => html`<div class="field">
+          <label for="${f.name}-${r.id}">${f.label}</label>
+          <input
+            type="number"
+            id="${f.name}-${r.id}"
+            name="${f.name}"
+            min="${String(FACET_MIN)}"
+            max="${String(FACET_MAX)}"
+            step="1"
+            inputmode="numeric"
+            required
+          >
+        </div>`,
+      )}
+    </div>
+  </fieldset>`;
+}
+
 function decisionCard(r: QueueRow, token: string | null, verbs: DecisionKey[]): Html {
   const needsReason = verbs.some((v) => DECISIONS[v].needsReason);
+  const canApprove = verbs.some((v) => DECISIONS[v].needsScores);
   return card(html`
     <div class="cell-with-thumb">
       ${listingThumb({ name: r.name, imageUrl: r.imageUrl })}
@@ -418,9 +627,17 @@ function decisionCard(r: QueueRow, token: string | null, verbs: DecisionKey[]): 
         <dt>State</dt>
         <dd>
           ${stateBadge(r.approvalStatus === "APPROVED" ? "approved" : "in-review")}
+          ${r.facetFreshness < 0 ? html`<span class="muted"> - not scored</span>` : ""}
         </dd>
       </div>
     </dl>
+    ${canApprove ? declaredPyramid(r) : ""}
+    ${canApprove
+      ? html`<details class="decision-claim">
+          <summary>What the producer says is different</summary>
+          <p>${r.declaredDifferences}</p>
+        </details>`
+      : ""}
     ${token === null
       ? html`<p class="muted">
           This form cannot be rendered without a session token. Reload the page.
@@ -428,6 +645,7 @@ function decisionCard(r: QueueRow, token: string | null, verbs: DecisionKey[]): 
       : html`<form method="post" action="/admin/queue" class="stack">
           ${csrfInput(CSRF_FIELD, token)}
           <input type="hidden" name="submissionId" value="${r.id}">
+          ${canApprove ? scoreFields(r) : ""}
           ${textareaField({
             id: `reason-${r.id}`,
             name: "reason",
@@ -468,6 +686,8 @@ function flag(flags: { done: string | null; problem: string | null }): Html {
   };
   const PROBLEMS: Record<string, string> = {
     csrf: "That form was not carrying a valid token for your session. Nothing changed. Reload and try again.",
+    score:
+      "Approving needs a family and all six facets, each a whole number from 0 to 10. Nothing was changed, and the listing is still waiting.",
     malformed: "That request was missing a listing or a decision. Nothing changed.",
     reason: "That decision needs a reason of at least a few words. Nothing changed.",
     gone: "That listing no longer exists. Nothing changed.",

@@ -1,6 +1,12 @@
 import type { Sql } from "./auth";
 import { generateId } from "./auth";
 import { validateProducerLink } from "./producer-link";
+// The counting rule, as data. Imported rather than restated so the SQL
+// backstop below and countsAgainstAllowance() are one definition.
+import {
+  ALLOWANCE_EXEMPT_APPROVAL_STATUSES,
+  ALLOWANCE_EXEMPT_PUBLISH_STATES,
+} from "./producer";
 import {
   CONCENTRATIONS,
   NOTE_INPUTS_PER_TIER,
@@ -97,6 +103,46 @@ export const FAMILY_SENTINEL = "";
  *  is a better submission than three padded sentences, and a floor high enough
  *  to reject the first one teaches producers to pad. */
 export const MIN_DIFFERENCES_CHARS = 20;
+
+/**
+ * ============================================================================
+ * UPPER BOUNDS. Added 2026-09-20; before this there were none at all.
+ * ============================================================================
+ *
+ * Every check in this file asked whether a field was PRESENT, and one asked
+ * for a minimum. Nothing anywhere asked for a maximum, so an authenticated
+ * producer could put a megabyte into `declaredDifferences` twenty times an
+ * hour - the producer write limit - and each one would land in a Neon
+ * instance on a metered free tier and then render in full on the admin queue,
+ * which is a page an editor has to scroll past to reach the next listing.
+ *
+ * NOT A SECURITY BOUNDARY, which is why it was easy to miss: the writer is
+ * signed in, attached to a company, rate limited, and every value is escaped
+ * on output. It is a resource and usability bound, and those are worth having
+ * before the first real producer rather than after.
+ *
+ * THE NUMBERS ARE GENEROUS ON PURPOSE. Each is far past any honest use of the
+ * field, because a limit that a real producer can hit while writing carefully
+ * is a limit that will be hit by exactly the wrong person. The point is to
+ * make the abusive case impossible, not to edit anybody's prose.
+ *
+ * URLs GET 2048 because that is the conventional practical ceiling browsers
+ * and servers agree on, and the column is text either way.
+ */
+export const MAX_CHARS = {
+  name: 120,
+  brand: 120,
+  concentration: 80,
+  declaredDifferences: 2_000,
+  ingredients: 4_000,
+  storeUrl: 2_048,
+  pairingSource: 160,
+  pairingQuote: 1_000,
+  pairingUrl: 2_048,
+  /** Per note, not per tier. The tier count is already bounded by the reader,
+   *  which looks up a fixed NOTE_INPUTS_PER_TIER indices and no more. */
+  note: 80,
+} as const;
 
 /* ---------------------------------------------------------------------- *
  * The slug
@@ -314,6 +360,41 @@ export function validateSubmission(
 ): { ok: true; value: ValidSubmission } | { ok: false; errors: FieldError[] } {
   const errors: FieldError[] = [];
   const add = (field: string, message: string) => errors.push({ field, message });
+
+  /** One message for every over-long field, so the wording cannot drift
+   *  between them, and it names the limit and the overage rather than just
+   *  saying no - somebody who has pasted an ingredient list needs to know how
+   *  much to cut. */
+  const tooLong = (field: string, label: string, value: string, max: number) => {
+    if (value.length <= max) return;
+    add(
+      field,
+      `${label} is ${String(value.length)} characters and the limit is ${String(max)}. ` +
+        `Trim about ${String(value.length - max)} and try again.`,
+    );
+  };
+
+  tooLong("name", "The name", draft.name, MAX_CHARS.name);
+  tooLong("brand", "The brand", draft.brand, MAX_CHARS.brand);
+  tooLong("concentration", "The concentration", draft.concentration, MAX_CHARS.concentration);
+  tooLong(
+    "declaredDifferences",
+    "What is different",
+    draft.declaredDifferences,
+    MAX_CHARS.declaredDifferences,
+  );
+  tooLong("ingredients", "The ingredient list", draft.ingredients, MAX_CHARS.ingredients);
+  tooLong("storeUrl", "The shop link", draft.storeUrl, MAX_CHARS.storeUrl);
+  tooLong("pairingSource", "The pairing source", draft.pairingSource, MAX_CHARS.pairingSource);
+  tooLong("pairingQuote", "The pairing quote", draft.pairingQuote, MAX_CHARS.pairingQuote);
+  tooLong("pairingUrl", "The pairing link", draft.pairingUrl, MAX_CHARS.pairingUrl);
+
+  // Notes are checked per box so the error lands on the box that is wrong.
+  for (const key of ["notesTop", "notesHeart", "notesBase"] as const) {
+    (draft[key] as string[]).forEach((value, i) => {
+      tooLong(`${key}-${String(i)}`, "That note", value, MAX_CHARS.note);
+    });
+  }
 
   if (!draft.referenceSlug) {
     add("referenceSlug", "Choose the original this is an alternative to.");
@@ -554,14 +635,46 @@ export function uniqueConflict(err: unknown): UniqueConflict | null {
  * column is the bug that once expired every magic link on this origin; see the
  * long explanation in src/lib/auth.ts. `now()` in SQL, on both sides, always.
  */
+/**
+ * ============================================================================
+ * THE ALLOWANCE IS ENFORCED BY THIS STATEMENT, not only by the route.
+ * ============================================================================
+ *
+ * ADDED 2026-09-20. quotaGate() runs on the GET and again on the POST, which
+ * is correct and is not enough: it reads a count captured when the producer
+ * record was loaded, and the insert happens later. Two simultaneous POSTs for
+ * two different originals both see the same count, both pass, and both write.
+ * No constraint stopped them - the only unique indexes are (producerId, slug)
+ * and (producerId, referenceSlug), and two different fragrances collide on
+ * neither.
+ *
+ * That was a data-integrity nuisance while listings were free. It is revenue
+ * the moment the allowance is the thing being paid for, which is why it is
+ * being closed now rather than later.
+ *
+ * The fix is to make "is there room" and "take the room" one statement, which
+ * is the same shape this file already uses for slug uniqueness and that
+ * oauth-account.ts uses for address uniqueness: let the database arbitrate,
+ * because it is the only party that sees both requests.
+ *
+ * `cap` COMES FROM allowanceCap() AND THE EXEMPT-STATE ARRAYS ARE PASSED IN,
+ * so the predicate below is not a second copy of the counting rule - it is the
+ * same one, parameterised. See the note on ALLOWANCE_EXEMPT_PUBLISH_STATES.
+ *
+ * RETURNS NULL when the cap was already full at write time. That is not an
+ * error: it is the race resolving, and the caller renders the ordinary
+ * allowance-full screen, which is exactly what the loser of the race should
+ * see.
+ */
 export async function insertSubmission(
   sql: Sql,
   actor: ActorContext,
   value: ValidSubmission,
-): Promise<{ id: string; slug: string }> {
+  cap: number,
+): Promise<{ id: string; slug: string } | null> {
   const id = generateId();
 
-  await sql`
+  const inserted = (await sql`
     INSERT INTO "Submission" (
       id, "producerId", "referenceSlug", slug, name, brand, concentration,
       "priceUsd", "bottleMl", family,
@@ -572,7 +685,8 @@ export async function insertSubmission(
       "declaredDifferences", "storeUrl",
       "pairingSource", "pairingQuote", "pairingUrl",
       "approvalStatus", "publishState", "updatedAt"
-    ) VALUES (
+    )
+    SELECT
       ${id}, ${actor.producerId}, ${value.referenceSlug}, ${value.slug},
       ${value.name}, ${value.brand}, ${value.concentration},
       ${value.priceUsd}, ${value.bottleMl},
@@ -592,8 +706,19 @@ export async function insertSubmission(
       ${value.declaredDifferences}, ${value.storeUrl},
       ${value.pairingSource}, ${value.pairingQuote}, ${value.pairingUrl},
       'PENDING', 'PENDING', now()
-    )
-  `;
+    WHERE (
+      SELECT count(*) FROM "Submission" s
+      WHERE s."producerId" = ${actor.producerId}
+        AND s."approvalStatus"::text <> ALL(${[...ALLOWANCE_EXEMPT_APPROVAL_STATUSES]}::text[])
+        AND s."publishState"::text   <> ALL(${[...ALLOWANCE_EXEMPT_PUBLISH_STATES]}::text[])
+    ) < ${cap}
+    RETURNING id
+  `) as { id: string }[];
+
+  // NOTHING WAS WRITTEN. The allowance filled between the route's check and
+  // this statement. No audit row either, deliberately: AuditEvent records
+  // things that happened, and nothing did.
+  if (!inserted[0]) return null;
 
   const notes = [...value.notesTop, ...value.notesHeart, ...value.notesBase];
   const audit = auditNotes(notes);

@@ -12,7 +12,7 @@ import {
 } from "../ui/components";
 import type { Env } from "../lib/env";
 import { CSRF_FIELD, csrfToken, verifyCsrf } from "../lib/csrf";
-import { mayWithdrawSelf, type ListingRow } from "../lib/producer";
+import { effectiveTier, mayWithdrawSelf, type ListingRow } from "../lib/producer";
 import {
   bumpRateLimit,
   PRODUCER_WRITE_MAX,
@@ -107,7 +107,7 @@ export async function withdrawPage(request: Request, env: Env): Promise<Response
   // own listing down - which contradicts "every ability" (founder, 2026-09-18)
   // and would be absurd on a screen that also offers them the Take down button
   // in /admin/queue. Read from ADMIN_EMAILS, never from the producer record.
-  if (!gate.isAdmin && !mayWithdrawSelf(gate.data.producer.tier)) {
+  if (!gate.isAdmin && !mayWithdrawSelf(effectiveTier(gate.data.producer))) {
     return page(askUsInstead(gate.auth.email, listing), 403);
   }
 
@@ -161,7 +161,7 @@ export async function withdrawSubmit(request: Request, env: Env): Promise<Respon
   // own listing down - which contradicts "every ability" (founder, 2026-09-18)
   // and would be absurd on a screen that also offers them the Take down button
   // in /admin/queue. Read from ADMIN_EMAILS, never from the producer record.
-  if (!gate.isAdmin && !mayWithdrawSelf(gate.data.producer.tier)) {
+  if (!gate.isAdmin && !mayWithdrawSelf(effectiveTier(gate.data.producer))) {
     return page(askUsInstead(gate.auth.email, listing), 403);
   }
 

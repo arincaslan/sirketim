@@ -22,6 +22,8 @@ import type { Env } from "../lib/env";
 import type { AuthUser, Sql } from "../lib/auth";
 import { CSRF_FIELD, csrfToken, verifyCsrf } from "../lib/csrf";
 import {
+  allowanceCap,
+  effectiveTier,
   mayWithdrawSelf,
   quotaGate,
   type ProducerConsoleData,
@@ -167,7 +169,9 @@ export async function submitListing(request: Request, env: Env): Promise<Respons
   // came from our form would otherwise walk straight past a decision made at
   // render time.
   const quota = quotaGate({
-    tier: gate.data.producer.tier,
+    // THE TIER IN FORCE, not the tier on the row. A CANCELED or PAST_DUE
+    // subscription enforces the free allowance - see entitlementOf().
+    tier: effectiveTier(gate.data.producer),
     inUse: gate.data.inUse,
     uncapped: gate.isAdmin,
   });
@@ -197,9 +201,15 @@ export async function submitListing(request: Request, env: Env): Promise<Respons
     status: gate.data.producer.status,
   };
 
-  let created: { id: string; slug: string };
+  // THE CAP GOES TO THE DATABASE TOO. quota above decided this producer may
+  // write; this decides how many rows may exist when the write lands, which
+  // is the question two simultaneous POSTs make different. See
+  // insertSubmission().
+  const cap = allowanceCap(effectiveTier(gate.data.producer), gate.isAdmin);
+
+  let created: { id: string; slug: string } | null;
   try {
-    created = await insertSubmission(gate.sql, actor, result.value);
+    created = await insertSubmission(gate.sql, actor, result.value, cap);
   } catch (err) {
     const conflict = uniqueConflict(err);
     if (conflict === "slug") {
@@ -232,6 +242,18 @@ export async function submitListing(request: Request, env: Env): Promise<Respons
     }
     console.error("submitListing insert failed", err instanceof Error ? err.message : err);
     return page(writeFailed(gate.auth, gate.isAdmin), 503);
+  }
+
+  // NULL MEANS THE DATABASE REFUSED THE WRITE ON THE ALLOWANCE, which is the
+  // race quotaGate() above cannot see: another request for this producer filled
+  // the last slot between that check and this insert. Nothing was written and
+  // no audit row exists, so the honest answer is the same allowance-full screen
+  // the check itself renders - the loser of the race is simply full.
+  if (!created) {
+    return renderForm(request, gate, {
+      draft,
+      quota: { kind: "at-allowance", allowance: cap },
+    });
   }
 
   // PRG, and a 303 rather than the 302 the rest of this origin uses: 303 is the
@@ -298,7 +320,8 @@ async function renderForm(
 ): Promise<Response> {
   const { data } = gate;
   const quota =
-    state.quota ?? quotaGate({ tier: data.producer.tier, inUse: data.inUse, uncapped: gate.isAdmin });
+    state.quota ??
+    quotaGate({ tier: effectiveTier(data.producer), inUse: data.inUse, uncapped: gate.isAdmin });
 
   if (quota.kind === "unknown-tier") {
     return page(unknownTier(gate.auth, data, quota.tier), 200);
@@ -827,7 +850,7 @@ function allowanceFull(auth: AuthUser, data: ProducerConsoleData, allowance: num
           cannot give you a date and we will not invent one.
         </p>
         <p>
-          ${mayWithdrawSelf(data.producer.tier)
+          ${mayWithdrawSelf(effectiveTier(data.producer))
             ? html`<strong>What you can do on your own:</strong> withdrawing a listing frees its
                 slot immediately. The control is in the row of the listing it acts on, on
                 <a href="/console">the console</a>.`

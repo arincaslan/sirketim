@@ -114,7 +114,18 @@ export async function createCompany(request: Request, env: Env): Promise<Respons
   if (!auth) return page(signedOut(), 401);
   if (auth.producerId) return redirect("/console");
 
-  const body = await request.formData();
+  // GUARDED, like every other write route here. formData() THROWS on a body
+  // it cannot parse, and unguarded that surfaces as a generic 500 - the
+  // fake-failure shape this project's notShipped() ethos exists to prevent.
+  // A browser cannot produce it; only a non-browser client can, and it should
+  // get the same honest refusal as a missing field. This was the one write
+  // route that missed the fix applied to the other five on 2026-09-16.
+  let body: FormData;
+  try {
+    body = await request.formData();
+  } catch {
+    return redirect("/console/company");
+  }
   // Read explicitly rather than via Object.fromEntries: that returns an index
   // signature, so every field read below would be `string | undefined` and the
   // length checks would need a non-null assertion each. Three named reads are
