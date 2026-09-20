@@ -1,7 +1,16 @@
 import { html } from "../lib/html";
 import { page, redirect } from "../lib/http";
 import { CATALOGUE, layout } from "../ui/layout";
-import { button, card, field, linkButton, notShipped, section } from "../ui/components";
+import {
+  button,
+  card,
+  ENVELOPE_GLYPH,
+  field,
+  linkButton,
+  notShipped,
+  PROVIDER_MARKS,
+  section,
+} from "../ui/components";
 import { configuredProviders } from "../lib/providers";
 import type { Env } from "../lib/env";
 import { db } from "../lib/db";
@@ -101,13 +110,14 @@ export function signIn(request: Request, env: Env) {
         set), so a link could not be sent even though the account system itself is connected. This is a
         known, expected gap while that secret is being set up - not a fabricated one.`;
 
+  // NO section() AROUND THE CARD, AND NO HEADING OF ITS OWN. The layout
+  // already renders an <h1> saying "Sign in", so a section here repeated the
+  // same word as an <h2> directly beneath it, and its standfirst pushed the
+  // card 406px down a 732px screen. Both measured in a browser rather than
+  // adjusted by eye. The lede it used to carry became the page standfirst,
+  // where it says the same thing once.
   const body = html`
-    ${section({
-      heading: "Email sign-in",
-      lede: html`No passwords. Type a work email, we send a one-time link, and following it signs you
-        in.`,
-      body: html`
-        <div class="stack">
+    <div class="stack">
         ${
           !configured
             ? notShipped({
@@ -160,69 +170,82 @@ export function signIn(request: Request, env: Env) {
         }
 
         ${card(
-          configured
-            ? html`
-                <h3>Request a sign-in link</h3>
-                <form method="post" action="/sign-in" class="fieldset-body">
-                  ${field({
-                    name: "email",
-                    label: "Work email",
-                    type: "email",
-                    placeholder: "you@yourfragrancehouse.com",
-                    required: true,
-                    autoFocus: true,
-                    autoComplete: "email",
-                    hint: html`The address on the account, at the domain you sell from. The programme is
-                      for businesses, not private individuals.`,
-                  })}
-                  <div class="actions">
-                    ${button("Email me a sign-in link")}
-                    <p class="actions-note">
-                      Sending this does not open the programme or approve anything - it only proves who
-                      the inbox belongs to. See below for what it actually does.
-                    </p>
-                  </div>
-                </form>
-              `
-            : html`
-                <h3>Request a sign-in link</h3>
-                <p class="field-hint">Disabled - the account system is not fully connected yet.</p>
-              `,
-          "signin-card",
+          html`
+            ${
+              // GOOGLE FIRST IN READING ORDER, EMAIL FIRST IN VISUAL WEIGHT.
+              // Those are not in conflict and the split is the whole layout
+              // decision: Google is one click where email is a round trip
+              // through an inbox, so it reads first; but the email route keeps
+              // the primary green button, so weight still says which one is
+              // the house method and which one is borrowed.
+              //
+              // RENDERED EVEN WHEN THE MAIL SECRETS ARE MISSING. `configured`
+              // is about Hostinger and this button depends on it for nothing.
+              // The day mail breaks is precisely the day a second way in earns
+              // its keep, so gating it on the first one would throw the benefit
+              // away at the only moment it mattered.
+              //
+              // The mark comes from PROVIDER_MARKS by id rather than being
+              // passed directly, so a provider added later cannot inherit
+              // Google's logo. See that constant.
+              providers.length > 0
+                ? html`<div class="auth-providers">
+                    ${providers.map((p) =>
+                      linkButton(`/auth/${p.id}/start`, `Continue with ${p.label}`, {
+                        variant: "google",
+                        icon: PROVIDER_MARKS[p.id],
+                      }),
+                    )}
+                  </div>`
+                : ""
+            }
+            ${
+              // ONLY WHEN THERE ARE GENUINELY TWO ROUTES. A rule reading
+              // "or" above nothing is a promise the card does not keep.
+              providers.length > 0 && configured
+                ? html`<p class="auth-or"><span>or</span></p>`
+                : ""
+            }
+            ${
+              configured
+                ? html`<form method="post" action="/sign-in" class="auth-form">
+                    ${field({
+                      name: "email",
+                      label: "Work email",
+                      type: "email",
+                      placeholder: "you@yourfragrancehouse.com",
+                      required: true,
+                      // NOT autofocused any more. With Google sitting above it,
+                      // stealing focus into the second option on load both
+                      // contradicts the reading order and scrolls a small screen
+                      // past the first one.
+                      autoFocus: false,
+                      autoComplete: "email",
+                      hint: html`The address at the domain you sell from.`,
+                    })}
+                    ${button("Email me a sign-in link", { icon: ENVELOPE_GLYPH })}
+                  </form>`
+                : html`<p class="field-hint">
+                    Email sign-in is disabled: the mail secrets are not set on this Worker. The button
+                    above is unaffected and works.
+                  </p>`
+            }
+            ${
+              // ONE LINE OF FINE PRINT, and it is the only one that survived.
+              // Three longer notes moved into "What this actually does" below,
+              // which existed already and is where a reader who wants the detail
+              // is going anyway. The budget was set deliberately: this card has
+              // to fit a 375px screen without scrolling past the submit button.
+              configured
+                ? html`<p class="auth-fine">
+                    No password, ever. A link works once and expires in 15 minutes.
+                  </p>`
+                : ""
+            }
+          `,
+          "auth-card",
         )}
-
-        ${
-          // RENDERED EVEN WHEN THE MAIL SECRETS ARE MISSING, and that is the
-          // point rather than an oversight. `configured` above is about
-          // Hostinger; these buttons depend on it for nothing. The day mail
-          // breaks - an expired token, a suspended mailbox, a provider
-          // outage - is precisely the day a second way in earns its keep, so
-          // gating it on the first one would throw the benefit away at the
-          // only moment it mattered.
-          //
-          // An empty list renders nothing at all. A provider whose secrets
-          // are not both set is invisible here rather than disabled, because
-          // a button that explains why it cannot work is still a button
-          // somebody presses.
-          providers.length > 0
-            ? html`<div class="alt-methods">
-                <h3 class="alt-methods-title">Other ways to sign in</h3>
-                <div class="btn-row">
-                  ${providers.map((p) =>
-                    linkButton(`/auth/${p.id}/start`, `Continue with ${p.label}`, { variant: "ghost" }),
-                  )}
-                </div>
-                <p class="field-hint">
-                  These will not sign you into an account that already exists, even when the address
-                  matches. Signed in here before? Use the link above, then connect them under
-                  <strong>How you sign in</strong>.
-                </p>
-              </div>`
-            : ""
-        }
-        </div>
-      `,
-    })}
+    </div>
 
     ${section({
       heading: "What this actually does",
@@ -252,6 +275,13 @@ export function signIn(request: Request, env: Env) {
             <strong>How you sign in</strong>, and use it next time. The email link keeps working
             whatever else you connect, which is why it can never be switched off.
           </li>
+          <li>
+            Is what an existing account has to use first. Pressing
+            <strong>Continue with Google</strong> will not sign you into an account that already
+            exists here, even when the address matches exactly: an address is something Google says
+            about you, where being signed in already proves you hold the account. It refuses and
+            explains. One extra step, once.
+          </li>
         </ul>
       `,
     })}
@@ -278,7 +308,7 @@ export function signIn(request: Request, env: Env) {
             note: html`The sign-in mechanism exists; the secrets it needs to actually send mail are not
               both set on this Worker yet. See the notice below for which one.`,
           },
-      standfirst: html`For fragrance producers listing on Counterscent.`,
+      standfirst: html`Google, or a one-time link by email. There is no password either way.`,
       body,
     }),
     200,

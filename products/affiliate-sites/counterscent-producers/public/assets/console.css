@@ -801,13 +801,30 @@ fieldset {
   background: hsl(var(--secondary) / 0.7);
 }
 
+/* TWO ACCESSIBILITY FIXES HERE, both found by measuring the sign-in card in a
+   real browser on 2026-09-20 and both ORIGIN-WIDE rather than specific to it.
+
+   1. THE CONTROL HAD NO VISIBLE BOUNDARY. Its background was hsl(var(--card))
+      against a card of exactly hsl(var(--card)), a contrast ratio of 1.0, and
+      --border measured 1.46:1 against it in light and 1.34:1 in dark. So
+      nothing marked the edge of the field at the 3:1 WCAG 1.4.11 asks of a
+      control boundary: the input was identifiable only by its placeholder.
+      --muted-foreground measures 6.81:1 and 7.8:1, which is a deliberate,
+      slightly heavy field border of the GOV.UK kind rather than a hairline.
+      --border stays what it is and keeps its job of separating content.
+
+   2. 15px TRIGGERS ZOOM-ON-FOCUS ON iOS. Safari zooms the page whenever a
+      focused input is under 16px, which on a phone throws the layout sideways
+      the moment somebody taps the email field. 1rem is the documented floor
+      and costs nothing here.
+   ------------------------------------------------------------------------- */
 .field input,
 .field textarea {
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   width: 100%;
   padding: 0.625rem 0.75rem;
-  border: 1px solid hsl(var(--border));
+  border: 1px solid hsl(var(--muted-foreground));
   border-radius: var(--radius-frame);
   background: hsl(var(--card));
   color: hsl(var(--foreground));
@@ -2138,36 +2155,224 @@ html {
 }
 
 /* -------------------------------------------------------------------------
-   SIGN-IN METHODS. Two surfaces: the alternative ways in under the email form
-   on /sign-in, and the list of them on /console/accounts.
+   SIGN-IN METHODS. One card holding both routes, plus the list of them on
+   /console/accounts.
 
-   NO NEW TOKENS, per CONSOLE-PLAN.md section 3. Everything below is the
-   existing palette, the existing two faces and the existing three radii.
-
-   THERE IS NO RULE ABOVE .alt-methods, deliberately. The obvious build is the
-   centred hairline with OR sitting in a gap in the middle, and it is the most
-   templated component on the web. Spacing plus a display-face heading
-   separates the two routes exactly as every other block on this origin is
-   separated, so the page gains a second option without gaining a pattern
-   borrowed from somewhere else.
+   NO NEW TOKENS, per CONSOLE-PLAN.md section 3, with ONE documented
+   exception: .btn-google carries literal hex values because Google's
+   branding guidelines specify them and they are not ours to theme. Every
+   other colour below is the existing palette.
    ------------------------------------------------------------------------- */
-.alt-methods {
-  margin-top: 2rem;
+/* CONSTRAINED, AND LEFT, NOT CENTRED. Unbounded it took the full 72rem shell,
+   which stretched two full-width buttons to about 1350px and made a two-field
+   form read as a banner. 26rem is the width at which the buttons look like
+   controls. It stays on the left edge because every heading, label and
+   paragraph on this origin is left-aligned, and a centred card under a
+   left-aligned <h1> is two layouts in one screen. */
+.auth-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  max-width: 26rem;
 }
-.alt-methods-title {
+/* The rule after the word has to reach the card edge. Prose on this origin is
+   capped at --measure for readability, which is right for paragraphs and wrong
+   for a <p> that is really a separator. */
+.auth-or {
+  max-width: none;
+}
+/* Both routes are full width, which is what makes them read as two answers
+   to one question rather than a primary action and an afterthought. */
+.auth-card .btn {
+  width: 100%;
+  min-height: 2.75rem;
+}
+.auth-providers {
+  display: grid;
+  gap: 0.625rem;
+}
+
+/* A button carrying a leading glyph. Google's web spec asks for 12px before
+   the logo, 10px after it and 12px after the text; the content is centred
+   here because the button is full width, so the 10px logo-to-text gap is the
+   part that is actually visible and it is honoured exactly.
+
+   TWO CLASSES, NOT ONE, and that is load-bearing rather than tidy: `a.btn`
+   exists earlier in this file at specificity 0,1,1 and beat a single class, so
+   the anchor kept display:block and this gap silently did nothing while the
+   <button> beside it was correct. Caught by reading computed styles in a real
+   browser; it is invisible in the markup and invisible in the CSS. */
+.btn.btn-has-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+.btn-glyph {
+  display: inline-flex;
+  flex: none;
+  /* The glyph must not stretch: Google's guidelines require the logo keep its
+     aspect ratio, and a flex child in a full-width button will squash without
+     this. */
+  width: 18px;
+  height: 18px;
+}
+.btn-glyph svg {
+  display: block;
+}
+
+/* -------------------------------------------------------------------------
+   THE GOOGLE BUTTON. These values come from Google's published branding
+   guidelines, not from this design system, and they are deliberately NOT
+   themed: the light variant is #FFFFFF with a #747775 1px inside stroke, the
+   dark variant is #131314 with #8E918F. The four-colour G may not be
+   recoloured or resized, and it may never appear without the button text.
+
+   ONE DEVIATION, STATED RATHER THAN HIDDEN: the spec asks for Google Sans
+   Medium. This origin serves `font-src 'self'` and ships two self-hosted
+   faces; adding a third font family for a single button is disproportionate
+   and would need a new token besides. Public Sans at 600 is the nearest
+   thing in the system and is what renders.
+
+   CORNER RADIUS IS THE ONE LEVER GOOGLE LEAVES FREE, and it is what lets a
+   mandated foreign object sit in a warm-paper card without looking pasted
+   in. It takes --radius-button, the same 8px as every other button here.
+   ------------------------------------------------------------------------- */
+.btn-google {
+  background: #ffffff;
+  border: 1px solid #747775;
+  color: #1f1f1f;
+  border-radius: var(--radius-button);
+  font-weight: 600;
+}
+.btn-google:hover {
+  background: #f7f8f8;
+}
+html[data-theme="dark"] .btn-google {
+  background: #131314;
+  border-color: #8e918f;
+  color: #e3e3e3;
+}
+html[data-theme="dark"] .btn-google:hover {
+  background: #1e1f20;
+}
+
+/* -------------------------------------------------------------------------
+   THE "OR". Last time this block was built the two routes lived in separate
+   sections and a divider between them would have been decoration; they are
+   one card now and the rule is what does the joining, so it earns its place.
+
+   IT IS LEFT-ALIGNED, NOT CENTRED. The centred word floating in a gap in a
+   hairline is the single most templated component in authentication UI. The
+   rule runs the full width and the word sits at the start of it, on the same
+   left edge as every label and heading in the card.
+   ------------------------------------------------------------------------- */
+.auth-or {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.125rem 0;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1rem;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+.auth-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: hsl(var(--border));
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.875rem;
+}
+/* The field component brings its own bottom margin for a stacked fieldset;
+   inside a two-item grid that reads as a gap applied twice. */
+.auth-form .field {
+  margin: 0;
+}
+.auth-fine {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Press feedback, and nothing else moves on this page. A form is not a place
+   for entrance animation: the only motion that communicates anything here is
+   the acknowledgement that a control was pressed. Gated on reduced-motion
+   with the rest of the stylesheet's transitions. */
+.auth-card .btn:active {
+  transform: translateY(1px);
+}
+
+/* -------------------------------------------------------------------------
+   /console/accounts. A divided list rather than cards: three rows whose only
+   relationship is that they are alternatives to each other, so elevation
+   would claim a hierarchy that does not exist.
+   ------------------------------------------------------------------------- */
+.method-list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+.method-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid hsl(var(--border));
+}
+.method-row:first-child {
+  border-top: 0;
+  padding-top: 0.25rem;
+}
+.method-row:last-child {
+  padding-bottom: 0;
+}
+@media (min-width: 40rem) {
+  .method-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 2rem;
+  }
+}
+/* An <h4>, not a <p>: the card's own heading is an h3, so this is the next
+   sequential level and it gives a screen reader something to navigate by. */
+.method-name {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
   font-weight: 600;
   margin: 0;
 }
-/* The buttons sit directly under their heading, so the shared .btn-row top
-   margin is too much here. */
-.alt-methods .btn-row {
-  margin-top: 0.75rem;
+/* THE STATE IS A WORD, NOT A COLOURED DOT, and not a small-caps label either.
+   A dot before every row carries nothing to a screen reader and reads as
+   decoration; uppercase micro-labels are the same move in type. */
+.method-state {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0.25rem 0 0;
 }
-.alt-methods .field-hint {
-  margin-top: 0.875rem;
+.method-state.is-off {
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+.method-note {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  margin: 0.5rem 0 0;
   max-width: var(--measure);
+}
+.method-action .actions {
+  margin: 0;
+}
+/* The row's own control should not stretch the way the sign-in card's do. */
+.method-action .btn {
+  width: auto;
 }
 
 /* A DIVIDED LIST RATHER THAN CARDS. Three rows whose only relationship is

@@ -873,17 +873,32 @@ export function button(
      * only decides whether the browser argues first.
      */
     novalidate?: boolean;
+    /**
+     * A leading glyph, 18px, inside the button.
+     *
+     * OPTIONAL SO NOTHING ELSE MOVES: every existing call site passes no icon
+     * and renders exactly the markup it rendered before, because the wrapping
+     * spans only appear on the icon branch. A glyph is decorative here by
+     * construction - the label beside it always says the same thing in words -
+     * so it is aria-hidden and the accessible name is unchanged.
+     */
+    icon?: Html;
   } = {},
 ): Html {
   const variant = opts.variant ?? "primary";
   const type = opts.type ?? "submit";
   return html`<button
     type="${type}"
-    class="btn btn-${variant}"
+    class="btn btn-${variant}${opts.icon ? " btn-has-glyph" : ""}"
     ${opts.name ? html`name="${opts.name}"` : ""}
     ${opts.value ? html`value="${opts.value}"` : ""}
     ${opts.novalidate ? raw("formnovalidate") : ""}
-  >${label}</button>`;
+  >${opts.icon ? glyphAndLabel(opts.icon, label) : html`${label}`}</button>`;
+}
+
+/** The two-span shape both button() and linkButton() use when given a glyph. */
+function glyphAndLabel(icon: Html, label: string): Html {
+  return html`<span class="btn-glyph" aria-hidden="true">${icon}</span><span>${label}</span>`;
 }
 
 /**
@@ -901,9 +916,13 @@ export function button(
 export function linkButton(
   href: string,
   label: string,
-  opts: { variant?: "primary" | "ghost" } = {},
+  opts: { variant?: "primary" | "ghost" | "google"; icon?: Html } = {},
 ): Html {
-  return html`<a class="btn btn-${opts.variant ?? "primary"}" href="${href}">${label}</a>`;
+  const variant = opts.variant ?? "primary";
+  const cls = ["btn", "btn-" + variant, opts.icon ? "btn-has-glyph" : ""].filter(Boolean).join(" ");
+  return html`<a class="${cls}" href="${href}"
+    >${opts.icon ? glyphAndLabel(opts.icon, label) : html`${label}`}</a
+  >`;
 }
 
 /* ------------------------------------------------------------------------ *
@@ -993,3 +1012,68 @@ export function emptyState(opts: { headline: string; because: Html }): Html {
     <p>${opts.because}</p>
   </div>`;
 }
+
+/* ------------------------------------------------------------------------ *
+ * Sign-in method marks
+ * ------------------------------------------------------------------------ *
+ * TWO INLINE SVGs, AND THE REASON THEY ARE INLINE AND HAND-WRITTEN IS A
+ * CONSTRAINT RATHER THAN A PREFERENCE. This origin has no build step, no npm
+ * icon package, and a CSP of `default-src 'none'` with `img-src 'self' data:`,
+ * so an icon library cannot be installed and a remote asset cannot be loaded.
+ * Inline markup is the only route, and these are the only two glyphs on the
+ * whole origin. If a third is ever wanted, that is the moment to question the
+ * no-icons rule rather than to hand-draw another one.
+ */
+
+/**
+ * The Google G, standard four-colour, reproduced exactly.
+ *
+ * GOOGLE'S BRANDING GUIDELINES ARE PRESCRIPTIVE AND THIS IS NOT OURS TO ADJUST:
+ * "you can't change the size or color of the Google 'G' logo. It must be the
+ * standard color version". So no currentColor, no single-colour variant, no
+ * recolour in dark mode, and it never appears without the button text beside
+ * it, which their guidelines also forbid. aria-hidden because the button says
+ * "Continue with Google" in words: the mark is reinforcement, not the name.
+ */
+export const GOOGLE_G_MARK: Html = raw(
+  '<svg class="glyph-google" viewBox="0 0 48 48" width="18" height="18" aria-hidden="true" focusable="false">' +
+    '<path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>' +
+    '<path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>' +
+    '<path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>' +
+    '<path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>' +
+  '</svg>',
+);
+
+/**
+ * An envelope, for the magic-link route.
+ *
+ * AN ENVELOPE RATHER THAN A CHAIN LINK, which was the literal request. What
+ * the button does is "email me", and a chain-link glyph beside those words
+ * reads as "paste a URL here", which is a different action. The thing being
+ * sent is a link; the thing the reader is being asked for is an address.
+ *
+ * currentColor and stroke-based, so it inherits the button's text colour in
+ * both themes and needs no dark-mode variant. Sized and positioned to match
+ * the Google mark exactly, because the two are peers and any difference in
+ * optical weight would rank them.
+ */
+/**
+ * Which mark belongs to which provider.
+ *
+ * A LOOKUP RATHER THAN A CONSTANT, even with one provider configured, and
+ * the reason is a bug this shape prevents: the sign-in page renders a button
+ * per configured provider, so passing GOOGLE_G_MARK directly would put
+ * Google's logo on the NEXT provider somebody adds. An unknown id returns
+ * undefined and that button simply renders without a glyph, which is wrong
+ * but harmless, where the other failure is a third party's trademark on a
+ * button that has nothing to do with them.
+ */
+export const PROVIDER_MARKS: Record<string, Html> = { google: GOOGLE_G_MARK };
+
+export const ENVELOPE_GLYPH: Html = raw(
+  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+    '<rect x="2.75" y="4.75" width="18.5" height="14.5" rx="2.5"/>' +
+    '<path d="m3.6 7.1 7.45 5.16a1.65 1.65 0 0 0 1.9 0L20.4 7.1"/>' +
+  '</svg>',
+);
