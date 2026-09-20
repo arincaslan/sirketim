@@ -198,6 +198,26 @@ export async function createCompany(request: Request, env: Env): Promise<Respons
     for (let attempt = 0; attempt < 12 && !created; attempt++) {
       if (attempt > 0) slug = `${(base as string).slice(0, 44)}-${attempt + 1}`;
       try {
+        // `isHouse` IS WRITTEN FALSE HERE AND READ BY NOTHING IN THIS WORKER -
+        // which is worth knowing before anyone decides the column is dead and
+        // drops it. It is not dead; it is two sources of truth for one fact,
+        // with the database's copy currently the one nobody consults.
+        //
+        // The fact is live in the CATALOGUE project, where it is hand-maintained
+        // in TypeScript: products/affiliate-sites/fragrance-dupes/lib/producers.ts
+        // carries `isHouse: true` on `counterscent-atelier` in LISTED_PRODUCERS,
+        // exports isHouseProducer(), and THROWS at module load if a
+        // subscriber-sourced producer arrives carrying the flag; lib/catalog.ts's
+        // isHouseProduct() delegates to it and drives the house-product
+        // disclosure. The route by which this column eventually becomes the
+        // source is already designed and named in that file:
+        // lib/data/producer-registry.generated.ts, "written by the console's
+        // export step". Delete the column and that export has nowhere to carry
+        // the flag and the catalogue's guard has nothing to guard against.
+        //
+        // The literal stays a literal. `false` is not a default this handler is
+        // free to parameterise later: see the route header - a self-serve form
+        // that can set this flag is the exception becoming the door.
         await sql`
           INSERT INTO "Producer" (id, slug, name, blurb, "isHouse", "contactEmail", "updatedAt")
           VALUES (
@@ -219,6 +239,22 @@ export async function createCompany(request: Request, env: Env): Promise<Respons
     // this origin: a logged change that did not happen is visible and
     // correctable, an unlogged change that did is neither. submissionId is
     // NULL because this event is about an account, not a listing.
+    //
+    // NOT BATCHED INTO A TRANSACTION, and that was weighed rather than skipped.
+    // insertSubmission() gained sql.transaction() on 2026-09-20; these three
+    // writes - Producer INSERT, this row, User UPDATE - were considered for the
+    // same treatment and left alone for two reasons. FIRST, it would not buy the
+    // failure people actually hit: the orphaned producer comes from the UPDATE
+    // matching ZERO ROWS, which is not an error, so a non-interactive batch
+    // commits it just the same and cannot branch on it. SECOND, it would put the
+    // slug-collision retry above onto an untested error shape. That loop is how
+    // a second company with the same trading name gets to sign up at all, and it
+    // keys on the driver's error carrying a Postgres code and message; the
+    // driver builds batched and single-query errors on one shared path (read in
+    // node_modules/@neondatabase/serverless/index.js), but whether Neon's HTTP
+    // proxy answers a failed BATCH with the same 400 body cannot be proved
+    // without a live database. Trading a working path for a small gain on an
+    // assumption that can only be tested by deploying is the wrong way round.
     await sql`
       INSERT INTO "AuditEvent" (
         id, "submissionId", "producerId", action, "actorType", "actorId",

@@ -1,3 +1,4 @@
+import type { NeonQueryPromise } from "@neondatabase/serverless";
 import type { Sql } from "./auth";
 import { generateId } from "./auth";
 import { validateProducerLink } from "./producer-link";
@@ -665,6 +666,65 @@ export function uniqueConflict(err: unknown): UniqueConflict | null {
  * error: it is the race resolving, and the caller renders the ordinary
  * allowance-full screen, which is exactly what the loser of the race should
  * see.
+ *
+ * ============================================================================
+ * THE LISTING AND ITS AUDIT ROW ARE ONE TRANSACTION, since 2026-09-20.
+ * ============================================================================
+ *
+ * They were two statements with nothing joining them, so a failure between the
+ * INSERT and the audit write left a listing with no record of how it got there
+ * - the one outcome an append-only log exists to make impossible. Every comment
+ * in this project that says "there is no transaction anywhere on this origin"
+ * (withdrawListing's, adminDecide's, writeFailed's in src/routes/submit.ts) was
+ * true when written; it is no longer true HERE, and only here.
+ *
+ * WHAT MADE IT FIXABLE. @neondatabase/serverless exposes sql.transaction([...]),
+ * which submits several queries over HTTP as ONE non-interactive Postgres
+ * transaction (verified against the installed 0.10.4's own index.d.ts and
+ * index.js: the array form maps each query's parameterizedQuery into a single
+ * POST and returns an array of results, one per query). Non-interactive means no
+ * application code can run between the statements - which is exactly why this
+ * needed thought rather than a wrapper:
+ *
+ *   - The listing INSERT IS CONDITIONAL. It writes zero rows when the allowance
+ *     is full, and in that case NOTHING happened, so no audit row may be written
+ *     either. A batched transaction cannot branch, so the audit INSERT carries
+ *     its OWN SQL-side condition - WHERE EXISTS (SELECT 1 FROM "Submission"
+ *     WHERE id = ...) - and writes nothing for the same reason, in the same
+ *     transaction. See auditEventStatement().
+ *   - Without that predicate the allowance-full path would raise a foreign-key
+ *     violation instead of returning null, turning the ordinary "you are full"
+ *     screen into a 503.
+ *   - ORDER IS REVERSED FROM THIS ORIGIN'S CONVENTION, and for once that is
+ *     safe. Everywhere else the audit row goes FIRST, because if only one write
+ *     can survive, a log entry describing a change that did not happen beats an
+ *     unlogged change that did. Inside a transaction there is no "only one":
+ *     both commit or neither does. The foreign key forces this order anyway.
+ *
+ * A unique violation (two listings shortening to one slug, or two against one
+ * original) still aborts and throws. It should still arrive as a NeonDbError
+ * carrying `code` and `constraint`, because the driver builds errors for batched
+ * and single queries on one shared path - read in
+ * node_modules/@neondatabase/serverless/index.js, not assumed.
+ *
+ * MEASURED, NOT ASSUMED, 2026-09-20. Whether Neon's HTTP proxy answers a failed
+ * BATCH with the same body as a failed single query was left open when this was
+ * written, because it cannot be settled by reading. It has since been run
+ * against the live database, one statement colliding on an existing unique
+ * index, both ways:
+ *
+ *   single  -> NeonDbError code 23505 constraint "Producer_slug_key"
+ *   batched -> NeonDbError code 23505 constraint "Producer_slug_key"
+ *
+ * Identical, so uniqueConflict() reads the batched path exactly as it reads the
+ * single one and the producer still gets "you already have a listing under that
+ * name" rather than the generic failure. The aborted transaction wrote nothing,
+ * which was checked by counting rows either side rather than assumed.
+ *
+ * The first attempt at that test proved nothing and looked like it had: the
+ * probe row omitted a NOT NULL column, so it died on 23502 before it ever
+ * reached the unique index, and both paths agreed on the wrong error. A test
+ * that cannot fail for the reason you think it is testing will agree with you.
  */
 export async function insertSubmission(
   sql: Sql,
@@ -674,7 +734,10 @@ export async function insertSubmission(
 ): Promise<{ id: string; slug: string } | null> {
   const id = generateId();
 
-  const inserted = (await sql`
+  // BUILT, NOT AWAITED. The tagged template returns a NeonQueryPromise that
+  // sends nothing until something awaits it, so this is a statement handed to
+  // sql.transaction() below rather than a query already on its way.
+  const listing = sql`
     INSERT INTO "Submission" (
       id, "producerId", "referenceSlug", slug, name, brand, concentration,
       "priceUsd", "bottleMl", family,
@@ -713,17 +776,16 @@ export async function insertSubmission(
         AND s."publishState"::text   <> ALL(${[...ALLOWANCE_EXEMPT_PUBLISH_STATES]}::text[])
     ) < ${cap}
     RETURNING id
-  `) as { id: string }[];
-
-  // NOTHING WAS WRITTEN. The allowance filled between the route's check and
-  // this statement. No audit row either, deliberately: AuditEvent records
-  // things that happened, and nothing did.
-  if (!inserted[0]) return null;
+  `;
 
   const notes = [...value.notesTop, ...value.notesHeart, ...value.notesBase];
   const audit = auditNotes(notes);
 
-  await writeAuditEvent(sql, {
+  // The same builder every other audit row on this origin goes through, so the
+  // payload here cannot drift from the one withdrawListing writes. Its SQL
+  // carries a WHERE EXISTS on the submission id, which is what makes it safe to
+  // batch behind a listing INSERT that may legitimately write nothing.
+  const record = auditEventStatement(sql, {
     submissionId: id,
     actor,
     action: ACTION_SUBMITTED,
@@ -761,6 +823,18 @@ export async function insertSubmission(
     reason: null,
   });
 
+  // ONE ROUND TRIP, ONE TRANSACTION, both statements or neither. The listing
+  // goes first because the audit row's WHERE EXISTS reads it, and because the
+  // foreign key would refuse the other order anyway.
+  const [insertedRows] = await sql.transaction([listing, record]);
+  const inserted = (insertedRows ?? []) as { id: string }[];
+
+  // NOTHING WAS WRITTEN. The allowance filled between the route's check and
+  // this statement. No audit row either, deliberately and now structurally:
+  // AuditEvent records things that happened, nothing did, and the predicate on
+  // the audit INSERT saw the same empty result this line does.
+  if (!inserted[0]) return null;
+
   return { id, slug: value.slug };
 }
 
@@ -792,9 +866,17 @@ export async function withdrawListing(
   // the order this function shipped with. adminDecide() states the rule in its
   // own header - "if only one of the two can survive a failure, the safe
   // survivor is a log entry describing a change that did not happen" - and
-  // honours it; both producer-side writers did the opposite, and there is no
-  // transaction anywhere in this project to make the pair atomic (the neon HTTP
-  // client opens none).
+  // honours it; both producer-side writers did the opposite.
+  //
+  // THIS PAIR IS STILL NOT ATOMIC, and as of 2026-09-20 that is a choice rather
+  // than a limit of the client. insertSubmission() now batches its two writes
+  // through sql.transaction(), so the old claim here - that the neon HTTP client
+  // opens no transaction - is simply false and has been removed. The reason this
+  // one was left alone: batching it means the audit INSERT needs a predicate
+  // mirroring the UPDATE's state guard ('not already withdrawn, not removed by
+  // an editor'), which is a second copy of the withdrawal rule in SQL, and a
+  // second copy is the failure mode that change spent its effort avoiding. It is
+  // worth doing with a parameterised predicate, as its own change, tested.
   //
   // THE CONSEQUENCE WAS NOT THEORETICAL. With the UPDATE first, a failure in the
   // audit INSERT produced a withdrawn listing, no record of who withdrew it, and
@@ -862,37 +944,89 @@ export async function withdrawListing(
  * NOT NULL COLUMNS WITH NO DEFAULT on this table, checked against the migration
  * SQL and against the live database's information_schema on 2026-09-16: id,
  * submissionId, producerId, action, actorType, actorId. All six are supplied
- * below. Everything else is nullable or defaulted.
+ * below. Everything else is nullable or defaulted. Two of those six have since
+ * been widened to allow NULL - submissionId on 2026-09-18 and producerId on
+ * 2026-09-20, both so that an event about an ACCOUNT could be recorded at all
+ * (see src/lib/oauth-account.ts). Neither affects this function, which always
+ * has both: everything it writes is about a listing owned by a producer.
  */
 export async function writeAuditEvent(
   sql: Sql,
-  opts: {
-    submissionId: string;
-    actor: ActorContext;
-    action: string;
-    before: Record<string, unknown> | null;
-    after: Record<string, unknown> | null;
-    reason: string | null;
-  },
+  opts: AuditEventInput,
 ): Promise<void> {
+  await auditEventStatement(sql, opts);
+}
+
+export interface AuditEventInput {
+  submissionId: string;
+  actor: ActorContext;
+  action: string;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  reason: string | null;
+}
+
+/**
+ * THE SAME ROW, AS AN UNSENT STATEMENT, for a caller that needs it inside a
+ * transaction.
+ *
+ * ONE DEFINITION, TWO CALLERS, WHICH IS THE POINT. insertSubmission() has to
+ * batch this INSERT with the listing INSERT so the pair is atomic, and
+ * sql.transaction() takes statements rather than results - it cannot await one
+ * and decide about the next. The obvious way to get a statement was to write a
+ * second copy of this INSERT next to the batching code, and a second copy of a
+ * twelve-column audit payload is a copy that drifts: one of them gains a column
+ * or loses `subscriptionOnFile` and nobody notices, because nothing compares
+ * them. So the statement is built here, once, and writeAuditEvent() is now a
+ * one-line await of it. Both paths write byte-identical SQL by construction.
+ *
+ * WHERE EXISTS, AND WHY IT IS HERE RATHER THAN IN THE CALLER. The listing INSERT
+ * it batches behind is conditional: it writes zero rows when the producer's
+ * allowance is full, which is not an error and must leave no audit row either.
+ * A non-interactive transaction cannot branch in application code, so the
+ * condition has to be in the SQL. Written as EXISTS rather than left to the
+ * foreign key on purpose - the FK would raise an error and abort the whole
+ * transaction, turning the ordinary allowance-full screen into a 503, where this
+ * writes nothing and lets the caller read the empty result.
+ *
+ * FOR withdrawListing() THE PREDICATE IS A NO-OP that costs an index lookup: it
+ * SELECTs the live row one statement earlier, and nothing in this project ever
+ * deletes a Submission (ON DELETE RESTRICT, and the table is the record). The
+ * one behaviour it changes there: a submission id that somehow does not exist
+ * now writes no row instead of raising a foreign-key violation, and the caller's
+ * own guarded UPDATE then returns false, which is the honest page rather than a
+ * 503. Callers that need to know whether a row was written must not use this -
+ * neither of the two does.
+ *
+ * 'PRODUCER' CARRIES AN EXPLICIT CAST here and does not in the VALUES form this
+ * replaced. In INSERT ... SELECT the select list is analysed before its values
+ * are assigned to the target columns, and an unknown-type literal can resolve to
+ * text on the way, which an enum column will not accept. The cast removes the
+ * question rather than relying on the resolution order.
+ */
+export function auditEventStatement(
+  sql: Sql,
+  opts: AuditEventInput,
+): NeonQueryPromise<false, false> {
   const after =
     opts.after === null
       ? null
       : { ...opts.after, subscriptionOnFile: opts.actor.tier !== null };
 
-  await sql`
+  return sql`
     INSERT INTO "AuditEvent" (
       id, "submissionId", "producerId", action, "actorType", "actorId",
       channel, before, after, reason, "tierAtEvent", "statusAtEvent"
-    ) VALUES (
+    )
+    SELECT
       ${generateId()}, ${opts.submissionId}, ${opts.actor.producerId}, ${opts.action},
-      'PRODUCER', ${opts.actor.userId},
+      'PRODUCER'::"ActorType", ${opts.actor.userId},
       ${CHANNEL},
       ${opts.before === null ? null : JSON.stringify(opts.before)}::jsonb,
       ${after === null ? null : JSON.stringify(after)}::jsonb,
       ${opts.reason},
       ${opts.actor.tier}, ${opts.actor.status}
-    )
+    WHERE EXISTS (SELECT 1 FROM "Submission" WHERE id = ${opts.submissionId})
   `;
 }
 

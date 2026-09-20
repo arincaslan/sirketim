@@ -63,12 +63,21 @@ import { FAMILIES } from "../generated/catalogue";
  *    listing met the published standard; anything else has to be said.
  *
  * 4. EVERY DECISION WRITES AN AuditEvent IN THE SAME STATEMENT SEQUENCE AS THE
- *    STATE CHANGE. Not enforced by a transaction, which this driver does not
- *    give us over separate tagged template calls - so the audit row is written
- *    FIRST and the state change second. If only one of the two can survive a
- *    failure, the safe survivor is a log entry describing a change that did
- *    not happen (visible, correctable) rather than a change nobody recorded
- *    (invisible, permanent).
+ *    STATE CHANGE. Not enforced by a transaction here - so the audit row is
+ *    written FIRST and the state change second. If only one of the two can
+ *    survive a failure, the safe survivor is a log entry describing a change
+ *    that did not happen (visible, correctable) rather than a change nobody
+ *    recorded (invisible, permanent).
+ *
+ *    THE REASON GIVEN HERE USED TO BE THAT THE DRIVER CANNOT DO TRANSACTIONS
+ *    OVER SEPARATE TAGGED TEMPLATE CALLS. That was wrong and is corrected rather
+ *    than left standing: @neondatabase/serverless has sql.transaction([...]),
+ *    and insertSubmission() in src/lib/submission.ts uses it as of 2026-09-20.
+ *    So the ordering below is now a choice with a cost, not a limit. It has not
+ *    been changed here because an admin decision is a larger pair to batch - two
+ *    state writes plus the audit row, with a reviewer's reason threaded through
+ *    - and it deserves its own change rather than being carried along by one
+ *    aimed at the producer-side write.
  */
 
 /**

@@ -914,8 +914,9 @@ function unknownTier(auth: AuthUser, data: ProducerConsoleData, tier: string): H
   });
 }
 
-/** The insert itself failed for a reason that is not a duplicate. Nothing was
- *  written, and saying so is the whole content of the page. */
+/** The insert itself failed for a reason that is not a duplicate. Telling the
+ *  producer exactly how much of it can possibly have landed - and what to do
+ *  about the one case where it might have - is the whole content of the page. */
 function writeFailed(auth: AuthUser, isAdmin = false): Html {
   return layout({
     title: COPY.title,
@@ -924,20 +925,29 @@ function writeFailed(auth: AuthUser, isAdmin = false): Html {
     status: {
       label: "Not saved",
       tone: "outline",
-      // DELIBERATELY DOES NOT SAY "nothing was recorded", which is what it said
-      // until 2026-09-18 and could not guarantee. insertSubmission() writes the
-      // Submission row and THEN its audit event, and unlike every other writer
-      // on this origin it cannot be reordered: AuditEvent.submissionId has a
-      // foreign key to the row, so the log entry cannot exist before the thing
-      // it describes. There is no transaction. So a failure here has two shapes
-      // - nothing written, or a listing saved with no audit row - and the page
-      // must not assert the first. It tells the producer how to find out
-      // instead, which is a thing they can actually act on.
-      note: html`The database refused the write. Your listings page is the record of what
-        exists - check it before submitting again, so you do not end up with two.`,
+      // REWRITTEN 2026-09-20, BECAUSE THE HAZARD IT DESCRIBED IS GONE. This note
+      // used to hedge around a half-write: insertSubmission() wrote the
+      // Submission row and THEN its audit event, with no transaction, so a
+      // failure here could leave a listing with no record of how it got there,
+      // and the page could not honestly say "nothing was recorded". Those two
+      // statements now go through sql.transaction() and commit together or not
+      // at all, so that shape cannot happen and a note explaining it would be
+      // teaching a reader a hazard this origin no longer has.
+      //
+      // WHAT IT STILL MUST NOT SAY is "nothing was written", full stop. A
+      // response lost after the transaction committed is indistinguishable from
+      // a refused write at this point in the code. So: state the thing that is
+      // now guaranteed, and keep the one action that covers the case that is
+      // not - which is also the action that stops a duplicate submission.
+      // The link is the point of the second sentence. The instruction "check
+      // your listings" is only as good as how far away the listings are, and it
+      // is the one recovery step that also prevents the duplicate.
+      note: html`The write either landed completely or not at all, so there is no half-saved
+        listing to sort out. Check <a href="/console">your listings</a> before you resubmit -
+        if the connection dropped at the last moment, it may be there.`,
     },
     standfirst: html`You are signed in as <span class="wrap-anywhere">${auth.email}</span>, and
-      the submission was not created.`,
+      the database refused the write.`,
     body: section({
       heading: "What to do",
       body: html`

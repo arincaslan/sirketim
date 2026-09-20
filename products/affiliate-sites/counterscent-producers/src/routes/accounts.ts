@@ -263,9 +263,11 @@ export async function accountsDisconnect(request: Request, env: Env): Promise<Re
 
   /**
    * RATE LIMITED, although it is authenticated and touches only the caller's
-   * own row, because connect and disconnect each write an AuditEvent when the
-   * account has a producer. A loop between the two is therefore unbounded
-   * growth in the one table whose value is that everything in it is real.
+   * own row, because connect and disconnect each write an AuditEvent - for
+   * EVERY account since 2026-09-20, not only for accounts with a producer, so
+   * this limit now carries more than it used to. A loop between the two is
+   * unbounded growth in the one table whose value is that everything in it is
+   * real.
    * Shares the account bucket rather than inventing a new one: it is the same
    * kind of write, by the same actor, for the same reason.
    */

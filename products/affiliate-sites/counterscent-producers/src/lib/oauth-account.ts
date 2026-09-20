@@ -283,8 +283,10 @@ export async function resolveSignIn(
 
   // THE MOST CONSEQUENTIAL OF THE THREE ACCOUNT EVENTS, because it is the only
   // one that changes how an account can be reached without the account holder
-  // having pressed anything from inside a session. Subject to the producerId
-  // limitation documented on recordAccountEvent, which bites hardest here.
+  // having pressed anything from inside a session. It is recorded whether or not
+  // this account has a company yet - which it usually does not at this exact
+  // moment, and which is why the producerId column had to stop being NOT NULL
+  // (2026-09-20; see recordAccountEvent and its migration).
   await recordAccountEvent(sql, user, "account.provider_matched", provider.id);
 
   return { kind: "matched", user };
@@ -417,26 +419,37 @@ export async function unlinkProvider(sql: Sql, user: AuthUser, provider: Provide
  * ---------------------------------------------------------------------- */
 
 /**
- * CONDITIONAL ON THE USER HAVING A PRODUCER, and that is a real limitation
- * rather than a choice, stated here so nobody reads the absence of a row as
- * evidence nothing happened.
+ * UNCONDITIONAL. Every link, unlink and match is recorded, including for an
+ * account that has no company yet.
  *
- * `AuditEvent.producerId` is NOT NULL. The table's documented scope is "things
- * that happened, to a producer" - it widened from submissions to accounts on
- * 2026-09-18 precisely because attaching an account to a company was going
- * unrecorded. An account with no producer attached has nothing to hang an
- * event on, and inventing a sentinel producer id to satisfy the column would
- * put fiction in the one table whose value is that it contains none.
- *
- * THE 2026-09-20 MATCHING RULE MADE THIS LIMITATION WORSE, and that is recorded
- * rather than quietly accepted. `account.provider_matched` is the one event
- * here that fires without the account holder having pressed anything from
- * inside a session, so it is the one most worth having a row for - and it is
- * also the event most likely to happen to an account with no producer yet,
+ * IT WAS NOT ALWAYS. Until 2026-09-20 this function opened with
+ * `if (!user.producerId) return;` and wrote nothing at all, because
+ * `AuditEvent.producerId` was NOT NULL and an account with no producer had
+ * nothing to hang an event on. That was stated as a limitation in this comment
+ * and it was still a hole: linking a sign-in identity is among the
+ * highest-privilege writes on this origin - it decides who can sign in as whom,
+ * and ADMIN_EMAILS grants admin BY ADDRESS - and it went unrecorded for exactly
+ * the accounts a first sign-in creates. `account.provider_matched`, the one
+ * event here that fires without the holder pressing anything from inside a
+ * session, is also the one most likely to land on an account with no producer,
  * because matching happens on a producer's FIRST press of the Google button.
- * The two facts compound: the least-covered case is the most interesting one.
- * The fix is a migration making producerId nullable, not a fake id here, and it
- * is now the strongest argument on the table for doing that migration.
+ * The least-covered case was the most interesting one.
+ *
+ * Fixed where it belonged, in the schema: migration
+ * 20260920170000_audit_account_events_without_producer drops the NOT NULL, and
+ * the INSERT below writes a real NULL. NOT a sentinel producer id, which was the
+ * other way to satisfy the column and would have put fiction in the one table
+ * whose value is that it contains none.
+ *
+ * THE MIGRATION HAS TO BE APPLIED FIRST. Against the old constraint this INSERT
+ * raises 23502 and, because the audit row is written BEFORE the change it
+ * describes, the exception refuses the link/unlink/match rather than skipping
+ * the record. That is the safe direction and it is still an outage; see the
+ * migration's own ORDERING note.
+ *
+ * `producerId` is written into the `after` payload as well as into the column,
+ * so a row reading NULL says so twice and cannot be read as a writer that did
+ * not bother.
  */
 async function recordAccountEvent(
   sql: Sql,
@@ -444,17 +457,17 @@ async function recordAccountEvent(
   action: string,
   provider: ProviderId,
 ): Promise<void> {
-  if (!user.producerId) return;
+  const producerId = user.producerId ?? null;
   await sql`
     INSERT INTO "AuditEvent" (
       id, "submissionId", "producerId", action, "actorType", "actorId",
       channel, before, after, reason
     ) VALUES (
-      ${generateId()}, NULL, ${user.producerId}, ${action},
+      ${generateId()}, NULL, ${producerId}, ${action},
       'PRODUCER', ${user.id},
       'producer-console',
       NULL,
-      ${JSON.stringify({ userId: user.id, email: user.email, provider })}::jsonb,
+      ${JSON.stringify({ userId: user.id, email: user.email, provider, producerId })}::jsonb,
       NULL
     )
   `;

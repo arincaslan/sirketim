@@ -1,0 +1,67 @@
+-- Let AuditEvent record an account event that has no producer behind it yet.
+--
+-- WHY. This is the second half of 20260918210000_audit_account_events, which
+-- widened the table's scope from "things that happened to a submission" to
+-- "things that happened, to a producer" and made "submissionId" nullable so an
+-- account event could be recorded at all. It left the other half of the same
+-- shape in place: "producerId" was still NOT NULL, so an event about an ACCOUNT
+-- WITH NO COMPANY had nothing to hang on either. recordAccountEvent() in
+-- src/lib/oauth-account.ts therefore opened with `if (!user.producerId) return;`
+-- and wrote nothing at all - silently, which is the worst way for an
+-- append-only table to be incomplete, because absence of a row reads as
+-- evidence that nothing happened.
+--
+-- THE 2026-09-20 EMAIL-MATCHING RULE MADE THAT GAP POINT AT THE MOST
+-- INTERESTING CASE. `account.provider_matched` is the one event on this origin
+-- that fires without the account holder pressing anything from inside a
+-- session: a provider asserts a verified address, and that address joins an
+-- account that already exists. It is also the event most likely to happen to an
+-- account with no producer, because matching happens on a producer's FIRST
+-- press of the Google button - before there is a company. So the least-covered
+-- case was the most worth covering. Linking, unlinking and matching are the
+-- highest-privilege writes here: they decide who can sign in as whom, and
+-- ADMIN_EMAILS grants admin BY ADDRESS.
+--
+-- NOT A SENTINEL PRODUCER. The alternative was a fake "no producer" row to
+-- satisfy the constraint. That puts fiction in the one table whose whole value
+-- is that it contains none, and every later reader has to know the fiction.
+--
+-- SAFE AND NON-DESTRUCTIVE. Dropping NOT NULL widens what the column accepts
+-- and rejects nothing already stored; every existing row keeps its value, and
+-- every event about a listing or about a producer still sets it. There is no
+-- foreign key on this column to weaken (checked against the init migration:
+-- "AuditEvent" carries exactly one FK, "AuditEvent_submissionId_fkey") and the
+-- ("producerId", "createdAt") index is untouched - it simply stops covering the
+-- rows that now hold NULL, which is correct, because those rows are not about
+-- any producer.
+--
+-- NOTHING READS IT IN A WAY A NULL BREAKS, checked rather than assumed. The
+-- Worker reads "AuditEvent" in exactly two places: src/routes/admin.ts selects
+-- action/actorId/channel/createdAt for the recent-activity strip and neither
+-- selects nor filters on "producerId"; src/lib/producer.ts joins the latest
+-- event per listing on "submissionId", not on "producerId". A NULL row matches
+-- the second one no more and no less than it did before - it has no submission
+-- either - and is simply one more row the first one may show.
+--
+-- ORDERING: apply BEFORE deploying the Worker that writes the new row, exactly
+-- as the 09-18 migration says. The failure direction if the order is broken is
+-- the safe one but it is not free: the new Worker's INSERT of a NULL
+-- "producerId" against the old constraint raises 23502 (not_null_violation),
+-- and because recordAccountEvent() runs BEFORE the account change it guards,
+-- the exception refuses the link, unlink or match rather than silently skipping
+-- the record. A producer pressing Continue with Google would see a failure
+-- instead of a session. Loud and correctable, not silent and wrong - but still
+-- an outage for the founder, so keep the order.
+--
+-- HAND-WRITTEN, NOT GENERATED, matching the house pattern set by
+-- 20260916143000_add_rate_limit and 20260918120000_drop_founder_override:
+-- written to be exactly what `prisma migrate dev` would emit for this schema
+-- change, so a later run sees no drift.
+--
+-- NOT APPLIED ANYWHERE by the change that wrote it - not to production, not to
+-- the local-dev branch. Applying it is a deploy step and needs the founder.
+-- Do not trust this line to tell you the current state either way: confirm with
+-- `npx prisma migrate status`, or query `_prisma_migrations`. Two comments in
+-- this directory have already gone stale about exactly this and misled a reader
+-- into reporting an applied migration as a blocker.
+ALTER TABLE "AuditEvent" ALTER COLUMN "producerId" DROP NOT NULL;

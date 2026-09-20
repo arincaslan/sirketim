@@ -100,6 +100,32 @@ model Producer {
   name      String
   blurb     String   @default("")
   /// COUNTERSCENT's own line. Skips subscription and approval entirely.
+  ///
+  /// WRITTEN HERE, READ SOMEWHERE ELSE - know this before you touch it. Nothing
+  /// in the producer console reads this column. The Worker only ever writes it,
+  /// always as `false`, in POST /console/company (src/routes/company.ts), whose
+  /// header states why a self-serve form must never be able to set it: the flag
+  /// exempts a listing from the approval queue, so a settable exception is the
+  /// door.
+  ///
+  /// The fact it records IS live and load-bearing - in the OTHER project. The
+  /// catalogue keeps its own copy in a hand-maintained array:
+  /// products/affiliate-sites/fragrance-dupes/lib/producers.ts holds
+  /// LISTED_PRODUCERS with `isHouse: true` on `counterscent-atelier`, exports
+  /// isHouseProducer(), and throws at module load if a SUBSCRIBER-sourced
+  /// producer arrives carrying the flag; lib/catalog.ts's isHouseProduct()
+  /// delegates to it and drives the house-product disclosure a reader actually
+  /// sees.
+  ///
+  /// So this is two sources of truth for one fact, and the database's copy is
+  /// the one nothing consults. That is DELIBERATE AND TEMPORARY rather than dead
+  /// weight: the catalogue's lib/data/producer-registry.generated.ts is written
+  /// by "the console's export step", which is the designed route by which these
+  /// rows become the source. Dropping the column would leave that export with
+  /// nowhere to carry the flag and leave the catalogue's guard with nothing to
+  /// guard against. Adding a way to SET it would be a write path for a flag that
+  /// must never be settable by self-serve. Neither is wanted; the column stays
+  /// as it is, written false, documented here and at the write site.
   isHouse   Boolean  @default(false)
   contactEmail String?
   createdAt DateTime @default(now())
@@ -535,19 +561,30 @@ model SubmissionRevision {
   @@index([status, requestedAt])
 }
 
-/// Append-only record of everything that happened to a listing. Never updated,
-/// never deleted.
+/// Append-only record of everything that happened to a listing, to a producer,
+/// or to the account that signs in as one. Never updated, never deleted.
 ///
 /// WHY A SEPARATE TABLE. Submission carries one rejectionReason, one reviewedBy,
 /// one reviewedAt and an updatedAt that overwrites, so a
 /// CHANGES_REQUESTED -> resubmit -> APPROVED cycle collapsed into a single row
 /// showing only the last reviewer. A producer asking what happened to their edit
-/// three weeks ago had no answer, and neither did we.
+/// three weeks ago had no answer, and neither did we. That is the reason the
+/// table exists and it has not changed.
 ///
-/// It matters most for the founder override. That mechanism publishes above the
-/// site's own stated 95 ceiling and /about#methodology discloses that it exists -
-/// an override with no immutable record IS the unexplained backdoor that disclosure
-/// claims it is not.
+/// THE FOUNDER OVERRIDE USED TO BE NAMED HERE AS THE HEADLINE JUSTIFICATION, and
+/// that mechanism no longer exists: removed 2026-09-18, migration
+/// 20260918120000_drop_founder_override, see the note on Submission. The ceiling
+/// has no exceptions at all now, so the paragraph that stood here sent a reader
+/// looking for a backdoor there is no longer any such thing as. Deleted rather
+/// than reworded, because the remaining reasons were always the load-bearing
+/// ones and none of them needs it.
+///
+/// SCOPE HAS WIDENED TWICE, BOTH TIMES TOWARD ACCOUNTS RATHER THAN LISTINGS.
+/// 2026-09-18: attaching an account to a producer (submissionId became
+/// nullable). 2026-09-20: events about an account that has no producer yet
+/// (producerId became nullable). Linking, unlinking and matching a sign-in
+/// identity decide who can sign in as whom, and ADMIN_EMAILS grants admin BY
+/// ADDRESS - so they belong here as squarely as any review decision does.
 ///
 /// LIVES IN THE DATABASE, NEVER IN GIT. The repo is public and these rows carry
 /// producer contact and billing identifiers.
@@ -566,7 +603,23 @@ model AuditEvent {
   /// and nothing that used to be recorded stopped being recorded.
   submissionId String?
   submission   Submission? @relation(fields: [submissionId], references: [id], onDelete: Restrict)
-  producerId   String
+  /// NULLABLE SINCE 2026-09-20, and for the same shape of reason as the column
+  /// above: an event that could not be recorded was being dropped in silence.
+  /// Making submissionId nullable let an ACCOUNT event exist; this makes an
+  /// account event exist for an account with NO COMPANY YET, which is most of
+  /// them at the moment that matters. recordAccountEvent() used to return early
+  /// when a user had no producer, so linking, unlinking and - after the
+  /// 2026-09-20 email-matching rule - MATCHING a Google identity onto an
+  /// existing account went unrecorded for exactly the accounts a first sign-in
+  /// creates. See migration 20260920170000_audit_account_events_without_producer.
+  ///
+  /// A sentinel producer id was the alternative and was refused: this is the one
+  /// table whose value is that everything in it is real.
+  ///
+  /// NULL MEANS "no producer was involved", never "we did not bother". Every
+  /// event about a listing or about a company still sets it, and there is no
+  /// foreign key here to drop - this column never had one.
+  producerId   String?
 
   /// e.g. "submitted", "approved", "revision_requested", "withdrawn",
   /// "price_rechecked", "override_set". Free text rather than an enum so a new kind
