@@ -16,7 +16,8 @@ The producer programme is **built and open on the free tier**. A producer can si
 in, create a company, submit a listing, withdraw it, and a staff member can review
 it. The only piece missing is **payment**, and that is deliberately last.
 
-**Next session starts on payment.** See `FINALIZATION-GUIDE.md` Phase 5, task 5.4.
+**Payment is the last build step, but it is not the next one** - the mandatory-photo
+decision of 09-21 comes first. See START HERE below.
 
 ---
 
@@ -176,19 +177,39 @@ public.
 
 ---
 
-## Found and NOT fixed: there are two stale front doors, and only one was corrected
+## START HERE TOMORROW
+
+In this order. The first item blocks the second.
+
+1. **Decide where an uploaded producer photo lives.** Neon Object Storage (branches with
+   the database, one fewer provider) or Cloudflare R2 (same vendor as the Worker). This
+   Worker has neither configured today. The mandatory-photo field cannot be built until
+   this is answered, and answering it mid-build is how the wrong one gets chosen.
+2. **Build the mandatory photo field** on `/console/submit`: upload, validation, and the
+   schema column. Founder decision 09-21, reasoning in open item 6 below.
+3. **Then payment**, `FINALIZATION-GUIDE.md` Phase 5 task 5.4. Paddle, already decided.
+
+Everything in the "two stale front doors" section below was **fixed and committed**
+on 2026-09-21 (`e611d65`). It is kept as the record of what was wrong, not as a task.
+
+**Not pushed.** The commit is local to `win10`. Push before working from anywhere else.
+
+---
+
+## FIXED 2026-09-21: there were two stale front doors, and both are now corrected
 
 `counterscent.com/producers/` - the public catalogue's own producer page, and the more
-widely read of the two - still opens with:
+widely read of the two - opened with:
 
 > "**The producer program has not launched.** There are no producer accounts, no billing
 > connected to this site, and **nothing on this page can be signed up for today.**"
 
 False on every clause except billing. It is the same class of stale claim as the six
-fixed on the Worker this session, but it lives in the **Next.js catalogue**, a separate
-project with its own house style, so it was not touched in the same pass. Fix it next,
-before anything else on the redesign: a producer who lands here is told the programme
-does not exist.
+fixed on the Worker this session, and it lived in the **Next.js catalogue**, a separate
+project with its own house style. Five places carried it in the end: `/producers`,
+`/producers/pricing`, `/producers/login`, `/producers/submit` and the submission form's
+own fallback. All eleven claims across both projects are corrected, lint and build are
+clean, and the built HTML in `out/` was checked to carry the new copy.
 
 ---
 
