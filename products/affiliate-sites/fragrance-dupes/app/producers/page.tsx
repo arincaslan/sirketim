@@ -57,23 +57,27 @@ export default function ProducersPage() {
           feature whose backing service does not exist must say so AT THE POINT
           OF USE - so the notice sits above the promises, not below them. */}
       <div className="mb-14 max-w-[68ch] rounded-frame border border-dashed border-border p-6">
-        <h2 className="font-display text-lg">Not open yet</h2>
+        <h2 className="font-display text-lg">Open on the free tier</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          The producer program has not launched. There are no producer accounts, no billing
-          connected to this site, and nothing on this page can be signed up for today. What
-          follows is how it is designed to work, written down in advance so the standards are
-          public before the first listing exists — not a description of something running.
+          You can create an account, register your company, and submit a listing today. Every
+          submission is read by a person before it reaches this catalogue. What follows is how
+          the programme works, and the standards below were published before the first listing
+          existed rather than written to fit it.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          The console itself is being built at{" "}
+          The one part that is not built is <strong>billing</strong>. The paid tiers are priced
+          and described, but there is no checkout behind any of them, so nothing can be bought
+          and nothing will charge you. The free tier needs no card and has no trial clock.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          The console is at{" "}
           <a
             href={PRODUCER_CONSOLE}
             className="underline underline-offset-2 hover:text-primary"
           >
             producers.counterscent.com
           </a>
-          . You can look at the screens there; none of them is connected to anything yet,
-          and each one says which part is missing.
+          . Sign in there with a link sent to your address, or with Google.
         </p>
       </div>
 
@@ -194,7 +198,8 @@ export default function ProducersPage() {
             Open the producer console
           </a>
           <span className="text-xs text-muted-foreground">
-            On its own address, producers.counterscent.com. Not open yet, and it says so.
+            On its own address, producers.counterscent.com. Sign in, list, and follow it
+            through review.
           </span>
         </div>
       </div>

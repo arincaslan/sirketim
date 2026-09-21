@@ -33,9 +33,12 @@ import { cn } from "@/lib/utils";
  *    of entry so an honest producer finds out immediately instead of after a
  *    rejection.
  *
- * Like AddReviewForm, this does not fake a submission: there is no database
- * and no producer accounts, so it says so on submit rather than showing a
- * success state for something that went nowhere.
+ * Like AddReviewForm, this does not fake a submission. The catalogue is a static
+ * export with no database, so this form cannot store anything and says so on
+ * submit rather than showing a success state for something that went nowhere.
+ * The REAL submission form lives in the producer console on its own origin,
+ * behind a sign-in, and has done since 2026-09-16. This one is a preview of the
+ * flow and should point at that rather than claim the programme is unbuilt.
  */
 
 function parseNotes(value: string): string[] {
@@ -251,9 +254,10 @@ export function SubmissionForm() {
         <div role="status" className="flex gap-3 rounded-frame border border-primary/30 bg-secondary/50 p-4">
           <Info weight="fill" className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
           <p className="text-sm leading-relaxed text-foreground/85">
-            The producer program is not open yet. There are no producer accounts, no database, and
-            no billing connected to this site, so nothing you entered has been saved or sent. This
-            form exists so the flow can be reviewed before the backend behind it is built.
+            Nothing you entered here has been saved or sent. This catalogue is a static site with
+            no database, so this form is a preview of the flow rather than the real one. The real
+            submission form is in the producer console at producers.counterscent.com, behind a
+            sign-in, and what you enter there is stored and read by a person.
           </p>
         </div>
       )}

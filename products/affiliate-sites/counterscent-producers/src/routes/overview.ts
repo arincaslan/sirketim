@@ -47,8 +47,9 @@ export async function overview(request: Request, env: Env) {
     : card(html`
         <p><strong>Signed out.</strong></p>
         <p class="muted">
-          <a href="/sign-in">Request a sign-in link</a> to check that the account system works. It will not
-          put you anywhere useful yet - see "The screens, as they stand" below.
+          <a href="/sign-in">Sign in</a> with a link sent to your address, or with Google.
+          That takes you to <a href="/console">the console</a>, where you create your
+          company and submit your first listing.
         </p>
       `);
 
@@ -142,9 +143,9 @@ export async function overview(request: Request, env: Env) {
           <p class="notice-title">We do not publish a review time or a publication cadence</p>
           <p>
             The producer terms commit us to publishing both, and to publishing them only
-            once we have real figures. We have none: no submission has ever been reviewed
-            here, because there is nothing to submit with. A number invented now would be
-            a promise nobody measured.
+            once we have real figures. We have none: submitting and reviewing both work,
+            but no submission has been through review yet, so there is nothing to average.
+            A number invented now would be a promise nobody measured.
           </p>
         </div>
 
@@ -194,9 +195,8 @@ export async function overview(request: Request, env: Env) {
 
     ${section({
       heading: "The screens, as they stand",
-      lede: html`Sign in and the console are real now (steps 5 and 6, 2026-09-16). The
-        review queue is still a layout preview that reads real state vocabulary and no
-        real data.`,
+      lede: html`Sign in, the console and the review queue are all real and reading real
+        data. Billing is the one piece that is not built.`,
       body: html`
         <div class="grid-2">
           ${card(html`
@@ -229,8 +229,9 @@ export async function overview(request: Request, env: Env) {
             <h3>Billing is not one of them</h3>
             <p class="muted">
               No checkout, no card, no subscription state, nowhere. It is deliberately
-              the last step in the build order, and it is behind a question to the
-              payment provider that has not been answered yet.
+              the last step in the build order. The provider is chosen and the prices are
+              set, so what is left is the integration, and that waits until a producer
+              asks to pay for a tier.
             </p>
           `)}
         </div>
@@ -264,15 +265,14 @@ export async function overview(request: Request, env: Env) {
       nav: auth ? { showAdmin: isAdminEmail(auth.email, env) } : undefined,
       signedIn: Boolean(auth),
       status: {
-        label: "Not open yet",
-        note: html`Signing in is real (see "Account" above) and
-          <a href="/console">the console</a> now reads it, but there is still no way to
-          submit anything. Every screen here says so where it would matter.`,
+        label: "Open for submissions",
+        note: html`Sign in, create your company, and submit a listing on the free tier.
+          What is not wired yet is <strong>payment</strong>: the paid tiers are priced and
+          described, but nothing can be billed, so no tier can be bought today.`,
       },
-      standfirst: html`This is where a fragrance producer will list an alternative on
-        counterscent.com, follow it through review, and take it down again. It is being
-        built, and the pages below are what has been designed rather than what is
-        running.`,
+      standfirst: html`This is where a fragrance producer lists an alternative on
+        counterscent.com, follows it through review, and takes it down again. All four of
+        those work today. The pages below describe what is running.`,
       body,
     }),
     200,

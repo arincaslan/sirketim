@@ -47,12 +47,12 @@ export default function SubmitPage() {
         </div>
 
         <div className="rounded-frame border border-dashed border-border p-6">
-          <h2 className="font-display text-lg">Nothing can be submitted yet, there either</h2>
+          <h2 className="font-display text-lg">Submitting works, in the console</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            There are no producer accounts and no way to store a submission. The console
-            shows the submission screen and the listing states it moves through, with
-            every field disabled and the reason given. Nothing you type anywhere on this
-            site or that one is kept.
+            Sign in over there, register your company, and the submission form is real: what
+            you enter is stored, it enters the review queue, and a person reads it before it
+            reaches this catalogue. Nothing typed on <em>this</em> page is kept, which is why
+            it sends you there instead.
           </p>
         </div>
 

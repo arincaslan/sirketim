@@ -24,13 +24,14 @@ export default function PricingPage() {
       <PricingTable />
 
       <div className="mx-auto mt-14 max-w-[68ch] rounded-frame border border-dashed border-border p-6">
-        <h2 className="font-display text-lg">Not open yet</h2>
+        <h2 className="font-display text-lg">The free tier is open. The paid tiers cannot be bought yet.</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          The producer program has not launched. There are no producer accounts, no billing
-          connected to this site, and the prices above are indicative rather than final. Nothing
-          here will charge you. If you make fragrances and want to be told when it opens,{" "}
+          Accounts, listings and review all work today, and the free tier needs no card. What is
+          not built is the checkout: there is no payment provider connected to this site, so
+          nothing above can be paid for and nothing here will charge you. Before you weigh the
+          prices,{" "}
           <Link href="/about/" className="underline underline-offset-2 hover:text-primary">
-            read our standards first
+            read our standards
           </Link>{" "}
           — they are the part most likely to decide whether this is a fit.
         </p>
@@ -42,8 +43,8 @@ export default function PricingPage() {
           >
             producers.counterscent.com
           </a>
-          , and is also unfinished. There is no checkout behind any plan above and no
-          payment provider connected to this site.
+          , where you sign in, register your company and manage your listings. The plan page
+          there shows what your tier covers; it cannot take a payment.
         </p>
       </div>
     </div>

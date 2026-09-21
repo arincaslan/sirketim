@@ -50,11 +50,11 @@ export default function ProducerLoginPage() {
         </div>
 
         <div className="rounded-frame border border-dashed border-border p-6">
-          <h2 className="font-display text-lg">Still not open</h2>
+          <h2 className="font-display text-lg">Sign in is over there, and it works</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Moving address did not make it work. There are no producer accounts anywhere
-            yet, nothing to sign in to, and no submission can be stored. The console shows
-            the screens as they will be and says at each one what is missing.
+            Use the button below. You sign in with a link sent to your address, or with
+            Google, and land in the console, where you register your company and submit
+            your first listing. The free tier needs no card.
           </p>
         </div>
 
