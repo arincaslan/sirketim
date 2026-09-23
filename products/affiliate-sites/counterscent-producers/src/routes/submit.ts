@@ -13,6 +13,7 @@ import {
   formGroup,
   noteTier,
   notShipped,
+  photoField,
   section,
   selectField,
   stateBadge,
@@ -50,6 +51,15 @@ import {
   type SubmissionDraft,
   type SubmissionReceipt,
 } from "../lib/submission";
+import {
+  checkImageUpload,
+  filePart,
+  isMediaConfigured,
+  MAX_IMAGE_BYTES,
+  newImageKey,
+  putImage,
+  type ImageRejection,
+} from "../lib/media";
 import {
   NOTE_INPUTS_PER_TIER,
   NOTE_VOCABULARY,
@@ -133,6 +143,24 @@ export async function submitPage(request: Request, env: Env): Promise<Response> 
  * POST
  * ======================================================================== */
 
+/**
+ * One sentence per refusal, naming what to do rather than what went wrong.
+ * "unsupported-type" deliberately does not repeat what the producer sent: the
+ * browser's own file picker already filtered on `accept`, so anything reaching
+ * here is either an unusual format or a file whose extension lied, and neither
+ * is helped by being told its MIME type.
+ */
+function imageRejection(reason: ImageRejection): string {
+  switch (reason.kind) {
+    case "too-large":
+      return `That photograph is over ${Math.round(reason.maxBytes / (1024 * 1024))} MB. Most phones can export a smaller copy.`;
+    case "unsupported-type":
+      return "That file is not a JPEG, PNG or WebP image.";
+    case "missing":
+      return "Add a photograph of the product. Every listing needs one.";
+  }
+}
+
 export async function submitListing(request: Request, env: Env): Promise<Response> {
   const gate = await requireProducer(request, env, COPY);
   if (gate.kind === "refused") return gate.response;
@@ -186,6 +214,64 @@ export async function submitListing(request: Request, env: Env): Promise<Respons
   if (limit.kind === "limited") return writeLimited(COPY, limit.retryAfterSeconds);
 
   const draft = readDraft(form);
+
+  // A CARRIED KEY MUST BELONG TO THE PRODUCER SENDING IT. readDraft() proved
+  // the shape but cannot prove ownership - it does not know who is posting.
+  // Without this, a producer who learned another's key could attach their
+  // photograph to their own listing. Dropped rather than refused: the form
+  // then simply says a photograph is needed, which is true.
+  if (draft.imageKey && !draft.imageKey.startsWith(`listings/${gate.data.producer.id}/`)) {
+    draft.imageKey = "";
+  }
+
+  // THE UPLOAD IS ITS OWN STEP, BEFORE VALIDATION, and that ordering is the
+  // whole design rather than an implementation detail. A file input cannot be
+  // refilled by the server, so if the bytes only landed once every other field
+  // was perfect, one mistyped price would throw the photograph away. Storing
+  // it first means a failed validation re-renders with the photo still
+  // attached - and, because it is stored, shown back as a real image.
+  //
+  // A new file always wins over a carried key. Somebody who picks a second
+  // photograph means to replace the first.
+  const upload = filePart(form, "image");
+  if (upload && typeof upload !== "string" && upload.size > 0) {
+    if (!isMediaConfigured(env)) {
+      // House rule: a feature whose backing service is absent says so rather
+      // than failing in a way that reads as the producer's fault.
+      return renderForm(request, gate, {
+        draft,
+        errors: [
+          {
+            field: "image",
+            message:
+              "Photograph storage is not configured on this deployment, so nothing was saved. This is ours to fix.",
+          },
+        ],
+      });
+    }
+
+    const check = await checkImageUpload(upload);
+    if (!check.ok) {
+      return renderForm(request, gate, { draft, errors: [{ field: "image", message: imageRejection(check.reason) }] });
+    }
+
+    const key = newImageKey(gate.data.producer.id, check.ext);
+    try {
+      await putImage(env, key, check.bytes, check.contentType);
+    } catch {
+      return renderForm(request, gate, {
+        draft,
+        errors: [
+          {
+            field: "image",
+            message: "The photograph could not be saved just now. Nothing else was lost - try the upload again.",
+          },
+        ],
+      });
+    }
+    draft.imageKey = key;
+  }
+
   const result = validateSubmission(draft);
   if (!result.ok) {
     // RE-RENDERED, NOT REDIRECTED. A redirect cannot carry a body, so it would
@@ -405,7 +491,16 @@ async function renderForm(
             },
           ])}
 
-          <form method="post" action="/console/submit" class="submit-form">
+          <!-- enctype is REQUIRED, not decorative: without it the browser sends
+               the file's NAME instead of its bytes, every upload silently
+               arrives empty, and the form insists a photograph is missing
+               while the producer can see they attached one. -->
+          <form
+            method="post"
+            action="/console/submit"
+            class="submit-form"
+            enctype="multipart/form-data"
+          >
           ${csrfInput(CSRF_FIELD, token)}
 
           ${formGroup({
@@ -501,6 +596,13 @@ async function renderForm(
                     30ml is not read as being cheaper than a 100ml.`,
                 })}
               </div>
+              ${photoField({
+                name: "image",
+                label: "Photograph",
+                imageKey: draft.imageKey,
+                maxBytes: MAX_IMAGE_BYTES,
+                error: errorFor("image"),
+              })}
             `,
           })}
 

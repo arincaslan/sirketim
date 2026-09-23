@@ -665,6 +665,73 @@ export function textareaField(opts: {
  * Optional groups, because 216 originals in one flat list is a wall. Grouping
  * by house matches how a producer already thinks about them.
  */
+/**
+ * The product photograph: an upload control that remembers.
+ *
+ * TWO STATES, AND THE SECOND ONE IS THE POINT. A browser will not let a server
+ * put a file back into a file input, so on a form this long a single mistyped
+ * price would silently discard the producer's photograph. The upload therefore
+ * happens on its own and ahead of validation (routes/submit.ts), and what
+ * comes back on a re-render is a KEY, carried here in a hidden field.
+ *
+ * THE PREVIEW IS FREE, AND IT IS REAL. Because the bytes are already stored by
+ * the time this renders, the attached state shows the actual photograph from
+ * /media/<key> rather than a client-side approximation of it. That matters
+ * beyond convenience: a producer who uploaded the wrong file finds out here
+ * instead of at review. It also needs no JavaScript, which is why this origin
+ * still ships none beyond the theme script - a FileReader preview would have
+ * been the first real script on the page and it would have been worse.
+ *
+ * `accept` IS A CONVENIENCE AND NOTHING MORE. It filters the file picker; it
+ * is trivially bypassed and the server sniffs the actual bytes regardless
+ * (lib/media.ts). It is here so the common case is pleasant, not because it
+ * excludes anything.
+ */
+export function photoField(opts: {
+  name: string;
+  label: string;
+  /** The stored key from a previous POST, or "" when nothing is attached. */
+  imageKey: string;
+  maxBytes: number;
+  error?: string;
+}): Html {
+  const id = "f-" + opts.name;
+  const attached = Boolean(opts.imageKey);
+  const megabytes = Math.round(opts.maxBytes / (1024 * 1024));
+
+  return html`<div class="field">
+    ${fieldLabel(id, opts.label, true)}
+    ${attached
+      ? html`<div class="photo-attached">
+          <img
+            src="/media/${opts.imageKey}"
+            alt="The photograph attached to this listing"
+            width="72"
+            height="72"
+            decoding="async"
+          />
+          <p>Attached. Choosing another file below replaces it.</p>
+        </div>`
+      : ""}
+    ${attached ? html`<input type="hidden" name="imageKey" value="${opts.imageKey}">` : ""}
+    <input
+      id="${id}"
+      name="${opts.name}"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      ${opts.error ? raw(`aria-invalid="true"`) : ""}
+      aria-describedby="${describedBy(id, opts.error)}"
+    >
+    ${fieldError(id, opts.error)}
+    <p class="field-hint" id="${id}-hint">
+      JPEG, PNG or WebP, up to ${String(megabytes)} MB. Every listing needs one, because these
+      appear in the dupe finder alongside the original. A photograph taken on a phone can carry
+      the place it was taken, and we do not strip that yet, so use one you are happy to publish
+      as it is.
+    </p>
+  </div>`;
+}
+
 export function selectField(opts: {
   name: string;
   label: string;

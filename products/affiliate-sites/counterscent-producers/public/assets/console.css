@@ -855,6 +855,58 @@ fieldset {
   max-width: none;
 }
 
+/* The attached photograph, shown back on a re-render.
+
+   IT IS A REAL IMAGE, NOT A FILENAME, and the size is deliberate: large enough
+   to tell two bottles apart at a glance, which is the whole reason it is here.
+   A producer who picked the wrong file finds out on this screen rather than at
+   review, and the only cost is one cached request.
+
+   `width`/`height` are on the element as well (ui/components.ts) so the row
+   reserves its space before the image arrives. Same reasoning as .thumb: a
+   form that reflows while you are reading it is worse than one that waits. */
+.photo-attached {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-frame);
+  background: hsl(var(--secondary));
+}
+
+.photo-attached img {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: calc(var(--radius-frame) - 2px);
+  background: hsl(var(--background));
+}
+
+.photo-attached p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* The file input is a browser-drawn control and cannot be restyled to match
+   the text inputs. Rather than fight it with a label-over-hidden-input trick
+   that breaks keyboard focus, it keeps the native control and only gets the
+   font and spacing brought into line. */
+.field input[type="file"] {
+  font: inherit;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+  max-width: 100%;
+}
+
+.field input[type="file"]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
 .btn {
   font: inherit;
   font-size: 0.9375rem;

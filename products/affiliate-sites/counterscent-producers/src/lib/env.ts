@@ -109,4 +109,41 @@ export interface Env {
    */
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
+
+  /**
+   * NEON OBJECT STORAGE, where a producer's uploaded photograph lives.
+   * Founder decision 2026-09-23, after Cloudflare R2 was chosen first and then
+   * set aside on one fact: R2 is not enabled on the account and enabling it is
+   * a dashboard step, while Neon storage was already enabled on both branches.
+   * lib/media.ts holds the full reasoning and is the only file that would
+   * change if R2 wins later.
+   *
+   * THE ENDPOINT IS PER-BRANCH and that is the point of using it. Production
+   * and local-dev have separate endpoints and separate buckets, so running
+   * `wrangler dev` cannot write into the photographs the live site serves.
+   * This repo has already been bitten by the reverse arrangement - see the
+   * root CLAUDE.md on the Worker reading a different DATABASE_URL than every
+   * ad-hoc script - and storage is the same trap with the same cure.
+   *
+   * NOTE ALSO: a bucket does NOT appear on a branch that was created before
+   * the bucket was. local-dev branched on 09-18 and the bucket was made on
+   * 09-23, so it needed its own `CreateBucket` call. A new branch taken from
+   * now on inherits it.
+   *
+   * WHAT A LEAK OF THESE REACHES, stated rather than implied: the pair is a
+   * Neon scoped credential carrying `storage:read` and `storage:write` on the
+   * production branch AND every branch descended from it. That is read, write
+   * and DELETE of every object in the bucket - Neon publishes no append-only
+   * or write-without-delete scope, checked against its scope list rather than
+   * assumed. It reaches NO Postgres data: the database is a separate
+   * credential with separate scopes, which is the one material way this is
+   * narrower than the Hostinger mail token. Revoke with
+   * `DELETE /projects/{id}/branches/{branch}/credentials/{token_id}`, or
+   * rotate the secret in place and keep the key id. Neon accepts an
+   * `expires_at` on a credential and DOES NOT ENFORCE IT - its own docs say
+   * so - so expiry is not access control here; revoke explicitly.
+   */
+  MEDIA_S3_ENDPOINT?: string;
+  MEDIA_ACCESS_KEY_ID?: string;
+  MEDIA_SECRET_ACCESS_KEY?: string;
 }

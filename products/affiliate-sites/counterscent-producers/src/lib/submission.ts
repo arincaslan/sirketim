@@ -247,6 +247,28 @@ export interface SubmissionDraft {
   pairingSource: string;
   pairingQuote: string;
   pairingUrl: string;
+
+  /**
+   * THE STORAGE KEY OF AN ALREADY-UPLOADED PHOTOGRAPH, not the file itself.
+   *
+   * A file input cannot be repopulated by a server - browsers forbid setting
+   * its value, for good reasons that have nothing to do with us. So on a form
+   * with twenty-odd fields, one wrong price would silently drop the producer's
+   * photograph and they would discover it only by re-reading the whole form.
+   * This file already holds the principle that settles it: "a form that
+   * discards what somebody typed is worse than no form" (routes/submit.ts).
+   *
+   * So the upload happens FIRST, on its own, and what survives a failed
+   * validation is this key in a hidden field. The second benefit is larger
+   * than the first: because the bytes are already stored, the re-rendered form
+   * can show the real photograph back from /media/<key>, which is a true
+   * preview with no client-side JavaScript at all.
+   *
+   * IT IS CLIENT-SUPPLIED AND THEREFORE NOT TRUSTED. The shape is checked
+   * here; that the key belongs to the producer sending it is checked in
+   * routes/submit.ts, which is the only layer that knows who is posting.
+   */
+  imageKey: string;
 }
 
 export function emptyDraft(): SubmissionDraft {
@@ -270,8 +292,27 @@ export function emptyDraft(): SubmissionDraft {
     pairingSource: "",
     pairingQuote: "",
     pairingUrl: "",
+    imageKey: "",
   };
 }
+
+/**
+ * The shape newImageKey() produces (lib/media.ts). Kept here as well as in
+ * routes/media.ts because the two layers refuse different things: that route
+ * refuses to SERVE a malformed key, this refuses to STORE one on a row. A
+ * single shared constant would be tidier and would also mean one edit could
+ * quietly widen both.
+ *
+ * THE PRODUCER SEGMENT ALLOWS HYPHENS, and it took a real upload to find out
+ * why. Producer.id is `@default(cuid())` in the schema, which is lowercase
+ * alphanumeric, so `[a-z0-9]+` looked right - but this Worker inserts its own
+ * ids with generateId(), which is crypto.randomUUID(), and those carry
+ * hyphens. The first version of this pattern therefore rejected every key it
+ * had just minted: the photograph uploaded, the preview 404d, and the second
+ * submit would have dropped the key and told the producer their photograph
+ * was missing. Nothing in a typecheck or a code read catches that.
+ */
+export const IMAGE_KEY_PATTERN = /^listings\/[a-z0-9-]{1,64}\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
 
 function str(form: FormData, key: string): string {
   const value = form.get(key);
@@ -304,6 +345,10 @@ export function readDraft(form: FormData): SubmissionDraft {
     pairingSource: str(form, "pairingSource"),
     pairingQuote: str(form, "pairingQuote"),
     pairingUrl: str(form, "pairingUrl"),
+    // Dropped rather than carried when it does not match the shape we mint.
+    // An empty string here reads downstream as "no photograph yet", which is
+    // exactly what a forged or corrupted value should amount to.
+    imageKey: IMAGE_KEY_PATTERN.test(str(form, "imageKey")) ? str(form, "imageKey") : "",
   };
 }
 
@@ -340,6 +385,19 @@ export interface ValidSubmission {
   pairingSource: string | null;
   pairingQuote: string | null;
   pairingUrl: string | null;
+
+  /**
+   * The path this origin serves the photograph from, "/media/<key>".
+   *
+   * A PATH, NEVER A PROVIDER HOSTNAME, and that is what keeps the storage
+   * decision reversible. Every row written today survives a move to
+   * Cloudflare R2 (or anywhere else) because nothing in the database names
+   * Neon; only lib/media.ts does. Writing an absolute vendor URL here would
+   * turn that swap into a data migration, which is the mistake this schema
+   * already avoided once by renaming stripeCustomerId to providerCustomerId
+   * before any row existed.
+   */
+  imageUrl: string;
 }
 
 const REFERENCE_SLUGS = new Set(REFERENCES.map((r) => r.slug));
@@ -514,11 +572,22 @@ export function validateSubmission(
     }
   }
 
+  // MANDATORY, founder decision 2026-09-21: these listings appear in the dupe
+  // finder and an image-less one has no business being there. readDraft() has
+  // already dropped anything that does not match IMAGE_KEY_PATTERN, so an
+  // empty value here means either no upload was attempted or the one that was
+  // attempted did not survive - the producer is told the same thing either
+  // way, because from their side it is the same fact.
+  if (!draft.imageKey) {
+    add("image", "Add a photograph of the product. Every listing needs one.");
+  }
+
   if (errors.length) return { ok: false, errors };
 
   return {
     ok: true,
     value: {
+      imageUrl: `/media/${draft.imageKey}`,
       referenceSlug: draft.referenceSlug,
       slug,
       name: draft.name,
@@ -747,6 +816,7 @@ export async function insertSubmission(
       "longevityHoursMin", "longevityHoursMax", "sillageLabel",
       "declaredDifferences", "storeUrl",
       "pairingSource", "pairingQuote", "pairingUrl",
+      "imageUrl",
       "approvalStatus", "publishState", "updatedAt"
     )
     SELECT
@@ -768,6 +838,7 @@ export async function insertSubmission(
       ${value.longevityHoursMin}, ${value.longevityHoursMax}, ${value.sillageLabel},
       ${value.declaredDifferences}, ${value.storeUrl},
       ${value.pairingSource}, ${value.pairingQuote}, ${value.pairingUrl},
+      ${value.imageUrl},
       'PENDING', 'PENDING', now()
     WHERE (
       SELECT count(*) FROM "Submission" s

@@ -98,6 +98,7 @@ import { submitPage, submitListing } from "./routes/submit";
 import { withdrawPage, withdrawSubmit } from "./routes/withdraw";
 import { accountsPage, accountsDisconnect } from "./routes/accounts";
 import { oauthStart, oauthCallback } from "./routes/oauth";
+import { mediaObject } from "./routes/media";
 import { PROVIDERS, type ProviderId } from "./lib/providers";
 import type { FlowMode } from "./lib/oauth";
 import type { Env } from "./lib/env";
@@ -269,6 +270,21 @@ export default {
         status: 301,
         headers: { Location: canonical + url.search, ...SECURITY_HEADERS },
       });
+    }
+
+    // THE ONE PREFIX ROUTE. Everything else on this origin is an exact path,
+    // and ROUTES is a plain lookup table because of it - there is no matcher,
+    // no parameter syntax and no ordering to reason about. An uploaded
+    // photograph cannot be an exact path: its key carries a UUID, so it is
+    // matched here, ahead of the table, rather than turning the table into a
+    // pattern list for one caller.
+    //
+    // GET only, by omission rather than by a 405: this address is not a write
+    // endpoint and never will be - uploads arrive through the submit form,
+    // which is where the quota, the session and the review queue are. A POST
+    // here falls through to the ordinary 404 below.
+    if (method === "GET" && url.pathname.startsWith("/media/")) {
+      return mediaObject(request, env);
     }
 
     const route = ROUTES[url.pathname];
