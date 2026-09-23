@@ -1,23 +1,149 @@
-# HANDOFF - 2026-09-21, on `win10`
+# HANDOFF - 2026-09-23, on `win10`
 
-**Rewritten from scratch this session.** The previous 1,542-line file was thirteen
-sessions of notes stacked on top of each other, three days stale, and its whole
-"machine switch" section described a move that never happened. It is in git history
-if anything is ever needed from it (`git show f56bda8:HANDOFF.md`).
+**The 09-21 body is kept below from "Verified live" onward.** Everything above that
+line was rewritten today. Where a 09-21 statement is now false, it is corrected
+here rather than left to be discovered.
 
-Everything below was **verified by calling it today**, not read off a document.
-Where something is a claim I did not test, it says so.
+Everything claimed as done today was **verified by calling it**, not read off a
+document. Where something is a claim I did not test, it says so.
 
 ---
 
 ## The one-line state
 
-The producer programme is **built and open on the free tier**. A producer can sign
-in, create a company, submit a listing, withdraw it, and a staff member can review
-it. The only piece missing is **payment**, and that is deliberately last.
+The producer programme is **built and open on the free tier**, a producer can now
+**attach a photograph**, and the route from an approved listing into the public Dupe
+Finder **exists for the first time**. Both were built and proved end to end today.
 
-**Payment is the last build step, but it is not the next one** - the mandatory-photo
-decision of 09-21 comes first. See START HERE below.
+**Neither is switched on.** The export step refuses to run until two founder
+decisions are made, and nothing is deployed. See START HERE.
+
+---
+
+## 2026-09-23: photographs, and the export step
+
+### Photograph upload - DONE and proved
+
+A producer must now attach a photo to submit a listing. Proved with a real
+multipart upload against `wrangler dev`, not by reading the code.
+
+| | |
+|---|---|
+| Store | **Neon Object Storage**, bucket `producer-media` on BOTH branches |
+| Credentials | one scoped pair per branch, `storage:read`+`storage:write`, **no database access** |
+| Served from | `producers.counterscent.com/media/<key>`, private bucket, Worker-proxied |
+| Proved | upload, byte-identical read-back, retention across a failed submit, real preview, foreign-key rejection, encoded path traversal refused, POST refused |
+
+**Cloudflare R2 was the founder's first choice and was set aside on one fact:** R2
+is not enabled on the account and enabling it is a dashboard step, while Neon
+storage was already enabled. R2's advantages (no credential at all, no egress
+charge) are unchanged and it stays the likely endgame. Swapping is `src/lib/media.ts`
+plus three secrets, **not a migration**, because the database stores the path
+`/media/<key>` and never a provider hostname.
+
+Two things worth carrying:
+
+- **`UNSIGNED-PAYLOAD` is not an optimisation here, it is the only version that
+  fits.** Measured against the real bucket: signing a 2 MB body costs **58ms**,
+  unsigned costs **3.8ms**, and the Workers free plan gives **10ms of CPU per
+  request**. Same shape as the PBKDF2 measurement that killed password sign-in.
+- **A bucket does NOT appear on a branch created before the bucket.** `local-dev`
+  branched 09-18, the bucket was made 09-23, and local-dev needed its own
+  `CreateBucket` call.
+
+### The export step - WRITTEN and proved, but gated
+
+`counterscent-producers/scripts/export-listings.mjs`. This is the thing a producer
+actually pays for and **it did not exist**: `producer-listings.generated.ts` had sat
+empty since the programme was designed, its own header saying it is "written by the
+export step of the producer console", and nothing wrote it.
+
+It writes three files and read-only on the database by default:
+
+```
+node scripts/export-listings.mjs               write the three files
+node scripts/export-listings.mjs --mark-live   AFTER the catalogue deploy
+node scripts/export-listings.mjs --check       fail if output would change
+```
+
+**Proved end to end** against `local-dev` with a real approved row: export ->
+`npm run build` in the catalogue succeeds -> `/go/producer-<slug>-<listing>` lands
+in `_redirects` (620 -> 622). All test data was reverted afterwards; the three
+generated files are back to empty and the fixtures back to PENDING.
+
+---
+
+## THE TWO DECISIONS THAT GATE IT (founder, tomorrow)
+
+The script **refuses to run** until each is set. Both are in the file's header with
+the full reasoning next to the value.
+
+### 1. `pyramidSource` for a producer-declared pyramid
+
+**The build already answered half of this, and that changes the question.** Running
+a real export through `npm run build` produced:
+
+> Producer listing "..." claims pyramidSource "declared" with no pyramidBasis.
+> Either record where the producer publishes that pyramid (source, quote, url,
+> checkedOn) or set pyramidSource to "imputed".
+
+So `declared` is **earned**, by citing where the producer publishes the pyramid -
+and the submit form collects no such citation. **The only shippable value today is
+`imputed`**, which drops the whole "-10 penalty advantage for subscribers" worry:
+a producer sits in the same bucket as the 47 merchant listings we had to guess at.
+
+The real question left is narrower: **is it worth adding a "where do you publish
+this pyramid" field to the form** so a producer can earn `declared`?
+
+### 2. May a producer's photograph be published?
+
+Technically ready - the catalogue sends **no CSP at all**, checked, so embedding
+`producers.counterscent.com/media/...` works. What is missing is not technical:
+**nothing in the form asks the producer to warrant they hold the rights to the
+image.** The catalogue's own rule for bottle photography is "supplied by an
+affiliate programme we are enrolled in, or a bottle we own"; a producer's own photo
+is a legitimate third case, but we would be republishing it on an assumption.
+
+Closing it is small: a required checkbox on `/console/submit`, stored on the row,
+read by the exporter. Schema change plus a form field.
+
+Until it is set, listings export **without** photographs and render the generated
+note-signature mark. A missing checkbox withholds the picture, never the listing.
+
+---
+
+## Still open from today, not blocking
+
+- **`Submission.imageUrl` is still nullable in the database.** The mandatory-ness is
+  enforced in application code only, which this repo's own lesson says is enforced
+  only between requests. Making it `NOT NULL` is a schema decision and one existing
+  local-dev fixture row would need backfilling first.
+- **EXIF is not stripped.** The 10ms CPU budget does not allow decoding an image. The
+  submit form warns the producer in plain words instead. Real fixes: Cloudflare
+  Images ($5/mo) or client-side.
+- **Session tokens are stored RAW in the database.** Unrelated to today's work, found
+  while testing. `VerificationToken` is hashed and `lib/auth.ts` explains why -
+  "a read of this table should not by itself hand someone a working sign-in link" -
+  and that argument is *stronger* for sessions, which live 30 days rather than
+  minutes. Not changed: it would invalidate every live session.
+- **Production storage secrets are not set.** `MEDIA_S3_ENDPOINT`,
+  `MEDIA_ACCESS_KEY_ID`, `MEDIA_SECRET_ACCESS_KEY` exist in `.dev.vars` (local-dev
+  branch) only. The production-branch credential was created and must be loaded with
+  `wrangler secret put` before the photo field works on the live origin.
+- **The 09-21 deploy is still not done**, so `producers.counterscent.com` still says
+  the payment provider question "has not been answered". It was answered on 09-20.
+
+---
+
+## START HERE TOMORROW
+
+1. **Make the two decisions above.** Both are one line in
+   `counterscent-producers/scripts/export-listings.mjs`. Everything else is blocked
+   behind them.
+2. **Set the three production storage secrets** with `wrangler secret put`.
+3. **Deploy the Worker** (this also ships the 09-21 front-door fix).
+4. **Then payment**, `FINALIZATION-GUIDE.md` Phase 5 task 5.4. Paddle, already
+   decided; the Paddle marketplace-policy question still needs asking in writing.
 
 ---
 
@@ -177,22 +303,19 @@ public.
 
 ---
 
-## START HERE TOMORROW
+## ~~START HERE TOMORROW~~ - the 09-21 list, all three items now DONE or MOVED
 
-In this order. The first item blocks the second.
+Kept as the record of what the plan was, not as a task list. The live one is at the
+top of this file.
 
-1. **Decide where an uploaded producer photo lives.** Neon Object Storage (branches with
-   the database, one fewer provider) or Cloudflare R2 (same vendor as the Worker). This
-   Worker has neither configured today. The mandatory-photo field cannot be built until
-   this is answered, and answering it mid-build is how the wrong one gets chosen.
-2. **Build the mandatory photo field** on `/console/submit`: upload, validation, and the
-   schema column. Founder decision 09-21, reasoning in open item 6 below.
-3. **Then payment**, `FINALIZATION-GUIDE.md` Phase 5 task 5.4. Paddle, already decided.
+1. ~~Decide where an uploaded producer photo lives.~~ **Neon Object Storage**, 09-23.
+   R2 was chosen first and set aside because it is not enabled on the account.
+2. ~~Build the mandatory photo field.~~ **Done and proved 09-23.**
+3. Payment - still last, still Paddle, now behind the export step as well.
 
 Everything in the "two stale front doors" section below was **fixed and committed**
 on 2026-09-21 (`e611d65`). It is kept as the record of what was wrong, not as a task.
-
-**Not pushed.** The commit is local to `win10`. Push before working from anywhere else.
+**It is still not deployed**, so the live origin still carries the old copy.
 
 ---
 
@@ -213,10 +336,15 @@ clean, and the built HTML in `out/` was checked to carry the new copy.
 
 ---
 
-## Uncommitted right now
+## ~~Uncommitted right now~~ - COMMITTED 2026-09-21 in `e611d65`, still NOT DEPLOYED
+
+This section said "not committed" and was already wrong when the next session read
+it. The file was committed the same day. What is still true is the second half: it
+has never been deployed, so every sentence below is **still live on
+`producers.counterscent.com` right now** - checked by fetching the page on 09-23.
 
 `src/routes/overview.ts` - the public overview page was describing a product that had
-not been built yet. Six false claims corrected this session:
+not been built yet. Six false claims corrected:
 
 - "Not open yet" and "there is still no way to submit anything"
 - "the pages below are what has been designed rather than what is running"
@@ -227,4 +355,4 @@ not been built yet. Six false claims corrected this session:
   (the provider was chosen 09-20)
 
 Typecheck clean, rendered and read back locally, zero em-dashes per house style.
-**Not committed and not deployed** - deploy is F2 in the task plan, a founder step.
+**Committed, not deployed** - deploy is F2 in the task plan, a founder step.
