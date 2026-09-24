@@ -307,6 +307,26 @@ async function main() {
     );
   }
 
+  // THE EXPORTER REFUSES WHAT THE BUILD WOULD ABORT ON. lib/dupes-data.ts
+  // throws at module load for a "declared" listing with no pyramidBasis, and
+  // its own comment says that check is "a backstop, not the place the rule
+  // should be enforced" - because by the time the public build runs, the only
+  // move left is to abort, and aborting takes 620 working affiliate redirects
+  // and every page on the site down with it. Nothing here can produce a
+  // pyramidBasis: the submit form collects no citation. So "declared" is not
+  // merely undecided, it is currently unshippable, and saying so here costs a
+  // one-line message instead of a broken deploy.
+  if (MODE !== "check" && PYRAMID_SOURCE_POLICY === "declared") {
+    fail(
+      'PYRAMID_SOURCE_POLICY is "declared", and every row would fail the\n' +
+        "catalogue build: lib/dupes-data.ts requires a pyramidBasis (source,\n" +
+        "quote, url, checkedOn) for a declared pyramid, and the submit form\n" +
+        "collects no such citation.\n\n" +
+        'Use "imputed" until the form asks a producer where they publish their\n' +
+        "pyramid, and this script carries that answer onto the row.",
+    );
+  }
+
   const vars = readDevVars(path.join(PROJECT, ".dev.vars"));
   const dbUrl = process.env.DATABASE_URL || vars.DATABASE_URL;
   if (!dbUrl) {
@@ -459,6 +479,29 @@ async function main() {
       // NEVER defaulted to "verified" - that is earned by editorial review, and
       // defaulting it is how a cap silently stops applying.
       verificationStatus: "declared",
+
+      // THE OFFER IS WHAT PUTS A BUY BUTTON ON THE CARD, and leaving it out is
+      // a third way to spring the "a link is not a listing" trap: both files
+      // written, the /go/ redirect live, and nothing on the page pointing at
+      // it. Caught by grepping the BUILT page for the redirect and not finding
+      // it - the card rendered, ranked and scored perfectly well without one,
+      // which is exactly why it would have shipped.
+      //
+      // `affiliateLinkId` ties the offer to PRODUCER_LINKS by the same slug
+      // producerLinkId() minted, so the button resolves at the edge rather
+      // than linking straight out - which is what keeps the click countable
+      // and the destination changeable without a rebuild.
+      offers: [
+        {
+          merchant: r.producer_name,
+          productName: `${r.brand} ${r.name}`,
+          productUrl: link.url ?? r.storeUrl,
+          price: r.priceUsd,
+          currency: "USD",
+          affiliateLinkId: slug,
+          inStock: true,
+        },
+      ],
     };
 
     // The photograph rides on DECISION 2 and on nothing else. A row that has an
