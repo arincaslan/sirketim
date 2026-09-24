@@ -89,9 +89,38 @@ fix and everything from 09-23 — the photograph upload and the mandatory photo.
 > way. **Then prove it by submitting a listing with a photograph**, not by
 > re-reading this. Secrets take effect without a redeploy.
 
-**The catalogue is deployed by the push** — Cloudflare Workers Builds runs
-`wrangler deploy` from the repo root on `main`. What it ships: `/terms`, the two
-new footer links, the legal entity in the footer line.
+**The catalogue is deployed too, but the push did NOT do it — read this before
+assuming a push is a deploy.**
+
+Workers Builds produced no deployment in the 11 minutes after the push, while the
+previous commit had deployed ~2 minutes after its own push the same morning. The
+build is not the problem: `rm -rf out && WORKERS_CI=1 npm install` from the repo
+root — the command this repo's own rule says to verify with, not `npm run build` —
+completed cleanly and emitted `/terms`. So either the trigger did not fire or the
+build failed somewhere only the Cloudflare dashboard can show. **Check the build log
+there before the next push.** If Workers Builds is no longer firing on `main`, every
+future "I pushed, so it is live" is wrong.
+
+Deployed by hand instead, from the repo root: `npx wrangler@4 deploy` (version
+`05e1616b`). Note `assets.directory` is
+`./products/affiliate-sites/fragrance-dupes/out`, **not** `./out` — looking for a
+root `out/` reads as a failed build when nothing is wrong.
+
+**Verified live afterwards**, all against `counterscent.com`:
+
+| Check | Result |
+|---|---|
+| `/terms/` | 200; carries "Sirketim A.Ş.", the governing-law clause, and the link to the console's refund policy |
+| `/privacy/`, `/producers/pricing/` | 200 |
+| Homepage footer | both `/terms/` and `https://producers.counterscent.com/refunds` present |
+| `_redirects` | 628 lines; a real id (`/go/original-212-vip`) answers **302 to the CJ host** |
+
+Two traps hit while verifying, both worth carrying. **A 404 immediately after a
+deploy can be a cached 404** — `/terms/` answered 404 on the first probe and 200 on
+the next three seconds later, so one probe is not an answer. And **do not invent an
+affiliate id to test a redirect**: `/go/original-bleu-de-chanel` 404s because it does
+not exist, which read for a moment like all 620 links had died. Take an id out of the
+generated `_redirects` and check that one.
 
 ---
 
