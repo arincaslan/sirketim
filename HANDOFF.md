@@ -1,4 +1,136 @@
-# HANDOFF - 2026-09-23, on `win10`
+# HANDOFF - 2026-09-24, on `win10`
+
+## 2026-09-24: the payment rail — Paddle groundwork
+
+The founder asked to apply to Paddle ("paddle vergi işini de çözüyormuş gibi adım
+adım birlikte ilerleyip başvuralım"). No account was created — that is a founder
+action — but everything that would have blocked the application was closed, and
+one finding changed the risk picture.
+
+**Two corrections worth carrying before anything else:**
+
+1. **Paddle solves the BUYER's tax, not ours.** As merchant of record it owes and
+   remits US sales tax, EU VAT and UK VAT on every subscription. It does not touch
+   Sirketim's corporate tax, does not settle whether we must issue a *fatura* for
+   each payout (unverified — Awin does not self-bill, which is why this matters),
+   and does not answer 32 Sayılı Karar for Turkish producers or what a foreign MoR
+   does to the services-export exemption. The last two are *mali müşavir*
+   questions and always were.
+2. **A SECOND acceptable-use risk was found, and it is the more dangerous one.**
+   Paddle's AUP prohibits "advertising and marketing services" as a category
+   separate from marketplaces, and **names job boards explicitly**. A job board has
+   our exact shape: pay a subscription, visitor clicks through, transaction happens
+   elsewhere, no buyer money through the platform. **That last clause was our
+   strongest argument and it is worthless against this category** — it is equally
+   true of a job board. The prepared enquiry email defended only the marketplace
+   reading; it has been rewritten to defend both. See
+   `departments/communication/reports/paddle-acceptable-use-enquiry.md`.
+
+**What was blocking the application, now fixed.** Paddle's domain review requires
+Terms, Refund Policy and Privacy Policy "clearly accessible via navigation", plus
+the company's legal name in the Terms. We had privacy only.
+
+| | |
+|---|---|
+| `counterscent.com/terms` | NEW. Derived from `PRODUCER-TERMS.md`, names **Sirketim A.Ş.** |
+| `producers.counterscent.com/refunds` | NEW. Public, unauthenticated, **called and verified** — 200, correct content, footer link renders on other pages, POST answers 405 |
+| Footers | both origins now link all three documents; the catalogue's bottom line names the legal entity |
+| Refund window | **14 days**, founder decision — Paddle's guidance expects **30**. Deliberate, recorded in three places so a reviewer's objection is answered as a choice and not an oversight |
+
+**The refund policy is on the CONSOLE, not the catalogue** — the founder moved it
+there the same day, correctly: nothing on counterscent.com can be bought, so a
+refund policy there describes a transaction that does not happen on the page
+carrying it. The catalogue footer still links to it, so both origins satisfy the
+"accessible via navigation" check with one canonical copy.
+
+### Deployed 2026-09-24 — and ONE THING IS BROKEN ON PURPOSE UNTIL YOU ACT
+
+**The console Worker is deployed** (version `e3169bd9`), verified from outside:
+`producers.counterscent.com/refunds` answers 200 with the right content and the
+footer link renders on `/sign-in`. This deploy also shipped the 09-21 front-door
+fix and everything from 09-23 — the photograph upload and the mandatory photo.
+
+> ## ⚠ A PRODUCER CANNOT SUBMIT A LISTING RIGHT NOW
+>
+> The three `MEDIA_*` secrets are **not set on the production Worker** —
+> `wrangler secret list` shows only `ADMIN_EMAILS`, `DATABASE_URL`, the two
+> `GOOGLE_*` and the two `HOSTINGER_*`. A photograph is mandatory to submit, so:
+> attach one and the form says "Photograph storage is not configured on this
+> deployment, so nothing was saved. This is ours to fix." Attach none and it
+> refuses for the missing photo. Both roads are closed.
+>
+> **This was deployed knowingly, and here is the arithmetic.** Production holds
+> **1 account, 1 producer (`ZELİHAHA`, gmail, created 09-18), and 0 submissions
+> ever** — checked against the production database, not assumed. So the blocked
+> form affects one almost-certainly-internal account with no history of using it.
+> The alternative was to hold the console back, which would have left the
+> catalogue's footer linking to a `/refunds` that 404s on every page of a public
+> site. One honest dead end behind a login beat one broken link in front of
+> everybody.
+>
+> **Note this also corrects a CLAUDE.md claim that had gone stale**: "every
+> account on production today has no producer attached" was true when written and
+> is not true now. The comment in `src/index.ts` was fixed to past tense.
+>
+> **THE FIX, ~2 minutes.** The credential `counterscent-worker-media` already
+> exists on the production branch (`br-holy-hall-aykldsdj`, scopes
+> `storage:read`+`storage:write`, created 09-23) but Neon shows a secret only at
+> creation, so if it was not saved, mint a new one in the Neon console on that
+> branch. Then, from `counterscent-producers/`:
+>
+> ```
+> npx wrangler@4 secret put MEDIA_S3_ENDPOINT
+> npx wrangler@4 secret put MEDIA_ACCESS_KEY_ID
+> npx wrangler@4 secret put MEDIA_SECRET_ACCESS_KEY
+> ```
+>
+> The endpoint is the **production** branch host, not the local-dev one in
+> `.dev.vars` — that file points at `br-dry-glade-aybccqyo` and must stay that
+> way. **Then prove it by submitting a listing with a photograph**, not by
+> re-reading this. Secrets take effect without a redeploy.
+
+**The catalogue is deployed by the push** — Cloudflare Workers Builds runs
+`wrangler deploy` from the repo root on `main`. What it ships: `/terms`, the two
+new footer links, the legal entity in the footer line.
+
+---
+
+### Picking this up on `Semih` (the other machine)
+
+Everything in this section is state that does NOT travel with a clone or a pull.
+
+| What | Why it is missing on the other machine | How to get it |
+|---|---|---|
+| **`MEDIA_*` in `.dev.vars`** | `.dev.vars` is gitignored by design | Mint a `storage:read`+`storage:write` credential on the **`local-dev`** branch in the Neon console and paste the three values. Do NOT copy the production pair into local dev. |
+| **The `neon` MCP** | USER-level install, lives in `C:\Users\win10\.claude.json`, exists only on `win10` | `npx neon auth` + `npx neon link --project-id holy-sunset-91521586 --branch production -y`. Note the CLI writes **`.env.local`**, not the `.env` that `.dev.vars.example` describes, and Prisma auto-loads `.env`. |
+| **Cloudflare auth** | `wrangler login` writes to `%APPDATA%\xdg.config\.wrangler\`, per-user | `wrangler login`, or set `CLOUDFLARE_API_TOKEN` — an API token does not lapse nightly, the OAuth one does, and `wrangler whoami` will still print your account after it has. |
+| **`npm install`** | two self-contained projects | Run it in `fragrance-dupes` AND `counterscent-producers`. |
+
+**Verifying the two new pages on the other machine.** The catalogue's `/terms` shows
+up in `npm run build` output. The console's `/refunds` needs `npx wrangler@4 dev
+--port 8791 --local` and then an actual `curl` — it was proved here by calling it
+(200, content present, footer link rendering on `/sign-in`, `POST` answering 405),
+and that is the standard this repo holds itself to. It touches no database and no
+secret, so it works even with an empty `.dev.vars`.
+
+---
+
+**Not done, and each one is a founder action:**
+
+- **Create the Paddle account.** Four phases follow it: account verification →
+  domain review (5-7 business days if it goes manual) → business identification →
+  identity verification.
+- **Ask the AUP question.** Better from inside the account than by pre-sales email.
+- **Confirm the registered unvan.** The site now says "Sirketim A.Ş." from
+  `PRODUCER-TERMS.md` §1. Business identification checks the site's name against
+  the registration document; a mismatch is rework at the slowest stage.
+- **Get a lawyer over the published terms.** They bind people now. Governing law
+  and the data section were flagged as needing it while they were still a draft.
+
+---
+
+## 2026-09-23 and earlier
+
 
 **The 09-21 body is kept below from "Verified live" onward.** Everything above that
 line was rewritten today. Where a 09-21 statement is now false, it is corrected

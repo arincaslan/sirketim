@@ -20,6 +20,19 @@ const COLUMNS = [
       { href: "/about", label: "Our Standards" },
       { href: "/disclosure", label: "Affiliate Disclosure" },
       { href: "/privacy", label: "Privacy Policy" },
+      // Terms and Refunds are in the footer because a payment provider's
+      // domain review requires all three legal documents to be "clearly
+      // accessible via navigation" - a page that exists but is only reachable
+      // by typing the URL fails that check. Added 2026-09-24 with the pages
+      // themselves; see app/terms/page.tsx for the full reasoning.
+      { href: "/terms", label: "Terms of Service" },
+      // OFF-SITE ON PURPOSE. The refund policy lives on the console, because
+      // that is the only origin where a subscription can be bought - a refund
+      // policy on a site with no checkout describes a transaction that does
+      // not happen there. Founder decision, 2026-09-24. The link stays in this
+      // footer so the document is reachable by navigation from BOTH origins,
+      // which is what a merchant-of-record domain review checks for.
+      { href: `${PRODUCER_CONSOLE}/refunds`, label: "Refund Policy" },
       { href: "/contact", label: "Contact" },
     ],
   },
@@ -77,7 +90,10 @@ export function SiteFooter() {
 
       <div className="border-t border-border">
         <div className="container flex flex-col gap-2 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>Counterscent is a Sirketim product. Independent editorial, funded by affiliate commissions.</p>
+          {/* The legal entity, not just the brand. A merchant-of-record's
+              verification checks the trading site against the registered
+              company, and "a Sirketim product" did not name one. */}
+          <p>Counterscent is a product of Sirketim A.Ş., Türkiye. Independent editorial, funded by affiliate commissions.</p>
         </div>
       </div>
     </footer>

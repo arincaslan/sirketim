@@ -313,6 +313,17 @@ ${
       <a href="${CATALOGUE}/producers">List your fragrance</a>
       <a href="${CATALOGUE}/producers/pricing">Plans and pricing</a>
       <a href="${CATALOGUE}/about#methodology">How we score</a>
+      ${
+        // The three legal documents a merchant-of-record domain review looks
+        // for, reachable from every page of the origin where the subscription
+        // is actually bought. Refunds is local because it is about a
+        // transaction that only happens here; terms and privacy live on the
+        // catalogue, which is the one canonical copy of each.
+        ""
+      }
+      <a href="/refunds">Refund policy</a>
+      <a href="${CATALOGUE}/terms">Terms of service</a>
+      <a href="${CATALOGUE}/privacy">Privacy policy</a>
       <a href="${CATALOGUE}/disclosure">Affiliate disclosure</a>
       <a href="mailto:contact@counterscent.com">contact@counterscent.com</a>
     </nav>

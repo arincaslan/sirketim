@@ -99,6 +99,7 @@ import { withdrawPage, withdrawSubmit } from "./routes/withdraw";
 import { accountsPage, accountsDisconnect } from "./routes/accounts";
 import { oauthStart, oauthCallback } from "./routes/oauth";
 import { mediaObject } from "./routes/media";
+import { refunds } from "./routes/refunds";
 import { PROVIDERS, type ProviderId } from "./lib/providers";
 import type { FlowMode } from "./lib/oauth";
 import type { Env } from "./lib/env";
@@ -191,7 +192,7 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
   // the `allowForms` grant arrives with it.
   "/console/plan": { GET: (req, env) => producerPlan(req, env) },
   // HOW YOU SIGN IN. Session-gated but NOT producer-gated, because every
-  // account on production today has no producer attached, and changing how you
+  // account on production today had no producer attached, and changing how you
   // sign in must not wait on creating a company. The POST is disconnect only;
   // connecting is a GET to /auth/<provider>/start?mode=link, and the header of
   // routes/oauth.ts explains why that asymmetry is deliberate.
@@ -223,6 +224,13 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
     GET: (req, env) => adminPeople(req, env),
     POST: (req, env) => adminAttach(req, env),
   },
+  // PUBLIC AND UNAUTHENTICATED, like /sign-in and unlike everything under
+  // /console. A payment provider's reviewer has no account here, and a refund
+  // policy you must sign in to read is not a published policy. It reads no
+  // session and touches no database, so it is wrapped in page() right here
+  // rather than deciding its own headers - it carries no form, so the default
+  // CSP (no form-action grant) is the correct one for it.
+  "/refunds": { GET: () => page(refunds()) },
   "/robots.txt": { GET: robots },
   "/health": { GET: health },
 };

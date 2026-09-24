@@ -1,11 +1,20 @@
-# Counterscent Producer Terms — working draft
+# Counterscent Producer Terms — canonical text
 
-> **STATUS: DRAFT. NOT IN FORCE. NOT REVIEWED BY A LAWYER.**
+> **STATUS CHANGED 2026-09-24: A DERIVED VERSION OF THIS IS NOW PUBLISHED AND
+> IN FORCE.** It lives at `app/terms/page.tsx` (`counterscent.com/terms`), with
+> the refund rules split out to `app/refunds/page.tsx` (`/refunds`). Both are
+> linked from the site footer. They went up because a merchant-of-record domain
+> review requires published Terms, Refund Policy and Privacy Policy before it
+> will approve a domain — so "not in force" stopped being an option.
 >
-> Nobody has agreed to this and nobody can yet — the producer programme is not
-> open, there are no accounts, and every producer page on the site says so.
-> This is the canonical text a qualified adviser should mark up before it binds
-> anyone, not a published policy.
+> **STILL NOT REVIEWED BY A LAWYER.** That was true when this was a draft and
+> it is still true now that it binds people, which makes it more urgent rather
+> than less.
+>
+> **This file remains the canonical text.** The published pages are shorter and
+> state the same mechanisms in fewer words. When the two disagree, fix BOTH in
+> the same commit — the published one is what a producer relies on, and a term
+> we do not actually enforce is worse than no term.
 >
 > Two things in particular need a professional eye, and an agent's opinion is
 > not a substitute for one: **the governing-law clause** (§15 — a Türkiye-based
@@ -203,9 +212,25 @@ tier exists, and it is free.
 When paid tiers open: subscriptions will be sold through a merchant of record,
 which means your contract for the payment is with that company and your invoice
 comes from them, not from us. Fees are stated exclusive of any tax the merchant
-of record is required to add. Subscriptions renew until cancelled, cancellation
-takes effect at the end of the paid period, and we do not refund part-periods
-unless the law where you are requires it.
+of record is required to add.
+
+**Refunds and cancellation are published separately, at `/refunds`.** The rules,
+set by the founder on 2026-09-24:
+
+- **14 days from the first payment** on a new subscription — full refund, no
+  reason required. The same window applies to an **annual renewal charge**,
+  because an annual renewal is a large single payment.
+- Subscriptions renew until cancelled; cancellation takes effect at the end of
+  the paid period.
+- Outside those windows we do not refund part-periods, unless the law where you
+  are requires it.
+
+> **The 14 is shorter than the merchant of record expects.** Paddle's seller
+> guidance says sellers are "expected to have at least a 30-day money-back
+> guarantee". The founder chose 14 after that was stated, so it is a decision
+> and not an oversight — but it is the most likely thing for a reviewer to come
+> back on, and whoever fields that reply should know. Changing it is one number
+> here and one in `app/refunds/page.tsx`.
 
 If a payment fails, your listings above the free allowance stop being published
 at the next build. Your data is retained (§10) and republishes if you resume.
