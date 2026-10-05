@@ -19,7 +19,7 @@ Read `departments/architecture/CLAUDE.md` first. Two rules from it apply here to
 | **See the whole sheet** | `autocad` MCP → `view_screenshot` (PNG) or `drawing_export_pdf` |
 | Lint a drawing | `autocad` MCP → `drawing_critique` (see the caveats in §8) |
 | Read a DWG someone else made | Convert to DXF first (`export_dwg.read_dwg()` or the ODA CLI). The headless MCP refuses `.dwg` input. |
-| Work inside a live AutoCAD session | Not available yet. Priced tier: full AutoCAD plus the same MCP on its COM backend. See `departments/architecture/reports/cad-ai-tooling-2026-10.md`. |
+| Work inside a live AutoCAD session | Not available yet. Two routes, depending on the edition bought:<br>• Full AutoCAD: the same `autocad` MCP on its COM backend.<br>• AutoCAD LT 2024+: `puran-water/autocad-mcp`, which uses file IPC and a LISP dispatcher.<br>Never use an AutoCAD MCP that serves HTTP without Origin validation and auth; `felixalmesberger/AUTOCAD-MCP` is one. See `departments/architecture/reports/cad-ai-tooling-2026-10.md` §2.A and §2.D. |
 | Something the founder will run in their own AutoCAD | Generate a `.scr` or `.lsp` (see `reference/scripting.md`) |
 
 The `autocad` MCP is `autocad-mcp-pro` 1.6.0, headless ezdxf engine, packs `core,arch`.

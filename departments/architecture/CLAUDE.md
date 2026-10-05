@@ -119,6 +119,11 @@ Built in response to the founder's request for architectural and AutoCAD knowled
 - **Considered and not wired:**
   - `mevzuat-mcp` (Turkish legislation): its GitHub repository answered 404 on 2026-10-05, the PyPI release is a year old and needs Playwright plus Chromium, and its hosted endpoint is unreachable from the cloud container. The skill's source index and WebFetch cover the same ground.
   - `freecad-mcp` and `ifc-mcp` (BIM): no current use. Revisit when an IFC model arrives.
+  - `puran-water/autocad-mcp`: the only working **AutoCAD LT 2024+** route, using file IPC and a LISP dispatcher. 123/123 of its tests pass. Wire it only if LT is bought, and then:
+    - move its IPC folder off `C:/temp`
+    - never auto-approve its `system` tool (labelled read-only but runs arbitrary LISP)
+  - `felixalmesberger/AUTOCAD-MCP`: an in-process HTTP plugin for AutoCAD 2026. **Do not load it as-is.** It sends `Access-Control-Allow-Origin: *` with no Origin or Host check and no auth. That breaks the MCP spec's MUST on Origin validation and lets a web page run `eval_lisp`.
+  - Full comparison in `reports/cad-ai-tooling-2026-10.md` §2.D.
 
 **Known defect found by the new render check (2026-10-05, not fixed):** `plan._add_dimensions()` produces 1.0 m dimension text. At the sheet's own 1:100 title-block scale, that plots at 10 mm, four times the 2.5 mm standard and the 0.24 m room labels. The fix is a dimstyle override (`dimtxt`/`dimasz` around 0.25 at 1:100). It is held for founder approval because architecture CAD work is paused pending the founder's review (dashboard task 128).
 

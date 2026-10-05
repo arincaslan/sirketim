@@ -60,6 +60,37 @@ This is what turns "the agent prepares DXF/DWG for the founder" into "the agent 
 
 Every drawing this department produces is schematic. A licensed architect must still review and stamp anything used for a permit. That is a professional fee, not a software line, and it belongs in a project budget, not here.
 
+### D. Two AutoCAD MCPs reviewed on the founder's request (2026-10-05)
+
+Both were cloned and their code read in full, not only their READMEs. puran-water's test suite and headless engine were run; felixalmesberger's needs Windows plus AutoCAD 2026 and could only be code-reviewed.
+
+| | **puran-water/autocad-mcp** | **felixalmesberger/AUTOCAD-MCP** | **autocad-mcp-pro** (already configured) |
+|---|---|---|---|
+| What it drives | AutoCAD **LT 2024+** (Windows), via JSON command files in `C:/temp` + a LISP dispatcher (`APPLOAD` once), triggered by keystrokes posted to the AutoCAD window | Full **AutoCAD 2026**, from inside the process: a .NET 8 DLL loaded with `NETLOAD`, serving HTTP on `localhost:7410` | Full AutoCAD via COM (not LT); headless via ezdxf |
+| Headless (no AutoCAD) | Yes (ezdxf): open, info, entities, layers, blocks, PNG render | No | Yes, plus PDF, critique, units/extents analysis, room detection (mm drawings) |
+| Tools | 8 grouped tools (about 8k characters of schema: light on context) | 4: `send_command`, `eval_lisp`, `list_documents`, `get_active_document` | 195 with the `core,arch` packs (heavy; Claude Code defers them) |
+| Transport and exposure | stdio only, no network port | HTTP with **`Access-Control-Allow-Origin: *`, no Origin or Host check, no authentication** | stdio (HTTP only on request: loopback, with a token for remote) |
+| File access limits | None. It would try any path the user can reach. | n/a (AutoCAD's own) | `ALLOWED_PATHS` enforced (tested) |
+| Arbitrary code | `execute_lisp` inside the `system` tool. That tool is **labelled read-only (`readOnlyHint: true`)**, and the call switches `SECURELOAD` off while it loads the code. | `eval_lisp` with `vl-load-com`, which in full AutoCAD can start any program | `system_run_lisp` / `system_run_command` behind a denylist (a guardrail, not a security boundary) |
+| Maintenance | Last commit 2026-02-20 (v3.1, about 543 stars). The author has folded it into a monorepo, so the standalone repo is a point-in-time reference. | 1 commit (2026-05-19), no tests | Active: v1.6.0 on 2026-09-24, CI, published benchmarks |
+| Quality signals | **123/123 tests pass** (run here). Packaging glitch: `dev` extras are mis-declared, so `uv sync --extra dev` fails. Rendered our plan the same as autocad-mcp-pro. | Clean, small code (752 lines). Synchronous execution through sentinel files. Its startup message still says commands "return immediately". | Benchmarks and fixed-task matrix published by its author |
+
+**The critical finding (felixalmesberger).** The MCP spec says Streamable-HTTP servers **MUST validate the Origin header** to stop DNS-rebinding attacks. This plugin does the opposite: it allows every origin. With the plugin loaded and AutoCAD open, any web page the founder visits could send `eval_lisp` to `localhost:7410` and read the reply. That means running programs through COM and reading files.
+- Whether a given browser blocks the request depends on its local-network protections, which are not something to rely on.
+- **Do not load it as-is.** The fix is small but must be tested on a real AutoCAD 2026 seat:
+  - reject any request whose Origin header is present
+  - check the Host header
+  - drop the `*` CORS headers
+  - require a bearer token (Claude Code's `.mcp.json` can send headers)
+
+**Recommendation:**
+- **Keep autocad-mcp-pro** as the department's AutoCAD MCP: headless now, COM later if full AutoCAD is bought.
+- **Add puran-water only if AutoCAD LT is bought.** It is the one working LT route. Three conditions:
+  - Move its IPC folder from `C:/temp` to a folder only the founder's account can write (`AUTOCAD_MCP_IPC_DIR` plus `*mcp-ipc-dir*` in the LISP).
+  - Never auto-approve its `system` tool, whatever its read-only label says.
+  - Don't drive the AutoCAD window while it works: each call sends two ESC keystrokes, which cancel whatever command is running.
+- **felixalmesberger's plugin** offers nothing the configured server lacks for full AutoCAD. Revisit it only patched, and only on a real 2026 seat.
+
 ## 3. One-time setup on each PC (no cost; also in `SETUP.md`)
 
 1. Install uv: `winget install astral-sh.uv`. Both new servers run through `uvx`.
