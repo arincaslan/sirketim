@@ -1,13 +1,18 @@
 ---
 name: design-reasoning
-description: Make and defend architectural layout decisions by comparing real options against stated criteria before any CAD exists. Covers building placement and orientation, the vertical core (stair, elevator, shafts), unit count and mix, circulation, wet-core stacking, structural grid, basement parking and ramp, ground floor, daylight and privacy. Use before running lib/cadgen on a new or changed program, and whenever the founder asks why a building is laid out the way it is.
+description: Make and defend architectural decisions by comparing real options against stated criteria before any CAD exists, for any building type or interior. Covers placement and orientation, the vertical core (stair, elevator, shafts), unit count and mix, circulation, wet-core stacking, structural grid, basement parking and ramp, ground floor, daylight and privacy, villa and interior decisions. Use before drawing a new or changed scheme, when reviewing someone else's, and whenever the founder asks why a building is laid out the way it is.
 ---
 
 # Architectural design reasoning
 
-On 2026-08-21 the founder rejected the 377/1 drawings for having **no defensible architectural reasoning behind decisions like core placement.** The drawings were to scale, and the compliance checks passed (39/39). They were still not a building anyone could defend.
+A building is a chain of decisions, and an architect's expertise shows in being able to defend each one. A scheme can be to scale and compliant and still be a bad building. Our own 377/1 drawings passed 39/39 automated checks in 2026-08 and were still rejected, because nobody could say why the core was where it was.
 
-The two skills split the work. `zoning-compliance-tr` defines the envelope. This skill decides what goes inside it, and why. A rationale written after the drawings, to justify them, does not count.
+The skills split the work:
+- `zoning-compliance-tr` defines the envelope.
+- `architecture-expertise` holds the knowledge: types, ergonomics, construction, physics, services, practice.
+- This skill turns both into decisions, and records why.
+
+A rationale written after the drawings, to justify them, does not count.
 
 ## Sequence: no CAD before step 6
 
@@ -43,7 +48,7 @@ The two skills split the work. `zoning-compliance-tr` defines the envelope. This
   - Read the current TBDY text for the definitions and limits. The structural engineer decides, but the plan must not hand them a problem.
 - **Slope and the kot.** These set basement exposure, entrance steps, step-free access and ramp length. Without a plankote the datum is a placeholder, so say so.
 
-## The core: what it is and how to place it
+## The core: what it is and how to place it (multi-storey buildings)
 
 The core is the shared vertical circulation: stair, elevator, and usually the service shafts.
 - It must sit at the **identical position on every floor**, from basement to roof, because it punches through every slab.
@@ -115,6 +120,18 @@ A plan that works can still fail in section. Check these before drawing:
   - water tank and pumps
   - storage
   - the core
+
+## Decisions in other project types
+
+The same method applies everywhere: at least three real options, stated criteria, and a written reason. What changes is which decisions matter most.
+
+| Project | Decisions to compare options on | Knowledge to load |
+|---|---|---|
+| Villa / single house | Placement on the lot (sun, view, privacy, garage access); one level or two (accessibility vs footprint); where living meets the garden; entrance sequence; roof form | `architecture-expertise` `02` §4, `05` §3 |
+| Mixed-use | Residential entrance vs shop frontage; ground-floor height and structure (soft-storey risk); service access and refuse; parking split | `02` §5, `06` §1 |
+| Interior fit-out | Which walls move (never perde or columns); kitchen open vs closed; where storage goes; wet-room changes (drains and falls); lighting concept | `07`, `03`, `04` §6 |
+| Renovation / kentsel dönüşüm | Keep or replace; what current rules allow vs the old building; unit count the owners expect vs what fits | `08` §5, `zoning-compliance-tr` |
+| Feasibility only | Unit mix, building type and parking strategy that maximise the objective inside the ledger; cost range | `02` §7, `08` §6 |
 
 ## Decision record template (goes into `notes/rationale.md`)
 

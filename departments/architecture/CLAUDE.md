@@ -103,6 +103,7 @@ Built in response to the founder's request for architectural and AutoCAD knowled
 
 | Skill | Use it for |
 |---|---|
+| `architecture-expertise` | **The department's architectural knowledge base**, for every project (added 2026-10-05 at the founder's direction: expertise is about every project, not just 377/1). Nine reference files: design process and a 32-question critique checklist, building types, space planning and ergonomics, Turkish construction and detailing, building physics and climate, structure/services/fire/accessibility, interiors, Turkish practice (permit path, permit set, kat irtifakı, kentsel dönüşüm, cost, fees), and the dated regulation quick reference, which is the **only** place regulation figures live. |
 | `zoning-compliance-tr` | The constraint ledger. Every plan-note item gets a disposition, every article is quoted from text read in that session, and there's a verified mevzuat.gov.tr source index. `scripts/parcel_to_local.py` turns a TKGM Parsel Sorgu GeoJSON into a local-metre lot outline. Its TM30 projection reproduces 377/1's official imar durumu coordinates within 1 cm. |
 | `design-reasoning` | Core position, unit count and mix, structure, section checks, parking and ramp. At least three real options are scored before any CAD, and every decision gets a record. |
 | `autocad-drafting` | Units, layers (AIA and Turkish office names), annotation sizes, kot and dimension conventions, Turkish fonts and case mapping, DWG versions, `.scr`/AutoLISP generation, and the pre-delivery QA list. |

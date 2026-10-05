@@ -5,7 +5,7 @@ description: Turn architecture project intake into a structured design brief, an
 
 # Architecture Project Brief
 
-Produces a structured brief under `departments/architecture/clients/<slug>/`, per `departments/architecture/CLAUDE.md`.
+Produces a structured brief under `departments/architecture/clients/<slug>/`, per `departments/architecture/CLAUDE.md`. Use the `architecture-expertise` skill throughout. Its `reference/01-design-process.md` §2–3 is the briefing and site-analysis method, and its §7 critique checklist runs before anything is shown to the founder or a client.
 
 ## Steps
 

@@ -5,7 +5,14 @@ description: Read and apply Turkish zoning and building rules to a parcel with c
 
 # Turkish zoning compliance (imar mevzuatı)
 
-This skill exists because of a specific failure. On 2026-08-21 the founder rejected the 377/1 deliverables because the plan notes had not been applied rigorously. A KAKS bonus had been claimed without being checked against the full plan notes, and two citations (items 4.2.41 and 4.2.55) pointed at rules that say something else. Every rule below targets that failure. The corrective read is `departments/architecture/clients/377-1/notes/plan-notes-brief.md`, and it is the model to follow.
+Zoning fixes what can be built before any design decision is made, so every Turkish project starts here. Errors in this area are rarely about not knowing a rule. They come from **applying it carelessly**:
+- a bonus assumed without checking its conditions
+- an article cited from memory that turns out to say something else
+- a long plan-notes document skimmed rather than read item by item
+
+The method below prevents all three. Our own example is the 377/1 work of 2026-08. A claimed KAKS bonus had never been checked, and two plan-note items (4.2.41 and 4.2.55) were cited for rules they don't contain. The corrective item-by-item read, `departments/architecture/clients/377-1/notes/plan-notes-brief.md`, is a good model for any parcel.
+
+For the regulation figures themselves (room minimums, stairs, doors, lifts, fire, shelter, energy, 2026 unit costs), see `architecture-expertise/reference/09-regulation-quick-reference.md`. This skill is the method for applying them.
 
 Everything produced here is **research to verify with the municipality, not a legal determination**. Department scope rules apply (`departments/architecture/CLAUDE.md`): no compliance claims, no stamps, no approval-stamp language.
 
