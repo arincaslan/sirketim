@@ -95,9 +95,36 @@ Fix any conflict before delivering. State the check results plainly in the clien
 
 Every project also gets a short written rationale — `clients/<slug>/notes/rationale.md` — explaining the design in plain language: why the building is oriented and placed as it is, how the room program maps onto the lot, and specifically how each municipal constraint (setbacks, TAKS/KAKS, gabari, red grade line) shaped the design decisions, plus any tradeoffs made. This is what turns a set of drawings into something the founder can defend to a client or reviewer, not just a CAD file with no explanation behind it.
 
+## Skills and MCP servers (added 2026-10-05)
+
+Built in response to the founder's request for architectural and AutoCAD knowledge, free tier first. The paid tier is a decision for the founder: see `reports/cad-ai-tooling-2026-10.md`.
+
+**Skills** (`.claude/skills/`, repo-authored, travel with git; the subagent has the `Skill` tool to load them):
+
+| Skill | Use it for |
+|---|---|
+| `zoning-compliance-tr` | The constraint ledger. Every plan-note item gets a disposition, every article is quoted from text read in that session, and there's a verified mevzuat.gov.tr source index. `scripts/parcel_to_local.py` turns a TKGM Parsel Sorgu GeoJSON into a local-metre lot outline. Its TM30 projection reproduces 377/1's official imar durumu coordinates within 1 cm. |
+| `design-reasoning` | Core position, unit count and mix, structure, section checks, parking and ramp. At least three real options are scored before any CAD, and every decision gets a record. |
+| `autocad-drafting` | Units, layers (AIA and Turkish office names), annotation sizes, kot and dimension conventions, Turkish fonts and case mapping, DWG versions, `.scr`/AutoLISP generation, and the pre-delivery QA list. |
+
+**MCP servers** (`.mcp.json`, both pinned, both started and called through Claude Code from the repo config on 2026-10-05):
+- **`autocad`** is `autocad-mcp-pro` 1.6.0 on its headless ezdxf engine, with the `core,arch` packs. It needs **no AutoCAD licence**. It opens, understands, renders (PNG/PDF) and lints any DXF.
+  - It refuses `.dwg` input, so convert with `lib/cadgen/export_dwg.py` first. It writes DWG only when ezdxf can find the ODA converter, which is a per-machine `ezdxf.ini` (`SETUP.md`).
+  - `ALLOWED_PATHS` is the Windows user profile (falling back to `/home/user` in the cloud container) plus `.`. Claude Code starts stdio servers in the project directory, so `.` covers the repo even if it lives outside the profile; this was tested.
+  - Its `arch_*` tools assume **millimetre** drawings. `lib/cadgen` draws in metres, and `arch_rooms_detect` found 0 rooms on a cadgen plan. For our own output, `lib/cadgen`'s `verify_*()` functions remain the authority.
+- **`blender`** is `mcp-for-blender` 2.1.3, with `DISABLE_TELEMETRY` set (read from the source: this disables both the anonymous usage events and the prompt/screenshot "trajectory" upload) and `BLENDER_MCP_SAFE_MODE=1`.
+  - It needs Blender open with the addon installed (`SETUP.md`). Without that it answers "Could not connect to Blender", which is what the cloud container shows.
+  - It complements the headless `bpy` route; it doesn't replace it.
+- **Considered and not wired:**
+  - `mevzuat-mcp` (Turkish legislation): its GitHub repository answered 404 on 2026-10-05, the PyPI release is a year old and needs Playwright plus Chromium, and its hosted endpoint is unreachable from the cloud container. The skill's source index and WebFetch cover the same ground.
+  - `freecad-mcp` and `ifc-mcp` (BIM): no current use. Revisit when an IFC model arrives.
+
+**Known defect found by the new render check (2026-10-05, not fixed):** `plan._add_dimensions()` produces 1.0 m dimension text. At the sheet's own 1:100 title-block scale, that plots at 10 mm, four times the 2.5 mm standard and the 0.24 m room labels. The fix is a dimstyle override (`dimtxt`/`dimasz` around 0.25 at 1:100). It is held for founder approval because architecture CAD work is paused pending the founder's review (dashboard task 128).
+
 ## Recommended connectors
 
 - **OpenArt MCP** — render-polish stage above. Configured (`.mcp.json`), granted to this subagent; approval is per-session, check `claude mcp list` (see root `CLAUDE.md`).
+- **`autocad` / `blender` MCPs**: see "Skills and MCP servers" above. Both are configured and granted to this subagent.
 - **Google Drive or Dropbox** (not yet configured) — the practical handoff point for CAD/BIM files and drawing sets a human is producing in native software
 - **Autodesk Construction Cloud API** (not yet configured) — worth wiring up if/when the practice standardizes on Revit + ACC for project data and issue tracking
 

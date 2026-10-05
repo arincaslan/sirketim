@@ -49,6 +49,23 @@
     "motion": {
       "type": "http",
       "url": "https://mcp.motion.so/mcp"
+    },
+    "autocad": {
+      "command": "uvx",
+      "args": ["--from", "autocad-mcp-pro[pdf]==1.6.0", "autocad-mcp"],
+      "env": {
+        "AUTOCAD_MCP_BACKEND": "ezdxf",
+        "TOOL_PACKS": "core,arch",
+        "ALLOWED_PATHS": "${USERPROFILE:-/home/user},."
+      }
+    },
+    "blender": {
+      "command": "uvx",
+      "args": ["mcp-for-blender@2.1.3"],
+      "env": {
+        "DISABLE_TELEMETRY": "true",
+        "BLENDER_MCP_SAFE_MODE": "1"
+      }
     }
   }
 }

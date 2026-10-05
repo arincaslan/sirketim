@@ -11,6 +11,10 @@ This repo is the whole workspace — cloning it gets you all department docs, th
 | Node.js + npm | every web-development client/product | [nodejs.org](https://nodejs.org) LTS |
 | Python + `ezdxf` + `svgwrite` | architecture CAD (DXF/SVG) generation | `pip install ezdxf svgwrite` |
 | Blender 4.5 LTS | architecture 3D renders, run headless | `winget install BlenderFoundation.Blender.LTS.4.5`, confirm it lands on PATH |
+| uv (`uvx`) | runs the `autocad` and `blender` MCP servers (pinned versions, isolated envs) | `winget install astral-sh.uv`, then reopen VS Code so it inherits the new PATH (see the root CLAUDE.md note on VS Code environments) |
+| Blender MCP addon | lets the `blender` MCP talk to an open Blender | `uvx mcp-for-blender@2.1.3 install-addon` once, then start Blender. Keep the version equal to the one in `.mcp.json`. |
+| ezdxf → ODA path | lets the `autocad` MCP write DWG (it uses ezdxf's ODA lookup, not `export_dwg.py`'s) | create `%USERPROFILE%\.config\ezdxf\ezdxf.ini` with `[odafc-addon]` and `win_exec_path = "<this machine's ODAFileConverter.exe path>"`. The path differs between `win10` and `Semih`. |
+| `pyproj` | `zoning-compliance-tr`'s `parcel_to_local.py` (TKGM GeoJSON → local metres) | `pip install pyproj` |
 | Emil Kowalski's design/animation skills | web-development motion/UI polish (`emil-design-eng`, `animate`, etc.) | `npx skills@latest add emilkowalski/skills` from the repo root — **not committed**, see gitignore note below |
 | Taste skill (`design-taste-frontend`) | web-development anti-generic-output check | `npx skills@latest add Leonxlnx/taste-skill --skill design-taste-frontend` from the repo root — **not committed**, same reason as above. The `--skill` flag matters: the source repo (`Leonxlnx/taste-skill`) bundles 12 other style/output variants (`brutalist-skill`, `minimalist-skill`, `imagegen-*`, `brandkit`, etc.) that are deliberately not installed — omitting `--skill` installs all 13. |
 | Claude Code | the actual working environment | log in with the same account |
@@ -44,7 +48,9 @@ The repo is **public** (deliberate — see the "Git remote" bullet in [CLAUDE.md
 | `HOSTINGER_API_TOKEN` | the four `hostinger-*` servers | Hostinger panel → API tokens |
 | `TWENTY_FIRST_API_KEY` | `21st` (web-dev UI components) | 21st.dev account |
 
-Without them those servers fail to connect, which looks identical to a broken server. Two more diagnosis rules, both learned the hard way and both contradicting the obvious move:
+Without them those servers fail to connect, which looks identical to a broken server.
+
+**`autocad` and `blender` (architecture, added 2026-10-05) need no key, only `uvx` on PATH** (table above). `autocad` runs headless with no AutoCAD licence, and may open files only under `%USERPROFILE%` and the project directory. `blender` connects only while Blender is open with its addon, and otherwise answers "Could not connect to Blender". Both are pinned. Bump the version in `.mcp.json` and the addon command together. Two more diagnosis rules, both learned the hard way and both contradicting the obvious move:
 
 - **Do not trust `claude mcp list`** — it has reported a server pending while that same server's own tool worked fine. If a connector matters, call one of its actual tools (or `ToolSearch`) instead.
 - **A `CONNECT_TIMEOUT` or `CONNECTION_CLOSED` at session start means "start a fresh session", not "the server is broken"** — confirmed while the same servers worked from another terminal at the same moment. Background subagents are hit hardest, since they do not inherit a fresh session's connections.
