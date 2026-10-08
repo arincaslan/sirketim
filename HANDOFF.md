@@ -1,3 +1,171 @@
+# HANDOFF - 2026-10-08, on `win10`. **Next session is on `Semih`.**
+
+## Read this first: the CJ credential does NOT travel in this repo
+
+Two new CJ feed subscriptions exist and both are PULLED by us over HTTP. The
+credential is deliberately not written down here, because this repository is
+public. Everything else you need is:
+
+| | |
+|---|---|
+| Account CID | **8058200**, registered to **IGDIR INSAAT MADENCILIK TUR. SAN. TIC. A.S.** |
+| Username | the CID itself, `8058200` |
+| Password | in the founder's mailbox, from **`datatransfer@cj.com`**, sent separately from the subscription-registration mail. Also saved in this machine's local Claude memory (`~/.claude/projects/.../memory/reference_cj_data_transfer_counterscent.md`), which does NOT travel with a clone - re-save it on `Semih` or read it out of the mail. |
+| URL shape | `https://datatransfer.cj.com/datatransfer/files/8058200/outgoing/productcatalog/<subscriptionId>/<file>` - confirmed by a real 200, not by documentation. The flatter `.../outgoing/<file>` form 404s. |
+| Directory listing | there is none. Every path answers `File Not Found` without the exact file name, so take the name from CJ's "export has processed" mail. |
+
+Two subscriptions, both daily, both Shopping (Google format), TAB:
+
+- **322161 `irfe`** - one advertiser, Maison IRFE (CJ 17213922). 20 rows.
+  **Done, shipped, live.**
+- **322160 `fragranceOutlet`** - one advertiser, The Fragrance Outlet
+  (CJ 17353261). 6,142 rows. **Downloaded and analysed. NOT wired. This is the
+  next piece of work.**
+
+Files rotate daily and CJ keeps only the recent one, so a date that worked
+yesterday 404s. Both are unzipped under `scripts/feeds/` (gitignored).
+
+## What shipped today
+
+**Maison IRFE is live on counterscent.com** as eight originals, with buy links,
+prices and photographs. Two commits, deployed by hand from the repo root.
+
+The founder asked for these as DUPES and the data refused it, three ways, each
+measured rather than argued:
+
+1. IRFE's own copy names no other fragrance. Every "inspired by" in its feed is
+   narrative - its 1924 Rue Duphot boutique, St. Moritz, Dover Street, "a
+   romantic lady" - and each product credits a named Givaudan or DSM-Firmenich
+   perfumer.
+2. Zero matches for "irfe" across all three dupe feeds on disk.
+3. Its cheapest per-millilitre price is **3.5x the median** of our 98
+   size-matched originals, and its 50ml at $5.70/ml beats the most expensive
+   original we hold ($5.00/ml). Every dupe card would have rendered "more
+   expensive".
+
+So it went in on the originals side, where it is **the first reference that is
+also its own retailer** - we are enrolled in its own CJ programme at **15%**,
+and the cookie covers the whole of irfe.com, which also sells couture at
+$690-$4,750.
+
+**Verified live afterwards**, against `counterscent.com`: all eight pages 200,
+`/go/irfe-smoldering-pepper` 302 to the CJ host, IRFE named on `/disclosure`,
+its mark in the home retailer band.
+
+> **The eight pages answered 404 on the first probe and 200 ten seconds later.**
+> Cached 404 after a deploy, exactly as the 09-24 section below warns. One probe
+> is not an answer.
+
+### Three things worth carrying out of it
+
+- **The build's own guard caught a real omission.** `lib/merchants.ts` refuses
+  to build when a live link points at a merchant that is not nameable on
+  `/disclosure`. Adding IRFE's mark meant measuring its logo before using it
+  (perfectly monochrome, channel spread 0 across 2,668 opaque pixels) - and it
+  is the one mark here that is WHITE ink on transparency, so alpha derived from
+  luminance keeps the letterforms and drops the drop shadow.
+- **Links were generated but never reached the page.** `/go/irfe-*` resolved at
+  the edge while `getOriginalOffers()` read only two generated offer maps and
+  never the reference's own `affiliateLinkId`, so all eight would have shipped
+  with no buy button. **Caught by grepping the rendered HTML, not by reading the
+  redirect total** - 621 to 629 looked fine. Fixing it also fixed a false
+  sentence: the page was printing "an approximate US retail figure we maintain
+  by hand" over a number that came straight off the retailer's feed.
+- **A file name is not evidence about a picture.** The house file shipped a
+  committed comment saying IRFE's small-bottle images were "colour-coded
+  packaging shots that are not reliably the specific juice", reasoned entirely
+  from names like `white502` and `red502`. Looking at them took one pass and
+  disproved it: the Maison line gives each fragrance its own bottle colour and
+  each frame carries that fragrance's own named box. The comment is kept as a
+  correction rather than deleted.
+
+## NEXT: The Fragrance Outlet (CJ 17353261), downloaded and unwired
+
+This is a genuine designer retailer and the best-quality feed this project has
+received. 6,142 products, **451 brands** - Versace 115, Calvin Klein 115,
+Armani 104, Burberry 89, YSL 86, Carolina Herrera 82, Gucci 59, Prada 54,
+Dior 42. The houses we actually carry.
+
+| | measured |
+|---|---|
+| Freshness | all 6,142 rows `LAST_UPDATED 2026-10-03`, one day before export. FragranceShop's arrived six weeks stale. |
+| Images | 2 rows have none; the most-shared URL covers 6 rows. FragranceShop had 858 rows on four stock photographs. |
+| Price | `SALE_PRICE` populated on 6,142/6,142, `PRICE` on 5,993 and consistently higher. **SALE_PRICE is the live price**; 5,731 rows differ, which is a promotion rather than a correction - decide, do not default. |
+| Links | pre-wrapped, publisher 101873278. |
+
+**Five traps, none optional:**
+
+1. **1,082 rows (17.6%) have an empty `BRAND`** while the title carries a real
+   designer name ("Prada Amber Pour Homme Cologne"). Parse brand from the title
+   or lose one row in six.
+2. **189 `Tester` rows.** A tester is not the retail product and is cheaper;
+   including one makes the per-ml claim wrong.
+3. **372 rows branded "Exclusive Selection"** - and it is NOT simply a house
+   line. It mixes a $20 set with "Balade Aux Tuileries" ($29.99, a Creed
+   fragrance name) and "Amazing Grace Ballet Rose" (Philosophy). Check before
+   matching any of them to an original.
+4. **Title grammar is the FragranceShop trap again**: "Gaultier Le Male Cologne
+   - 2.5 oz." - brand truncated, size in oz, "Cologne"/"Perfume" used as a type
+   word. That grammar silently linked four flankers to their base fragrance once.
+5. **Images are Shopify CDN**, content-addressed, so one re-upload 404s them.
+
+**Two things it does NOT do, both checked:**
+
+- It does **not** close the 19 missing-image niche originals. `sycomore`,
+  `antaeus`, `oud for greatness`, `aqua universalis`, `elysium`, `althair`,
+  `straight to heaven`, `love don't be shy`, `reflection man`, `rehab`,
+  `psychedelic love` all return **zero** matches. An outlet discount retailer
+  does not stock niche.
+- It gives the dupe side **nothing**. All 182 rows matching "inspired by / our
+  version / type perfume / impression of" were read: every one is marketing
+  narrative ("inspired by the classic Burberry trench coat"). Lattafa (118) and
+  Armaf (51) are in there and hit the same wall as IRFE - no declared source,
+  so a pairing would have to be invented.
+
+Its real value is as a **third originals retailer**, widening the price
+competition behind the "Nx cheaper" claim.
+
+**Unknown and needed before building: its commission rate.** IRFE is 15%; this
+one has not been read off the dashboard.
+
+## Also landed: the CJ ingest refactor
+
+`scripts/lib/cj-feed.mjs` is new - feed reader, price parser, advertiser census,
+shared so a second subscription needs no second copy. `ingest-cj-feed.mjs` now
+takes `--feed` and `--inspect`; `--inspect` triages a delivery and independently
+reproduced every finding above.
+
+> **Byte-identity of `lib/data/cj-offers.generated.ts` was NOT proved.** The
+> FragranceShop feed is gitignored and is not on this machine, so the ingest
+> cannot run against it. Re-download that feed and diff the generated file
+> before trusting it is unchanged.
+
+## Picking this up on `Semih`
+
+Everything in the 09-24 section below headed "Picking this up on `Semih`" still
+applies - `.dev.vars`, the Neon MCP, Cloudflare auth, `npm install` in two
+projects. On top of that:
+
+| What | How |
+|---|---|
+| **CJ Data Transfer password** | out of the `datatransfer@cj.com` mail, or re-save it into that machine's own Claude memory. It is NOT in this repo and must not be put here. |
+| **The two feeds** | `scripts/feeds/` is gitignored, so neither zip travels. Re-pull them with the URL shape above, using **that day's** file name. |
+| **`wrangler deploy`** | still a hand-run step from the repo ROOT. The 09-24 finding stands: a push to `main` did not produce a deployment. Today's deploy was `npx wrangler@4 deploy` from the root. |
+
+## Open, and each needs the founder
+
+1. **The Fragrance Outlet commission rate**, and then wiring it.
+2. **Is there a third CJ subscription?** 322160 and 322161 are sequential. CJ
+   publishes no directory listing, so only **Account > Subscriptions** answers it.
+3. **The registered unvan.** Two CJ mails give **IGDIR INSAAT MADENCILIK TUR.
+   SAN. TIC. A.S.**; `counterscent.com/terms` says "Sirketim A.S.". Paddle's
+   business identification compares the site's name to the registration
+   document, and a mismatch is rework at the slowest stage.
+4. Everything in the 09-24 "Not done" list below - the Paddle account, the AUP
+   question, the lawyer over the published terms.
+
+---
+
 # HANDOFF - 2026-09-24, on `win10`
 
 ## 2026-09-24: the payment rail — Paddle groundwork

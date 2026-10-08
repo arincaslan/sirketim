@@ -45,12 +45,15 @@ import type { ReferenceFragrance } from "@/lib/types";
  * `bottleMl`, and a $10 vial recorded here would make the per-millilitre
  * comparison on every page a false claim.
  *
- * NO IMAGES YET, on purpose. IRFE supplies product photography through the CJ
- * feed, which is the lawful route references.ts names, so these are fillable -
- * but its small-bottle rows point at colour-coded packaging shots (white502,
- * silver106, red105) that are not reliably the specific juice, and an image
- * that is not the product is worse than none. Unset here means the generated
- * note signature renders instead.
+ * IMAGES ARE IN lib/data/irfe-images.ts, added 2026-10-08. This paragraph used
+ * to say there were none, and the reason it gave was wrong: it judged the
+ * small-bottle rows by their file names (white502, silver502, red502) and
+ * called them colour-coded packaging that might not be the specific juice.
+ * Looking at them settled it in one pass - IRFE's Maison line gives each
+ * fragrance its own bottle colour, and each frame carries that fragrance's own
+ * named box, so the colour IS the product identity. Kept as a correction
+ * rather than deleted, because the mistake is the useful part: a file name is
+ * not evidence about a picture.
  */
 export const IRFE: ReferenceFragrance[] = [
   {
