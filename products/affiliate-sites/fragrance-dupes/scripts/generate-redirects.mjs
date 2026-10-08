@@ -57,7 +57,11 @@ import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { readAllLinkLiterals } from "./lib/affiliate-link-sources.mjs";
+import {
+  assertNoDuplicateLinkIds,
+  linkEntriesOf,
+  readAllLinkLiterals,
+} from "./lib/affiliate-link-sources.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outFile = resolve(here, "..", "public", "_redirects");
@@ -92,14 +96,26 @@ const SUB_ID_PARAM = { awin: "clickref", cj: "sid", direct: null };
  * file for which source owns which key prefix and why the order matters.
  */
 async function readAffiliateLinks() {
-  const body = readAllLinkLiterals(resolve(here, ".."), "generate-redirects");
+  const projectRoot = resolve(here, "..");
+
+  /* An id defined by two sources is not a conflict JavaScript reports — the
+   * last spread wins and the other retailer's link disappears from both the
+   * UI and this table with nothing logged. It happened: 91 of 123 ids, when
+   * two originals merchants shared the `original-<slug>` prefix. The build
+   * fails on it now rather than emitting a redirect table that is quietly
+   * missing a merchant. */
+  const { overrides } = assertNoDuplicateLinkIds(projectRoot, "generate-redirects");
+  for (const line of overrides) {
+    console.log(`generate-redirects: hand-written override${line}`);
+  }
+
+  const body = readAllLinkLiterals(projectRoot, "generate-redirects");
 
   if (body.trim() === "") return {};
 
   // Only reached once real links land; keep the parse explicit and boring.
-  const entries = [...body.matchAll(/["']?([\w-]+)["']?\s*:\s*\{([^}]*)\}/g)];
   const out = {};
-  for (const [, id, fields] of entries) {
+  for (const { id, fields } of linkEntriesOf(body)) {
     const network = fields.match(/network:\s*["']([^"']+)["']/)?.[1];
     const deepLink = fields.match(/deepLink:\s*["']([^"']+)["']/)?.[1];
     const subId = fields.match(/subId:\s*["']([^"']+)["']/)?.[1];

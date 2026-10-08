@@ -1,6 +1,7 @@
 import { CJ_IMAGES } from "@/lib/data/cj-images.generated";
 import { CJ_MERCHANT, CJ_OFFERS } from "@/lib/data/cj-offers.generated";
 import { PM_MERCHANT, PM_OFFERS } from "@/lib/data/pm-offers.generated";
+import { IRFE_MERCHANT, IRFE_OFFERS } from "@/lib/data/irfe-offers";
 import { PM_SHOP_ORIGINALS } from "@/lib/data/pm-shop.generated";
 import { PM_IMAGES } from "@/lib/data/pm-images.generated";
 import { PM_SHOP_IMAGES } from "@/lib/data/pm-shop-images.generated";
@@ -597,6 +598,22 @@ export function getOriginalPricing(reference: ReferenceFragrance): OriginalPrici
       merchantName: CJ_MERCHANT.name,
     };
   }
+  // IRFE's own listed price, for the eight fragrances it both makes and sells.
+  // Checked AFTER FragranceShop only because that is the existing precedence and
+  // no slug can be in both maps - IRFE stocks nothing but IRFE. It is here
+  // rather than left to the editorial fallback because that fallback prints
+  // "an approximate US retail figure we maintain by hand", which for these
+  // eight is simply untrue: the number came off the retailer's own feed.
+  const irfe = IRFE_OFFERS[reference.slug];
+  if (irfe) {
+    return {
+      priceUsd: irfe.priceUsd,
+      bottleMl: irfe.priceMl,
+      source: "retailer",
+      merchantName: IRFE_MERCHANT.name,
+    };
+  }
+
   return { priceUsd: reference.priceUsd, bottleMl: reference.bottleMl, source: "editorial" };
 }
 
@@ -655,6 +672,21 @@ export function getOriginalOffers(reference: ReferenceFragrance): OriginalOffer[
       // ("Percival Cologne" is an EDP), which is exactly the kind of thing a
       // reader should be able to catch us on.
       matchedName: pm.title,
+    });
+  }
+
+  // IRFE sells its own eight fragrances, so here the retailer and the house are
+  // the same company. Nothing else changes: the row is built, ordered and
+  // filtered exactly like the other two, and `side: "originals"` in
+  // lib/merchants.ts still describes it correctly - IRFE sells the original.
+  const irfe = IRFE_OFFERS[reference.slug];
+  if (irfe) {
+    offers.push({
+      merchantName: IRFE_MERCHANT.name,
+      affiliateLinkId: `irfe-${reference.slug}`,
+      priceUsd: irfe.priceUsd,
+      priceMl: irfe.priceMl,
+      matchedName: irfe.title,
     });
   }
 

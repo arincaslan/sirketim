@@ -78,7 +78,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { readAllLinkLiterals } from "./lib/affiliate-link-sources.mjs";
+import { linkEntriesOf, readAllLinkLiterals } from "./lib/affiliate-link-sources.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -297,7 +297,11 @@ function readAffiliateLinks() {
   const body = readAllLinkLiterals(root, "check-affiliate-links");
   if (body.trim() === "") return [];
 
-  return [...body.matchAll(/["']?([\w-]+)["']?\s*:\s*\{([^}]*)\}/g)].map(([, id, fields]) => ({
+  // Entry splitting is shared with generate-redirects.mjs for the same reason
+  // the SOURCE LIST is: a checker that divides the literal into a slightly
+  // different set of entries than the generator ships is checking a set that
+  // is not the one going to the edge.
+  return linkEntriesOf(body).map(({ id, fields }) => ({
     id,
     network: fields.match(/network:\s*["']([^"']+)["']/)?.[1],
     merchantId: fields.match(/merchantId:\s*["']([^"']+)["']/)?.[1],

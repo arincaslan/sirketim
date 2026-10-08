@@ -72,6 +72,22 @@ export interface Merchant {
  *                    worked around.
  *   perfumania       perfumania.com new-updated-logo.svg (the header logo is a
  *                    seasonal variant — do not use that one)
+ *   irfe             irfe.com header logo-irfe-transparent.png. Served as WebP
+ *                    at a .png URL — WordPress rewrites the format, so read the
+ *                    content type rather than the extension. Measured before
+ *                    use: perfectly monochrome, channel spread 0 across all
+ *                    2,668 opaque pixels, so masking it invents no colour
+ *                    decision. It is the ONE mark here that is WHITE ink on
+ *                    transparency rather than dark ink on white, and alpha is
+ *                    still its own luminance — which for this polarity means
+ *                    the letterforms keep full opacity and the soft drop shadow
+ *                    beneath them falls away. The shadow is a styling artifact
+ *                    of their header image, not part of the wordmark; keeping
+ *                    it would render the mark smudged. Also the one mark kept
+ *                    at its NATIVE 53px rather than upscaled to 96px: no larger
+ *                    source is published, and enlarging it would invent detail
+ *                    rather than supply it, so its display height is set to 26
+ *                    to stay inside 2x.
  *
  * All five are SELF-HOSTED rather than hot-linked from the networks. Their
  * creative URLs (`cshow.php`, `image-<pid>-<aid>`) are impression trackers as
@@ -106,6 +122,15 @@ const REGISTRY: Record<string, Merchant> = {
   "17335854": {
     id: "17335854", name: "Perfumania.com", network: "cj", side: "originals",
     logo: { src: "/images/retailers/perfumania.png", w: 131, h: 22 },
+  },
+  // The only retailer here that is also a reference house: we link IRFE's eight
+  // fragrances to IRFE itself. `side: "originals"` is still right — it says
+  // which side of the comparison the retailer sits on, and IRFE sells the
+  // original. Ratio 2.68, so it is set between clone-of-perfume (2.13) and
+  // fragranceshop (3.85) on the same optical balance as the rest of the row.
+  "17213922": {
+    id: "17213922", name: "IRFE", network: "cj", side: "originals",
+    logo: { src: "/images/retailers/irfe.png", w: 70, h: 26 },
   },
 };
 

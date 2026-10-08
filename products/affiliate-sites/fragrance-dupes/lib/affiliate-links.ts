@@ -22,6 +22,7 @@
 import { CJ_ORIGINAL_LINKS } from "@/lib/data/cj-links.generated";
 import { PM_ORIGINAL_LINKS } from "@/lib/data/pm-links.generated";
 import { PM_SHOP_LINKS } from "@/lib/data/pm-shop-links.generated";
+import { IRFE_LINKS } from "@/lib/data/irfe-links";
 
 /**
  * `direct` is not an affiliate network. It means the link goes straight to the
@@ -137,14 +138,17 @@ export function affiliateDestination(entry: AffiliateLinkEntry): string {
  * The spread is FIRST, so a hand-written entry always wins a key collision —
  * a deliberate correction beats a regenerated default.
  *
- * `scripts/generate-redirects.mjs` reads ALL THREE files as text at build time.
- * If you add a fourth source, add it there too, or its links will resolve in
- * the UI and 404 at the edge.
+ * `scripts/generate-redirects.mjs` reads EVERY source as text at build time,
+ * from the one list in `scripts/lib/affiliate-link-sources.mjs`. If you add a
+ * source, add it THERE - not here alone - or its links will resolve in the UI
+ * and 404 at the edge. That list is also what the link checker reads, which is
+ * the point of it: the two drifted once and shipped 368 unchecked links.
  */
 export const affiliateLinks: Record<string, AffiliateLinkEntry> = {
   ...CJ_ORIGINAL_LINKS,
   ...PM_ORIGINAL_LINKS,
   ...PM_SHOP_LINKS,
+  ...IRFE_LINKS,
   // FIRST REAL ENTRIES, 2026-09-01 — Opulensi Perfumes, Awin advertiser 123248.
   //
   // Verified working end to end before being added, which matters because the

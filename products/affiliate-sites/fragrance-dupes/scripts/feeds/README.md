@@ -7,7 +7,12 @@ scripts read a feed from here and write typed, reviewed data into `lib/data/` �
 feed file itself stays local.
 
 **These files do not travel with a clone.** If a script here fails with "feed not
-found", re-download from Awin rather than assuming it is broken.
+found", re-download it — from **Awin** for the `.csv` feeds, from **CJ** (Account →
+Subscriptions) for the 87-column `.txt` ones — rather than assuming it is broken.
+**That failure is live right now:** `FragranceShop_com_-CJ_Product_Feed-shopping.txt`
+is NOT on disk, so `node scripts/ingest-cj-feed.mjs` with no arguments exits at the
+feed read and cannot reach its emit path at all. Anything that looks like "the
+generated files are unchanged" is currently true only because nothing can be written.
 
 ## Files
 
@@ -18,6 +23,7 @@ found", re-download from Awin rather than assuming it is broken.
 | `aromapassions.csv[.gz]` | Awin advertiser **AromaPassions** (Awin ID **34989**), publisher 3064149. Approved 2026-09-03 | **230 rows**, all `currency=USD`. 86 columns. A **dupe house selling direct**, like Clone of Perfume. **Tracking works** (verified 2026-09-04). Every product names its own inspiration in `product_name`. **14 listings shipped 2026-09-04**, all on originals that had no alternative. **The stalest feed here — its prices, its stock, its sizes AND its image URLs are all wrong; see below.** |
 | `my-perfume-shop.csv[.gz]` | Awin advertiser **My Perfume Shop** (Awin ID **106089**), publisher 3064149, delivered via `sftp://datafeeds.shareasale.com/Awin/161226/feed.zip` | ~9,844 rows, all `currency=USD`. 35 columns. Genuine designer fragrances — **originals-side**, not a dupe house. **Programme is CLOSED for tracking — do not ship buy links from this feed.** |
 | `Perfumania_com-Like_product_feed_Aug_2026-shopping.txt` + `feedparfumania-shopping-20260908.zip` | CJ advertiser **Perfumania.com** (CJ ID **17335854**), publisher 101873278. Approved on CJ, feed delivered 2026-09-08 | **66 rows**, all `currency=USD`. 87 columns, TAB-delimited. **Perfumania's own house dupe line, not its designer catalogue** — zero third-party brands, so it unblocks none of the 26 missing references it was queued for. **Nothing is wired from it and nothing should be** until the traps below are answered: the real price is in `SALE_PRICE` (`PRICE` is 0.00 on 53 rows), no row declares an inspiration, and prices run $65–$206 for a dupe. See its section below. |
+| `irfe-shopping-20261004.zip` + `irfe-20261004/IRFE-IRFE_PRODUCTS-shopping.txt` | CJ advertiser **IRFE** (CJ ID **17213922**), publisher 101873278. Subscription **"IRFE PRODUCTS"** (ID **322161**, CID **8058200**), **DAILY** schedule. Delivered 2026-10-04 | **20 rows**, all `currency=USD`. 87 columns, TAB-delimited. **A single niche fragrance HOUSE selling only its own compositions** — `BRAND` is `IRFE` on all 20 rows. It prices none of our 217 references, cites no designer original, and no dupe house we carry makes an alternative to it, so **it unblocks nothing in either direction.** Nothing is wired from it, nothing should be, and `17213922` is deliberately absent from every link-id registry. The **freshest feed this project has had** (`LAST_UPDATED` 2026-10-03, one day old on arrival) and the cleanest — which is the point of its section below. |
 
 ## Which feed backs what
 
@@ -29,6 +35,12 @@ Counts measured 2026-09-04; recompute rather than trusting them.
 | `lib/data/feed-images.generated.ts` (156 reference images) | my-perfume-shop | `scripts/fetch-feed-images.mjs` |
 | `lib/data/dupe-images.generated.ts` (**53** dupe images: 30 opulensi + 9 clone-of-perfume + 14 aromapassions) | opulensi, clone-of-perfume **and** aromapassions | `scripts/fetch-dupe-images.mjs` |
 | the **53** real entries in `lib/affiliate-links.ts` (30 opulensi + 9 clone-of-perfume + 14 aromapassions) | all three dupe feeds | hand-written from feed rows, each traced first |
+| **nothing at all** | Perfumania's CJ feed, **IRFE's CJ feed** | — |
+
+**That last row is load-bearing and is meant to stay.** Two of the files in the table above back no
+output, each for its own reason (below), and an absent row would read as an omission rather than a
+decision. Perfumania *does* back `pm-*` data, but off its **storefront** via
+`scripts/ingest-perfumania.mjs`, never off its feed. IRFE backs nothing by any route.
 
 `fetch-dupe-images.mjs` handles all three merchants from one `SOURCES` map — each entry names its
 own `feed`, so a third merchant was a new `FEED` constant and a block of entries, exactly as the
@@ -328,6 +340,12 @@ an inconsistency to tidy — but know it before editing those notes.
 
 Delivered 2026-09-07 as `productlist-shopping-20260907.zip`. **Tab-delimited, not comma** — and that is the right choice rather than a nuisance, because fragrance note lists are dense with commas. Verified across all rows: **zero** fields containing a double-quote and **zero** rows with a field count other than the header's, so a plain `split("\t")` is correct here and a CSV parser would be wrong (an unquoted apostrophe is ordinary data).
 
+> **CORRECTION, 2026-10-04 — the "zero double-quotes" half of that was true of this export and got generalised to CJ, and it is false.** The IRFE export has **four** rows whose `DESCRIPTION` is wrapped in double quotes, CSV-style, because the description contains commas. Both halves of the paragraph above remain true *of FragranceShop*; only one of them is a property of the format.
+>
+> **What still holds, and is the part to carry forward:** `split("\t")` is correct on every CJ export delivered here, and what licenses it is the FIELD-COUNT check, not the quote count. A double quote inside a tab-separated field is harmless. What would break the split is a **tab inside a quoted field** — and that lengthens the row, so it shows up as a field count other than the header's. No delivered export has one (FragranceShop 0 ragged of 5,802; Perfumania 0 of 66; IRFE 0 of 20).
+>
+> So the rule is **verify the delimiter per feed, never per network**, and verify it on the invariant rather than on the incidental. `node scripts/ingest-cj-feed.mjs --inspect --feed <path>` now prints both numbers — the quote count labelled as a per-feed fact, the ragged count as the thing that decides the parser — precisely so the next reader measures it instead of quoting this document.
+
 **The format sample had 66 columns. The real export has 87.** Read the delivered header.
 
 Columns that matter, against the Awin equivalents:
@@ -474,6 +492,169 @@ Two things that script encodes and this file should not be read without:
 **Asking Perfumania for the full/designer catalogue feed is now optional rather than blocking.** It
 would still be worth having — a feed is cheaper to refresh than a 4,380-product crawl, and carries
 stock state the storefront JSON does not. CJ advertiser **17335854**.
+
+## `irfe-20261004/IRFE-IRFE_PRODUCTS-shopping.txt` shape (87 columns, 20 rows) — the third CJ feed, and the cleanest one that unblocks nothing
+
+Delivered 2026-10-04 as `irfe-shopping-20261004.zip`. CJ advertiser **IRFE** (**17213922**), publisher
+**101873278** — ours, the same CID the FragranceShop and Perfumania links carry, so the tracking is
+genuinely ours. Subscription **"IRFE PRODUCTS"**, subscription ID **322161**, CID **8058200**,
+**DAILY** schedule. Same 87-column TAB-delimited CJ schema as the other two; field count 87 on every
+one of the 20 data rows.
+
+**It is a single niche HOUSE, and that is a merchant category this document has not had before.** Not
+a reseller of other people's stock (FragranceShop, My Perfume Shop, Perfumania's storefront), not a
+dupe house selling direct (Clone of Perfume, AromaPassions), not a discount originals retailer. IRFE
+is a Paris house selling its own compositions under its own name: `BRAND` is `IRFE` on all 20 rows,
+`PROGRAM_NAME` is `IRFE`, `PROGRAM_URL` is `irfe.com`.
+
+**So it unblocks nothing, in either direction, and the reason is structural rather than a data
+problem to solve.** It prices none of our 217 references, because it stocks nothing but its own
+range. It cites no designer original, so nothing in it can become a dupe listing. And nothing in it
+can be the *target* of a dupe listing either, because no dupe house we carry makes an IRFE
+alternative — IRFE is not a bestseller the clone trade aims at. The string `irfe` appears nowhere in
+`lib/` or `app/`, `17213922` is deliberately absent from every link-id registry, and both of those
+are the intended end state, not a to-do.
+
+### Three CJ feeds in a row have unblocked nothing, and the pattern is about the SUBSCRIPTION NAME
+
+This is worth writing down as a finding rather than filed as three disappointments:
+
+| # | subscription (`CATALOG_NAME`) | what it was queued as | what arrived |
+|---|---|---|---|
+| 1 | `CJ Product Feed` (FragranceShop) | an originals merchant | **an originals merchant.** 103 products, 252 ids. The one that worked |
+| 2 | `Like product feed - Aug 2026` (Perfumania) | a second originals merchant | the merchant's own **house dupe line**, 66 rows, zero designer stock |
+| 3 | `IRFE PRODUCTS` (IRFE) | a fragrance merchant | **a single house's own range**, 20 rows |
+
+**A CJ subscription name describes the EXPORT, never the catalogue, and twice now it has read like a
+promise about contents.** "Like product feed" does not mean "similar products" and did not contain a
+designer bottle; "IRFE PRODUCTS" is accurate but says nothing about whether IRFE products are of any
+use to us, which is the actual question. The habit to build is: **read `BRAND` and `PROGRAM_NAME`
+off the delivered header before planning a single hour of work on a feed's assumed contents.** One
+command does it — `node scripts/ingest-cj-feed.mjs --inspect --feed <path>` — and on this feed its
+`BRAND: 1 distinct` line settles the whole question in the first ten seconds.
+
+Note also the trap in `CATALOG_NAME` here, which is the one it is easiest to acquire by accident: on
+this feed `PROGRAM_NAME` is `IRFE` and `CATALOG_NAME` is `IRFE PRODUCTS`, so the two nearly agree
+and reading one for the other costs nothing. On the Perfumania export the identical habit names a
+feed instead of a company. Identity comes off the `click-<publisherId>-<advertiserId>` segment of
+`LINK` and nowhere else.
+
+### THE CJ SCHEMA IS PORTABLE; THE TITLE GRAMMAR NEVER IS
+
+The FragranceShop section already half-states this ("THE MERCHANT'S TITLE GRAMMAR IS LOAD-BEARING").
+This feed is the clean proof, because the schema transferred perfectly and the title parsing failed
+completely. Measured by running the shipped functions over the delivered rows, not by reading them:
+
+- **`concentrationOf()` returns `unstated` on all 20 rows** — while every single row is an Eau de
+  Parfum and says so in its title. The function keys off the **last `" - "`** in the title, because
+  FragranceShop's grammar is `<Brand> <Name> <Gender tag> - <Format> <Size>`. **No IRFE title
+  contains `" - "` at all** (0 of 20), so there is no format tail to read and the parse degrades to
+  "unstated" rather than to a wrong answer. Degrading safely is the only good news here.
+- **`productNameOf()` returns the whole title with `<p>` tags intact** on all 20 rows. `TITLE` here
+  carries literal HTML: `IRFE HERITAGE <p>MA FRANCE FOLIE PARISIENNE<p>  Eau de Parfum Spray 100ml`.
+  `productNameOf()` strips the gender tag and the format tail, and this feed has neither.
+- **`decode()` expands `&amp;` and collapses whitespace. That is all it does** — it is not an HTML
+  decoder and was never meant to be, so `<p>` survives it untouched.
+- **`TITLE` is the only place size appears, always in ml, never oz** (20 of 20 state ml; 0 state oz).
+  The `SIZE` column is **empty on all 20 rows**, as are `GTIN`, `MPN` and `GENDER`. FragranceShop's
+  sizes needed snapping from oz to nominal ml; this merchant's are already nominal and in the wrong
+  field. Two feeds, same column, opposite problems.
+
+**`ID` is the durable field, as always, and this one is unusually good at it**: merchant-shaped and
+human-readable (`100FRN-IRFE`, `50ROSE-IRFE`, `3ROSE-IRFE` — size prefix, fragrance code, house
+suffix). 8 distinct fragrances in up to three sizes, plus two multi-bottle presentations, $10 for a
+3 ml vial to $350 for a 100 ml EDP.
+
+### `PRICE` and `SALE_PRICE` are inverted relative to Perfumania — so the column choice is a MERCHANT fact, not a format fact
+
+| feed | `PRICE` usable | `SALE_PRICE` usable |
+|---|---|---|
+| Perfumania (66 rows) | 13 — `0.00 USD` or empty on **53** | the real figure |
+| **IRFE (20 rows)** | **20 of 20** | **0 of 20 — empty throughout** |
+
+A `PRICE ?? SALE_PRICE` fallback would read correctly on both of these by luck, and that is exactly
+why it is still not the fix. **These two feeds are the two ends of a range, not a rule with one
+exception.** On a feed where `PRICE` is list and `SALE_PRICE` is a live promotion, quietly preferring
+either one changes every price on the site with nothing in the diff to say so — and this site
+computes a user-facing "Nx cheaper" claim from price. `priceFieldReport()` in
+`scripts/lib/cj-feed.mjs` therefore *measures* and `--inspect` *prints*; the caller decides, per
+merchant, and writes the answer down. The general form: **a column's meaning is a per-merchant fact
+even when the schema is shared, and nothing about "it is a CJ feed" tells you which column is
+authoritative.**
+
+### A SCOPE GAP IN `SHOP_EXCLUDE`, flagged rather than fixed — and it is latent, not live
+
+`shopCandidates()` in `scripts/ingest-cj-feed.mjs` decides the founder's buy-link scope (EDP or
+Parfum, over $100) and screens out presentations that are not the single boxed bottle a buyer expects.
+Checked against the shipped regex, run over the delivered rows:
+
+- **`SHOP_EXCLUDE` does NOT match `IRFE FRAGRANCE COLLECTION <p>MINI DOLLS GIFT COFFRET<p> EDP
+  Splash Bottles 5 x 10ml`, the $320 five-bottle coffret.** `\bgift set\b` needs the words "gift
+  set"; `\bset\b` needs the word "set"; **"coffret" contains neither.** Nor does `NOT_RETAIL_BOTTLE`
+  match it. A five-bottle presentation at $320 would be read as a single $320 bottle.
+- **On THIS feed the gap is unreachable, and saying so is the honest version.** The concentration
+  gate runs one line earlier than `SHOP_EXCLUDE`, and `concentrationOf()` returns `unstated` for
+  every IRFE row (above), so no IRFE row — coffret included — can enter shop scope at all. **The
+  title-grammar failure is masking the regex gap.** Both are real; neither is currently firing.
+- **Where it WOULD fire** is a merchant whose titles do use the `" - <Format> <Size>"` grammar and
+  who sells a multi-bottle presentation worded as a *coffret*, *parure*, *collection*, *coffer* or
+  *travel case* rather than a *set*. That is a plausible merchant, which is why this is written down
+  instead of shrugged off.
+- One asymmetry noticed in passing: **the two regexes disagree about `\bset\b`.** `SHOP_EXCLUDE` has
+  it, `NOT_RETAIL_BOTTLE` does not. So `IRFE DISCOVERY SET` ($85) is caught by one and not the other.
+  It is under $100 and out of scope anyway, so nothing turns on it here — but the divergence is not
+  obviously deliberate.
+
+**This is a scope question, not a bug to patch quietly.** Widening `SHOP_EXCLUDE` changes which
+products the founder's own buy-link scope admits, on a live merchant, which is a decision rather than
+a tidy-up. Flagged for the founder; nothing was changed.
+
+### Images: 20 distinct URLs, no placeholder — and a different caveat from any feed so far
+
+`IMAGE_LINK` is filled on all 20 rows with **20 distinct URLs**, all on irfe.com's own WordPress
+uploads, and **no shared stock photograph at all** — the first CJ feed here with zero. (FragranceShop
+shared four images across 858 rows.) That is the good half.
+
+**The caveat is new and it is not staleness.** Several of the smaller-size rows point at filenames
+that look like **colour-coded bottle or packaging shots** rather than photographs of the specific
+juice: `white502-fr7-1.jpg`, `silver106-fr7.jpg`, `red105-fr7.jpg`, `black502-fr7-1.jpg`,
+`gold105-fr7.jpg`. The pattern is consistent — one colour per fragrance across the 50 ml and 10 ml
+rows, with the 3 ml vials on a separate `LC713xx-scaled.jpg` series and the 100 ml HERITAGE rows on
+descriptively-named files (`Folie-Parisienne__Ingr7-fr7.jpg`). It may be that each fragrance simply
+*has* its own bottle colour, in which case these are correct and specific. It may equally be a set
+of generic coloured-bottle renders. **Nobody has looked at the bytes, and nobody should before there
+is a reason to** — no image from this feed is wanted, because no listing from this feed is wanted.
+Recorded so the question is asked rather than rediscovered. (Not downloaded: no request has been made
+to irfe.com from here, deliberately.)
+
+The general point stands unchanged and gains a third form: a feed's image URLs can be **dead**
+(AromaPassions, all 230), **shared across unrelated products** (FragranceShop, 858 rows on four
+files), or **live, unique, and possibly of the wrong thing**. Distinct and 200-OK is not the same as
+correct.
+
+### Attribution: pre-wrapped, and exactly ONE click traced
+
+`LINK` is already an affiliate click URL, as on every CJ feed —
+`https://www.anrdoezrs.net/click-101873278-17213922?url=<encoded irfe.com product URL>` — so there is
+no link to build. Note the host is `anrdoezrs.net` here, not `dpbolvw.net`: **CJ rotates the click
+domain, so match the `click-<PID>-<AID>` PATH and never the hostname.** Five hosts serve two
+advertisers across the links already committed.
+
+**The founder traced exactly ONE click, deliberately one and not twenty**: it 302s to
+`cj.dotomi.com`, so the network is picking the click up and it is stamped against publisher
+101873278. Record that as what it is — **one trace, of twenty links, by hand.**
+
+**Enrolled, tracking, and paying remain three separate questions, and all three have failed on this
+project before.** My Perfume Shop is approved, supplies a feed, shows payment status green, and every
+one of its links lands on `closedMerchant.html`. A 302 into `cj.dotomi.com` answers the middle
+question for one link; it says nothing about the other nineteen and nothing about whether the
+programme pays on these clicks, which is a CJ dashboard check and stays a founder check — exactly as
+it does for 16941446 and 17335854.
+
+**Do not run `npm run check:links` to answer this.** Every check there is a real affiliate click, and
+firing twenty sequential ones from one IP against a brand-new programme is a pattern a network can
+read as fraud, with account termination rather than a warning as the penalty. These links are not
+wired to anything, so there is nothing to check.
 
 ## `my-perfume-shop.csv` shape (35 columns)
 
