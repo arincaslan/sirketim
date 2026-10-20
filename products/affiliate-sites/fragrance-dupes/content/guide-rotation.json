@@ -1,4 +1,26 @@
 {
   "keep": [],
-  "retired": []
+  "retired": [
+    {
+      "slug": "why-fragrance-smells-different-on-you",
+      "title": "Why a Fragrance Smells Different on You Than in Every Review",
+      "retiredOn": "2026-10-20",
+      "redirectTo": "/guide/how-to-read-a-note-pyramid/",
+      "reason": "rank-guides score 3 (in 0, cat 3, sole 0)"
+    },
+    {
+      "slug": "how-to-buy-fragrance-online",
+      "title": "How to Buy a Fragrance Online Without Smelling It First",
+      "retiredOn": "2026-10-20",
+      "redirectTo": "/guide/how-to-find-a-fragrance-dupe-that-works/",
+      "reason": "rank-guides score 5 (in 1, cat 2, sole 0)"
+    },
+    {
+      "slug": "how-to-make-a-fragrance-last-longer",
+      "title": "How to Make a Fragrance Last Longer (and What Doesn't Work)",
+      "retiredOn": "2026-10-20",
+      "redirectTo": "/guide/fragrance-concentrations-explained/",
+      "reason": "rank-guides score 7 (in 1, cat 4, sole 0)"
+    }
+  ]
 }
