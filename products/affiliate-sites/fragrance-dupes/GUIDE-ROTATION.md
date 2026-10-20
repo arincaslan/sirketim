@@ -58,11 +58,28 @@ What a piece may say, and where each kind of claim must come from:
 
 - **The original's notes, family, longevity and sillage come from our own catalogue**: `grep -rn 'slug: "<slug>"' products/affiliate-sites/fragrance-dupes/lib/data/houses/`. Never use a pyramid from the web instead. The fragrance page shows ours, and a guide that disagrees with it is a contradiction on our own site.
 - **Name an alternative only if it is a listing in `products/affiliate-sites/fragrance-dupes/lib/dupes-data.ts`**, with its `name` and `brand` exactly as written there. Its `verdict` field is our published judgement and its `pairingBasis` says who claims the pairing. Use both, and attribute the claim: "the retailer describes it as inspired by…". Never name a product that is not listed, however well known it is. This site was emptied once for naming products that did not exist.
+- **Two fields decide how each listing is described.** Getting either wrong contradicts the badge on that listing's own page. Check them per listing, not per article, because one article usually mixes both kinds:
+  - **`pairingBasis` present** means the pairing is the seller's claim. Quote it as theirs: "the seller describes it as…". **Absent** means the pairing is our editorial judgement, and the piece says so: "no retailer describes it as a … alternative".
+  - **`pyramidSource: "declared"`** means the seller published that top/heart/base pyramid. **`"imputed"`** means the seller published only a flat list of materials, the split into layers is ours, and the listing's score carries a 10-point penalty for it. Never call an imputed pyramid "published" or "declared". Do not make claims that depend on which layer a material sits in; say what the list includes or lacks.
+
+  Print both fields for every original you write about, and reread each sentence about each listing against them:
+
+  ```bash
+  cd products/affiliate-sites/fragrance-dupes && node -e '
+  const t=require("fs").readFileSync("lib/dupes-data.ts","utf8").replace(/\r\n/g,"\n");
+  for (const e of t.split(/\n  \{\n    slug: "/).slice(1).map(e=>e.split(/\n  \},?\n/)[0])) {
+    const ref=e.match(/referenceSlug: "([^"]+)"/)?.[1]; if (!process.argv.slice(1).includes(ref)) continue;
+    console.log(ref+" | "+e.match(/name: "([^"]+)"/)?.[1]+" | "+e.match(/brand: "([^"]+)"/)?.[1]+" | pyramid: "+e.match(/pyramidSource: "(\w+)"/)?.[1]+" | pairing: "+(e.includes("pairingBasis")?"seller claim":"our judgement"));
+  }' <reference-slug> <reference-slug> <reference-slug>; cd -
+  ```
+
+  The first run (2026-10-20) got one or both of these wrong in two of its three pieces, and they were corrected by hand.
+- **Check every note you attribute to an adjacent original against its catalogue entry, layer included.** The same run put Black Orchid's dark chocolate "on top" when our catalogue has it in the base.
 - **No match percentages, prices, price-per-ml or "Nx cheaper" figures in prose.** They are computed live and move whenever the formula, a price or a listing changes, so a number frozen in a guide goes stale with nothing to flag it. Send the reader to `/dupe-finder/?ref=<slug>` for the live comparison and to `/fragrance/<slug>/` for the original.
 - **A seller's marketing copy is not a product fact.** Pheromones, "extrait strength", "smells identical" and "lasts 24 hours" are attributed or left out.
 - **No invented experience.** No testimonials, no quotes, no reviews, no "we wore it for eight hours". The editorial team has not worn these bottles and the piece must not imply it has.
 - **General perfumery facts** (concentration ranges, how materials evaporate, IFRA, what an accord is) are checked with WebSearch against a reputable source. Where sources disagree, say so or leave the fact out. No medical, skin-safety or legal claims beyond "patch-test a new fragrance".
-- **Length 800 to 1,300 words.** Use short paragraphs and `##` sections, a notes table where it helps, and a "what to check before you buy" section.
+- **Length 800 to 1,300 words of body**, frontmatter excluded: `awk 'f>=2; /^---$/{f++}' <file> | wc -w`. Use short paragraphs and `##` sections, a notes table where it helps, and a "what to check before you buy" section.
 
 ### 4. File format
 
