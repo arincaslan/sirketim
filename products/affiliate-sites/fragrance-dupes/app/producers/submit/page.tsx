@@ -72,7 +72,7 @@ export default function SubmitPage() {
           Before you write anything: we score a listing against an original already in our
           catalogue, using a{" "}
           <Link
-            href="/about#methodology"
+            href="/about/#methodology"
             className="underline underline-offset-2 hover:text-primary"
           >
             published formula

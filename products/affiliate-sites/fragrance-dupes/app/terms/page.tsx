@@ -78,7 +78,7 @@ export default function TermsPage() {
           own editorial comparison between designer fragrances and the
           lower-cost fragrances inspired by them, computed by a published
           formula that is set out on{" "}
-          <a href="/about#methodology">our standards page</a>.
+          <a href="/about/#methodology">our standards page</a>.
         </p>
         <p>
           <strong>It is opinion and analysis, not a guarantee.</strong> A match

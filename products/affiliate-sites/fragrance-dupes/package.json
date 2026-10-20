@@ -10,7 +10,9 @@
     "start": "next start",
     "lint": "next lint",
     "preview": "npm run build && npx wrangler@4 dev --config ../../../wrangler.jsonc --port 8788 --local",
-    "check:links": "node scripts/check-affiliate-links.mjs"
+    "check:links": "node scripts/check-affiliate-links.mjs",
+    "check:internal-links": "node scripts/check-internal-links.mjs",
+    "rank:guides": "node scripts/rank-guides.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "2.1.7",

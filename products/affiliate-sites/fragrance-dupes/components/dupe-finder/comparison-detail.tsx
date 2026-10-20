@@ -107,7 +107,7 @@ export function ComparisonDetail({
         <p className="max-w-[60ch] text-xs leading-relaxed text-muted-foreground">
           {verification.description}{" "}
           {house && "Ranked by the same formula as every other listing, not floated to the top. "}
-          <a href="/about#methodology" className="underline underline-offset-2 hover:text-primary">
+          <a href="/about/#methodology" className="underline underline-offset-2 hover:text-primary">
             How we calculate this
           </a>
         </p>

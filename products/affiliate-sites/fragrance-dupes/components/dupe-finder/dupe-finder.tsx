@@ -158,7 +158,7 @@ export function DupeFinder({ initialReferenceSlug }: { initialReferenceSlug?: st
             <p className="mt-5 border-t border-border/70 pt-4 text-xs text-muted-foreground">
               Ordered by published match score, highest first.{" "}
               <a
-                href="/about#methodology"
+                href="/about/#methodology"
                 className="underline underline-offset-2 hover:text-primary"
               >
                 How we calculate it

@@ -150,7 +150,7 @@ projects. On top of that:
 |---|---|
 | **CJ Data Transfer password** | out of the `datatransfer@cj.com` mail, or re-save it into that machine's own Claude memory. It is NOT in this repo and must not be put here. |
 | **The two feeds** | `scripts/feeds/` is gitignored, so neither zip travels. Re-pull them with the URL shape above, using **that day's** file name. |
-| **`wrangler deploy`** | still a hand-run step from the repo ROOT. The 09-24 finding stands: a push to `main` did not produce a deployment. Today's deploy was `npx wrangler@4 deploy` from the root. |
+| **`wrangler deploy`** | ~~still a hand-run step~~ **No longer needed for the catalogue — corrected 2026-10-20.** A push to `main` DOES deploy: the deployments API shows a deployment ~2 minutes after every push since at least 09-28, and every one of those commits carries a successful `Workers Builds: counterscent` check run on GitHub (`gh api repos/arincaslan/sirketim/commits/<sha>/check-runs`). That includes this day's two pushes, so the hand-run `npx wrangler@4 deploy` here was a redundant second deployment, not the one that shipped. The 09-24 miss was a one-off. Check the check run, not your memory of this row. |
 
 ## Open, and each needs the founder
 
@@ -268,6 +268,12 @@ completed cleanly and emitted `/terms`. So either the trigger did not fire or th
 build failed somewhere only the Cloudflare dashboard can show. **Check the build log
 there before the next push.** If Workers Builds is no longer firing on `main`, every
 future "I pushed, so it is live" is wrong.
+
+> **Resolved 2026-10-20: it IS firing.** Every push from 09-28 to 10-19 produced a
+> deployment about two minutes later, and each commit carries a successful
+> `Workers Builds: counterscent` check run on GitHub. The weekly guide rotation
+> (`products/affiliate-sites/fragrance-dupes/GUIDE-ROTATION.md`) deploys by pushing
+> and proves it from that check run, so it needs no Cloudflare credential at all.
 
 Deployed by hand instead, from the repo root: `npx wrangler@4 deploy` (version
 `05e1616b`). Note `assets.directory` is

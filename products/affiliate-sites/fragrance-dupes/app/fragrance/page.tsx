@@ -223,7 +223,7 @@ export default function FragranceCatalogPage() {
       <p className="mt-14 border-t border-border pt-6 text-sm text-muted-foreground">
         Every name above is a trade mark of its own owner. We name each fragrance in order to
         compare it - see{" "}
-        <Link href="/about#methodology" className="underline underline-offset-4">
+        <Link href="/about/#methodology" className="underline underline-offset-4">
           our standards
         </Link>{" "}
         for how every score on this site is calculated.

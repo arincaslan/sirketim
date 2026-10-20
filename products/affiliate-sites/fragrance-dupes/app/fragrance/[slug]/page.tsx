@@ -496,7 +496,7 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
             <p className="mt-4 text-xs text-muted-foreground">
               Ordered by published match score, highest first.{" "}
               <Link
-                href="/about#methodology"
+                href="/about/#methodology"
                 className="underline underline-offset-2 hover:text-primary"
               >
                 How we calculate it
@@ -577,7 +577,7 @@ export default function FragrancePage({ params }: { params: { slug: string } }) 
       <p className="mt-20 border-t border-border pt-6 text-sm leading-relaxed text-muted-foreground">
         {reference.name} and {reference.brand} are trade marks of their owner. Counterscent is not
         affiliated with or endorsed by them; we name the fragrance in order to compare it. See{" "}
-        <Link href="/about#methodology" className="underline underline-offset-4">
+        <Link href="/about/#methodology" className="underline underline-offset-4">
           our standards
         </Link>{" "}
         for how every score on this site is calculated.

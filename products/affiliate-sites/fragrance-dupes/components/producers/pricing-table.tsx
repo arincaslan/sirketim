@@ -186,7 +186,7 @@ export function PricingTable() {
         </ul>
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
           The ranking formula is published on our{" "}
-          <Link href="/about#methodology" className="underline underline-offset-2 hover:text-primary">
+          <Link href="/about/#methodology" className="underline underline-offset-2 hover:text-primary">
             methodology page
           </Link>{" "}
           and takes no input related to whether you pay us. Our own fragrance line is ranked by it
