@@ -12,7 +12,7 @@
       "slug": "how-to-buy-fragrance-online",
       "title": "How to Buy a Fragrance Online Without Smelling It First",
       "retiredOn": "2026-10-20",
-      "redirectTo": "/guide/how-to-find-a-fragrance-dupe-that-works/",
+      "redirectTo": "/guide/how-to-read-a-note-pyramid/",
       "reason": "rank-guides score 5 (in 1, cat 2, sole 0)"
     },
     {
@@ -21,6 +21,27 @@
       "retiredOn": "2026-10-20",
       "redirectTo": "/guide/fragrance-concentrations-explained/",
       "reason": "rank-guides score 7 (in 1, cat 4, sole 0)"
+    },
+    {
+      "slug": "how-to-find-a-fragrance-dupe-that-works",
+      "title": "How to Actually Find a Fragrance Dupe That Works",
+      "retiredOn": "2026-10-26",
+      "redirectTo": "/guide/how-to-read-a-note-pyramid/",
+      "reason": "rank-guides score 8 (in 0, cat 0, sole 0)"
+    },
+    {
+      "slug": "designer-vs-niche-vs-dupe",
+      "title": "Designer vs Niche vs Dupe: What You're Actually Paying For",
+      "retiredOn": "2026-10-26",
+      "redirectTo": "/library/",
+      "reason": "rank-guides score 10 (in 0, cat 2, sole 0)"
+    },
+    {
+      "slug": "are-fragrance-dupes-legal-and-safe",
+      "title": "Are Fragrance Dupes Legal? And Are They Safe to Wear?",
+      "retiredOn": "2026-10-26",
+      "redirectTo": "/library/",
+      "reason": "rank-guides score 11 (in 1, cat 0, sole 0)"
     }
   ]
 }
