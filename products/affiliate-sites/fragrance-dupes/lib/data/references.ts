@@ -9,6 +9,7 @@ import { DIOR } from "@/lib/data/houses/dior";
 import { GUCCI } from "@/lib/data/houses/gucci";
 import { GUERLAIN } from "@/lib/data/houses/guerlain";
 import { INITIO } from "@/lib/data/houses/initio";
+import { IRFE } from "@/lib/data/houses/irfe";
 import { JEAN_PAUL_GAULTIER } from "@/lib/data/houses/jean-paul-gaultier";
 import { KILIAN } from "@/lib/data/houses/kilian";
 import { LE_LABO } from "@/lib/data/houses/le-labo";
@@ -24,6 +25,7 @@ import { YSL } from "@/lib/data/houses/ysl";
 import { CJ_IMAGES } from "@/lib/data/cj-images.generated";
 import { PM_IMAGES } from "@/lib/data/pm-images.generated";
 import { FEED_IMAGES } from "@/lib/data/feed-images.generated";
+import { IRFE_IMAGES } from "@/lib/data/irfe-images";
 import type { ReferenceFragrance } from "@/lib/types";
 
 /**
@@ -38,6 +40,18 @@ import type { ReferenceFragrance } from "@/lib/types";
  * widely-duped flagships: the fragrances producers actually make alternatives
  * to, which are the only ones a dupe comparison has any use for. Extending a
  * house means adding to its file, not restructuring anything.
+ *
+ * ONE HOUSE IS A DELIBERATE EXCEPTION TO THAT RULE: Maison IRFE, added
+ * 2026-10-05 on a founder decision. Nobody dupes it. It is here because we are
+ * enrolled in its own CJ programme at 15%, which makes it the first reference
+ * that is also its own retailer - the catalogue earns on the original directly
+ * rather than on an alternative to it. Its eight pages will show no dupe
+ * matches, and that is the honest state rather than a gap to fill. The reason
+ * it could not be listed as a dupe instead is written out in
+ * lib/data/houses/irfe.ts: neither IRFE nor any dupe house we carry claims the
+ * relationship, so we would have had to invent it. Do not read this exception
+ * as the scope rule loosening - a house with no dupes and no programme of our
+ * own still has no reason to be here.
  *
  * NOTES are drawn from the publicly documented pyramids these houses and the
  * major fragrance databases publish. They are reliable for the classics and
@@ -90,6 +104,7 @@ const EDITORIAL: ReferenceFragrance[] = [
   ...PACO_RABANNE,
   ...CAROLINA_HERRERA,
   ...XERJOFF,
+  ...IRFE,
   ...INITIO,
   ...GUERLAIN,
   ...CALVIN_KLEIN,
@@ -133,7 +148,13 @@ const EDITORIAL: ReferenceFragrance[] = [
  *                    Amouage Interlude Man. It ranks below CJ_IMAGES only
  *                    because that merchant is already ingested and confirmed;
  *                    both programmes are live, so nothing overlaps in practice.
- *   3. `FEED_IMAGES` My Perfume Shop, Awin 106089 — programme went CLOSED for
+ *   3. `IRFE_IMAGES` Maison IRFE, CJ 17213922 — live, added 2026-10-08. Eight
+ *                    photographs, and they overlap nothing: IRFE is the only
+ *                    house here that sells its own bottles, so no other
+ *                    retailer stocks them and no other source can cover them.
+ *                    Its position in this chain is therefore decorative — it
+ *                    is first and last for the only eight slugs it holds.
+ *   4. `FEED_IMAGES` My Perfume Shop, Awin 106089 — programme went CLOSED for
  *                    tracking on 2026-09-01, so these are hosted on the
  *                    strength of an enrolment that no longer earns. Last
  *                    resort, still flagged as the open question they were.
@@ -149,7 +170,8 @@ const EDITORIAL: ReferenceFragrance[] = [
  * if another live programme carries Jo Malone.
  */
 export const REFERENCES: ReferenceFragrance[] = EDITORIAL.map((ref) => {
-  const image = CJ_IMAGES[ref.slug] ?? PM_IMAGES[ref.slug] ?? FEED_IMAGES[ref.slug];
+  const image =
+    CJ_IMAGES[ref.slug] ?? PM_IMAGES[ref.slug] ?? IRFE_IMAGES[ref.slug] ?? FEED_IMAGES[ref.slug];
   return image ? { ...ref, imageUrl: image } : ref;
 });
 

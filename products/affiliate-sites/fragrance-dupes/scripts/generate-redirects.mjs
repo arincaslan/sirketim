@@ -57,10 +57,20 @@ import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { readAllLinkLiterals } from "./lib/affiliate-link-sources.mjs";
+import {
+  assertNoDuplicateLinkIds,
+  linkEntriesOf,
+  readAllLinkLiterals,
+} from "./lib/affiliate-link-sources.mjs";
+import { readGuideRotation } from "./lib/guide-rotation.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outFile = resolve(here, "..", "public", "_redirects");
+
+/** Cloudflare's cap for a _redirects file on Workers static assets: 2,000
+ *  static rules plus 100 dynamic (developers.cloudflare.com/workers/static-assets/redirects/,
+ *  read 2026-10-20). Everything this script writes is static. */
+const STATIC_RULE_LIMIT = 2000;
 
 /** Must match SUB_ID_PARAM in lib/affiliate-links.ts. Duplicated because this
  *  script deliberately reads the TS file as text rather than importing it.
@@ -92,14 +102,26 @@ const SUB_ID_PARAM = { awin: "clickref", cj: "sid", direct: null };
  * file for which source owns which key prefix and why the order matters.
  */
 async function readAffiliateLinks() {
-  const body = readAllLinkLiterals(resolve(here, ".."), "generate-redirects");
+  const projectRoot = resolve(here, "..");
+
+  /* An id defined by two sources is not a conflict JavaScript reports — the
+   * last spread wins and the other retailer's link disappears from both the
+   * UI and this table with nothing logged. It happened: 91 of 123 ids, when
+   * two originals merchants shared the `original-<slug>` prefix. The build
+   * fails on it now rather than emitting a redirect table that is quietly
+   * missing a merchant. */
+  const { overrides } = assertNoDuplicateLinkIds(projectRoot, "generate-redirects");
+  for (const line of overrides) {
+    console.log(`generate-redirects: hand-written override${line}`);
+  }
+
+  const body = readAllLinkLiterals(projectRoot, "generate-redirects");
 
   if (body.trim() === "") return {};
 
   // Only reached once real links land; keep the parse explicit and boring.
-  const entries = [...body.matchAll(/["']?([\w-]+)["']?\s*:\s*\{([^}]*)\}/g)];
   const out = {};
-  for (const [, id, fields] of entries) {
+  for (const { id, fields } of linkEntriesOf(body)) {
     const network = fields.match(/network:\s*["']([^"']+)["']/)?.[1];
     const deepLink = fields.match(/deepLink:\s*["']([^"']+)["']/)?.[1];
     const subId = fields.match(/subId:\s*["']([^"']+)["']/)?.[1];
@@ -151,6 +173,7 @@ const lines = [
   "# GENERATED FILE — do not edit by hand.",
   "# Written by scripts/generate-redirects.mjs at build time from",
   "# lib/affiliate-links.ts, which is the source of truth.",
+  "# Retired-guide rules come from content/guide-rotation.json.",
   "#",
   `# Generated: ${new Date().toISOString()}`,
   `# Real affiliate links: ${ids.length}`,
@@ -173,9 +196,34 @@ if (ids.length === 0) {
   }
 }
 
+// Guides retired by the weekly rotation (GUIDE-ROTATION.md). 301, unlike the
+// 302s above: a retired slug can never be published again - readGuideRotation()
+// fails the build if one is - so "permanent" is simply true. Both slash forms,
+// because a _redirects source matches its path exactly and visitors arrive
+// with either. Internal links to these are removed, not left to the redirect;
+// check-internal-links.mjs enforces that after the build.
+const { retired } = readGuideRotation(resolve(here, ".."), "generate-redirects");
+if (retired.length > 0) {
+  lines.push("", `# Retired guides: ${retired.length} (content/guide-rotation.json)`);
+  for (const { slug, redirectTo } of retired) {
+    lines.push(`/guide/${slug}/ ${redirectTo} 301`, `/guide/${slug} ${redirectTo} 301`);
+  }
+}
+
+// Fail here rather than ship a file past the platform's limit and find out
+// which rules it dropped from a 404.
+const ruleCount = lines.filter((line) => line.trim() && !line.startsWith("#")).length;
+if (ruleCount > STATIC_RULE_LIMIT) {
+  throw new Error(
+    `generate-redirects: ${ruleCount} rules exceed Cloudflare's ${STATIC_RULE_LIMIT} static-redirect limit. ` +
+      "Retired-guide rules grow by two a guide; drop the oldest ones or move /go/ into a Worker script (see the header)."
+  );
+}
+
 mkdirSync(dirname(outFile), { recursive: true });
 writeFileSync(outFile, lines.join("\n") + "\n", "utf8");
 
 console.log(
-  `generate-redirects: wrote ${ids.length} redirect${ids.length === 1 ? "" : "s"} to public/_redirects`
+  `generate-redirects: wrote ${ids.length} redirect${ids.length === 1 ? "" : "s"} and ` +
+    `${retired.length} retired guide${retired.length === 1 ? "" : "s"} to public/_redirects (${ruleCount} rules)`
 );

@@ -83,7 +83,7 @@ export function ChapterFormula() {
               </Link>
             </Button>
             <Link
-              href="/about#methodology"
+              href="/about/#methodology"
               className="text-sm font-semibold text-primary underline underline-offset-2 hover:no-underline"
             >
               See the full formula

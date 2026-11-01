@@ -39,7 +39,51 @@
  * site whose whole pitch is independent analysis. It is also, on this feed,
  * usually just the title repeated.
  *
+ * `--feed` IS A NEW WAY TO GET THIS WRONG, AND THE REFUSAL BELOW IS ITS GUARD
+ * ---------------------------------------------------------------------------
+ * All three CJ subscriptions delivered here have carried exactly one advertiser
+ * ("productlist" = FragranceShop 16941446, "feedparfumania" = Perfumania
+ * 17335854, "IRFE PRODUCTS" = IRFE 17213922), and the founder's call of
+ * 2026-10-05 is that we stop building for the multi-advertiser case on three
+ * consecutive counts of evidence against it. The per-advertiser row splitting
+ * that was written for it is gone.
+ *
+ * The assertion is NOT gone, because it answers a different question, and the
+ * question is one this script created for itself. `--feed <path>` lets any
+ * export be handed to a configuration that describes ONE merchant: every id
+ * emitted below is a hardcoded `original-<referenceSlug>` or `shop-<productSlug>`,
+ * FragranceShop's namespace, and the generated files it overwrites are
+ * FragranceShop's. So pointing `--feed` at another merchant's export files that
+ * merchant's rows under FragranceShop's prefixes and over FragranceShop's data
+ * — the `original-`/`pm-` collision that cost 91 of 123 ids with no error
+ * anywhere, arriving through the convenience flag rather than through a second
+ * merchant. A one-line "this feed is advertiser X, I am configured for Y,
+ * nothing was written" refusal is the cheapest possible guard on that, and it
+ * is checked before a single row is matched.
+ *
+ * Advertiser identity is read off the `click-<publisherId>-<advertiserId>`
+ * segment of `LINK`, never off `PROGRAM_NAME` and never off `CATALOG_NAME`
+ * (which names the SUBSCRIPTION). See scripts/lib/cj-feed.mjs.
+ *
  * Run:    node scripts/ingest-cj-feed.mjs [--debug <slug>] [--candidates]
+ *         node scripts/ingest-cj-feed.mjs --inspect [--feed <path>]
+ *           Reports what a delivered export actually contains — columns, rows,
+ *           delimiter integrity, advertisers, BRAND spread, PRICE vs SALE_PRICE,
+ *           staleness, shared stock photos, house dupe-oil rows, concentration
+ *           parsed from the title. WRITES NOTHING.
+ *
+ *           WHAT IT IS FOR, stated because the per-advertiser work it was
+ *           written alongside is gone: it is the ten-minute checklist run on a
+ *           NEW feed before anybody plans work on its assumed contents. THREE
+ *           CJ FEEDS IN A ROW HAVE UNBLOCKED NOTHING, each for a reason this
+ *           report surfaces in one command — Perfumania's "Like product feed"
+ *           was the merchant's own house dupe line (BRAND spread: 9 in-house
+ *           brands, zero designer), and IRFE's is a single niche house's own
+ *           range (BRAND spread: 1). Every line it prints is a lesson that cost
+ *           real time, and it reproduces this project's hand-recorded numbers,
+ *           so it doubles as a regression test on scripts/feeds/README.md.
+ *         --feed <path> overrides the input for one run. The default is
+ *           unchanged, so a no-argument run behaves exactly as before.
  * Input:  scripts/feeds/FragranceShop_com_-CJ_Product_Feed-shopping.txt
  *         (gitignored — licensed merchant data, and this repo is public)
  * Output: lib/data/cj-offers.generated.ts   (committed)
@@ -49,7 +93,7 @@
  *         a feed cannot supply.
  */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { dirname, resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -61,15 +105,33 @@ import {
   BRAND_SYNONYMS,
   NOISE_WORDS,
 } from "./lib/product-matching.mjs";
+import {
+  advertiserCensus,
+  parseCjPrice,
+  priceFieldReport,
+  readCjFeed,
+  unwrapMerchantUrl,
+} from "./lib/cj-feed.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
-const FEED = resolve(
+
+/** The feed this script's merchant configuration below belongs to. A `--feed`
+ *  argument overrides it for one run; the advertiser assertion then decides
+ *  whether what arrived is something this configuration may ingest. */
+const DEFAULT_FEED = resolve(
   root,
   "scripts",
   "feeds",
   "FragranceShop_com_-CJ_Product_Feed-shopping.txt"
 );
+
+const feedArgIndex = process.argv.indexOf("--feed");
+const FEED =
+  feedArgIndex >= 0 && process.argv[feedArgIndex + 1]
+    ? resolve(process.cwd(), process.argv[feedArgIndex + 1])
+    : DEFAULT_FEED;
+
 const OUT = resolve(root, "lib", "data", "cj-offers.generated.ts");
 const OUT_LINKS = resolve(root, "lib", "data", "cj-links.generated.ts");
 
@@ -153,58 +215,13 @@ const PRODUCT_NAME_NOISE = new Set(
 
 /* ── feed reading ─────────────────────────────────────────────────────────── */
 
-/** The export is genuinely tab-separated with no quoting: verified 0 rows
- *  containing a double-quote and 0 rows with a field count other than the
- *  header's on the 2026-07-29 file. A split is correct and a CSV parser would
- *  be wrong here, because an unquoted apostrophe or comma is ordinary data. */
-function readFeed() {
-  if (!existsSync(FEED)) {
-    throw new Error(
-      `ingest-cj-feed: no feed at ${FEED}\n` +
-        "Download it from CJ (Account -> Subscriptions), unzip it into " +
-        "scripts/feeds/, and keep it there — that directory is gitignored and " +
-        "this repository is public."
-    );
-  }
-  const lines = readFileSync(FEED, "utf8").split(/\r?\n/).filter((l) => l.trim() !== "");
-  const header = lines[0].split("\t");
-  const ragged = [];
-  const rows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cells = lines[i].split("\t");
-    if (cells.length !== header.length) {
-      ragged.push(i + 1);
-      continue;
-    }
-    rows.push(Object.fromEntries(header.map((h, j) => [h, cells[j]])));
-  }
-  if (rows.length === 0) {
-    throw new Error("ingest-cj-feed: parsed zero rows — check the delimiter and header.");
-  }
-  return { rows, ragged, columns: header.length };
-}
+/** Reading the export, parsing "8.95 USD" and unwrapping CJ's `url=` parameter
+ *  all moved to scripts/lib/cj-feed.mjs unchanged — they are facts about the
+ *  CJ Shopping format rather than about this merchant, and a second CJ
+ *  subscription must not arrive with a second copy of them. */
 
 /** The feed's only HTML entity is `&amp;` (checked across all 5,802 rows). */
 const decode = (s) => (s ?? "").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
-
-/** "8.95 USD" -> { amount: 8.95, currency: "USD" } */
-function parsePrice(raw) {
-  const m = (raw ?? "").trim().match(/^([\d.]+)\s*([A-Z]{3})$/);
-  if (!m) return { amount: null, currency: null };
-  const amount = Number.parseFloat(m[1]);
-  return { amount: Number.isFinite(amount) ? amount : null, currency: m[2] };
-}
-
-/** CJ wraps the merchant URL in the click link as a `url=` parameter. Every
- *  row on this export carries one. We keep the wrapped link for clicking and
- *  the unwrapped one for display and for auditing a match. */
-function unwrapMerchantUrl(link) {
-  try {
-    return new URL(link).searchParams.get("url");
-  } catch {
-    return null;
-  }
-}
 
 /* ── our catalog ──────────────────────────────────────────────────────────── */
 
@@ -399,14 +416,201 @@ const DEBUG_SLUG = process.argv.includes("--debug")
   ? process.argv[process.argv.indexOf("--debug") + 1]
   : null;
 const WANT_CANDIDATES = process.argv.includes("--candidates");
+const WANT_INSPECT = process.argv.includes("--inspect");
 
-const { rows, ragged, columns } = readFeed();
+const { rows, ragged, columns, header } = readCjFeed(FEED, { caller: "ingest-cj-feed" });
+
+/* ── who sent this, and may we ingest it? ─────────────────────────────────── */
+
+/**
+ * Who sent the rows that just got read, and how many each sent.
+ *
+ * A census, not a split — nothing downstream ingests per advertiser, and the
+ * per-advertiser row buckets that used to exist for that were removed on
+ * 2026-10-05 with the multi-advertiser plan they served. What this is for is
+ * the refusal immediately below and the `--inspect` triage: both need to NAME
+ * what arrived, which is a reporting job, not a routing one.
+ */
+const advertisers = advertiserCensus(rows);
+
+function describeAdvertisers() {
+  return [...advertisers]
+    .sort((a, b) => b[1].rowCount - a[1].rowCount)
+    .map(
+      ([id, { identity }]) =>
+        `  ${String(id).padEnd(10)} ${String(advertisers.get(id).rowCount).padStart(6)} rows  ` +
+        `${(identity.programName || "(no PROGRAM_NAME)").padEnd(28)} ${identity.programUrl || ""}`
+    )
+    .join("\n");
+}
+
+if (!WANT_INSPECT) {
+  /**
+   * THE ONE MERCHANT ASSERTION.
+   *
+   * This is the guard on `--feed`, not a bet that a subscription might one day
+   * carry two advertisers (three deliveries say it does not). The flag lets any
+   * export reach a configuration that hardcodes ONE merchant's link namespace
+   * and overwrites ONE merchant's generated files, so handing it a stranger's
+   * feed emits that stranger's rows as `original-<slug>`/`shop-<slug>` and over
+   * FragranceShop's own data. That is the `original-`/`pm-` prefix collision —
+   * 91 of 123 ids lost, no error anywhere — reached through a convenience
+   * argument. Checked before a single row is matched.
+   */
+  const unexpected = [...advertisers.keys()].filter((id) => id !== MERCHANT.advertiserId);
+  if (unexpected.length > 0) {
+    throw new Error(
+      `ingest-cj-feed: this feed carries ${advertisers.size} advertiser(s), and ` +
+        `${unexpected.length} of them\nis not the one this script is configured for ` +
+        `(${MERCHANT.name}, CJ ${MERCHANT.advertiserId}).\n\n` +
+        `${describeAdvertisers()}\n\n` +
+        "Nothing was written. This is a decision, not a parse failure:\n" +
+        "  - Every id this script emits is hardcoded to one advertiser's namespace\n" +
+        "    (`original-<slug>`, `shop-<slug>`) and it overwrites that advertiser's\n" +
+        "    generated files. A different advertiser needs its OWN prefix and its OWN\n" +
+        "    generated file, registered in scripts/lib/affiliate-link-sources.mjs,\n" +
+        "    which is where prefix ownership lives and where `prebuild` enforces it.\n" +
+        "  - Its merchant facts (is it a genuine-originals retailer or a house dupe\n" +
+        "    line? is its price in PRICE or SALE_PRICE? does its title grammar put a\n" +
+        "    format word inside a product name — or no format tail at all, as IRFE's\n" +
+        "    does not?) are per-merchant and have each produced wrong published data\n" +
+        "    here before.\n\n" +
+        "Run `--inspect` on this feed first. Then give the advertiser its own ingest\n" +
+        "configuration and its own prefix; do not widen this one to cover two."
+    );
+  }
+}
+
+/* ── --inspect: what did they actually send us? writes nothing ────────────── */
+
+if (WANT_INSPECT) {
+  /**
+   * The ten-minute triage every delivered feed needs before anyone plans work
+   * against its assumed contents. Every item here is a lesson that cost real
+   * time in this project; scripts/feeds/README.md carries the long form.
+   */
+  console.log(`feed:    ${FEED}`);
+  console.log(`rows:    ${rows.length}${ragged.length ? `  (${ragged.length} ragged, skipped)` : ""}`);
+  console.log(`columns: ${columns}  — CJ's own format sample said 66 and the real exports carry 87;`);
+  console.log(`         the delivered header is the only evidence. First four: ${header.slice(0, 4).join(", ")}`);
+
+  /* DELIMITER INTEGRITY, measured rather than remembered. The FragranceShop
+   * export had zero double-quotes anywhere, that was written down, and it got
+   * generalised to "CJ feeds are tab-separated with no quoting" — which IRFE's
+   * export falsified with four CSV-quoted DESCRIPTION fields. What makes
+   * split("\t") safe is not the absence of quotes but the absence of TABS
+   * inside them, and that shows up as a ragged row. So both are printed: the
+   * quote count as a per-feed fact nobody should carry forward, the ragged
+   * count as the invariant that actually decides the parser. */
+  const rawLines = readFileSync(FEED, "utf8")
+    .split(/\r?\n/)
+    .filter((l) => l.trim() !== "")
+    .slice(1);
+  const quoted = rawLines.filter((l) => l.includes('"')).length;
+  console.log(`\ndelimiter: TAB. ${quoted} of ${rawLines.length} data row(s) contain a double quote,`);
+  console.log(`  ${ragged.length} row(s) ragged (a field count other than the header's).`);
+  console.log(`  A quote is harmless; a TAB inside a quoted field is not, and it would show up`);
+  console.log(`  as a ragged row. Ragged 0 is what licenses split("\\t") — not a quote count.`);
+  console.log(`  (FragranceShop: 0 quotes. IRFE: 4, each opening DESCRIPTION. Both split fine.)`);
+
+  console.log(`\nadvertisers (${advertisers.size}) — keyed on click-<publisherId>-<advertiserId> in LINK,`);
+  console.log(`  never on the click HOSTNAME, which CJ rotates across five domains:`);
+  console.log(describeAdvertisers());
+  /* Our own CID should be the only one here. A SECOND publisher id would mean
+   * someone else's tracking links are in our feed, which is worth seeing. */
+  const pubs = new Set(
+    [...advertisers.values()].map((g) => g.identity.publisherId).filter(Boolean)
+  );
+  console.log(`  publisher id(s) in the links: ${[...pubs].join(", ") || "(none parsed)"}`);
+  const unknown = advertisers.get("unknown");
+  if (unknown) {
+    console.log(
+      `  ${unknown.rowCount} row(s) carry no parseable click-<PID>-<AID> — counted as` +
+        ` "unknown" and\n  reported rather than dropped: an unattributable row is a fact` +
+        ` about the delivery.`
+    );
+  }
+  const catalogs = new Set(rows.map((r) => (r.CATALOG_NAME ?? "").trim()));
+  console.log(`  CATALOG_NAME (the SUBSCRIPTION, not the advertiser): ${[...catalogs].join(" | ")}`);
+
+  const price = priceFieldReport(rows);
+  console.log(`\nprice columns — the ingest reads PRICE; on the Perfumania export PRICE was`);
+  console.log(`  0.00 or empty on 53 of 66 rows and the real figure was in SALE_PRICE:`);
+  console.log(`  PRICE usable (>0):      ${price.priceUsable} of ${price.rows}`);
+  console.log(`  SALE_PRICE usable (>0): ${price.salePriceUsable} of ${price.rows}`);
+  console.log(`  neither usable:         ${price.neither}`);
+  console.log(`  both set and differing: ${price.disagree}  (a promotion, not a correction — decide, do not default)`);
+
+  const updated = rows.map((r) => (r.LAST_UPDATED ?? "").slice(0, 10)).filter(Boolean).sort();
+  console.log(`\nLAST_UPDATED: ${updated[0] ?? "(absent)"} .. ${updated[updated.length - 1] ?? "(absent)"}`);
+  console.log(`  FragranceShop's arrived six weeks stale. Only the ids are durable.`);
+
+  const brands = new Map();
+  for (const r of rows) {
+    const b = decode(r.BRAND) || "(empty)";
+    brands.set(b, (brands.get(b) ?? 0) + 1);
+  }
+  const brandList = [...brands].sort((a, b) => b[1] - a[1]);
+  console.log(`\nBRAND: ${brands.size} distinct. READ THIS BEFORE PLANNING ANY CATALOGUE WORK —`);
+  console.log(`  Perfumania was queued as our second originals merchant and its feed turned`);
+  console.log(`  out to be its own house dupe line with zero designer stock.`);
+  for (const [b, n] of brandList.slice(0, 25)) console.log(`  ${String(n).padStart(5)}  ${b}`);
+  if (brandList.length > 25) console.log(`  ... and ${brandList.length - 25} more brands`);
+
+  const imageCounts = new Map();
+  for (const r of rows) {
+    const u = (r.IMAGE_LINK ?? "").trim();
+    if (u) imageCounts.set(u, (imageCounts.get(u) ?? 0) + 1);
+  }
+  const shared = [...imageCounts].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]);
+  const sharedRows = shared.reduce((a, [, n]) => a + n, 0);
+  const noImage = rows.filter((r) => !(r.IMAGE_LINK ?? "").trim()).length;
+  console.log(`\nimages: ${imageCounts.size} distinct URL(s), ${noImage} row(s) with none.`);
+  console.log(`  SHARED stock photographs: ${shared.length} URL(s) covering ${sharedRows} rows`);
+  console.log(`  (858 FragranceShop rows shared four images across Dior, Armani, Gucci and`);
+  console.log(`  Burberry. Attaching one to a named fragrance shows a bottle that is not the`);
+  console.log(`  product — null means "no image", never "use a placeholder".)`);
+  for (const [u, n] of shared.slice(0, 6)) console.log(`  ${String(n).padStart(5)}  ${u.slice(0, 110)}`);
+
+  const typeOil = rows.filter((r) => /type perfume oil/i.test(r.TITLE ?? "")).length;
+  const notRetail = rows.filter((r) => NOT_RETAIL_BOTTLE.test(r.TITLE ?? "")).length;
+  const inspired = rows.filter((r) =>
+    /inspired by|impression of|reminiscent of|\bdupe\b|\bclone\b/i.test(
+      `${r.TITLE ?? ""} ${r.DESCRIPTION ?? ""}`
+    )
+  ).length;
+  const descIsTitle = rows.filter(
+    (r) => decode(r.DESCRIPTION) !== "" && decode(r.DESCRIPTION) === decode(r.TITLE)
+  ).length;
+  console.log(`\nrow kinds:`);
+  console.log(`  "type perfume oil" (the dupe trade's own word):    ${typeOil}`);
+  console.log(`  tester/unboxed/set/sample/vial (not retail bottles): ${notRetail}`);
+  console.log(`  citing an inspiration in TITLE or DESCRIPTION:       ${inspired}`);
+  console.log(`    (CHECK EVERY HIT BY HAND — all five on the Perfumania feed were false`);
+  console.log(`     positives like "Inspired by the romance of Rome".)`);
+  console.log(`  DESCRIPTION byte-identical to TITLE:                 ${descIsTitle} of ${rows.length}`);
+  console.log(`    (5,802 of 5,802 on FragranceShop, which is why that feed supplied no notes.)`);
+
+  const concentrations = new Map();
+  for (const r of rows) {
+    const c = concentrationOf(decode(r.TITLE));
+    concentrations.set(c, (concentrations.get(c) ?? 0) + 1);
+  }
+  console.log(`\nconcentration parsed from the format tail (founder's buy-link scope is EDP or Parfum, over $100):`);
+  for (const [c, n] of [...concentrations].sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${String(n).padStart(6)}  ${c}`);
+  }
+
+  console.log(`\nNOTHING WAS WRITTEN. --inspect reports; it does not ingest.`);
+  process.exit(0);
+}
+
 const references = readReferences();
 
 /** Pre-compute the per-row facts every reference will test against. */
 const feed = rows.map((r) => {
   const title = decode(r.TITLE);
-  const { amount, currency } = parsePrice(r.PRICE);
+  const { amount, currency } = parseCjPrice(r.PRICE);
   const image = (r.IMAGE_LINK ?? "").trim();
   return {
     id: r.ID,

@@ -30,7 +30,7 @@ export default function DisclosurePage() {
         <h2>What this does not change</h2>
         <p>
           Commission rate is never a factor in our similarity formula (see{" "}
-          <a href="/about#methodology">Our Standards</a>) or in which
+          <a href="/about/#methodology">Our Standards</a>) or in which
           candidate we rank first. A lower-commission or non-affiliate
           product can and does outrank a higher-commission one when the data
           says so.

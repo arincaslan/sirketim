@@ -53,7 +53,7 @@ export default function ContactPage() {
           <a href="/producers/">the producer programme</a>. Listings are scored
           by the same published formula as everyone else, and no plan buys
           rank, score, or placement &mdash; see{" "}
-          <a href="/about#methodology">our standards</a>.
+          <a href="/about/#methodology">our standards</a>.
         </p>
         <p>
           If something we have published about your product is inaccurate,

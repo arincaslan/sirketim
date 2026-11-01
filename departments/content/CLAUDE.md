@@ -36,6 +36,8 @@ Use the **`affiliate-content` skill** (`.claude/skills/affiliate-content/SKILL.m
 4. **SEO/schema metadata**: per-piece meta + structured data for web-development to render.
 5. **Handoff**: drafts + metadata go to `web-developer` for integration into the actual site codebase — this department doesn't commit content directly into a site's repo/content store, it hands off a reviewable draft.
 
+**One standing exception, by founder decision 2026-10-20:** Counterscent's weekly guide rotation writes, publishes and retires guides directly in `products/affiliate-sites/fragrance-dupes/content/guide/`, unreviewed, every Monday. The procedure and its content rules are in `products/affiliate-sites/fragrance-dupes/GUIDE-ROTATION.md`. Its build and link checks stand in for the review this workflow would otherwise give. Anything outside that rotation still follows the handoff above.
+
 ## Conventions
 
 - Work-in-progress content plans/drafts live under `projects/<site-slug>/` (mirrors advertising's `campaigns/<slug>/` pattern) — e.g. `projects/carbide-tools/`, `projects/<second-niche-slug>/` — until handed off to web-development's site repo.

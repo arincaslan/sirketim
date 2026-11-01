@@ -135,7 +135,7 @@ export default function ProducersPage() {
           </ul>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             The ranking formula is published in full on our{" "}
-            <Link href="/about#methodology" className="underline underline-offset-2 hover:text-primary">
+            <Link href="/about/#methodology" className="underline underline-offset-2 hover:text-primary">
               methodology page
             </Link>
             . It takes no input related to whether you pay us. Our own line is ranked by it too,
