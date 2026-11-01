@@ -1,5 +1,5 @@
 import { LegalPage, legalMetadata } from "@/components/legal/legal-page";
-import { CONTACT_EMAIL, LEGAL_ENTITY, PRODUCER_CONSOLE } from "@/lib/site";
+import { CONTACT_EMAIL, DATA_CONTROLLER, PRODUCER_CONSOLE } from "@/lib/site";
 
 /**
  * Gizlilik politikası ve KVKK aydınlatma metni - Türkçe. English counterpart:
@@ -33,17 +33,16 @@ export default function GizlilikPage() {
     >
       <h2>1. Veri sorumlusu</h2>
       <p>
-        Counterscent (counterscent.com ve producers.counterscent.com),{" "}
-        <strong>{LEGAL_ENTITY}</strong> (&ldquo;Şirket&rdquo;, &ldquo;biz&rdquo;) tarafından
-        işletilmektedir. Bu metinde anlatılan işlemeler bakımından 6698 sayılı Kişisel Verilerin
-        Korunması Kanunu (&ldquo;KVKK&rdquo;) uyarınca veri sorumlusu Şirketimizdir. Avrupa Ekonomik
+        counterscent.com ve producers.counterscent.com siteleri ile bu metinde anlatılan işlemeler
+        bakımından 6698 sayılı Kişisel Verilerin Korunması Kanunu (&ldquo;KVKK&rdquo;) uyarınca veri
+        sorumlusu <strong>{DATA_CONTROLLER}</strong>&apos;tir (&ldquo;biz&rdquo;). Avrupa Ekonomik
         Alanı&apos;ndaki kişiler bakımından Avrupa Birliği Genel Veri Koruma Tüzüğü (&ldquo;GDPR&rdquo;)
         de uygulanabilir.
       </p>
       <p>
         Bu metinle ilgili tüm sorularınız için:{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Şirketimizin tescilli adresi, aynı
-        adrese yazmanız hâlinde tarafınıza bildirilir.
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Posta adresimiz, aynı adrese
+        yazmanız hâlinde tarafınıza bildirilir.
       </p>
 
       <h2>2. Kısaca</h2>

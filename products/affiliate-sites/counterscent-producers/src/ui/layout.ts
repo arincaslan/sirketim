@@ -322,6 +322,7 @@ ${
         // catalogue, which is the one canonical copy of each.
         ""
       }
+      <a href="${CATALOGUE}/legal/">All policies</a>
       <a href="/refunds">Refund policy</a>
       <a href="${CATALOGUE}/terms/">Terms of service</a>
       <a href="${CATALOGUE}/privacy/">Privacy policy</a>
@@ -338,6 +339,7 @@ ${
       // catalogue. lang="tr" so a screen reader switches voice.
       ""
     }<nav class="footer-links" aria-label="Türkçe" lang="tr">
+      <a href="${CATALOGUE}/legal/">Tüm politikalar</a>
       <a href="/refunds#tr">İade ve iptal politikası</a>
       <a href="${CATALOGUE}/tr/kullanim-kosullari/">Kullanım koşulları</a>
       <a href="${CATALOGUE}/tr/gizlilik/">Gizlilik ve KVKK aydınlatma metni</a>

@@ -1,5 +1,5 @@
 import { LegalPage, legalMetadata } from "@/components/legal/legal-page";
-import { CONTACT_EMAIL, LEGAL_ENTITY, PRODUCER_CONSOLE } from "@/lib/site";
+import { CONTACT_EMAIL, DATA_CONTROLLER, PRODUCER_CONSOLE } from "@/lib/site";
 
 /**
  * Privacy policy - English. Turkish counterpart: app/tr/gizlilik/page.tsx,
@@ -35,15 +35,15 @@ export default function PrivacyPage() {
     <LegalPage lang="en" title="Privacy policy" updated={UPDATED} counterpart="/tr/gizlilik/">
       <h2>1. Who is responsible</h2>
       <p>
-        Counterscent (counterscent.com and producers.counterscent.com) is operated by{" "}
-        <strong>{LEGAL_ENTITY}</strong>, a company established in Türkiye (&ldquo;we&rdquo;). We are
-        the data controller for the processing described here, under Türkiye&apos;s Law No. 6698 on
-        the Protection of Personal Data (&ldquo;KVKK&rdquo;) and, where it applies to you, the EU
-        General Data Protection Regulation (&ldquo;GDPR&rdquo;).
+        The data controller for counterscent.com and producers.counterscent.com, and for the
+        processing described here, is <strong>{DATA_CONTROLLER}</strong> (&ldquo;we&rdquo;),
+        established in Türkiye, under Türkiye&apos;s Law No. 6698 on the Protection of Personal
+        Data (&ldquo;KVKK&rdquo;) and, where it applies to you, the EU General Data Protection
+        Regulation (&ldquo;GDPR&rdquo;).
       </p>
       <p>
         Contact for anything in this policy: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
-        Our registered address is available on request at the same address.
+        Our postal address is available on request at the same address.
       </p>
 
       <h2>2. The short version</h2>

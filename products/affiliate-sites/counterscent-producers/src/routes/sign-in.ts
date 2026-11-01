@@ -22,6 +22,7 @@ import {
   normalizeEmail,
 } from "../lib/auth";
 import { mailConfigured, sendMagicLink } from "../lib/mailer";
+import { POLICY_LINKS } from "../lib/legal";
 import {
   bumpRateLimit,
   SIGN_IN_GLOBAL_KEY,
@@ -252,9 +253,12 @@ export function signIn(request: Request, env: Env) {
               // address is typed, not after. The 18+ statement is the same one
               // the terms make; the company form is where it is confirmed.
               html`<p class="auth-fine">
-                For businesses, run by adults (18+). Read our
-                <a href="https://counterscent.com/privacy/">privacy notice</a>
-                (<a href="https://counterscent.com/tr/gizlilik/" lang="tr" hreflang="tr">Türkçe</a>).
+                For businesses, run by adults (18+). Before you use the console you will be asked to
+                accept our <a href="${POLICY_LINKS.terms.en}">terms</a> and confirm you have read the
+                <a href="${POLICY_LINKS.privacy.en}">privacy notice</a>.
+                <span lang="tr">İlk girişte <a href="${POLICY_LINKS.terms.tr}">kullanım koşullarını</a>
+                kabul etmeniz ve <a href="${POLICY_LINKS.privacy.tr}">aydınlatma metnini</a> okuduğunuzu
+                onaylamanız istenir.</span>
               </p>`
             }
           `,
@@ -263,6 +267,41 @@ export function signIn(request: Request, env: Env) {
     </div>
 
     <div class="auth-aside">
+    ${
+      // THE POLICIES, BEFORE ANYTHING IS TYPED - 2026-11-01. Founder
+      // instruction: whoever enters their details to sign up must have the
+      // policies put in front of them. Typing an address here is the moment
+      // personal data is first collected, which is also when KVKK Article 10
+      // says the notice has to be given. Acceptance itself happens once, on
+      // /console/accept, after the account exists - see routes/accept.ts.
+      section({
+        heading: "Our policies · Politikalarımız",
+        body: html`
+          <ul class="plain-list">
+            <li>
+              Terms of use - <a href="${POLICY_LINKS.terms.en}">English</a> ·
+              <a href="${POLICY_LINKS.terms.tr}" lang="tr" hreflang="tr">Kullanım koşulları</a>
+            </li>
+            <li>
+              Privacy notice - <a href="${POLICY_LINKS.privacy.en}">English</a> ·
+              <a href="${POLICY_LINKS.privacy.tr}" lang="tr" hreflang="tr">Gizlilik ve KVKK aydınlatma metni</a>
+            </li>
+            <li>
+              Cookie policy - <a href="${POLICY_LINKS.cookies.en}">English</a> ·
+              <a href="${POLICY_LINKS.cookies.tr}" lang="tr" hreflang="tr">Çerez politikası</a>
+            </li>
+            <li>
+              Refunds - <a href="${POLICY_LINKS.refunds.en}">English</a> ·
+              <a href="${POLICY_LINKS.refunds.tr}" lang="tr" hreflang="tr">İade ve iptal</a>
+            </li>
+          </ul>
+          <p class="muted">
+            All of them on one page: <a href="${POLICY_LINKS.hub}">counterscent.com/legal</a>.
+            The first time you sign in, you accept them before anything else opens.
+          </p>
+        `,
+      })
+    }
     ${section({
       heading: "What this actually does",
       body: html`

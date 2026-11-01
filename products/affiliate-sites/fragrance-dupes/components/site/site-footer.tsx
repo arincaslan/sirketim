@@ -19,6 +19,11 @@ const COLUMNS = [
     heading: "About",
     links: [
       { href: "/about", label: "Our Standards" },
+      // THE ONE PAGE LISTING EVERY POLICY IN BOTH LANGUAGES, 2026-11-01:
+      // founder instruction that the policies be easy to find. The individual
+      // links below stay, because a payment provider's review looks for each
+      // document by name in the navigation.
+      { href: "/legal", label: "All Policies" },
       { href: "/disclosure", label: "Affiliate Disclosure" },
       { href: "/privacy", label: "Privacy Policy" },
       // Terms and Refunds are in the footer because a payment provider's
@@ -49,6 +54,7 @@ const COLUMNS = [
     // console's own page (#tr), so it cannot drift into a second document.
     heading: "Türkçe",
     links: [
+      { href: "/legal", label: "Tüm Politikalar" },
       { href: "/tr/gizlilik", label: "Gizlilik ve KVKK" },
       { href: "/tr/kullanim-kosullari", label: "Kullanım Koşulları" },
       { href: "/tr/cerez-politikasi", label: "Çerez Politikası" },

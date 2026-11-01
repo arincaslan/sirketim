@@ -54,20 +54,38 @@ export const CONTACT_EMAIL = "contact@counterscent.com";
 export const PRODUCER_CONSOLE = "https://producers.counterscent.com";
 
 /**
- * THE REGISTERED COMPANY BEHIND COUNTERSCENT - the data controller (veri
- * sorumlusu) in every privacy text, the contracting party in the terms, and the
- * name a merchant of record compares against the registration document.
+ * THE REGISTERED COMPANY BEHIND COUNTERSCENT - the contracting party in the
+ * terms, the operator named in the footer, and the name a merchant of record
+ * compares against the registration document. NOT the name on the privacy
+ * notices any more: see DATA_CONTROLLER below.
  *
  * Founder decision, 2026-11-01. Until then the site said "Sirketim A.Ş.", which
  * is the internal workspace name, while the affiliate networks (CJ, Awin) and
- * the accounting memo all carry this title. KVKK Article 10 requires the
- * controller's identity in the notice, so the brand name was not enough.
+ * the accounting memo all carry this title.
  *
  * Written exactly as registered with the networks, abbreviations included.
  * Do not expand "TUR. SAN. TİC." by guesswork - if the trade registry spells it
  * out differently, change it HERE and every legal page follows.
  */
 export const LEGAL_ENTITY = "IGDIR İNŞAAT MADENCİLİK TUR. SAN. TİC. A.Ş.";
+
+/**
+ * THE NAME THE PRIVACY AND COOKIE NOTICES GIVE AS DATA CONTROLLER (veri
+ * sorumlusu). Founder instruction, 2026-11-01, the same day LEGAL_ENTITY was
+ * first put there: "veri sorumlusu Counterscent'tir yazalım".
+ *
+ * THE RISK, recorded so nobody discovers it later: KVKK Article 10 requires the
+ * notice to state the controller's IDENTITY, and a controller is a natural or
+ * legal person. Counterscent is a brand, not a registered company, so a
+ * regulator or a court could read a notice naming only the brand as not
+ * identifying the controller at all - an Article 10 breach, which Article 18
+ * fines. The terms still name LEGAL_ENTITY as the contracting party (a brand
+ * cannot sign a contract), and VERBIS, if registration applies, is filed under
+ * the company. LEGAL-COMPLIANCE.md carries this as an open lawyer item. If the
+ * founder or a lawyer reverses it, render LEGAL_ENTITY in the two "controller"
+ * sections of app/privacy and app/tr/gizlilik instead of this.
+ */
+export const DATA_CONTROLLER = "Counterscent";
 
 /**
  * How a data subject reaches us. A postal address for KVKK applications is

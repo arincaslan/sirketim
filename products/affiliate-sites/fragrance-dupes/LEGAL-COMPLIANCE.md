@@ -10,6 +10,14 @@ producer console (`producers.counterscent.com`,
 from the code and from published law, and binds people the moment it is
 deployed. Section 4 lists what a lawyer has to look at first.
 
+**Founder decisions recorded the same day (2026-11-01, second round):**
+the privacy and cookie notices name **Counterscent** as data controller (veri
+sorumlusu), not the registered company - see section 4 for the risk; every
+policy is listed on one bilingual page, `/legal`; anyone signing in to the
+console for the first time must read and accept the policies before anything
+else opens; and no image is removed - image licences live only in
+`IMAGE-LICENSES.md`.
+
 **Every sentence in a policy is a claim about code.** The table in section 1
 names the file that makes each claim true. Change the code and the policy in
 the same commit, in BOTH languages, or one of them becomes false.
@@ -32,9 +40,10 @@ the same commit, in BOTH languages, or one of them becomes false.
 | 10 | Remove fake reviews | Already clean, re-checked: `REVIEWS` is `[]`, no `AggregateRating` anywhere, the review form says nothing is saved. | `lib/reviews.ts`, `lib/jsonld.ts` |
 | 11 | Remove unsupported claims | Done. "Most producers" badge -> "Our suggestion" (no producer has ever bought a plan). Five plan features that do not exist yet now say "(not built yet)": click counts, per-listing click data, edit requests, conversion data, queue priority. Console meta description no longer says "producers we have already spoken to". | `lib/plans.ts`, `components/producers/pricing-table.tsx`, `app/producers/page.tsx` |
 | 12 | Alt text | Audited, nothing missing. Product photos: "`<name>` by `<brand>`". Mood images: descriptive alt. Decorative images and the hero video: `alt=""` + `aria-hidden`. Logo SVG aria-hidden beside a text wordmark; radar chart has `role="img"` + a summary label. | - |
+| 1b | Policies easy to find, and accepted at sign-up | Done. `/legal` lists every policy in both languages and is linked first in the footer (both columns) and from the console. The console sign-in page shows the policies before an address is typed. Every account, email or Google, is sent to `/console/accept` until it ticks three unticked boxes (terms incl. refunds; privacy + cookie notice read; 18+); the acceptance is recorded in `AuditEvent` with `policyVersion`, and bumping `POLICY_VERSION` makes everyone accept again. Declining leaves only sign-out and account deletion. Tested through the router against Postgres, 20/20. | `app/legal/page.tsx`, `counterscent-producers/src/routes/accept.ts`, `src/lib/policy-acceptance.ts`, `src/index.ts` |
 | 13 | Age consent for kids' data | Done. Policies: producer accounts are 18+; the catalogue does not knowingly collect children's data; under-16s are asked not to allow analytics. Console: sign-in page says 18+; creating a company needs an unticked "I am 18 or over and authorised" box, recorded with the terms version in the audit row. Self-declaration, not ID checks - we should not hold identity documents. | `counterscent-producers/src/routes/company.ts`, `routes/sign-in.ts` |
 | 14 | Unsubscribe link | Not applicable, and stated rather than faked. The only email is the sign-in link, a transactional message the recipient requested; Law 6563 and CAN-SPAM unsubscribe rules cover commercial messages. The email now says it is a service message, that we send no marketing, and why it arrived (EN + TR). If marketing is ever sent: prior opt-in, İYS registration, working unsubscribe in every message. | `counterscent-producers/src/lib/mailer.ts` |
-| 15 | Licence of stock images | Done - see `IMAGE-LICENSES.md`. There are no stock photos. The 74 reference photos from the closed My Perfume Shop programme are no longer shown. | `lib/data/references.ts` `SHOW_CLOSED_PROGRAMME_IMAGES` |
+| 15 | Licence of stock images | Done. There are no stock photos. Every image source and its licence is recorded in ONE file, `IMAGE-LICENSES.md` (founder instruction: licences live in one place). No image was removed. | `IMAGE-LICENSES.md` |
 | 16 | Data deletion option | Done. `producers.counterscent.com/console/delete`: deletes the user, sessions, linked Google sign-in and pending links immediately; withdraws listings and clears the company contact if it was the last account; keeps listing history and audit rows (disclosed, ≤10 years). Linked from the console footer, the accounts page and both privacy notices. Tested against a real Postgres (31/31 checks). | `counterscent-producers/src/routes/delete-account.ts` |
 
 ## 2. Third-party audit (what runs, what it receives)
@@ -60,13 +69,21 @@ see `CLAUDE.md`), any ad or retargeting pixel.
 1. **Deploy the console**: `cd products/affiliate-sites/counterscent-producers && npx wrangler@4 deploy`. Until then `/refunds#tr` lands on the English page and `/console/delete` 404s; the catalogue's links to both are already live.
 2. **KVKK Art. 9 standard contracts** with Cloudflare, Google, Neon and Hostinger (and check Awin/CJ), and notify each signed one to the KVKK Authority within five business days. The privacy notices say this is in progress - make it true.
 3. **VERBİS**: check whether the company must register (thresholds and exemptions depend on employee count, balance sheet and whether processing special-category data is the main activity). Not assessed here.
-4. **Company identity on the policies**: full registered address, MERSİS number and KEP address. Today the policies say the address is "available on request". The CJ account and the policies now both say IGDIR İNŞAAT MADENCİLİK TUR. SAN. TİC. A.Ş.
+4. **Company identity**: the terms and the footer name IGDIR İNŞAAT MADENCİLİK TUR. SAN. TİC. A.Ş. (matching the CJ account); the privacy and cookie notices name Counterscent as controller by founder decision (see section 4). The registered address, MERSİS number and KEP address are still not published; the policies say the postal address is available on request.
 5. **GA4 settings**: set data retention to 2 months (the policies promise "the shortest period Google Analytics offers") and confirm IP truncation/Google signals are off.
 6. **Hostinger Sent folder**: the privacy notice says sign-in email copies are cleared regularly. Set up a recurring clean-up or retention rule, or change the sentence.
 7. **OpenArt licence**: confirm the plan the six generated mood assets were made on grants commercial use (see `IMAGE-LICENSES.md`).
 8. **Refund window**: 14 days is a founder decision; Paddle's guidance expects 30. Unchanged here.
 
 ## 4. What a lawyer should look at first
+
+- **The data controller is named as "Counterscent", a brand, not a legal
+  person** (founder instruction 2026-11-01). KVKK Article 10 requires the notice
+  to state the controller's identity, and Article 18 fines a failure to inform.
+  Whether a brand name with a contact address satisfies that, while the terms
+  and footer name IGDIR İNŞAAT MADENCİLİK TUR. SAN. TİC. A.Ş. as operator and
+  contracting party, is the first question for a lawyer. Reversal is one
+  constant: render `LEGAL_ENTITY` instead of `DATA_CONTROLLER` (`lib/site.ts`).
 
 - Governing law and venue for producers outside Türkiye (`PRODUCER-TERMS.md` §15).
 - Whether relying on standard contracts (section 3.2) covers every transfer, and the wording of both privacy notices on it.
