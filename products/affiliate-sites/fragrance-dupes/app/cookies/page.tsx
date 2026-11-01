@@ -1,5 +1,5 @@
 import { LegalPage, legalMetadata } from "@/components/legal/legal-page";
-import { CONTACT_EMAIL, LEGAL_ENTITY } from "@/lib/site";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 /**
  * Cookie policy - English. Turkish counterpart: app/tr/cerez-politikasi/page.tsx.
@@ -26,8 +26,7 @@ export default function CookiesPage() {
   return (
     <LegalPage lang="en" title="Cookie policy" updated={UPDATED} counterpart="/tr/cerez-politikasi/">
       <p>
-        This policy covers counterscent.com and producers.counterscent.com, operated by {LEGAL_ENTITY}.
-        It lists everything we store in your browser. How we handle personal data in general is in the{" "}
+        This policy covers counterscent.com and producers.counterscent.com. It lists everything we store in your browser. How we handle personal data in general is in the{" "}
         <a href="/privacy/">privacy policy</a>.
       </p>
 

@@ -79,7 +79,9 @@
  * says Allow rather than Disallow; that is not an oversight.
  */
 
-import { page, SECURITY_HEADERS } from "./lib/http";
+import { page, redirect, SECURITY_HEADERS } from "./lib/http";
+import { policyGate } from "./lib/policy-acceptance";
+import { acceptPage, acceptSubmit, gateUnavailable } from "./routes/accept";
 import { health } from "./routes/health";
 import { notFound } from "./routes/not-found";
 import { overview } from "./routes/overview";
@@ -213,6 +215,13 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
     GET: (req, env) => deleteAccountPage(req, env),
     POST: (req, env) => deleteAccountSubmit(req, env),
   },
+  // READ AND ACCEPT THE POLICIES, 2026-11-01. Every signed-in account is sent
+  // here by the policy gate in fetch() below until it has accepted the current
+  // POLICY_VERSION. See routes/accept.ts.
+  "/console/accept": {
+    GET: (req, env) => acceptPage(req, env),
+    POST: (req, env) => acceptSubmit(req, env),
+  },
   // Async now, because it reads the session to decide whether to render the
   // console nav. That is a navigation affordance, NOT a guard - see the header
   // comment in routes/review.ts before assuming this route is protected.
@@ -262,6 +271,16 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
  * disclosure bug, not a crash, which is exactly why it needs saying.
  */
 const GATED_PATHS = new Set(["/admin", "/admin/queue", "/admin/people", "/review"]);
+
+/**
+ * THE POLICY GATE'S TWO EXCEPTIONS, 2026-11-01. Every other /console path sends
+ * a signed-in account that has not accepted the current policies to
+ * /console/accept first. The acceptance screen itself must be reachable, and
+ * so must account deletion: somebody who signs in and then declines the terms
+ * has to be able to remove the account that sign-in created, without first
+ * agreeing to anything. Signing out is POST /sign-out, outside /console.
+ */
+const POLICY_GATE_EXEMPT = new Set(["/console/accept", "/console/delete"]);
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -342,6 +361,18 @@ export default {
           ...SECURITY_HEADERS,
         },
       });
+    }
+
+    // THE POLICY GATE. Founder instruction 2026-11-01: whoever signs up must
+    // read and accept the policies before using the console. Runs only for a
+    // real /console route (unknown paths have 404d above) and only when a
+    // session cookie is present; a signed-out request goes to its handler,
+    // which sends it to /sign-in as before. One query, see
+    // lib/policy-acceptance.ts.
+    if (url.pathname.startsWith("/console") && !POLICY_GATE_EXEMPT.has(url.pathname)) {
+      const gate = await policyGate(request, env);
+      if (gate === "pending") return redirect("/console/accept", { status: 303 });
+      if (gate === "unavailable") return gateUnavailable();
     }
 
     return handler(request, env);

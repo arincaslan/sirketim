@@ -89,6 +89,9 @@ export type CsrfPurpose =
   // own purpose because it is the most destructive write a producer can make:
   // a token minted for any other form must never be replayable against it.
   | "delete-account"
+  // ACCEPTING THE POLICIES, 2026-11-01 (routes/accept.ts). Session-scoped:
+  // every account meets it before it has a company.
+  | "accept-policies"
   // THE ADMIN VERBS ARE SEPARATE PURPOSES, not one shared "admin" token, for
   // the same reason the producer verbs are separate: a token minted for the
   // page that lists producers should not be replayable against the handler

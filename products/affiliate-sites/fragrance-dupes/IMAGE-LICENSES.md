@@ -1,7 +1,10 @@
 # Image licence register
 
-Written 2026-11-01. Every image the site serves, where it came from, and what
-lets us show it. Re-measure before quoting the counts:
+Written 2026-11-01. **This is the one file that records image licences** -
+founder instruction the same day ("lisansları sadece bir dosyada tut"). Code
+comments and other docs point here rather than repeating it. Every image the
+site serves, where it came from, and what lets us show it. Re-measure before
+quoting the counts:
 
 ```bash
 # from this directory, after a build
@@ -29,18 +32,20 @@ it. Self-hosted, never hot-linked.
 | `public/images/originals-pm/` | Perfumania, CJ 17335854 | 192 | live |
 | `public/images/fragrance-irfe/` | Maison IRFE, CJ 17213922 | 8 | live |
 | `public/images/dupe/` | Opulensi (Awin 123248), Clone of Perfume (117395), AromaPassions (34989) | 77 | live |
-| `public/images/fragrance/` | My Perfume Shop, Awin 106089 | **0 since 2026-11-01** (was 74) | programme **closed for tracking** since 2026-09-01 |
+| `public/images/fragrance/` | My Perfume Shop, Awin 106089 | 74 | programme **closed for tracking** since 2026-09-01; still shown |
 
-**The closed programme's photographs are no longer shown.** They had been
-"flagged as an open question" since September; under the rule above the answer
-is that we have no live relationship to justify them. `lib/data/references.ts`
-`SHOW_CLOSED_PROGRAMME_IMAGES = false` turns them off and the affected
-references render the generated note-signature mark instead. The files stay in
-git (nothing deleted, reversible), and should be removed from the repository
-only once it is certain they will not come back.
+**The closed programme's photographs stay on the site - founder decision,
+2026-11-01** ("hiçbir görseli kaldırma ... affiliate'lerden gelen resimlerin
+sorumlusu belli zaten"). They were supplied by the merchant through its own
+affiliate feed while we were enrolled, and the merchant is the party that
+published them for that use. The first 2026-11-01 deploy switched them off;
+the follow-up deploy the same day put them back.
 
-If a programme closes in future: set its images aside the same way, the same
-day. A closed programme is not a grace period.
+What this register records instead, so the position is explicit rather than
+silent: for these 74 there is no live programme behind the image, only the
+past enrolment. If My Perfume Shop or a rights holder ever asks for removal,
+the fix is one line in `lib/data/references.ts` (drop `FEED_IMAGES` from the
+merge) and the references fall back to the generated note-signature mark.
 
 ## 2. Retailer marks (logos)
 

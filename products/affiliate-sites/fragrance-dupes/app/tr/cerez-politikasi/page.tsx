@@ -1,5 +1,5 @@
 import { LegalPage, legalMetadata } from "@/components/legal/legal-page";
-import { CONTACT_EMAIL, LEGAL_ENTITY } from "@/lib/site";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 /**
  * Çerez politikası - Türkçe. English counterpart: app/cookies/page.tsx.
@@ -21,8 +21,7 @@ export default function CerezPolitikasiPage() {
   return (
     <LegalPage lang="tr" title="Çerez politikası" updated={UPDATED} counterpart="/cookies/">
       <p>
-        Bu politika, {LEGAL_ENTITY} tarafından işletilen counterscent.com ve producers.counterscent.com
-        sitelerini kapsar ve tarayıcınızda sakladığımız her şeyi listeler. Kişisel verilerin genel olarak
+        Bu politika, counterscent.com ve producers.counterscent.com sitelerini kapsar ve tarayıcınızda sakladığımız her şeyi listeler. Kişisel verilerin genel olarak
         nasıl işlendiği <a href="/tr/gizlilik/">gizlilik politikası ve KVKK aydınlatma metninde</a>{" "}
         anlatılmaktadır.
       </p>
