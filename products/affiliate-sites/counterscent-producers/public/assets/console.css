@@ -848,6 +848,37 @@ fieldset {
   opacity: 1;
 }
 
+/* A required confirmation (components.ts checkboxField). The label wraps the
+   control so the sentence is the target; 1.25rem box with accent-color so it
+   is drawn by the platform in both themes rather than restyled by hand. */
+.check-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
+  max-width: var(--measure);
+}
+.check-field label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  cursor: pointer;
+  min-height: 44px;
+}
+.check-field input[type="checkbox"] {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.125rem 0 0;
+  accent-color: hsl(var(--primary));
+}
+.check-field input[type="checkbox"]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
 .field-hint {
   font-size: 0.8125rem;
   color: hsl(var(--muted-foreground));
@@ -1388,6 +1419,19 @@ a.btn:hover {
 }
 
 /* -------------------------------------------------------------------------
+   A second-language block on one page (the Turkish refund policy, 2026-11-01).
+   A rule above it so the switch of language reads as a new document rather
+   than a continuation, and a scroll margin so /refunds#tr does not land with
+   the heading flush against the top edge.
+   ------------------------------------------------------------------------- */
+.lang-block {
+  border-top: 1px solid hsl(var(--border));
+  margin-top: 2.5rem;
+  padding-top: 0.5rem;
+  scroll-margin-top: 1.5rem;
+}
+
+/* -------------------------------------------------------------------------
    Footer
    ------------------------------------------------------------------------- */
 .site-footer {
@@ -1415,8 +1459,11 @@ a.btn:hover {
   gap: 0.5rem;
 }
 @media (min-width: 48rem) {
+  /* Three columns since 2026-11-01: the lead paragraph, the English legal
+     links and the Turkish ones. With two columns the Turkish group wrapped
+     under the lead paragraph and read as part of it. */
   .footer-inner {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     gap: 3rem;
   }
   .footer-links {

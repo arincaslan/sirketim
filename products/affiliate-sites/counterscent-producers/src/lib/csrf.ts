@@ -84,6 +84,11 @@ export type CsrfPurpose =
   | "disconnect-provider"
   | "submit-listing"
   | "withdraw-listing"
+  // DELETING THE ACCOUNT, 2026-11-01. Session-scoped like the two account
+  // verbs above (an account with no company may delete itself too), and its
+  // own purpose because it is the most destructive write a producer can make:
+  // a token minted for any other form must never be replayable against it.
+  | "delete-account"
   // THE ADMIN VERBS ARE SEPARATE PURPOSES, not one shared "admin" token, for
   // the same reason the producer verbs are separate: a token minted for the
   // page that lists producers should not be replayable against the handler

@@ -245,6 +245,18 @@ export function signIn(request: Request, env: Env) {
                   </p>`
                 : ""
             }
+            ${
+              // THE AGE AND PRIVACY LINE, 2026-11-01. Signing in creates an
+              // account record (an email address, at /verify), so the notice
+              // about what we do with it has to be one click away BEFORE the
+              // address is typed, not after. The 18+ statement is the same one
+              // the terms make; the company form is where it is confirmed.
+              html`<p class="auth-fine">
+                For businesses, run by adults (18+). Read our
+                <a href="https://counterscent.com/privacy/">privacy notice</a>
+                (<a href="https://counterscent.com/tr/gizlilik/" lang="tr" hreflang="tr">Türkçe</a>).
+              </p>`
+            }
           `,
           "auth-card",
         )}
@@ -464,7 +476,7 @@ export async function signInSubmit(request: Request, env: Env): Promise<Response
   // POST, including ones carrying a malformed address, because "type garbage
   // to get a free attempt" would be a hole rather than a nicety.
   const ip = await bumpRateLimit(sql, {
-    key: signInIpKey(request),
+    key: await signInIpKey(request, env),
     windowSeconds: SIGN_IN_IP_WINDOW_SECONDS,
     limit: SIGN_IN_IP_MAX_REQUESTS,
   });

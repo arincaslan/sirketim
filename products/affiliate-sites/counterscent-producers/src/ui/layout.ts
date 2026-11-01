@@ -1,4 +1,5 @@
 import { html, type Html } from "../lib/html";
+import { LEGAL_ENTITY } from "../lib/legal";
 
 /**
  * The page shell: head, header, footer.
@@ -195,9 +196,9 @@ function navBar(ctx: NavContext): Html {
  * the promise back. Same fact, one clause, no ambiguity about whose sales pay
  * for the site.
  */
-const FUNDING_LINE = html`Counterscent is a Sirketim product. Independent
-  editorial, funded by commissions from the retailers we link to, never from a
-  producer's own sales.`;
+const FUNDING_LINE = html`Counterscent is operated by ${LEGAL_ENTITY}, Türkiye.
+  Independent editorial, funded by commissions from the retailers we link to,
+  never from a producer's own sales.`;
 
 export function layout(options: PageOptions): Html {
   const { title, heading, standfirst, status, body, nav } = options;
@@ -245,7 +246,7 @@ export function layout(options: PageOptions): Html {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="The Counterscent producer console. Sign-in, listings and submissions for producers we have already spoken to.">
+<meta name="description" content="The Counterscent producer console. Sign-in, listings and submissions for producers.">
 <title>${title} | Counterscent producers</title>
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/assets/fonts/public-sans-latin-var.woff2" as="font" type="font/woff2" crossorigin>
@@ -322,10 +323,25 @@ ${
         ""
       }
       <a href="/refunds">Refund policy</a>
-      <a href="${CATALOGUE}/terms">Terms of service</a>
-      <a href="${CATALOGUE}/privacy">Privacy policy</a>
-      <a href="${CATALOGUE}/disclosure">Affiliate disclosure</a>
+      <a href="${CATALOGUE}/terms/">Terms of service</a>
+      <a href="${CATALOGUE}/privacy/">Privacy policy</a>
+      <a href="${CATALOGUE}/cookies/">Cookie policy</a>
+      <a href="${CATALOGUE}/disclosure/">Affiliate disclosure</a>
+      <a href="/console/delete">Delete your account</a>
       <a href="mailto:contact@counterscent.com">contact@counterscent.com</a>
+    </nav>
+    ${
+      // THE TURKISH TEXTS, as their own labelled group rather than mixed into
+      // the English list. For people in Turkiye the Turkish version of each
+      // policy prevails (each document says so), so it has to be reachable
+      // from the origin where the contract is made, not only from the
+      // catalogue. lang="tr" so a screen reader switches voice.
+      ""
+    }<nav class="footer-links" aria-label="Türkçe" lang="tr">
+      <a href="/refunds#tr">İade ve iptal politikası</a>
+      <a href="${CATALOGUE}/tr/kullanim-kosullari/">Kullanım koşulları</a>
+      <a href="${CATALOGUE}/tr/gizlilik/">Gizlilik ve KVKK aydınlatma metni</a>
+      <a href="${CATALOGUE}/tr/cerez-politikasi/">Çerez politikası</a>
     </nav>
   </div>
 </footer>

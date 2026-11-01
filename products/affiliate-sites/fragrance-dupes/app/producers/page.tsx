@@ -103,8 +103,13 @@ export default function ProducersPage() {
             {[
               "A place in the ranked comparison for that original",
               "A buy link that points at your own store, not a marketplace",
-              "Click data: which originals actually send you traffic",
-              "A console for changing or withdrawing a listing yourself",
+              // The click-data line now says it is not built (2026-11-01):
+              // the console states click reporting exists for nobody yet, and
+              // a benefit list is a promise. "Changing" a listing was dropped
+              // for the same reason - edit requests are not built either -
+              // while withdrawing yourself is now real on every plan.
+              "Click data on which originals send you traffic (not built yet)",
+              "A console for submitting and withdrawing a listing yourself",
             ].map((item) => (
               <li key={item} className="flex gap-2.5 text-sm text-foreground/85">
                 <CheckCircle weight="fill" className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />

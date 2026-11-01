@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { CONTACT_EMAIL, LEGAL_ENTITY } from "@/lib/site";
 
 /**
  * Affiliate managers reply to whatever address is on this page. A contact
@@ -29,7 +29,9 @@ export default function ContactPage() {
 
       <div className="prose prose-lg mt-8 max-w-none">
         <p>
-          Counterscent is published by Sirketim, a company registered in Türkiye.
+          Counterscent is published by {LEGAL_ENTITY}, a company registered in
+          Türkiye. Requests about your personal data go to the same address; see
+          our <a href="/privacy/">privacy policy</a> (<a href="/tr/gizlilik/" hrefLang="tr">Türkçe</a>).
         </p>
 
         <p>

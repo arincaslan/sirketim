@@ -423,27 +423,32 @@ export function quotaGate(opts: {
 /**
  * Whether this tier may withdraw its own listing from the console.
  *
- * FOUNDER DECISION, 2026-09-18, reversing the one from 2026-09-16. Self-serve
- * withdrawal is a paid feature; a free producer asks us and we do it. The cost
- * was accepted deliberately: a free producer's single listing stops being a
- * choice they can revisit alone, so the refusal has to explain itself and give
- * them the way through rather than just saying no.
+ * EVERY KNOWN PLAN MAY, THE FREE ONE INCLUDED - 2026-11-01, reversing the
+ * founder decision of 2026-09-18 that made self-serve withdrawal a paid
+ * feature. It was reversed during the legal-compliance pass as a dark pattern:
+ * a free producer could put a listing up in one click but needed to write to us
+ * to take it down, which is the asymmetric "easy in, hard out" shape consumer
+ * law and the KVKK/GDPR right to object both treat as an obstruction. The
+ * listing is the producer's own content; the right to stop publishing it should
+ * not be priced. lib/plans.ts in the catalogue moved the feature to the free
+ * tier in the same change, so the pricing page and this gate agree.
  *
- * DERIVED FROM THE PRICE, NOT FROM A TIER LIST, so it cannot drift the way a
- * hardcoded ["standard", "unlimited"] would. A paid tier is one with a monthly
- * figure; free is the only plan with a null price. That also means the
- * 2026-09-18 rename of "featured" to "unlimited" needed no change here.
+ * TO REVERT: move "Withdraw a listing yourself, any time" back to Standard in
+ * the catalogue's lib/plans.ts, run `npm run generate` here, and restore the
+ * price test below (`plan.priceMonthlyUsd != null`). Weigh the reason above
+ * before doing it.
  *
- * FAILS CLOSED on purpose. tier === null is a producer with no Subscription
- * row, which every other rule in this file already treats as free (see
- * quotaGate). A tier string that matches no known plan also returns false: the
- * honest answer to "we do not recognise your plan" is to refuse a destructive,
- * irreversible action and let a person sort it out, not to allow it.
+ * tier === null is a producer with no Subscription row (or a lapsed one), which
+ * every other rule in this file treats as free, so it may withdraw.
+ *
+ * STILL FAILS CLOSED for a tier STRING that matches no known plan: the honest
+ * answer to "we do not recognise your plan" is to refuse an irreversible action
+ * and let a person sort it out, not to allow it. That case cannot be reached by
+ * a free producer.
  */
 export function mayWithdrawSelf(tier: string | null): boolean {
-  if (tier === null) return false;
-  const plan = PLANS.find((p) => p.id === tier);
-  return plan != null && plan.priceMonthlyUsd != null;
+  if (tier === null) return true;
+  return PLANS.some((p) => p.id === tier);
 }
 
 /**

@@ -7,8 +7,9 @@ import { MotionProvider } from "@/components/site/motion-provider";
 import { Preloader } from "@/components/site/preloader";
 import { CustomCursor } from "@/components/site/custom-cursor";
 import { GoogleAnalytics } from "@/components/kit/Analytics";
+import { ConsentBanner } from "@/components/kit/ConsentBanner";
 import { JsonLd } from "@/components/kit/JsonLd";
-import { siteUrl } from "@/lib/site";
+import { LEGAL_ENTITY, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -90,9 +91,11 @@ export const metadata: Metadata = {
  * only on content routes, so nothing told a search engine what this site or
  * its publisher actually is.
  *
- * `publisher` names Sirketim rather than Counterscent: the FTC disclosure and the
- * independence claim both rest on who operates the site, and burying that is
- * the opposite of what an affiliate site should do.
+ * `publisher` names the registered company rather than Counterscent: the FTC
+ * disclosure and the independence claim both rest on who operates the site, and
+ * burying that is the opposite of what an affiliate site should do. Until
+ * 2026-11-01 this said "Sirketim", the internal workspace name; it now carries
+ * the registered title from lib/site.ts, the same one the legal pages use.
  */
 const organizationSchema = {
   "@context": "https://schema.org",
@@ -100,7 +103,7 @@ const organizationSchema = {
   name: "Counterscent",
   url: siteUrl(),
   description: SITE_DESCRIPTION,
-  parentOrganization: { "@type": "Organization", name: "Sirketim" },
+  parentOrganization: { "@type": "Organization", name: LEGAL_ENTITY },
 };
 
 const websiteSchema = {
@@ -109,7 +112,7 @@ const websiteSchema = {
   name: "Counterscent",
   url: siteUrl(),
   description: SITE_DESCRIPTION,
-  publisher: { "@type": "Organization", name: "Sirketim" },
+  publisher: { "@type": "Organization", name: LEGAL_ENTITY },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -142,6 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteFooter />
         </MotionProvider>
         <GoogleAnalytics />
+        <ConsentBanner />
       </body>
     </html>
   );

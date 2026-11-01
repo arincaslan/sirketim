@@ -146,7 +146,14 @@ export const PLANS: Plan[] = [
       // upgrade. Leaving it on Standard under "Everything in Free" would have
       // gone on selling, as a $19 benefit, something the free tier now has.
       "We take no commission on your sales",
-      "Total click count",
+      // NOT BUILT, AND NOW SAYS SO (2026-11-01). The console's own plan page
+      // has said since September that click reporting, conversion reporting
+      // and edit requests "are not built for anyone, at any tier", while this
+      // list - the one /producers/pricing renders publicly - sold them as
+      // plain features. A feature listed on a pricing page is a claim about
+      // what you get; the suffix keeps the plan honest until the thing exists.
+      // Remove it in the same change that ships the feature.
+      "Total click count (not built yet)",
       // SELF-SERVE WITHDRAWAL IS NOT A FREE-TIER FEATURE. Founder decision,
       // 2026-09-18, which reverses the 2026-09-16 ruling that it was.
       //
@@ -173,6 +180,15 @@ export const PLANS: Plan[] = [
       // a person decides, and nothing is auto-approved. That is the control
       // floor of the whole programme, not a service level.
       "Reviewed by a person, never auto-approved",
+      // SELF-SERVE WITHDRAWAL IS A FREE-TIER FEATURE AGAIN, 2026-11-01. This
+      // reverses the 2026-09-18 decision recorded above, on the founder's
+      // instruction to remove dark patterns: adding a listing was self-serve
+      // on every plan while removing one needed an email to us on the free
+      // plan. Making exit harder than entry is the textbook "roach motel".
+      // Withdrawal still keeps the record (WITHDRAWN_BY_PRODUCER), so nothing
+      // about the audit trail changes. To revert, move this line back to
+      // Standard and restore mayWithdrawSelf() in the console.
+      "Withdraw a listing yourself, any time",
     ],
     // FALSE SINCE 2026-09-18. This said "the free tier is how the site earns
     // from a non-subscriber: their listing carries our affiliate link and we
@@ -250,14 +266,12 @@ export const PLANS: Plan[] = [
     // above "Everything in Free" it would have been charging for it twice.
     features: [
       "Everything in Free",
-      "Per-listing and per-original click data",
+      "Per-listing and per-original click data (not built yet)",
       // Does not exist yet at any tier. The console's own button says so.
-      "Request an edit to a published listing",
-      // A REAL PAID FEATURE AS OF 2026-09-18, not an aspirational one: the
-      // free tier is now gated out of it in withdraw.ts, so this line and the
-      // code agree. That was not true for the two days the line sat here
-      // unenforced.
-      "Withdraw a listing yourself, any time",
+      "Request an edit to a published listing (not built yet)",
+      // MOVED TO FREE 2026-11-01 (see the Free tier's list). Keeping it here
+      // under "Everything in Free" would sell, as a paid benefit, something
+      // every tier now has.
     ],
     highlighted: true,
     takesCommission: false,
@@ -282,8 +296,8 @@ export const PLANS: Plan[] = [
     listings: "Unlimited listings",
     features: [
       "Everything in Standard",
-      "Conversion data, not just clicks",
-      "Priority in the approval queue",
+      "Conversion data, not just clicks (not built yet)",
+      "Priority in the approval queue (not built yet)",
     ],
     takesCommission: false,
   },

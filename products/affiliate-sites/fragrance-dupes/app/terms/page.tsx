@@ -1,6 +1,5 @@
-import type { Metadata } from "next";
-
-import { PRODUCER_CONSOLE } from "@/lib/site";
+import { LegalPage, legalMetadata } from "@/components/legal/legal-page";
+import { LEGAL_ENTITY, PRODUCER_CONSOLE } from "@/lib/site";
 
 /**
  * Terms of service. Published 2026-09-24.
@@ -30,6 +29,12 @@ import { PRODUCER_CONSOLE } from "@/lib/site";
  * actually enforce is worse than no term - which is PRODUCER-TERMS.md's own
  * warning, and it applies twice as hard once the text is live.
  *
+ * TURKISH COUNTERPART, 2026-11-01: app/tr/kullanim-kosullari/page.tsx. Change
+ * both in one commit and keep UPDATED equal. The same day this page gained the
+ * registered company name (lib/site.ts LEGAL_ENTITY, replacing "Sirketim A.Ş."),
+ * the 18+ rule, self-serve withdrawal on every plan, self-serve account
+ * deletion, and the images-and-trademarks section.
+ *
  * NOT REVIEWED BY A LAWYER. PRODUCER-TERMS.md flags two clauses in particular
  * as needing a professional eye - governing law (a Türkiye-based A.Ş.
  * contracting with businesses mostly in the United States) and the data
@@ -48,25 +53,22 @@ import { PRODUCER_CONSOLE } from "@/lib/site";
  * See counterscent-producers/src/routes/refunds.ts. The site footer still
  * links to it, so it is reachable by navigation from both origins.
  */
-export const metadata: Metadata = {
+export const metadata = legalMetadata({
+  lang: "en",
   title: "Terms of Service",
-  description:
-    "The terms that apply to using Counterscent and to holding a producer account.",
-  alternates: { canonical: "/terms" },
-};
+  description: "The terms that apply to using Counterscent and to holding a producer account.",
+  en: "/terms/",
+  tr: "/tr/kullanim-kosullari/",
+});
 
-const UPDATED = "24 September 2026";
+const UPDATED = "1 November 2026";
 
 export default function TermsPage() {
   return (
-    <div className="container max-w-2xl py-14 sm:py-16">
-      <h1 className="font-display text-fluid-h1">Terms of service</h1>
-      <p className="mt-3 text-sm text-muted-foreground">Last updated {UPDATED}</p>
-
-      <div className="prose prose-lg mt-8 max-w-none">
+    <LegalPage lang="en" title="Terms of service" updated={UPDATED} counterpart="/tr/kullanim-kosullari/">
         <p>
-          Counterscent (&ldquo;the Site&rdquo;) is operated by{" "}
-          <strong>Sirketim A.Ş.</strong>, a company established in Türkiye
+          Counterscent (&ldquo;the Site&rdquo;, counterscent.com and producers.counterscent.com) is
+          operated by <strong>{LEGAL_ENTITY}</strong>, a company established in Türkiye
           (&ldquo;we&rdquo;, &ldquo;us&rdquo;). These terms cover two different
           things: using the Site as a reader, and holding a producer account.
           Most of this page is about the second.
@@ -95,6 +97,22 @@ export default function TermsPage() {
           not take payment from any brand to appear in the catalogue or to rank
           anywhere in it.
         </p>
+        <p>
+          <strong>Images and trademarks.</strong> Product photographs on the Site
+          are supplied by the retailers whose affiliate programmes we belong to,
+          for promoting their products, or by producers for their own listings;
+          atmosphere images and video were generated for us and contain no real
+          product. Fragrance and brand names and bottle designs belong to their
+          owners and are used only to identify the products compared. You may
+          link to any page, but you may not copy the Site&apos;s images, data or
+          editorial text in bulk or republish them without our written
+          permission. If you believe something here infringes your rights, write
+          to us and we will look at it promptly.
+        </p>
+        <p>
+          The catalogue is meant for adults. We do not knowingly collect personal
+          data from children; see our <a href="/privacy/">privacy policy</a>.
+        </p>
 
         <h2>2. Producer accounts &mdash; what the service is</h2>
         <p>
@@ -119,7 +137,9 @@ export default function TermsPage() {
           You may hold an account if you are a business that makes or sells the
           fragrance you are listing and can be contacted at a real address. The
           programme is business-to-business; it is not open to consumers and an
-          account may not be opened by a private individual.
+          account may not be opened by a private individual. The person opening
+          the account must be at least 18 years old and authorised to act for
+          the business, and confirms both when creating it.
         </p>
         <p>
           You must list under your own trading identity.{" "}
@@ -258,9 +278,9 @@ export default function TermsPage() {
 
         <h2>10. Taking a listing down, and what we keep</h2>
         <p>
-          You may take a listing down at any time &mdash; from the console on a
-          paid plan, or by writing to us on the free plan. We do not ask for a
-          reason and we do not delay it. Withdrawal takes the listing out of
+          You may take a listing down at any time, yourself, from the console,
+          on every plan including the free one. We do not ask for a reason and
+          we do not delay it. Withdrawal takes the listing out of
           the catalogue at the next build and stops its link resolving.
         </p>
         <p>
@@ -309,8 +329,10 @@ export default function TermsPage() {
 
         <h2>12. Suspension and closing an account</h2>
         <p>
-          You can close your account whenever you like; your listings come down
-          at the next build. We may suspend or close an account for a serious or
+          You can delete your account whenever you like, yourself, from the
+          console&apos;s &ldquo;Delete account&rdquo; page; your listings come
+          down at the next build, and the record described in section 10 is
+          kept as the <a href="/privacy/">privacy policy</a> explains. We may suspend or close an account for a serious or
           repeated breach of these terms &mdash; in particular for
           misrepresenting whose product a listing is, for supplying data that
           contradicts your own public product page, for rights complaints we
@@ -331,10 +353,10 @@ export default function TermsPage() {
           <a href="/privacy/">privacy policy</a>.
         </p>
         <p>
-          The public catalogue is deliberately cookieless and its analytics do
-          not identify visitors. That is a property of the catalogue, not a
-          promise about the producer console, which necessarily knows who is
-          signed in.
+          The public catalogue sets no cookies of its own, and measures visits
+          only if the visitor allows it. That is a property of the catalogue,
+          not a promise about the producer console, which necessarily knows who
+          is signed in; see our <a href="/cookies/">cookie policy</a>.
         </p>
 
         <h2>14. Liability</h2>
@@ -367,13 +389,18 @@ export default function TermsPage() {
           mandatory protection of your own country&apos;s law that cannot be
           contracted out of still applies to you.
         </p>
+        <p>
+          These terms are also published in{" "}
+          <a href="/tr/kullanim-kosullari/" hrefLang="tr">Turkish</a>. If the
+          two texts differ, the Turkish text prevails for users in Türkiye and
+          the English text prevails otherwise.
+        </p>
 
         <h2>16. Contact</h2>
         <p>
-          Sirketim A.Ş., Türkiye. Questions about these terms go to{" "}
+          {LEGAL_ENTITY}, Türkiye. Questions about these terms go to{" "}
           <a href="/contact/">our contact page</a>.
         </p>
-      </div>
-    </div>
+    </LegalPage>
   );
 }

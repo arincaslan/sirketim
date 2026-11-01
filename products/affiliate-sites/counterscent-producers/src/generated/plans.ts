@@ -1,7 +1,7 @@
 /**
  * GENERATED FILE. DO NOT EDIT BY HAND.
  *
- * Produced by scripts/generate-constants.mjs on 2026-09-18.
+ * Produced by scripts/generate-constants.mjs on 2026-11-01.
  * Regenerate with `npm run generate`.
  *
  * SOURCE: products/affiliate-sites/fragrance-dupes/lib/plans.ts
@@ -47,8 +47,9 @@ export const PLANS: readonly GeneratedPlan[] = [
     features: [
       "Appears in ranked comparisons",
       "We take no commission on your sales",
-      "Total click count",
+      "Total click count (not built yet)",
       "Reviewed by a person, never auto-approved",
+      "Withdraw a listing yourself, any time",
     ],
     takesCommission: false,
   },
@@ -61,9 +62,8 @@ export const PLANS: readonly GeneratedPlan[] = [
     listings: "12 listings",
     features: [
       "Everything in Free",
-      "Per-listing and per-original click data",
-      "Request an edit to a published listing",
-      "Withdraw a listing yourself, any time",
+      "Per-listing and per-original click data (not built yet)",
+      "Request an edit to a published listing (not built yet)",
     ],
     takesCommission: false,
   },
@@ -76,8 +76,8 @@ export const PLANS: readonly GeneratedPlan[] = [
     listings: "Unlimited listings",
     features: [
       "Everything in Standard",
-      "Conversion data, not just clicks",
-      "Priority in the approval queue",
+      "Conversion data, not just clicks (not built yet)",
+      "Priority in the approval queue (not built yet)",
     ],
     takesCommission: false,
   },

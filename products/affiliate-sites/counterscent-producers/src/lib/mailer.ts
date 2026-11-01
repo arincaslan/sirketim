@@ -1,4 +1,5 @@
 import type { Env } from "./env";
+import { LEGAL_ENTITY, PRIVACY_URL, PRIVACY_URL_TR } from "./legal";
 
 /**
  * The one email this origin sends: a sign-in link.
@@ -77,6 +78,31 @@ export async function sendMagicLink(env: Env, to: string, verifyUrl: string): Pr
     `This link works once and expires in 15 minutes. If you did not request`,
     `it, nothing happens if you ignore it - no account exists until this link`,
     `is used, and this one email is the only trace of the request.`,
+    ``,
+    // THE TRANSACTIONAL FOOTER, 2026-11-01. This is a service message the
+    // recipient asked for by typing their address, not commercial electronic
+    // mail, so Turkish Law No. 6563 and the CAN-SPAM/ePrivacy unsubscribe rules
+    // do not require an opt-out link - and adding one would be a control that
+    // does nothing, since there is no list to leave. What it does need is to
+    // say who sent it and why, and that there is no marketing to stop. The
+    // Turkish half is there because the privacy notice is bilingual and the
+    // Turkish text prevails for people in Turkiye. If this origin ever sends
+    // marketing, that mail needs prior opt-in consent, IYS registration and a
+    // working unsubscribe link in every message - it must not ride on this
+    // function.
+    `--`,
+    `Why you got this: someone asked for a sign-in link for this address on`,
+    `producers.counterscent.com. This is a service message, not marketing. We`,
+    `send no newsletters or promotional email, so there is no list to`,
+    `unsubscribe from - if you stop requesting links, they stop.`,
+    `Counterscent is operated by ${LEGAL_ENTITY}, Türkiye.`,
+    `Privacy: ${PRIVACY_URL}`,
+    ``,
+    `Bu e-postayı neden aldınız: producers.counterscent.com adresinde bu e-posta`,
+    `için bir giriş bağlantısı istendi. Bu bir hizmet iletisidir, ticari ileti`,
+    `değildir. Bülten veya tanıtım e-postası göndermiyoruz; bu nedenle ayrılmanız`,
+    `gereken bir liste yoktur - bağlantı istemeyi bıraktığınızda e-postalar da`,
+    `durur. Gizlilik ve KVKK aydınlatma metni: ${PRIVACY_URL_TR}`,
     ``,
     `Counterscent`,
   ].join("\n");

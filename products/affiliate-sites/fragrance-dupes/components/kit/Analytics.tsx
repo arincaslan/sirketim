@@ -1,4 +1,9 @@
+"use client";
+
 import Script from "next/script";
+import { useEffect, useState } from "react";
+
+import { CONSENT_CHANGE_EVENT, effectiveConsent, type ConsentChoice } from "@/lib/consent";
 import { gaMeasurementId } from "@/lib/site";
 
 /**
@@ -14,43 +19,52 @@ import { gaMeasurementId } from "@/lib/site";
  *
  * Search Console verification does NOT go through this component. It is done
  * with a DNS TXT record on a Search Console *Domain* property, which covers
- * apex, www, http and https at once and needs no rebuild. The
- * `NEXT_PUBLIC_GSC_VERIFICATION` meta-tag path in app/layout.tsx is the
- * fallback for hosts where DNS is not ours to edit; it is unused here.
+ * apex, www, http and https at once and needs no rebuild.
  */
 /**
- * RUNS COOKIELESS, DELIBERATELY (2026-08-27).
+ * OPT-IN SINCE 2026-11-01. NOTHING LOADS UNTIL THE VISITOR SAYS YES.
  *
- * `client_storage: 'none'` stops GA4 writing the `_ga` cookie, and
- * `anonymize_ip` truncates the address before storage. Together they take the
- * site out of the category that needs consent: Turkey's KVKK, like the EU's
- * ePrivacy rules, keys the consent requirement on *storing or accessing
- * information on the user's device*, not on analytics as such. No cookie
- * written means no consent banner, and `/privacy` can state that plainly
- * rather than resting on a "legitimate interest" claim that a regulator may
- * not accept for analytics cookies.
+ * Until that date this component loaded GA4 for every visitor and the site
+ * carried no banner, on the argument that cookieless GA4 stores nothing on the
+ * device. That covered the cookie rule but not the transfer: every hit still
+ * sends page, device and network details to Google in the United States. The
+ * founder asked for a consent banner (components/kit/ConsentBanner.tsx) and
+ * this component now waits for it - see lib/consent.ts for the reasoning.
  *
- * THE COST, STATED PLAINLY BECAUSE IT CUTS THE WRONG WAY:
- * without client-side storage GA4 cannot recognise a returning visitor, so it
- * mints a new client id per visit. "Users" therefore drifts toward "sessions"
- * and the number is INFLATED, not deflated. That matters here specifically,
- * because the whole reason analytics was switched on is to answer "monthly
- * unique visitors" on an affiliate application - and this error runs in the
- * direction that flatters us.
+ * STILL COOKIELESS AFTER CONSENT, deliberately. `client_storage: 'none'` stops
+ * GA4 writing the `_ga` cookie and `anonymize_ip` truncates the address. The
+ * cost is unchanged and still cuts the wrong way: without client storage GA4
+ * mints a new client id per visit, so "Users" drifts toward "sessions" and is
+ * INFLATED. Do not quote GA4's Users figure on an affiliate application; use
+ * Cloudflare Web Analytics for any visitor number.
  *
- * So do not quote GA4's Users figure to Awin. Cloudflare Web Analytics is
- * already available on this account, is cookieless by design, and derives
- * visitor counts server-side without the same inflation - use that for any
- * number that goes on an application, and treat GA4 here as what it is: a
- * shape-of-traffic tool (which pages, which sources, which trend).
- *
- * To revert to cookie-based GA4, remove the two flags AND add a consent
- * banner in the same change - the flags are what make the missing banner
- * lawful, so removing them alone silently creates the exposure.
+ * ON WITHDRAWAL: a script already on the page cannot be unloaded, so a
+ * mid-visit "decline" sets Google's own documented kill switch
+ * (`window['ga-disable-<ID>'] = true`), which stops every further hit. On the
+ * next page load nothing is loaded at all.
  */
 export function GoogleAnalytics() {
   const id = gaMeasurementId();
-  if (!id) return null;
+  const [consent, setConsent] = useState<ConsentChoice | null>(null);
+
+  useEffect(() => {
+    setConsent(effectiveConsent());
+    const onChange = (event: Event) => {
+      const choice = (event as CustomEvent<ConsentChoice>).detail;
+      setConsent(choice);
+      if (id && choice === "denied") {
+        (window as unknown as Record<string, unknown>)[`ga-disable-${id}`] = true;
+      }
+      if (id && choice === "granted") {
+        (window as unknown as Record<string, unknown>)[`ga-disable-${id}`] = false;
+      }
+    };
+    window.addEventListener(CONSENT_CHANGE_EVENT, onChange);
+    return () => window.removeEventListener(CONSENT_CHANGE_EVENT, onChange);
+  }, [id]);
+
+  if (!id || consent !== "granted") return null;
+
   return (
     <>
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="afterInteractive" />

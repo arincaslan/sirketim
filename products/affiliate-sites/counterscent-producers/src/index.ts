@@ -100,6 +100,7 @@ import { accountsPage, accountsDisconnect } from "./routes/accounts";
 import { oauthStart, oauthCallback } from "./routes/oauth";
 import { mediaObject } from "./routes/media";
 import { refunds } from "./routes/refunds";
+import { deleteAccountPage, deleteAccountSubmit } from "./routes/delete-account";
 import { PROVIDERS, type ProviderId } from "./lib/providers";
 import type { FlowMode } from "./lib/oauth";
 import type { Env } from "./lib/env";
@@ -201,6 +202,16 @@ const ROUTES: Record<string, Partial<Record<"GET" | "POST", Handler>>> = {
   },
   "/console/accounts/disconnect": {
     POST: (req, env) => accountsDisconnect(req, env),
+  },
+  // DELETING YOUR OWN ACCOUNT, 2026-11-01 - the self-serve erasure the privacy
+  // notice promises (KVKK Art. 11, GDPR Art. 17). Session-gated, NOT
+  // producer-gated, for the same reason /console/accounts is: an account with
+  // no company must be able to close itself too. GET is the explanation and
+  // the button, POST is the act. See routes/delete-account.ts for what is
+  // deleted, what is kept and why.
+  "/console/delete": {
+    GET: (req, env) => deleteAccountPage(req, env),
+    POST: (req, env) => deleteAccountSubmit(req, env),
   },
   // Async now, because it reads the session to decide whether to render the
   // console nav. That is a navigation affordance, NOT a guard - see the header
