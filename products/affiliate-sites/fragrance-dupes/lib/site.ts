@@ -54,6 +54,30 @@ export const CONTACT_EMAIL = "contact@counterscent.com";
 export const PRODUCER_CONSOLE = "https://producers.counterscent.com";
 
 /**
+ * THE REGISTERED COMPANY BEHIND COUNTERSCENT - the data controller (veri
+ * sorumlusu) in every privacy text, the contracting party in the terms, and the
+ * name a merchant of record compares against the registration document.
+ *
+ * Founder decision, 2026-11-01. Until then the site said "Sirketim A.Ş.", which
+ * is the internal workspace name, while the affiliate networks (CJ, Awin) and
+ * the accounting memo all carry this title. KVKK Article 10 requires the
+ * controller's identity in the notice, so the brand name was not enough.
+ *
+ * Written exactly as registered with the networks, abbreviations included.
+ * Do not expand "TUR. SAN. TİC." by guesswork - if the trade registry spells it
+ * out differently, change it HERE and every legal page follows.
+ */
+export const LEGAL_ENTITY = "IGDIR İNŞAAT MADENCİLİK TUR. SAN. TİC. A.Ş.";
+
+/**
+ * How a data subject reaches us. A postal address for KVKK applications is
+ * an OPEN ITEM (founder chose email-only for now, 2026-11-01); the policies say
+ * the registered address is available on request. When it is known, add it
+ * here as LEGAL_ADDRESS and render it on /privacy and /tr/gizlilik.
+ */
+export const PRIVACY_CONTACT_EMAIL = CONTACT_EMAIL;
+
+/**
  * GA4 measurement ID (property created 2026-08-27).
  *
  * A constant rather than a build variable, for the same reason as the two

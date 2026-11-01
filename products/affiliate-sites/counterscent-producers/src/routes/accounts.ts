@@ -163,6 +163,11 @@ export async function accountsPage(request: Request, env: Env): Promise<Response
               it again, so there is no stored credential of yours here to be taken.
             </p>
             <p>Disconnecting removes that identifier. It does not close your account or touch your listings.</p>
+            <p>
+              To close the account itself and erase your address, use
+              <a href="/console/delete">Delete your account</a>. It says exactly what goes and what
+              stays before anything happens.
+            </p>
           `,
         })}
       `,

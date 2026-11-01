@@ -55,26 +55,20 @@ import {
  * detectable rather than merely disapproved of. A verb a producer cannot undo
  * for themselves earns one screen.
  *
- * THE FREE TIER MAY NOT USE THIS. Founder decision, 2026-09-18, which REVERSES
- * the 2026-09-16 ruling that it could. Self-serve withdrawal is a paid feature;
- * a free producer asks us and we do it.
+ * EVERY PLAN MAY USE THIS, THE FREE ONE INCLUDED - 2026-11-01. The history is
+ * worth keeping because the question has now been settled three times. On 16
+ * Sep the founder ruled the free tier MAY withdraw; on 18 Sep that was reversed
+ * and self-serve withdrawal became a paid feature; on 1 Nov it was reversed
+ * again during the legal-compliance pass, as a dark pattern: one click to put a
+ * listing up and an email to take it down is the "easy in, hard out" asymmetry
+ * consumer law treats as an obstruction, and the listing is the producer's own
+ * content. lib/producer.ts mayWithdrawSelf() carries the reasoning and the
+ * revert instructions; the catalogue's lib/plans.ts moved the feature to the
+ * free tier in the same change, so the pricing page and this gate agree.
  *
- * The paragraph here used to say the opposite, and the history is worth keeping
- * because the contradiction has now been settled in both directions. On 16 Sep
- * the founder ruled the free tier MAY withdraw and this file was written to say
- * so, but lib/plans.ts kept selling it as a Standard feature and was never
- * updated - so for two days the pricing page charged for something the code
- * gave away. Today the founder resolved it the other way and the CODE is what
- * moved. The two now agree, which is the part that was missing before.
- *
- * WHAT IT COSTS, accepted deliberately rather than overlooked: because
- * countsAgainstAllowance() excludes withdrawn listings, withdrawing used to
- * free the free tier's single slot, and that is what made its one listing a
- * choice a producer could revisit alone. It no longer is. So the refusal below
- * is not a locked door - it explains itself and gives them the way through, and
- * the button is left visible rather than hidden, because a producer who cannot
- * find the control learns nothing and a producer who presses it learns exactly
- * where they stand.
+ * The tier gate below is kept because mayWithdrawSelf() still refuses a tier
+ * string this build does not recognise - an irreversible action is not taken
+ * on a plan we cannot identify. askUsInstead() is now that case's answer only.
  */
 
 const COPY: GateCopy = { verb: "withdraw a listing", title: "Withdraw a listing" };
@@ -101,12 +95,11 @@ export async function withdrawPage(request: Request, env: Env): Promise<Response
   // producer is not allowed to submit; the identical check in the POST below is
   // the one that actually enforces it, because this screen is not the only way
   // to reach that handler.
-  // THE ADMIN BYPASS IS THE SAME SHAPE AS quotaGate's `uncapped`, and for the
-  // same reason: self-withdrawal is a PAID-TIER feature, so an administrator
-  // whose own producer record sits on the free default could not take their
-  // own listing down - which contradicts "every ability" (founder, 2026-09-18)
-  // and would be absurd on a screen that also offers them the Take down button
-  // in /admin/queue. Read from ADMIN_EMAILS, never from the producer record.
+  // THE ADMIN BYPASS IS THE SAME SHAPE AS quotaGate's `uncapped`. Since
+  // 2026-11-01 every known plan may withdraw, so this only matters for a tier
+  // string the build does not recognise - an administrator must still be able
+  // to take their own listing down ("every ability", founder, 2026-09-18).
+  // Read from ADMIN_EMAILS, never from the producer record.
   if (!gate.isAdmin && !mayWithdrawSelf(effectiveTier(gate.data.producer))) {
     return page(askUsInstead(gate.auth.email, listing), 403);
   }
@@ -155,12 +148,11 @@ export async function withdrawSubmit(request: Request, env: Env): Promise<Respon
   // free producer's own browser can mint from any console page. Checked before
   // the rate limiter so a refused attempt cannot spend the producer's write
   // budget, and before any write so nothing is half-done.
-  // THE ADMIN BYPASS IS THE SAME SHAPE AS quotaGate's `uncapped`, and for the
-  // same reason: self-withdrawal is a PAID-TIER feature, so an administrator
-  // whose own producer record sits on the free default could not take their
-  // own listing down - which contradicts "every ability" (founder, 2026-09-18)
-  // and would be absurd on a screen that also offers them the Take down button
-  // in /admin/queue. Read from ADMIN_EMAILS, never from the producer record.
+  // THE ADMIN BYPASS IS THE SAME SHAPE AS quotaGate's `uncapped`. Since
+  // 2026-11-01 every known plan may withdraw, so this only matters for a tier
+  // string the build does not recognise - an administrator must still be able
+  // to take their own listing down ("every ability", founder, 2026-09-18).
+  // Read from ADMIN_EMAILS, never from the producer record.
   if (!gate.isAdmin && !mayWithdrawSelf(effectiveTier(gate.data.producer))) {
     return page(askUsInstead(gate.auth.email, listing), 403);
   }
@@ -287,17 +279,18 @@ function notYours(email: string, isAdmin = false) {
 }
 
 /**
- * The free tier's answer: not a locked door, a different door.
+ * The answer for a plan this console does not recognise: not a locked door, a
+ * different door.
+ *
+ * Since 2026-11-01 every known plan may withdraw, the free one included, so
+ * this is reachable only when the producer's recorded tier matches no plan in
+ * this build (see mayWithdrawSelf). We refuse an irreversible action on a plan
+ * we cannot identify and let a person do it instead.
  *
  * 403 RATHER THAN 404 OR A REDIRECT, on purpose. The listing exists and it is
- * theirs; the action is what they are not entitled to. Answering 404 would lie
- * about their own data, and bouncing them to /console would leave them pressing
- * the same button again, having learned nothing.
- *
- * It names the listing, says plainly who can do it, and gives them the one
- * thing that actually gets it done: a prefilled mail link. The repo convention
- * is that a feature a user cannot reach must say so at the point of use with a
- * real reason, never a dead control or a fake success.
+ * theirs; answering 404 would lie about their own data, and bouncing them to
+ * /console would leave them pressing the same button again, having learned
+ * nothing. It names the listing and gives them a prefilled mail link.
  */
 function askUsInstead(email: string, listing: ListingRow) {
   const subject = `Withdraw listing: ${listing.brand} ${listing.name}`;
@@ -308,19 +301,20 @@ function askUsInstead(email: string, listing: ListingRow) {
     status: {
       label: "Nothing was changed",
       tone: "outline",
-      note: html`Your listing is still published. Withdrawing it yourself is part of a paid
-        plan, so this one goes through us instead.`,
+      note: html`Your listing is still published. We could not identify your plan, so this one
+        goes through a person instead.`,
     },
     standfirst: html`You are signed in as ${email}.`,
     body: html`
       ${emptyState({
         headline: `${listing.brand} ${listing.name} is still live.`,
-        because: html`Taking a listing down yourself is a Standard feature. On the free plan we
-          do it for you, and we do not make you give a reason. Write to
+        because: html`Your account records a plan this console does not recognise, and we do not
+          take an irreversible step on a plan we cannot identify. Write to
           <a href="mailto:contact@counterscent.com?subject=${encodeURIComponent(subject)}"
             >contact@counterscent.com</a
           >
-          and a person will take it down. <a href="/console">Back to your listings</a>.`,
+          and a person will take it down. You do not have to give a reason.
+          <a href="/console">Back to your listings</a>.`,
       })}
       ${card(html`
         <h3>Why it comes down rather than disappearing</h3>

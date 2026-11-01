@@ -956,11 +956,11 @@ function allowanceFull(auth: AuthUser, data: ProducerConsoleData, allowance: num
             ? html`<strong>What you can do on your own:</strong> withdrawing a listing frees its
                 slot immediately. The control is in the row of the listing it acts on, on
                 <a href="/console">the console</a>.`
-            : html`<strong>This is the one thing you cannot do from here.</strong> Self-serve
-                withdrawal is a paid feature, so on this plan the way to free your slot is to
+            : html`<strong>This is the one thing you cannot do from here.</strong> Your account
+                records a plan this console does not recognise, and we do not take an
+                irreversible step on a plan we cannot identify. To free your slot,
                 <a href="mailto:contact@counterscent.com">write to us</a> and say which listing
-                to take down. A person does it, and we are not going to pretend a button exists
-                when it does not.`}
+                to take down. A person does it.`}
           A withdrawn listing keeps its record and its click history; withdrawal is a change of
           state, never a deletion.
         </p>

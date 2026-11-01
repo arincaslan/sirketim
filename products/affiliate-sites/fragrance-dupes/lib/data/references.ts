@@ -155,9 +155,8 @@ const EDITORIAL: ReferenceFragrance[] = [
  *                    Its position in this chain is therefore decorative — it
  *                    is first and last for the only eight slugs it holds.
  *   4. `FEED_IMAGES` My Perfume Shop, Awin 106089 — programme went CLOSED for
- *                    tracking on 2026-09-01, so these are hosted on the
- *                    strength of an enrolment that no longer earns. Last
- *                    resort, still flagged as the open question they were.
+ *                    tracking on 2026-09-01. NOT SHOWN since 2026-11-01:
+ *                    see SHOW_CLOSED_PROGRAMME_IMAGES below.
  *
  * CJ_IMAGES beats FEED_IMAGES on 82 bottles both cover, which is why that swap
  * was worth the duplicated bytes on disk. PM_IMAGES duplicates nothing — it
@@ -169,9 +168,35 @@ const EDITORIAL: ReferenceFragrance[] = [
  * of the right bottle beats no photograph, but it is the one to replace first
  * if another live programme carries Jo Malone.
  */
+/**
+ * WHETHER THE CLOSED PROGRAMME'S PHOTOGRAPHS ARE SHOWN AT ALL. `false` since
+ * 2026-11-01, the legal-compliance pass, and this flag is the whole change.
+ *
+ * Source 4 above had been "flagged as an open question" for two months, and the
+ * question has an answer under this project's own rule: the licence rides on
+ * the affiliate relationship, and with My Perfume Shop that relationship has
+ * been closed for tracking since 2026-09-01 - we hold no working link to it
+ * for any of these bottles. A merchant's product photograph is licensed to us
+ * for promoting that merchant's products, and we are no longer promoting them.
+ * The 74 references this affected (measured off the built HTML) now render
+ * the generated note-signature mark through components/fragrance/
+ * fragrance-image.tsx, exactly as the 26 with no source at all already did.
+ * The files stay on disk and in git; nothing was deleted, so this is reversible.
+ *
+ * TO REVERSE IT: set this to true, but only with a reason that answers the
+ * licence question - a reactivated programme, or the merchant's written
+ * permission - recorded here and in IMAGE-LICENSES.md. A live programme that
+ * stocks these houses is the better fix: its images then land in sources 1-3
+ * and outrank this one without touching the flag.
+ */
+const SHOW_CLOSED_PROGRAMME_IMAGES = false;
+
 export const REFERENCES: ReferenceFragrance[] = EDITORIAL.map((ref) => {
   const image =
-    CJ_IMAGES[ref.slug] ?? PM_IMAGES[ref.slug] ?? IRFE_IMAGES[ref.slug] ?? FEED_IMAGES[ref.slug];
+    CJ_IMAGES[ref.slug] ??
+    PM_IMAGES[ref.slug] ??
+    IRFE_IMAGES[ref.slug] ??
+    (SHOW_CLOSED_PROGRAMME_IMAGES ? FEED_IMAGES[ref.slug] : undefined);
   return image ? { ...ref, imageUrl: image } : ref;
 });
 

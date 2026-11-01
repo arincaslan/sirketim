@@ -1,7 +1,7 @@
 import { html, type Html } from "../lib/html";
 import { page, redirect } from "../lib/http";
 import { layout } from "../ui/layout";
-import { button, csrfInput, errorSummary, field, section } from "../ui/components";
+import { button, checkboxField, csrfInput, errorSummary, field, section } from "../ui/components";
 import { CSRF_FIELD, csrfToken, verifyCsrf } from "../lib/csrf";
 import { db } from "../lib/db";
 import { getAuthContext, generateId, type AuthUser } from "../lib/auth";
@@ -52,7 +52,17 @@ import type { Env } from "../lib/env";
  *    subscription would invent billing state for something nobody is billed
  *    for.
  *  - It does not let an account that already has a producer make a second one.
+ *
+ * THE ADULT-AND-AUTHORISED CONFIRMATION, 2026-11-01. The privacy notice and
+ * the terms both say producer accounts are for people aged 18 or over acting
+ * for a business, and until this date nothing asked. A required, never
+ * pre-ticked checkbox now does, and its answer is written into the
+ * `account.company_created` audit row together with the date of the terms it
+ * was given against, so "did this person confirm it, and against which text"
+ * has an answer later. It is a self-declaration, not age verification - we
+ * hold no identity document and should not - and the policies say so.
  */
+const TERMS_VERSION = "2026-11-01";
 
 interface FormError {
   field: string;
@@ -135,6 +145,7 @@ export async function createCompany(request: Request, env: Env): Promise<Respons
     name: read("name"),
     contactEmail: read("contactEmail"),
     blurb: read("blurb"),
+    confirmed: read("confirmAdultAuthorised") === "yes" ? "yes" : "",
   };
 
   const csrf = body.get(CSRF_FIELD);
@@ -158,6 +169,13 @@ export async function createCompany(request: Request, env: Env): Promise<Respons
   }
   if (submitted.blurb.length > 300) {
     errors.push({ field: "blurb", label: "One line about you", message: "300 characters or fewer" });
+  }
+  if (submitted.confirmed !== "yes") {
+    errors.push({
+      field: "confirmAdultAuthorised",
+      label: "Confirmation",
+      message: "Tick this to confirm you are 18 or over and may act for this company",
+    });
   }
 
   const base = errors.length === 0 ? slugify(submitted.name) : null;
@@ -264,7 +282,15 @@ export async function createCompany(request: Request, env: Env): Promise<Respons
         'PRODUCER', ${auth.id},
         'producer-console',
         ${JSON.stringify({ userId: auth.id, email: auth.email, producerId: null })}::jsonb,
-        ${JSON.stringify({ userId: auth.id, email: auth.email, producerId, slug, name: submitted.name })}::jsonb,
+        ${JSON.stringify({
+          userId: auth.id,
+          email: auth.email,
+          producerId,
+          slug,
+          name: submitted.name,
+          confirmedAdultAndAuthorised: true,
+          termsVersion: TERMS_VERSION,
+        })}::jsonb,
         NULL
       )
     `;
@@ -330,6 +356,20 @@ function form(auth: AuthUser, token: string | null, errors: FormError[], values:
           value: values.blurb ?? "",
           error: errors.find((e) => e.field === "blurb")?.message,
           hint: html`Optional. One sentence, not a pitch. You can change it later.`,
+        })}
+        ${checkboxField({
+          name: "confirmAdultAuthorised",
+          checked: values.confirmed === "yes",
+          error: errors.find((e) => e.field === "confirmAdultAuthorised")?.message,
+          label: html`I am 18 or over, I am authorised to act for this company, and I accept
+            the <a href="https://counterscent.com/terms/">terms</a> and have read the
+            <a href="https://counterscent.com/privacy/">privacy notice</a>.
+            <span lang="tr">(18 yaşından büyüğüm, bu şirket adına işlem yapmaya yetkiliyim;
+            <a href="https://counterscent.com/tr/kullanim-kosullari/">kullanım koşullarını</a>
+            kabul ediyor, <a href="https://counterscent.com/tr/gizlilik/">aydınlatma metnini</a>
+            okudum.)</span>`,
+          hint: html`Counterscent accounts are for businesses, run by adults. We do not ask
+            for proof; we ask you to confirm it.`,
         })}
         ${button("Create the company")}
       </form>

@@ -1,5 +1,17 @@
 # Counterscent Producer Terms — canonical text
 
+> **UPDATED 2026-11-01 (legal-compliance pass).** The contracting party is now
+> the registered company, **IGDIR İNŞAAT MADENCİLİK TUR. SAN. TİC. A.Ş.**
+> (`lib/site.ts` `LEGAL_ENTITY`), not the trading name "Sirketim A.Ş.". Every
+> plan, the free one included, may now withdraw its own listings (§10, reversing
+> the 2026-09-18 paid-only rule as a dark pattern). Accounts can be deleted from
+> the console at `/console/delete` (§12). Account holders confirm they are 18 or
+> over and authorised (§3). The catalogue's analytics are now consent-based
+> (§13). The published terms exist in English (`app/terms/page.tsx`) and Turkish
+> (`app/tr/kullanim-kosullari/page.tsx`); the refund policy, in both languages,
+> is on the console at `producers.counterscent.com/refunds`
+> (`counterscent-producers/src/routes/refunds.ts`).
+
 > **STATUS CHANGED 2026-09-24: A DERIVED VERSION OF THIS IS NOW PUBLISHED AND
 > IN FORCE.** It lives at `app/terms/page.tsx` (`counterscent.com/terms`), with
 > the refund rules split out to `app/refunds/page.tsx` (`/refunds`). Both are
@@ -32,7 +44,7 @@
 
 ## 1. Who this is between
 
-These terms are between **Sirketim A.Ş.** ("we", "us"), a company established in
+These terms are between **IGDIR İNŞAAT MADENCİLİK TUR. SAN. TİC. A.Ş.** ("we", "us"), a company established in
 Türkiye and the operator of **counterscent.com** ("the Site"), and the business
 that creates a producer account ("you"). They are a business-to-business
 agreement. The programme is not open to consumers and an account may not be
@@ -60,6 +72,11 @@ you do not control** — the Site already names a number of fragrance houses who
 products it links to and which have no relationship with us, and taking one of
 those identities is a misrepresentation of a real business, not a naming
 dispute. We enforce this technically as well as contractually.
+
+The person who opens the account must be **18 or over and authorised to act for
+the business**, and confirms both when creating the company record. That is a
+self-declaration recorded with the date of the terms it was given against; we do
+not ask for identity documents.
 
 ## 4. What you provide, and what we write
 
@@ -175,10 +192,12 @@ look at your submission and nothing about where it lands.
 
 ## 10. Removing a listing, and what we keep
 
-**You may take a listing down at any time.** How you do it depends on your plan:
-on a paid plan you withdraw it yourself from the console, and on the free plan
-you write to contact@counterscent.com and a person does it for you. We do not
-ask you for a reason either way, and we do not delay it.
+**You may take a listing down at any time, on any plan.** You withdraw it
+yourself from the console, or write to contact@counterscent.com and a person
+does it for you. We do not ask you for a reason and we do not delay it.
+(Until 2026-11-01 self-serve withdrawal was a paid feature; it was opened to the
+free plan because one click to publish and an email to unpublish is an
+obstruction, not a product tier.)
 
 Withdrawal takes the listing out of the catalogue at the next build and stops
 its link resolving.
@@ -230,7 +249,8 @@ set by the founder on 2026-09-24:
 > guarantee". The founder chose 14 after that was stated, so it is a decision
 > and not an oversight — but it is the most likely thing for a reviewer to come
 > back on, and whoever fields that reply should know. Changing it is one number
-> here and one in `app/refunds/page.tsx`.
+> here and two in `counterscent-producers/src/routes/refunds.ts` (English and
+> Turkish).
 
 If a payment fails, your listings above the free allowance stop being published
 at the next build. Your data is retained (§10) and republishes if you resume.
@@ -240,8 +260,13 @@ them, and may cancel instead.
 
 ## 12. Suspension and closing an account
 
-You can close your account whenever you like; your listings come down at the
-next build.
+You can close your account whenever you like, yourself, at
+`producers.counterscent.com/console/delete`. Deleting it erases your email
+address, name, sessions and sign-in methods immediately; if it was the last
+account on your company, your listings are withdrawn and the company's contact
+address is cleared. Listings and the record of changes are kept as described in
+§10. A company with a paid subscription in force must cancel it first, so that
+nothing keeps billing an account nobody can sign in to.
 
 We may suspend or close an account for a serious or repeated breach of these
 terms — in particular for misrepresenting whose product a listing is, for
@@ -260,9 +285,11 @@ protection law (KVKK). If you are established somewhere whose own law applies to
 this processing, the data-protection terms that law requires will be added
 before your account is opened rather than assumed away here.
 
-The Site itself is deliberately cookieless and its analytics do not identify
-visitors. That is a property of the public catalogue, not a promise about the
-producer console, which necessarily knows who is signed in.
+The public catalogue sets no cookies of its own and runs analytics only with a
+visitor's consent; the producer console uses only the cookies needed to keep you
+signed in. Both are described in the cookie policy (`/cookies`) and the privacy
+notice (`/privacy`, Turkish `/tr/gizlilik`). Sign-in emails are transactional;
+we send no marketing email, and if that ever changes it will be opt-in only.
 
 ## 14. What we do not promise
 

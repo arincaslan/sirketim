@@ -269,14 +269,64 @@ export const SIGN_IN_GLOBAL_KEY = "signin-send:global";
 export const VERIFY_WINDOW_SECONDS = 600;
 export const VERIFY_MAX_ATTEMPTS = 20;
 
-export function verifyIpKey(request: Request): string {
-  const ip = request.headers.get("CF-Connecting-IP")?.trim();
-  return `verify-ip:${ip || "unknown"}`;
+export async function verifyIpKey(request: Request, env: { DATABASE_URL?: string }): Promise<string> {
+  return ipBucketKey("verify-ip", request, env);
 }
 
-export function signInIpKey(request: Request): string {
+export async function signInIpKey(request: Request, env: { DATABASE_URL?: string }): Promise<string> {
+  return ipBucketKey("signin-ip", request, env);
+}
+
+/**
+ * THE NETWORK ADDRESS NEVER REACHES THE DATABASE IN THE CLEAR - 2026-11-01.
+ *
+ * Until this date every per-IP bucket was keyed `signin-ip:203.0.113.7`, so the
+ * RateLimit table held a list of every client address that had touched an
+ * unauthenticated endpoint in the last 48 hours. That is personal data under
+ * KVKK and the GDPR, and storing it in the clear bought nothing: a bucket only
+ * has to tell two addresses APART, never say what either one was. So the key is
+ * now `<prefix>:<hmac>` - the same address always lands in the same bucket,
+ * which is all the limiter needs, and nobody reading the table can recover it.
+ *
+ * KEYED, NOT A PLAIN SHA-256. The whole IPv4 space is 2^32 addresses, so an
+ * unkeyed hash of one is reversed by trying them all in minutes; it would be
+ * the look of pseudonymisation without the substance. An HMAC needs a secret,
+ * and the pepper used here is derived from DATABASE_URL: a value that is always
+ * set wherever this code can write a counter at all (no database, no limiter),
+ * that is a Worker secret and never in this public repository, and whose loss
+ * of secrecy would already be a far worse incident than reversing an IP.
+ * A dedicated secret would be tidier and needs a founder step to set; this
+ * needs none. If DATABASE_URL is rotated the buckets reset, which is harmless:
+ * the longest window is 24 hours and the rows are swept after 48.
+ *
+ * THE "unknown" BUCKET IS KEPT LITERAL, because it is not an address - it is
+ * the shared fail-closed bucket described above, and hashing it would only
+ * make that case harder to recognise in the table.
+ *
+ * The privacy notice (catalogue app/privacy and app/tr/gizlilik) states that
+ * addresses are stored only as a one-way hash and deleted within 48 hours.
+ * Both halves of that sentence are this function and sweepRateLimits().
+ */
+export async function ipBucketKey(
+  prefix: string,
+  request: Request,
+  env: { DATABASE_URL?: string },
+): Promise<string> {
   const ip = request.headers.get("CF-Connecting-IP")?.trim();
-  return `signin-ip:${ip || "unknown"}`;
+  if (!ip) return `${prefix}:unknown`;
+  const enc = new TextEncoder();
+  const pepper = await crypto.subtle.digest(
+    "SHA-256",
+    enc.encode(`counterscent-ip-pepper:${env.DATABASE_URL ?? ""}`),
+  );
+  const key = await crypto.subtle.importKey("raw", pepper, { name: "HMAC", hash: "SHA-256" }, false, [
+    "sign",
+  ]);
+  const mac = await crypto.subtle.sign("HMAC", key, enc.encode(`${prefix}:${ip}`));
+  const hex = Array.from(new Uint8Array(mac))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `${prefix}:${hex}`;
 }
 
 /* ---------------------------------------------------------------------- *

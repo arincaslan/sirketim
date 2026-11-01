@@ -71,7 +71,7 @@ export async function verify(request: Request, env: Env): Promise<Response> {
   // POST /sign-in and the OAuth callback - an unreadable limiter on an
   // unauthenticated endpoint is exactly when waving traffic through is worst.
   const limit = await bumpRateLimit(sql, {
-    key: verifyIpKey(request),
+    key: await verifyIpKey(request, env),
     windowSeconds: VERIFY_WINDOW_SECONDS,
     limit: VERIFY_MAX_ATTEMPTS,
   });

@@ -610,6 +610,49 @@ export function field(opts: {
   </div>`;
 }
 
+/**
+ * One required confirmation, as a real checkbox with its sentence as the label.
+ *
+ * ADDED 2026-11-01 for the two confirmations the legal pass needed: that the
+ * person creating a company is an adult authorised to act for it, and that a
+ * person deleting their account understands what goes and what stays. Its own
+ * class (`.check-field`) rather than `.field`, because `.field input` sets
+ * width 100% and a frame on every input, which would draw a checkbox as a text
+ * box. The label wraps the control, so the whole sentence is the hit target
+ * rather than an 18px square, and `required` lets the browser refuse an empty
+ * submit before the server has to.
+ *
+ * NEVER PRE-TICKED. The value is only ever re-checked when the reader ticked it
+ * themselves on a previous attempt; a pre-ticked confirmation proves nothing
+ * and is exactly the dark pattern this pass removed elsewhere.
+ */
+export function checkboxField(opts: {
+  name: string;
+  label: Html;
+  checked?: boolean;
+  error?: string;
+  hint?: Html;
+}): Html {
+  const id = "f-" + opts.name;
+  return html`<div class="check-field">
+    <label for="${id}">
+      <input
+        id="${id}"
+        name="${opts.name}"
+        type="checkbox"
+        value="yes"
+        required
+        ${opts.checked ? "checked" : ""}
+        ${opts.error ? raw(`aria-invalid="true"`) : ""}
+        aria-describedby="${describedBy(id, opts.error)}"
+      >
+      <span>${opts.label}</span>
+    </label>
+    ${fieldError(id, opts.error)}
+    <p class="field-hint" id="${id}-hint">${opts.hint ?? ""}</p>
+  </div>`;
+}
+
 /** Several sentences of prose, which is what "what is genuinely different"
  *  and an ingredient list both are. */
 export function textareaField(opts: {

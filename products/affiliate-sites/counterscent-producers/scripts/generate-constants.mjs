@@ -57,6 +57,7 @@ const CATALOGUE = path.resolve(PROJECT, "..", "fragrance-dupes");
 const HOUSES_DIR = path.join(CATALOGUE, "lib", "data", "houses");
 const PLANS_FILE = path.join(CATALOGUE, "lib", "plans.ts");
 const LINK_FILE = path.join(CATALOGUE, "lib", "producer-link.ts");
+const SITE_FILE = path.join(CATALOGUE, "lib", "site.ts");
 const OUT_DIR = path.join(PROJECT, "src", "generated");
 
 const CHECK = process.argv.includes("--check");
@@ -300,6 +301,28 @@ function readNetworkHosts() {
   return hosts;
 }
 
+/**
+ * The registered company name, read off the catalogue's lib/site.ts.
+ *
+ * ADDED 2026-11-01 with the legal-compliance pass. The terms, the privacy
+ * notice, this origin's refund policy, its footer and the sign-in email all
+ * name the contracting party, and the first draft of that change hand-copied
+ * the string into src/lib/legal.ts - a second copy of a value whose whole
+ * point is that it is spelled exactly one way. Generated instead, so a
+ * correction to the unvan in one place reaches both origins.
+ */
+function readLegal() {
+  const mod = evaluateModule(SITE_FILE);
+  const entity = mod.LEGAL_ENTITY;
+  if (typeof entity !== "string" || entity.trim().length < 5) {
+    fail(`lib/site.ts LEGAL_ENTITY is missing or implausibly short`);
+  }
+  if (!/A\.Ş\.|A\.S\./.test(entity)) {
+    fail(`lib/site.ts LEGAL_ENTITY "${entity}" does not end in a company form (A.Ş.)`);
+  }
+  return { entity };
+}
+
 /* ---------------------------------------------------------------------- *
  * Emitting
  * ---------------------------------------------------------------------- */
@@ -317,7 +340,7 @@ function readNetworkHosts() {
  * name reads as "now" and the value is a constant. Bump it when you change what
  * the generator emits.
  */
-const GENERATED_ON = "2026-09-18";
+const GENERATED_ON = "2026-11-01";
 const COMMAND = "npm run generate";
 
 /** THE HOUSE STYLE IS WRITTEN HERE, NOT COPIED THROUGH FROM THE SOURCE.
@@ -524,6 +547,26 @@ function buildHostsFile(hosts) {
   ].join("\n");
 }
 
+function buildLegalFile({ entity }) {
+  return [
+    header([
+      "GENERATED FILE. DO NOT EDIT BY HAND.",
+      "",
+      `Produced by scripts/generate-constants.mjs on ${GENERATED_ON}.`,
+      `Regenerate with \`${COMMAND}\`.`,
+      "",
+      "SOURCE: LEGAL_ENTITY in products/affiliate-sites/fragrance-dupes/lib/site.ts.",
+      "",
+      "The registered name of the company that operates Counterscent, exactly as",
+      "registered. Every policy on both origins names it as the contracting party,",
+      "so it must be spelled one way everywhere; src/lib/legal.ts re-exports it.",
+    ]),
+    "",
+    `export const LEGAL_ENTITY = ${lit(entity)};`,
+    "",
+  ].join("\n");
+}
+
 /* ---------------------------------------------------------------------- *
  * Run
  * ---------------------------------------------------------------------- */
@@ -532,11 +575,13 @@ function main() {
   const cat = readCatalogue();
   const plans = readPlans();
   const hosts = readNetworkHosts();
+  const legal = readLegal();
 
   const outputs = {
     "catalogue.ts": buildCatalogueFile(cat),
     "plans.ts": buildPlansFile(plans),
     "network-hosts.ts": buildHostsFile(hosts),
+    "legal.ts": buildLegalFile(legal),
   };
 
   // THE HOUSE RULE, ENFORCED AT THE GENERATOR RATHER THAN TRUSTED. src/ and
@@ -594,6 +639,7 @@ function main() {
   console.log(`  plans               ${plans.plans.length}`);
   console.log(`  never-included      ${plans.never.length}`);
   console.log(`  network hosts       ${hosts.length}`);
+  console.log(`  legal entity        ${legal.entity}`);
 }
 
 /** Line endings are not the change anyone means. Most files in this repo are

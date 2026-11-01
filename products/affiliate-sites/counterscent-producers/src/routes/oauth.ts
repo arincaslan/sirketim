@@ -56,7 +56,7 @@ import {
 import { PROVIDERS, type ProviderId } from "../lib/providers";
 import { linkProviderToUser, resolveSignIn } from "../lib/oauth-account";
 import { createSession, getAuthContext, setSessionCookieHeader } from "../lib/auth";
-import { bumpRateLimit } from "../lib/rate-limit";
+import { bumpRateLimit, ipBucketKey } from "../lib/rate-limit";
 
 /**
  * The callback's own IP bucket, separate from the magic link's.
@@ -75,9 +75,10 @@ import { bumpRateLimit } from "../lib/rate-limit";
 const CALLBACK_WINDOW_SECONDS = 600;
 const CALLBACK_MAX = 20;
 
-function callbackIpKey(request: Request): string {
-  const ip = request.headers.get("CF-Connecting-IP")?.trim();
-  return "oauth-callback-ip:" + (ip || "unknown");
+/** Hashed like every other IP bucket - see ipBucketKey() in lib/rate-limit.ts
+ *  for why the address never reaches the RateLimit table in the clear. */
+function callbackIpKey(request: Request, env: Env): Promise<string> {
+  return ipBucketKey("oauth-callback-ip", request, env);
 }
 
 /* ---------------------------------------------------------------------- *
@@ -153,7 +154,7 @@ export async function oauthCallback(request: Request, env: Env, providerId: Prov
   if (!sql) return unavailable(clear);
 
   const limit = await bumpRateLimit(sql, {
-    key: callbackIpKey(request),
+    key: await callbackIpKey(request, env),
     windowSeconds: CALLBACK_WINDOW_SECONDS,
     limit: CALLBACK_MAX,
   });

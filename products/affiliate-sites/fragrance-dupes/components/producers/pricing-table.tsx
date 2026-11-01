@@ -93,8 +93,10 @@ export function PricingTable() {
           })}
         </div>
         <p className="text-xs text-muted-foreground">
-          Yearly bills once and works out cheaper. Cancel any time; your listings stay live to the
-          end of the period you paid for.
+          Yearly bills once and works out cheaper. Paid plans renew automatically until you cancel;
+          cancel any time and your listings stay live to the end of the period you paid for. Prices
+          are in US dollars and exclude sales tax or VAT, which our payment provider adds according
+          to where you are and shows you before you pay. There are no setup or other fees.
         </p>
       </div>
 
@@ -115,9 +117,13 @@ export function PricingTable() {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-display text-xl">{plan.name}</h3>
+                  {/* Said "Most producers" until 2026-11-01. No producer has ever
+                      paid for any plan, so that was invented social proof on a
+                      page asking for money. "Our suggestion" says whose view it
+                      is. */}
                   {plan.highlighted && (
                     <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
-                      Most producers
+                      Our suggestion
                     </span>
                   )}
                 </div>

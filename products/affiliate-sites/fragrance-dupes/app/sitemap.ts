@@ -40,6 +40,12 @@ const STATIC_ROUTES: Array<{ path: string; priority: number }> = [
   { path: "/disclosure", priority: 0.4 },
   { path: "/privacy", priority: 0.3 },
   { path: "/terms", priority: 0.3 },
+  { path: "/cookies", priority: 0.3 },
+  // The Turkish legal texts (2026-11-01). Listed like their English
+  // counterparts: each pair declares the other with hreflang in its metadata.
+  { path: "/tr/gizlilik", priority: 0.3 },
+  { path: "/tr/kullanim-kosullari", priority: 0.3 },
+  { path: "/tr/cerez-politikasi", priority: 0.3 },
   { path: "/contact", priority: 0.3 },
 ];
 

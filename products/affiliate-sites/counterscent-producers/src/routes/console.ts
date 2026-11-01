@@ -942,9 +942,9 @@ function exhaustedAllowance(allowance: number, tier: string | null): Html {
           ${mayWithdrawSelf(tier)
             ? html`Withdrawing a listing frees its slot, and the control is in the listing's own
                 row.`
-            : html`Withdrawing frees a slot, but doing it yourself is a paid feature - on this
-                plan, <a href="mailto:contact@counterscent.com">write to us</a> and a person
-                takes it down.`}
+            : html`Withdrawing frees a slot. Your account records a plan this console does not
+                recognise, so <a href="mailto:contact@counterscent.com">write to us</a> and a
+                person takes it down.`}
           A withdrawn listing keeps its record and its click history; withdrawal is a change of
           state, never a deletion.
         </p>
