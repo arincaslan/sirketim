@@ -63,6 +63,27 @@
       "retiredOn": "2026-11-02",
       "redirectTo": "/fragrance/sauvage/",
       "reason": "rank-guides score 20 (in 0, cat 6, sole 3, intent yes)"
+    },
+    {
+      "slug": "lost-cherry-alternatives",
+      "title": "Lost Cherry Alternatives: Sour, Bitter or Jam? What to Look For",
+      "retiredOn": "2026-11-09",
+      "redirectTo": "/fragrance/lost-cherry/",
+      "reason": "rank-guides score 14 (in 0, cat 4, sole 1, intent yes)"
+    },
+    {
+      "slug": "tobacco-vanille-alternatives",
+      "title": "Tobacco Vanille Alternatives: What a Cheaper Tobacco-Vanilla Keeps and Drops",
+      "retiredOn": "2026-11-09",
+      "redirectTo": "/fragrance/tobacco-vanille/",
+      "reason": "rank-guides score 14 (in 0, cat 4, sole 1, intent yes)"
+    },
+    {
+      "slug": "oud-for-greatness-alternatives",
+      "title": "Initio Oud for Greatness Alternatives: Two Listings, Two Takes on the Same Oud",
+      "retiredOn": "2026-11-09",
+      "redirectTo": "/fragrance/oud-for-greatness/",
+      "reason": "rank-guides score 16 (in 0, cat 4, sole 2, intent yes)"
     }
   ]
 }
