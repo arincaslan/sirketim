@@ -84,6 +84,27 @@
       "retiredOn": "2026-11-09",
       "redirectTo": "/fragrance/oud-for-greatness/",
       "reason": "rank-guides score 16 (in 0, cat 4, sole 2, intent yes)"
+    },
+    {
+      "slug": "velvet-orchid-alternatives",
+      "title": "Tom Ford Velvet Orchid Alternatives: A Boozy Floral, and What a Denser Copy Changes",
+      "retiredOn": "2026-11-16",
+      "redirectTo": "/fragrance/velvet-orchid/",
+      "reason": "rank-guides score 14 (in 0, cat 4, sole 1, intent yes)"
+    },
+    {
+      "slug": "virgin-island-water-alternatives",
+      "title": "Creed Virgin Island Water Alternatives: Coconut, Lime and Rum, Reproduced for Less",
+      "retiredOn": "2026-11-16",
+      "redirectTo": "/fragrance/virgin-island-water/",
+      "reason": "rank-guides score 14 (in 0, cat 4, sole 1, intent yes)"
+    },
+    {
+      "slug": "tuscan-leather-alternatives",
+      "title": "Tom Ford Tuscan Leather Alternatives: The Raspberry Is the Hard Part",
+      "retiredOn": "2026-11-16",
+      "redirectTo": "/fragrance/tuscan-leather/",
+      "reason": "rank-guides score 16 (in 0, cat 4, sole 2, intent yes)"
     }
   ]
 }
