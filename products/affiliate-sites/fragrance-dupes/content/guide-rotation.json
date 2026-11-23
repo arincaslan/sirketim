@@ -105,6 +105,27 @@
       "retiredOn": "2026-11-16",
       "redirectTo": "/fragrance/tuscan-leather/",
       "reason": "rank-guides score 16 (in 0, cat 4, sole 2, intent yes)"
+    },
+    {
+      "slug": "terre-dhermes-alternatives",
+      "title": "Terre d'Hermès Alternatives: What a Cheaper Flint-and-Citrus Woody Keeps and Drops",
+      "retiredOn": "2026-11-23",
+      "redirectTo": "/fragrance/terre-dhermes/",
+      "reason": "rank-guides score 12 (in 0, cat 4, sole 0)"
+    },
+    {
+      "slug": "santal-33-alternatives",
+      "title": "Le Labo Santal 33 Alternatives: What a Cheaper Sandalwood-and-Leather Scent Keeps",
+      "retiredOn": "2026-11-23",
+      "redirectTo": "/fragrance/santal-33/",
+      "reason": "rank-guides score 14 (in 0, cat 4, sole 1)"
+    },
+    {
+      "slug": "wood-sage-sea-salt-alternatives",
+      "title": "Jo Malone Wood Sage & Sea Salt Alternatives: What a Quiet Coastal Scent Leaves to Copy",
+      "retiredOn": "2026-11-23",
+      "redirectTo": "/fragrance/wood-sage-sea-salt/",
+      "reason": "rank-guides score 14 (in 0, cat 4, sole 1)"
     }
   ]
 }
